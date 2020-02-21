@@ -1,0 +1,15 @@
+package rules;
+dialect  "mvel"
+
+import pingpong.rulebase.Count;
+import pingpong.rulebase.CommandPublisher
+import pingpong.utils.SpringContext;
+
+rule "increment"
+    when
+        Count( )
+    then
+        System.out.println("Hello there from the KB!!");
+        CommandPublisher pub = SpringContext.getBean(CommandPublisher.class);
+        pub.publish();
+end

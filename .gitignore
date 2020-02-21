@@ -1,0 +1,9 @@
+# Data
+*.db
+
+# Built
+target/
+
+# Intellij
+.idea
+*.iml
