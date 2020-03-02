@@ -1,4 +1,4 @@
-package pingpong.query.history;
+package pingpong.query.snapshot;//package pingpong.query.history;
 
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
@@ -17,11 +17,14 @@ public class CLITool {
             case "store":
                 completableFuture.complete(Action.STORE);
                 break;
+            case "stop":
+                completableFuture.complete(Action.STOP);
+                break;
             default:
                 completableFuture.complete(Action.ERROR);
         }
         return completableFuture;
     }
 
-    enum Action {STORE, STEP, ERROR};
+    enum Action {STORE, STEP, STOP, ERROR};
 }

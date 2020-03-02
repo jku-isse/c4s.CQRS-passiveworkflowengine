@@ -1,5 +1,6 @@
 package pingpong.ui;
 
+import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryGateway;
 import pingpong.api.*;
 import com.vaadin.annotations.Push;
@@ -11,28 +12,26 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+import pingpong.query.snapshot.Snapshotter;
 import pingpong.utils.Replayer;
 
 import java.lang.invoke.MethodHandles;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @SpringUI
 @Push
 @Profile("ui")
+@RequiredArgsConstructor
 public class WebUI extends UI {
 
     private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
-    private Replayer replayer;
-
-    public WebUI(CommandGateway commandGateway, QueryGateway queryGateway, Replayer replayer) {
-        this.commandGateway = commandGateway;
-        this.queryGateway = queryGateway;
-        this.replayer = replayer;
-    }
+    private final Snapshotter snapshotter;
+    private final Replayer replayer;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -95,7 +94,8 @@ public class WebUI extends UI {
         Button query = new Button("Query");
 
         query.addClickListener(evt -> {
-            CompletableFuture<FindResponse> val = queryGateway.query(new FindHistoryQuery(id.getValue()), FindResponse.class);
+//            CompletableFuture<FindResponse> val = queryGateway.query(new FindLiveQuery(id.getValue()), FindResponse.class);
+            snapshotter.replayEventsUntil(Instant.parse("2020-02-18T13:31:00.00Z"));
         });
 
         FormLayout form = new FormLayout();

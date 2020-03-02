@@ -15,7 +15,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Aggregate
 @Profile("command")
-public class PingPong {
+public class Counter {
 
     private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -23,14 +23,14 @@ public class PingPong {
     private String id;
     private int count;
 
-    public PingPong() {
+    public Counter() {
         log.debug("empty constructor invoked");
     }
 
     // Command Handlers
 
     @CommandHandler
-    public PingPong(CreateCmd cmd) {
+    public Counter(CreateCmd cmd) {
         log.debug("handling {}", cmd);
         apply(new CreatedEvt(cmd.getId(), cmd.getAmount()));
     }
