@@ -38,10 +38,11 @@ public class WebUI extends UI {
         Panel commandPanel = commandPanel();
         Panel replayPanel = replayPanel();
         Panel queryPanel = queryPanel();
+        Panel snapshotPanel = snapshot();
 
         HorizontalLayout panels = new HorizontalLayout();
         panels.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-        panels.addComponents(commandPanel, queryPanel, replayPanel);
+        panels.addComponents(commandPanel, queryPanel, replayPanel, snapshotPanel);
         panels.setSizeFull();
 
         setContent(panels);
@@ -94,8 +95,12 @@ public class WebUI extends UI {
         Button query = new Button("Query");
 
         query.addClickListener(evt -> {
-//            CompletableFuture<FindResponse> val = queryGateway.query(new FindLiveQuery(id.getValue()), FindResponse.class);
-            snapshotter.replayEventsUntil(Instant.parse("2020-02-18T13:31:00.00Z"));
+            CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
+            try {
+                Notification.show(String.valueOf(val.get().getAmount()), Notification.Type.HUMANIZED_MESSAGE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
 
         FormLayout form = new FormLayout();
@@ -107,25 +112,35 @@ public class WebUI extends UI {
         return panel;
     }
 
-    private Panel replayPanel() {
+    private Panel snapshot() {
         TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
         snapshotTimestamp.setValue("2020-02-18T13:31:00.00Z");
         snapshotTimestamp.setWidth("300px");
-        RadioButtonGroup<String> single = new RadioButtonGroup<>("Select Projection");
-        single.setItems("live", "history");
-        Button replay = new Button("Start Replay");
 
+        Button snapshot = new Button("Snapshot");
+
+        snapshot.addClickListener(evt -> {
+            snapshotter.replayEventsUntil(Instant.parse("2020-02-18T13:31:00.00Z"));
+        });
+
+        FormLayout form = new FormLayout();
+        form.addComponents(snapshotTimestamp, snapshot);
+        form.setMargin(true);
+
+        Panel panel = new Panel("Make Snapshot");
+        panel.setContent(form);
+        return panel;
+    }
+
+    private Panel replayPanel() {
+        Button replay = new Button("Start Replay");
         replay.addClickListener(evt -> {
-            if (single.getValue().equals("live")) {
-                replayer.replay("live", snapshotTimestamp.getValue());
-            } else {
-                replayer.replay("history", snapshotTimestamp.getValue());
-            }
+            replayer.replay("live");
             Notification.show("Replaying..", Notification.Type.HUMANIZED_MESSAGE);
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(snapshotTimestamp, single, replay);
+        form.addComponents(replay);
         form.setMargin(true);
 
         Panel panel = new Panel("Replaying");

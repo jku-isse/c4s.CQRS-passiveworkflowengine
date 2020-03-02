@@ -38,6 +38,10 @@ public class CounterModel {
         instance.db.put(id, instance.db.get(id) - amount);
     }
 
+    public int getCountOf(String id) {
+        return db.get(id);
+    }
+
     public void reset() {
         instance.db = new HashMap<>();
     }

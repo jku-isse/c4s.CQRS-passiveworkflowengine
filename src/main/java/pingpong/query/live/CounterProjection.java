@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import pingpong.api.*;
 import pingpong.query.CounterModel;
 import pingpong.query.snapshot.MyEventHandler;
-import pingpong.query.snapshot.Snapshotter;
 import pingpong.rulebase.RuleEvaluation;
 
 import java.time.Instant;
@@ -51,10 +50,11 @@ public class CounterProjection {
     }
 
     @QueryHandler
-    public FindResponse handle(FindLiveQuery query) {
+    public FindResponse handle(FindQuery query) {
         log.debug("handle (live) {}", query);
         model.print(); // TODO remove
-        return null; // TODO fix
+        String id = query.getId();
+        return new FindResponse(id, model.getCountOf(id));
     }
 
     @ResetHandler
