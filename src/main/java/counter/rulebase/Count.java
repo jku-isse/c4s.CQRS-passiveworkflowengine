@@ -1,4 +1,4 @@
-package pingpong.rulebase;
+package counter.rulebase;
 
 public class Count {
 

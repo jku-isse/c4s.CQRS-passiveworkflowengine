@@ -1,8 +1,8 @@
-package pingpong.ui;
+package counter.ui;
 
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryGateway;
-import pingpong.api.*;
+import counter.api.*;
 import com.vaadin.annotations.Push;
 import com.vaadin.server.DefaultErrorHandler;
 import com.vaadin.server.VaadinRequest;
@@ -12,13 +12,12 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
-import pingpong.query.snapshot.Snapshotter;
-import pingpong.utils.Replayer;
+import counter.query.snapshot.Snapshotter;
+import counter.utils.Replayer;
 
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @SpringUI
 @Push
@@ -40,12 +39,20 @@ public class WebUI extends UI {
         Panel queryPanel = queryPanel();
         Panel snapshotPanel = snapshot();
 
-        HorizontalLayout panels = new HorizontalLayout();
-        panels.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-        panels.addComponents(commandPanel, queryPanel, replayPanel, snapshotPanel);
-        panels.setSizeFull();
+        HorizontalLayout panels12 = new HorizontalLayout();
+        panels12.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+        panels12.addComponents(commandPanel, queryPanel);
+        panels12.setSizeFull();
 
-        setContent(panels);
+        HorizontalLayout panels34 = new HorizontalLayout();
+        panels34.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+        panels34.addComponents(replayPanel, snapshotPanel);
+        panels34.setSizeFull();
+
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.addComponents(panels12, panels34);
+
+        setContent(verticalLayout);
 
         UI.getCurrent().setErrorHandler(new DefaultErrorHandler() {
             @Override
@@ -115,7 +122,7 @@ public class WebUI extends UI {
     private Panel snapshot() {
         TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
         snapshotTimestamp.setValue("2020-02-18T13:31:00.00Z");
-        snapshotTimestamp.setWidth("300px");
+        snapshotTimestamp.setWidth("210px");
 
         Button snapshot = new Button("Snapshot");
 
@@ -135,7 +142,7 @@ public class WebUI extends UI {
     private Panel replayPanel() {
         Button replay = new Button("Start Replay");
         replay.addClickListener(evt -> {
-            replayer.replay("live");
+            replayer.replay("projection");
             Notification.show("Replaying..", Notification.Type.HUMANIZED_MESSAGE);
         });
 

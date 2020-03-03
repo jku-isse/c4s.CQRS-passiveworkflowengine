@@ -1,4 +1,4 @@
-package pingpong.api
+package counter.api
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 

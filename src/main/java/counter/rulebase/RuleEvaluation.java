@@ -1,4 +1,4 @@
-package pingpong.rulebase;
+package counter.rulebase;
 
 import org.kie.api.runtime.KieSession;
 
