@@ -3,7 +3,7 @@ package counter.query.snapshot;//package pingpong.query.history;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
-public class CLITool {
+public class CLTool {
 
     public CompletableFuture<Action> readAction() {
         Scanner scanner = new Scanner(System.in);

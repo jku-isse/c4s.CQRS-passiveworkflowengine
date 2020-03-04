@@ -4,6 +4,7 @@ import lombok.extern.slf4j.XSlf4j;
 import counter.api.CreatedEvt;
 import counter.api.DecreasedEvt;
 import counter.api.IncreasedEvt;
+import org.axonframework.eventhandling.TrackedEventMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,19 @@ public class CounterModel {
 
     public void handle(DecreasedEvt event) {
         model.put(event.getId(), model.get(event.getId()) - event.getAmount());
+    }
+
+    public void handle(TrackedEventMessage<?> message) {
+        Object payload = message.getPayload();
+        if (payload instanceof CreatedEvt) {
+            handle((CreatedEvt)payload);
+        } else if (payload instanceof IncreasedEvt) {
+            handle((IncreasedEvt)payload);
+        } else if (payload instanceof DecreasedEvt) {
+            handle((DecreasedEvt)payload);
+        } else {
+            log.error("unknown event: {}", payload.getClass().getSimpleName());
+        }
     }
 
     public int getCountOf(String id) {

@@ -121,13 +121,13 @@ public class WebUI extends UI {
 
     private Panel snapshot() {
         TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
-        snapshotTimestamp.setValue("2020-02-18T13:31:00.00Z");
+        snapshotTimestamp.setValue("2020-03-04T07:23:00.00Z");
         snapshotTimestamp.setWidth("210px");
 
         Button snapshot = new Button("Snapshot");
 
         snapshot.addClickListener(evt -> {
-            snapshotter.replayEventsUntil(Instant.parse("2020-02-18T13:31:00.00Z"));
+            snapshotter.replayEventsUntil(Instant.parse(snapshotTimestamp.getValue()));
         });
 
         FormLayout form = new FormLayout();

@@ -1,5 +1,6 @@
 package counter.rulebase;
 
+import counter.api.IncreaseCmd;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.context.annotation.Profile;
@@ -14,6 +15,6 @@ public class CommandPublisher {
     private final CommandGateway commandGateway;
 
     public void publish() {
-        commandGateway.sendAndWait(new DecreaseCmd("187", 1));
+        commandGateway.sendAndWait(new DecreaseCmd("1", 1));
     }
 }

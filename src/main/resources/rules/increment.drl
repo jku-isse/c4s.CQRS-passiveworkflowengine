@@ -1,9 +1,9 @@
 package rules;
 dialect  "mvel"
 
-import pingpong.rulebase.Count;
-import pingpong.rulebase.CommandPublisher
-import pingpong.utils.SpringContext;
+import counter.rulebase.Count;
+import counter.rulebase.CommandPublisher
+import counter.utils.SpringContext;
 
 rule "increment"
     when
