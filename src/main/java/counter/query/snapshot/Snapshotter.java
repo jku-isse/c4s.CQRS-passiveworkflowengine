@@ -24,26 +24,20 @@ public class Snapshotter {
     private int sequenceNumber = 0;
 
     public void replayEventsUntil(Instant timestamp) {
-        ReplayRunnable r = getReplayRunnable();
-        r.init(++sequenceNumber, timestamp);
+        ReplayRunnable r = new ReplayRunnable(eventStore, ++sequenceNumber, timestamp);
         new Thread(r).start();
     }
 
-    private ReplayRunnable getReplayRunnable() {
-        return new ReplayRunnable(eventStore);
-    }
-
-    @RequiredArgsConstructor
     public static class ReplayRunnable implements Runnable {
 
         private final EventStore eventStore;
-
-        private CLTool cli;
-        private int id;
-        private Instant timestamp;
+        private final int id;
+        private final Instant timestamp;
+        private final CLTool cli;
         private CounterModel model;
 
-        public void init(int id, Instant timestamp) {
+        public ReplayRunnable(EventStore eventStore, int id, Instant timestamp) {
+            this.eventStore = eventStore;
             this.id = id;
             this.timestamp = timestamp;
             this.model = new CounterModel();
@@ -53,6 +47,7 @@ public class Snapshotter {
         @Override
         public void run() {
             eventStore.openStream(null).asStream().forEach(m -> {
+                model.handle(m);
                 if (m.getTimestamp().isAfter(timestamp)) {
                     log.info(String.valueOf(id));
                     CompletableFuture<CLTool.Action> completableFuture = cli.readAction();
@@ -76,9 +71,8 @@ public class Snapshotter {
                             // do nothing
                             break;
                         default:
-                            log.error("Snapshotter received invalid action: {}", action);
+                            log.error("Replay received invalid action: {}", action);
                     }
-                    model.handle(m);
                 }
             });
         }
