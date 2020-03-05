@@ -4,4 +4,4 @@ Use Axons CQRS-architecture and event sourcing to be able to get old states of t
 
 Toyproject with a simple counter-aggregate.
 
-![](architecture.png)
+![Architecture](architecture.png)
