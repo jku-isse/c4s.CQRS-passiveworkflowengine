@@ -15,6 +15,6 @@ public class CommandPublisher {
     private final CommandGateway commandGateway;
 
     public void publish() {
-        commandGateway.sendAndWait(new DecreaseCmd("1", 1));
+        commandGateway.send(new DecreaseCmd("1", 1));
     }
 }

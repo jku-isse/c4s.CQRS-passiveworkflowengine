@@ -42,6 +42,8 @@ public class Counter {
     public void handle(IncreaseCmd cmd) {
         log.debug("handling {}", cmd);
         apply(new IncreasedEvt(cmd.getId(), cmd.getAmount()));
+        // trigger rule in rule engine
+        re.insertAndFire();
     }
 
     @CommandHandler
@@ -63,8 +65,6 @@ public class Counter {
     public void on(IncreasedEvt evt) {
         count += evt.getAmount();
         log.debug("applying {}, new count: {}", evt, count);
-        // trigger rule in rule engine
-        re.insertAndFire();
     }
 
     @EventSourcingHandler
