@@ -16,7 +16,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Aggregate
 @Profile("command")
-public class Counter {
+public class Workflow {
 
     private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -26,14 +26,14 @@ public class Counter {
     private String id;
     private int count;
 
-    public Counter() {
+    public Workflow() {
         log.debug("empty constructor invoked");
     }
 
     // Command Handlers
 
     @CommandHandler
-    public Counter(CreateCmd cmd) {
+    public Workflow(CreateCmd cmd) {
         log.debug("handling {}", cmd);
         apply(new CreatedEvt(cmd.getId(), cmd.getAmount()));
     }
