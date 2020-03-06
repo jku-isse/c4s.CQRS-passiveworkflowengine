@@ -1,6 +1,12 @@
 package counter.command;
 
 import counter.api.*;
+import counter.workflowmodel.AbstractWorkflowInstanceObject;
+import counter.workflowmodel.TaskStateTransitionEvent;
+import counter.workflowmodel.TaskStateTransitionEventPublisher;
+import counter.workflowmodel.WorkflowInstance;
+import counter.workflowmodel.definition.WPManagementWorkflow;
+import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -11,65 +17,56 @@ import org.springframework.context.annotation.Profile;
 import counter.rulebase.RuleEvaluation;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Aggregate
 @Profile("command")
+@XSlf4j
 public class Workflow {
-
-    private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-    private final RuleEvaluation re = new RuleEvaluation();
 
     @AggregateIdentifier
     private String id;
-    private int count;
+    private WorkflowInstance wfi;
+    private List<AbstractWorkflowInstanceObject> awos;
 
     public Workflow() {
         log.debug("empty constructor invoked");
     }
 
+
     // Command Handlers
 
     @CommandHandler
-    public Workflow(CreateCmd cmd) {
+    public Workflow(CreateWorkflowCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new CreatedEvt(cmd.getId(), cmd.getAmount()));
+        apply(new CreatedWorkflowEvt(cmd.getId()));
     }
 
     @CommandHandler
-    public void handle(IncreaseCmd cmd) {
+    public void handle(EnableCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new IncreasedEvt(cmd.getId(), cmd.getAmount()));
-        // trigger rule in rule engine
-        re.insertAndFire();
+        apply(new EnabledEvt(cmd.getId()));
     }
 
-    @CommandHandler
-    public void handle(DecreaseCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new DecreasedEvt(cmd.getId(), cmd.getAmount()));
-    }
 
     // Event Handlers
 
     @EventSourcingHandler
-    public void on(CreatedEvt evt) {
+    public void on(CreatedWorkflowEvt evt) {
+        log.debug("applying {}", evt);
         id = evt.getId();
-        count = evt.getAmount();
-        log.debug("applying {}, new count: {}", evt, count);
+        WPManagementWorkflow workflow = new WPManagementWorkflow();
+        workflow.initWorkflowSpecification();
+        workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
+        wfi = workflow.createInstance(id);
     }
 
     @EventSourcingHandler
-    public void on(IncreasedEvt evt) {
-        count += evt.getAmount();
-        log.debug("applying {}, new count: {}", evt, count);
+    public void on(EnabledEvt evt) {
+        log.debug("applying {}", evt);
+        awos = wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    @EventSourcingHandler
-    public void on(DecreasedEvt evt) {
-        count -= evt.getAmount();
-        log.debug("applying {}, new count: {}", evt, count);
-    }
 }

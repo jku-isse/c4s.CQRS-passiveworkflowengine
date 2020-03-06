@@ -68,28 +68,28 @@ public class WebUI extends UI {
 
     private Panel commandPanel() {
         TextField id = new TextField("ID");
-        TextField amount = new TextField("Amount");
+//        TextField amount = new TextField("Amount");
         Button create = new Button("Create");
-        Button increase = new Button("Increase");
-        Button decrease = new Button("Decrease");
+        Button enable = new Button("Enable");
+//        Button decrease = new Button("Decrease");
 
         create.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CreateCmd(id.getValue(), Integer.parseInt(amount.getValue())));
+            commandGateway.sendAndWait(new CreateWorkflowCmd(id.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        increase.addClickListener(evt -> {
-            commandGateway.sendAndWait(new IncreaseCmd(id.getValue(), Integer.parseInt(amount.getValue())));
+        enable.addClickListener(evt -> {
+            commandGateway.sendAndWait(new EnableCmd(id.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        decrease.addClickListener(evt -> {
-            commandGateway.sendAndWait(new DecreaseCmd(id.getValue(), Integer.parseInt(amount.getValue())));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
-        });
+//        decrease.addClickListener(evt -> {
+//            commandGateway.sendAndWait(new DecreaseCmd(id.getValue(), Integer.parseInt(amount.getValue())));
+//            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+//        });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, amount, create, increase, decrease);
+        form.addComponents(id/*, amount*/, create, enable/*, decrease*/);
         form.setMargin(true);
 
         Panel panel = new Panel("Send commands");

@@ -14,3 +14,10 @@ data class FindResponse(val id: String, val amount: Int)
 
 class AmountNegativeException(message: String) : Exception(message)
 
+// Workflow example
+data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String)
+data class CreatedWorkflowEvt(val id: String)
+data class EnableCmd(@TargetAggregateIdentifier val id: String)
+data class EnabledEvt(val id: String)
+
+data class PrintQuery(val id: String)
