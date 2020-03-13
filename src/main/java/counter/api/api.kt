@@ -19,5 +19,7 @@ data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String)
 data class CreatedWorkflowEvt(val id: String)
 data class EnableCmd(@TargetAggregateIdentifier val id: String)
 data class EnabledEvt(val id: String)
+data class CompleteCmd(@TargetAggregateIdentifier val wfiId: String, val dniNumber: Int)
+data class CompletedEvt(val wfiId: String, val dniNumber: Int)
 
 data class PrintQuery(val id: String)

@@ -71,7 +71,7 @@ public class WebUI extends UI {
 //        TextField amount = new TextField("Amount");
         Button create = new Button("Create");
         Button enable = new Button("Enable");
-//        Button decrease = new Button("Decrease");
+        Button complete = new Button("Complete");
 
         create.addClickListener(evt -> {
             commandGateway.sendAndWait(new CreateWorkflowCmd(id.getValue()));
@@ -83,13 +83,13 @@ public class WebUI extends UI {
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-//        decrease.addClickListener(evt -> {
-//            commandGateway.sendAndWait(new DecreaseCmd(id.getValue(), Integer.parseInt(amount.getValue())));
-//            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
-//        });
+        complete.addClickListener(evt -> {
+            commandGateway.sendAndWait(new CompleteCmd(id.getValue(), 0));
+            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+        });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id/*, amount*/, create, enable/*, decrease*/);
+        form.addComponents(id/*, amount*/, create, enable, complete);
         form.setMargin(true);
 
         Panel panel = new Panel("Send commands");

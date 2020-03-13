@@ -4,12 +4,31 @@ dialect  "mvel"
 import counter.rulebase.Count;
 import counter.rulebase.CommandPublisher
 import counter.utils.SpringContext;
+import org.axonframework.commandhandling.gateway.CommandGateway
+import counter.api.DecreaseCmd
+import counter.api.EnableCmd;
+import counter.workflowmodel.*;
+import counter.workflowmodel.definition.*;
+import counter.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState;
+global CommandGateway commandGateway;
 
 rule "increment"
     when
         Count( )
     then
         System.out.println("Hello there from the KB!!");
-        CommandPublisher pub = SpringContext.getBean(CommandPublisher.class);
-        pub.publish();
+        commandGateway.send(new EnableCmd("1"));
+end
+
+rule "CheckSWRequirementReleased"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getConstraintType().equals( "CheckSWRequirementReleased" ) )
+		$ct : ConstraintTrigger ( )
+	then
+		modify($qaConst) {
+            setEvaluationStatusMessage("") ,
+            setEvaluationStatus(EvaluationState.SUCCESS) ,
+            setLastChangeDueTo($ct.getRequestCorrelation())
+        };
 end

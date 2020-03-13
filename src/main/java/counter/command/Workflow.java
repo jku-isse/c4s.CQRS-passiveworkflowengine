@@ -1,23 +1,23 @@
 package counter.command;
 
+import counter.analytics.CorrelationTuple;
 import counter.api.*;
-import counter.workflowmodel.AbstractWorkflowInstanceObject;
-import counter.workflowmodel.TaskStateTransitionEvent;
-import counter.workflowmodel.TaskStateTransitionEventPublisher;
-import counter.workflowmodel.WorkflowInstance;
+import counter.rulebase.RuleBaseService;
+import counter.workflowmodel.*;
+import counter.workflowmodel.definition.ConstraintTrigger;
+import counter.workflowmodel.definition.QACheckDocument;
+import counter.workflowmodel.definition.RuleEngineBasedConstraint;
 import counter.workflowmodel.definition.WPManagementWorkflow;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
+import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
-import counter.rulebase.RuleEvaluation;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Set;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
@@ -35,7 +35,6 @@ public class Workflow {
         log.debug("empty constructor invoked");
     }
 
-
     // Command Handlers
 
     @CommandHandler
@@ -50,23 +49,67 @@ public class Workflow {
         apply(new EnabledEvt(cmd.getId()));
     }
 
+    @CommandHandler
+    public void handle(CompleteCmd cmd) {
+        log.debug("handling {}", cmd);
+        apply(new CompletedEvt(cmd.getWfiId(), cmd.getDniNumber()));
+    }
+
 
     // Event Handlers
 
     @EventSourcingHandler
-    public void on(CreatedWorkflowEvt evt) {
+    public void on(CreatedWorkflowEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
         log.debug("applying {}", evt);
         id = evt.getId();
         WPManagementWorkflow workflow = new WPManagementWorkflow();
         workflow.initWorkflowSpecification();
         workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
         wfi = workflow.createInstance(id);
+        if (!status.isReplay()) {
+            ruleBaseService.insertAndFire(wfi);
+        }
     }
 
     @EventSourcingHandler
     public void on(EnabledEvt evt) {
         log.debug("applying {}", evt);
         awos = wfi.enableWorkflowTasksAndDecisionNodes();
+    }
+
+    @EventSourcingHandler
+    public void on(CompletedEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+        ArtifactWrapper ticketArt1 = new ArtifactWrapper("TICKET1", WPManagementWorkflow.ARTIFACT_TYPE_JIRA_TICKET, null, null);
+        DecisionNodeInstance dni = (DecisionNodeInstance) awos.get(evt.getDniNumber());
+        dni.completedDataflowInvolvingActivationPropagation();
+        List<TaskDefinition> tds = dni.getTaskDefinitionsForNonDisabledOutBranchesWithUnresolvedTasks();
+        tds.stream().forEach(td -> {
+            WorkflowTask wft = wfi.instantiateTask(td);
+            wft.addInput(new WorkflowTask.ArtifactInput(ticketArt1, WPManagementWorkflow.INPUT_ROLE_WPTICKET));
+            wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
+            Set<AbstractWorkflowInstanceObject> newDNIs = wfi.activateDecisionNodesFromTask(wft);
+            dni.consumeTaskForUnconnectedOutBranch(wft); // connect this task to the decision node instance on one of the outbranches
+        });
+        QACheckDocument qa = new QACheckDocument("QA1", wfi);
+        int itemId = 1;
+        RuleEngineBasedConstraint srsConstraint = new RuleEngineBasedConstraint("REBC2", qa, "CheckSWRequirementReleased", wfi, "Have all SRSs of the WP been released?");
+        qa.addConstraint(srsConstraint);
+        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=11", "self", "", "html", "SRS 11"));
+        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=12", "self", "", "html", "SRS 12"));
+        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=13", "self", "", "html", "SRS 13"));
+        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=14", "self", "", "html", "SRS 14"));
+        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=15", "self", "", "html", "SRS 15"));
+        // add to WFTask
+        wfi.getWorkflowTasksReadonly().stream().forEach(wft -> {
+            // there is only one here, so lets use this to add the QA document
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK");
+            wft.addOutput(ao);
+        });
+        ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(evt.getWfiId(), "QualityCheckRequest"));
+        ct.addConstraint("*");
+        if (!status.isReplay()) {
+            ruleBaseService.insertAndFire(ct);
+        }
     }
 
 }
