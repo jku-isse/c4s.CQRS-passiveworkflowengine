@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>AxonPingPong</artifactId>
+    <artifactId>CQRS-Passiveprocessengine</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>pingpong-demo</name>
-    <description>Axon Framework demo project</description>
+    <name>CQRS-Passiveprocessengine</name>
+    <description>CQRS-Passiveprocessengine</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

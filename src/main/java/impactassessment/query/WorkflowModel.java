@@ -26,13 +26,6 @@ public class WorkflowModel {
 
     private WorkflowInstance wfi;
 
-    private RuleBaseService ruleService;
-
-    @Autowired
-    public void setRuleService(RuleBaseService ruleService) {
-        this.ruleService = ruleService;
-    }
-
     public WorkflowInstance getWorkflowInstance() {
         return wfi;
     }
@@ -42,7 +35,6 @@ public class WorkflowModel {
         workflow.initWorkflowSpecification();
         workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
         wfi = workflow.createInstance(evt.getId());
-        ruleService.insertAndFire(wfi); // TODO how to ensure KB does't fire commands when it is replayed?
     }
 
     public void handle(EnabledEvt evt) {
@@ -78,19 +70,17 @@ public class WorkflowModel {
         });
         ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(evt.getId(), "QualityCheckRequest"));
         ct.addConstraint("*");
-        ruleService.insertAndFire(ct); // TODO how to ensure KB does't fire commands when it is replayed?
     }
 
-    public void handle(TrackedEventMessage<?> message) {
-        Object payload = message.getPayload();
-        if (payload instanceof CreatedWorkflowEvt) {
-            handle((CreatedWorkflowEvt)payload);
-        } else if (payload instanceof EnabledEvt) {
-            handle((EnabledEvt)payload);
-        } else if (payload instanceof CompletedEvt) {
-            handle((CompletedEvt)payload);
+    public void handle(IdentifiableEvt evt) {
+        if (evt instanceof CreatedWorkflowEvt) {
+            handle((CreatedWorkflowEvt) evt);
+        } else if (evt instanceof EnabledEvt) {
+            handle((EnabledEvt) evt);
+        } else if (evt instanceof CompletedEvt) {
+            handle((CompletedEvt) evt);
         } else {
-            log.error("unknown event: {}", payload.getClass().getSimpleName());
+            log.error("Unknown message type: "+evt.getClass().getSimpleName());
         }
     }
 

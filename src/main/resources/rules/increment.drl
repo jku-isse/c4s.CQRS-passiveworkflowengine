@@ -1,15 +1,14 @@
 package rules;
 dialect  "mvel"
 
-import counter.rulebase.Count;
-import counter.rulebase.CommandPublisher
-import counter.utils.SpringContext;
+import impactassessment.rulebase.Count;
+import impactassessment.utils.SpringContext;
 import org.axonframework.commandhandling.gateway.CommandGateway
-import counter.api.DecreaseCmd
-import counter.api.EnableCmd;
-import counter.workflowmodel.*;
-import counter.workflowmodel.definition.*;
-import counter.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState;
+import impactassessment.api.EnableCmd;
+import impactassessment.workflowmodel.*;
+import impactassessment.workflowmodel.definition.*;
+import impactassessment.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState;
+
 global CommandGateway commandGateway;
 
 rule "increment"
@@ -17,7 +16,7 @@ rule "increment"
         Count( )
     then
         System.out.println("Hello there from the KB!!");
-        commandGateway.send(new EnableCmd("1"));
+        commandGateway.send(new EnableCmd("1", 0));
 end
 
 rule "CheckSWRequirementReleased"
@@ -26,6 +25,7 @@ rule "CheckSWRequirementReleased"
 		$qaConst : RuleEngineBasedConstraint( getConstraintType().equals( "CheckSWRequirementReleased" ) )
 		$ct : ConstraintTrigger ( )
 	then
+	    System.out.println("Hello there from the KB!!");
 		modify($qaConst) {
             setEvaluationStatusMessage("") ,
             setEvaluationStatus(EvaluationState.SUCCESS) ,

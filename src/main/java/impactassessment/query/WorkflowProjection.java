@@ -18,12 +18,13 @@ import impactassessment.api.*;
 @ProcessingGroup("projection")
 public class WorkflowProjection {
 
-    private MockDatabase mockDB = new MockDatabase();
+    private final MockDatabase mockDB;
 
     @EventHandler
     public void on(CreatedWorkflowEvt event) {
         log.debug("projecting {}", event);
-        mockDB.getWorkflowModel(event.getId()).handle(event);
+        WorkflowModel m = mockDB.getWorkflowModel(event.getId());
+        m.handle(event);
     }
 
     @EventHandler

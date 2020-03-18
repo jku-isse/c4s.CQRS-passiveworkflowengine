@@ -1,14 +1,14 @@
 package impactassessment.query;
 
-import impactassessment.api.CompletedEvt;
-import impactassessment.api.CreatedWorkflowEvt;
-import impactassessment.api.EnabledEvt;
+import impactassessment.api.IdentifiableEvt;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.TrackedEventMessage;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 @XSlf4j
 public class MockDatabase {
 
@@ -21,28 +21,18 @@ public class MockDatabase {
     public WorkflowModel getWorkflowModel(String id) {
         WorkflowModel m = db.get(id);
         if (m == null) {
-            m = db.put(id, new WorkflowModel());
+            db.put(id, new WorkflowModel());
+            m = db.get(id);
         }
         return m;
     }
 
     public void handle(TrackedEventMessage<?> message) {
-
-        // TODO make events inherit from an IdentifiableEvt interfave that provides getId()
-        //  --> makes typechecking here not needed
-
-        Object payload = message.getPayload();
-        if (payload instanceof CreatedWorkflowEvt) {
-            CreatedWorkflowEvt evt = (CreatedWorkflowEvt) payload;
-            getWorkflowModel((evt).getId()).handle(evt);
-        } else if (payload instanceof EnabledEvt) {
-            EnabledEvt evt = (EnabledEvt) payload;
-            getWorkflowModel((evt).getId()).handle(evt);
-        } else if (payload instanceof CompletedEvt) {
-            CompletedEvt evt = (CompletedEvt) payload;
-            getWorkflowModel((evt).getId()).handle(evt);
-        } else {
-            log.error("unknown event: {}", payload.getClass().getSimpleName());
+        try {
+            IdentifiableEvt evt = (IdentifiableEvt) message.getPayload();
+            getWorkflowModel(evt.getId()).handle(evt);
+        } catch (ClassCastException e) {
+            log.error("Invalid event type! "+e.getMessage());
         }
     }
 

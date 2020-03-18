@@ -2,24 +2,23 @@ package impactassessment.api
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 
-data class CreateCmd(@TargetAggregateIdentifier val id: String, val amount: Int)
-data class CreatedEvt(val id: String, val amount: Int)
-data class IncreaseCmd(@TargetAggregateIdentifier val id: String, val amount: Int)
-data class IncreasedEvt(val id: String, val amount: Int)
-data class DecreaseCmd(@TargetAggregateIdentifier val id: String, val amount: Int)
-data class DecreasedEvt(val id: String, val amount: Int)
+// COMMANDS
+data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String)
+data class EnableCmd(@TargetAggregateIdentifier val id: String, val dniNumber: Int)
+data class CompleteCmd(@TargetAggregateIdentifier val id: String)
 
+// EVENTS
+interface IdentifiableEvt{val id: String}
+
+data class CreatedWorkflowEvt(override val id: String) : IdentifiableEvt
+data class EnabledEvt(override val id: String, val dniNumber: Int) : IdentifiableEvt
+data class CompletedEvt(override val id: String) : IdentifiableEvt
+
+// QUERIES
 data class FindQuery(val id: String)
+
+// QUERY-RESPONSES
 data class FindResponse(val id: String, val amount: Int)
 
-class AmountNegativeException(message: String) : Exception(message)
-
-// Workflow example
-data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String)
-data class CreatedWorkflowEvt(val id: String)
-data class EnableCmd(@TargetAggregateIdentifier val id: String, val dniNumber: Int)
-data class EnabledEvt(val id: String, val dniNumber: Int)
-data class CompleteCmd(@TargetAggregateIdentifier val id: String)
-data class CompletedEvt(val id: String)
-
-data class PrintQuery(val id: String)
+// EXCEPTIONS
+class SomeException(message: String) : Exception(message)

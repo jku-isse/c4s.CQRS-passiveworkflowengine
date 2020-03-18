@@ -1,5 +1,6 @@
 package impactassessment.query.snapshot;
 
+import impactassessment.api.IdentifiableEvt;
 import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
@@ -31,7 +32,6 @@ public class Snapshotter {
         private final int id;
         private final Instant timestamp;
         private final CLTool cli;
-        //private WorkflowModel model; // TODO replace with mockDB
         private MockDatabase mockDB;
 
         public ReplayRunnable(EventStore eventStore, int id, Instant timestamp) {

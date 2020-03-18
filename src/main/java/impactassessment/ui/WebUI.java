@@ -121,7 +121,7 @@ public class WebUI extends UI {
 
     private Panel snapshot() {
         TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
-        snapshotTimestamp.setValue("2020-03-04T07:23:00.00Z");
+        snapshotTimestamp.setValue("2020-03-18T08:30:00.00Z");
         snapshotTimestamp.setWidth("210px");
 
         Button snapshot = new Button("Snapshot");
