@@ -10,8 +10,9 @@ import org.springframework.context.annotation.Bean;
 public class SpringTestConfig {
 
     @Bean
-    public RuleBaseService ruleBaseService() {
-        return new RuleBaseService(null);
+    @Autowired
+    public RuleBaseService ruleBaseService(CommandGateway commandGateway) {
+        return new RuleBaseService(commandGateway);
     }
 
 }

@@ -1,5 +1,6 @@
 package impactassessment.snapshots;
 
+import impactassessment.api.CreateWorkflowCmd;
 import impactassessment.api.CreatedWorkflowEvt;
 import impactassessment.api.EnableCmd;
 import impactassessment.api.EnabledEvt;
@@ -9,14 +10,13 @@ import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @SpringBootTest(classes = SpringTestConfig.class)
-@ExtendWith(SpringExtension.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class TestSnapshot {
 
     /**
@@ -25,6 +25,7 @@ public class TestSnapshot {
      * one aggregate only. So, all commands in the when (or given) clause are meant to target
      * the aggregate under test fixture. Also, all given and expected events are meant to be
      * triggered from the aggregate under test fixture.
+     * (https://docs.axoniq.io/reference-guide/implementing-domain-logic/command-handling/testing)
      */
     private FixtureConfiguration<WorkflowAggregate> fixture;
     @Autowired
@@ -38,14 +39,18 @@ public class TestSnapshot {
 
     @Test
     public void testEnableCommand() {
-        fixture.given(new CreatedWorkflowEvt("test_wf_1"))
-                .when(new EnableCmd("test_wf_1", 0))
+//        fixture.givenNoPriorActivity()
+//                .when(new CreateWorkflowCmd("hi"))
+//                .expectSuccessfulHandlerExecution();
+        fixture.given(new CreatedWorkflowEvt("test_wf"))
+                .when(new EnableCmd("test_wf", 0))
                 .expectSuccessfulHandlerExecution()
-                .expectEvents(new EnabledEvt("test_wf_1", 0));
+                .expectEvents(new EnabledEvt("test_wf", 0));
     }
 
     @Test
     public void testSnapshotEqualsAggregate() {
         // TODO
     }
+
 }
