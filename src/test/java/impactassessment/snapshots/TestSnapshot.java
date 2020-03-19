@@ -1,9 +1,6 @@
 package impactassessment.snapshots;
 
-import impactassessment.api.CreateWorkflowCmd;
-import impactassessment.api.CreatedWorkflowEvt;
-import impactassessment.api.EnableCmd;
-import impactassessment.api.EnabledEvt;
+import impactassessment.api.*;
 import impactassessment.command.WorkflowAggregate;
 import impactassessment.rulebase.RuleBaseService;
 import org.axonframework.test.aggregate.AggregateTestFixture;
@@ -38,14 +35,26 @@ public class TestSnapshot {
     }
 
     @Test
+    public void testCreateCommand() {
+        fixture.givenNoPriorActivity()
+                .when(new CreateWorkflowCmd("hi"))
+                .expectSuccessfulHandlerExecution();
+    }
+
+    @Test
     public void testEnableCommand() {
-//        fixture.givenNoPriorActivity()
-//                .when(new CreateWorkflowCmd("hi"))
-//                .expectSuccessfulHandlerExecution();
         fixture.given(new CreatedWorkflowEvt("test_wf"))
                 .when(new EnableCmd("test_wf", 0))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new EnabledEvt("test_wf", 0));
+    }
+
+    @Test
+    public void testCompleteCommand() {
+        fixture.given(new CreatedWorkflowEvt("test_wf"), new EnableCmd("test_wf", 0))
+                .when(new CompleteCmd("test_wf"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(new CompletedEvt("test_wf"));
     }
 
     @Test

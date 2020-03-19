@@ -246,24 +246,6 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return Collections.unmodifiableSet(wfProps.entrySet());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WorkflowInstance)) return false;
-        WorkflowInstance that = (WorkflowInstance) o;
-        return Objects.equals(workflowDefinition, that.workflowDefinition) &&
-                Objects.equals(dnInst, that.dnInst) &&
-                Objects.equals(taskInst, that.taskInst) &&
-                Objects.equals(wfProps, that.wfProps) &&
-                Objects.equals(taskIntoDNI, that.taskIntoDNI) &&
-                Objects.equals(taskOutOfDNI, that.taskOutOfDNI);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(workflowDefinition, dnInst, taskInst, wfProps, taskIntoDNI, taskOutOfDNI);
-    }
-
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY
 
 //	public void signalNewWorkflowTask(WorkflowTask wti) {

@@ -111,21 +111,6 @@ public class TaskDefinition extends AbstractWorkflowDefinitionObject implements 
 			.filter(tuple -> !wt.hasInputArtifactOfRole(tuple.getKey()))
 			.collect(Collectors.toSet());
 	}
-	
-	@Override
-	public String toString() {
-		return "[TaskDefinition: " + id + "]";
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof TaskDefinition)) return false;
-		TaskDefinition that = (TaskDefinition) o;
-		return Objects.equals(expectedInput, that.expectedInput) &&
-				Objects.equals(expectedOutput, that.expectedOutput) &&
-				Objects.equals(responsibleRole, that.responsibleRole);
-	}
 
 	@Override
 	public int hashCode() {

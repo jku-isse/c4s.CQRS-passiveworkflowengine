@@ -1,11 +1,6 @@
 package impactassessment.workflowmodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -455,8 +450,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			else
 				return "["+ artifact.getId() +"::"+ artifact.getType() + "]";
 		}
-		
-		
+
 	}
 	
 	@RelationshipEntity(type="TASK_IO")
