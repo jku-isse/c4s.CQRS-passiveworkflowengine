@@ -2,6 +2,7 @@ package impactassessment.workflowmodel;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -115,6 +116,19 @@ public class TaskDefinition extends AbstractWorkflowDefinitionObject implements 
 	public String toString() {
 		return "[TaskDefinition: " + id + "]";
 	}
-	
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof TaskDefinition)) return false;
+		TaskDefinition that = (TaskDefinition) o;
+		return Objects.equals(expectedInput, that.expectedInput) &&
+				Objects.equals(expectedOutput, that.expectedOutput) &&
+				Objects.equals(responsibleRole, that.responsibleRole);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(expectedInput, expectedOutput, responsibleRole);
+	}
 }

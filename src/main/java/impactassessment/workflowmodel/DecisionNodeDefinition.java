@@ -1,6 +1,7 @@
 package impactassessment.workflowmodel;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -138,7 +139,26 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 				+ ", extInBRules=" + hasExternalInBranchRules + ", extOutBRules="
 				+ hasExternalOutBranchRules + "]";
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof DecisionNodeDefinition)) return false;
+		DecisionNodeDefinition that = (DecisionNodeDefinition) o;
+		return hasExternalContextRules == that.hasExternalContextRules &&
+				hasExternalInBranchRules == that.hasExternalInBranchRules &&
+				hasExternalOutBranchRules == that.hasExternalOutBranchRules &&
+//				Objects.equals(inB, that.inB) &&
+//				Objects.equals(outB, that.outB) &&
+				inBranchingType == that.inBranchingType &&
+				outBranchingType == that.outBranchingType;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(/*inB, outB, */hasExternalContextRules, hasExternalInBranchRules, hasExternalOutBranchRules, inBranchingType, outBranchingType);
+	}
+
 	public static enum BranchingType {
 		AND, OR, XOR;
 	}
@@ -215,4 +235,6 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 		StateMachine<States, Events> sm = new StateMachine<>(States.AVAILABLE, getStateMachineConfig());
 		return sm;
 	}
+
+
 }

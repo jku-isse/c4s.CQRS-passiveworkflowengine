@@ -8,7 +8,7 @@ import impactassessment.workflowmodel.*;
 
 public class WPManagementWorkflow extends DefaultWorkflowDefinition implements WorkflowDefinition {
 
-	public static final String WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE = "WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE";	
+	public static final String WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE = "WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE";
 	
 	public static final String TASKTYPE_SSS_REVISING = "SSS_REVISING";
 	public static final String TASKTYPE_SSDD_REVISING = "SSDD_REVISING";
@@ -142,5 +142,6 @@ public class WPManagementWorkflow extends DefaultWorkflowDefinition implements W
 	public static ResourceLink getLink(String href, String title) {
 		return new ResourceLink(ARTIFACT_TYPE_RESOURCE_LINK, href, "self", "", "application/json", title);
 	}
-	
+
+
 }

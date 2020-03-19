@@ -2,6 +2,7 @@ package impactassessment.workflowmodel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
@@ -56,4 +57,17 @@ public abstract class AbstractWorkflowDefinition extends AbstractWorkflowDefinit
 		return dnds;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof AbstractWorkflowDefinition)) return false;
+		AbstractWorkflowDefinition that = (AbstractWorkflowDefinition) o;
+		return Objects.equals(taskDefinitions, that.taskDefinitions) &&
+				Objects.equals(dnds, that.dnds);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(taskDefinitions, dnds);
+	}
 }

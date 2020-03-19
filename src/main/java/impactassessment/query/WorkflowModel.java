@@ -16,10 +16,7 @@ import org.axonframework.eventhandling.TrackedEventMessage;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @XSlf4j
 public class WorkflowModel {
@@ -88,7 +85,22 @@ public class WorkflowModel {
         wfi = null;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WorkflowModel)) return false;
+        WorkflowModel that = (WorkflowModel) o;
+        return Objects.equals(wfi, that.wfi);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(wfi);
+    }
+
     public String toString() {
         return wfi.toString();
     }
+
+
 }
