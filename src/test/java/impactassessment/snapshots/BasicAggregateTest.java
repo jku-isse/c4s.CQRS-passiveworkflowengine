@@ -56,4 +56,13 @@ public class BasicAggregateTest {
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new CompletedEvt("test_wf"));
     }
+
+    @Test
+    public void testDeleteCommand() {
+        fixture.given(new CreatedWorkflowEvt("test_wf"), new EnabledEvt("test_wf", 0))
+                .when(new DeleteCommand("test_wf"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(new DeletedEvt("test_wf"))
+                .expectMarkedDeleted();
+    }
 }

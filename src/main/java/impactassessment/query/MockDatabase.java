@@ -3,7 +3,6 @@ package impactassessment.query;
 import impactassessment.api.IdentifiableEvt;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
-import org.axonframework.eventhandling.TrackedEventMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -20,12 +19,16 @@ public class MockDatabase {
     }
 
     public WorkflowModel getWorkflowModel(String id) {
-        WorkflowModel m = db.get(id);
-        if (m == null) {
-            db.put(id, new WorkflowModel());
-            m = db.get(id);
-        }
-        return m;
+        return db.get(id);
+    }
+
+    public WorkflowModel createAndPutWorkflowModel(String id) {
+        db.put(id, new WorkflowModel());
+        return db.get(id);
+    }
+
+    public WorkflowModel delete(String id) {
+        return db.remove(id);
     }
 
     public void handle(EventMessage<?> message) {

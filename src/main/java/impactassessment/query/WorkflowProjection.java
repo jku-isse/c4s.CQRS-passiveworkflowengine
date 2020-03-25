@@ -39,6 +39,12 @@ public class WorkflowProjection {
         mockDB.getWorkflowModel(event.getId()).handle(event);
     }
 
+    @EventHandler
+    public void on(DeletedEvt evt) {
+        log.debug("projecting {}", evt);
+        mockDB.delete(evt.getId());
+    }
+
     @QueryHandler
     public FindResponse handle(FindQuery query) {
         log.debug("handle {}", query);

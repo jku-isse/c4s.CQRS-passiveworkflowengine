@@ -11,6 +11,7 @@ import impactassessment.workflowmodel.definition.RuleEngineBasedConstraint;
 import impactassessment.workflowmodel.definition.WPManagementWorkflow;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
+import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
+import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
 
 @Aggregate
 @Profile("command")
@@ -61,6 +63,11 @@ public class WorkflowAggregate {
         apply(new CompletedEvt(cmd.getId()));
     }
 
+    @CommandHandler
+    public void handle(DeleteCommand cmd) {
+        log.debug("handling {}", cmd);
+        apply(new DeletedEvt(cmd.getId()));
+    }
 
     // Event Handlers
 
@@ -88,6 +95,12 @@ public class WorkflowAggregate {
         if (!status.isReplay()) {
             ruleBaseService.insertAndFire(model.getWorkflowInstance());
         }
+    }
+
+    @EventSourcingHandler
+    public void on(DeletedEvt evt) {
+        log.debug("applying {}", evt);
+        markDeleted();
     }
 
 }

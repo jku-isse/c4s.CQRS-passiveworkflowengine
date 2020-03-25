@@ -69,6 +69,10 @@ public class WorkflowModel {
         ct.addConstraint("*");
     }
 
+    public void handle(DeletedEvt evt) {
+
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
