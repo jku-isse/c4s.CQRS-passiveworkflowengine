@@ -34,6 +34,9 @@ public class MockDatabase {
     public void handle(EventMessage<?> message) {
         try {
             IdentifiableEvt evt = (IdentifiableEvt) message.getPayload();
+            if (getWorkflowModel(evt.getId()) == null) {
+                createAndPutWorkflowModel(evt.getId());
+            }
             getWorkflowModel(evt.getId()).handle(evt);
         } catch (ClassCastException e) {
             log.error("Invalid event type! "+e.getMessage());

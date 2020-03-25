@@ -20,18 +20,19 @@ import java.util.stream.Stream;
 public class Snapshotter {
 
     private final EventStore eventStore;
+    private final CLTool cli;
 
     private int sequenceNumber = 0;
     private ExecutorService executor = Executors.newFixedThreadPool(5);
 
     public Future<MockDatabase> replayEventsUntil(Instant timestamp) {
-        Callable<MockDatabase> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp);
+        Callable<MockDatabase> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp, cli);
         Future<MockDatabase> future = executor.submit(callable);
         return future;
     }
 
     public Future<MockDatabase> replayEventsUntilWithOwnEvents(Instant timestamp, Stream<? extends EventMessage<?>> eventStream) {
-        Callable<MockDatabase> callable = new ReplayCallable(eventStream, ++sequenceNumber, timestamp);
+        Callable<MockDatabase> callable = new ReplayCallable(eventStream, ++sequenceNumber, timestamp, cli);
         Future<MockDatabase> future = executor.submit(callable);
         return future;
     }
@@ -44,27 +45,29 @@ public class Snapshotter {
         private CLTool cli;
         private MockDatabase mockDB;
 
-        public ReplayCallable(EventStore eventStore, int id, Instant timestamp) {
+        public ReplayCallable(EventStore eventStore, int id, Instant timestamp, CLTool cli) {
+            this(id, timestamp, cli);
             this.eventStream = eventStore.openStream(null).asStream();
-            this.id = id;
-            this.timestamp = timestamp;
-            this.mockDB = new MockDatabase();
-            this.cli = new CLTool();
         }
 
-        public ReplayCallable(Stream<? extends EventMessage<?>> eventStream, int id, Instant timestamp) {
+        public ReplayCallable(Stream<? extends EventMessage<?>> eventStream, int id, Instant timestamp, CLTool cli) {
+            this(id, timestamp, cli);
             this.eventStream = eventStream;
+        }
+
+        private ReplayCallable(int id, Instant timestamp, CLTool cli) {
             this.id = id;
             this.timestamp = timestamp;
+            this.cli = cli;
             this.mockDB = new MockDatabase();
-            this.cli = new CLTool();
         }
 
         @Override
         public MockDatabase call() {
             eventStream.forEach(m -> {
-                mockDB.handle(m);
-                if (m.getTimestamp().isAfter(timestamp)) {
+                if (m.getTimestamp().isBefore(timestamp)){
+                    mockDB.handle(m);
+                } else {
                     log.info(String.valueOf(id));
                     CompletableFuture<CLTool.Action> completableFuture = cli.readAction();
                     CLTool.Action action = null;
@@ -78,13 +81,13 @@ public class Snapshotter {
                             // TODO implement
                             break;
                         case STOP:
-                            // TODO implement
+                            // do nothing
                             break;
                         case PRINT:
                             mockDB.print();
                             break;
                         case STEP:
-                            // do nothing
+                            mockDB.handle(m);
                             break;
                         default:
                             log.error("Replay received invalid action: {}", action);

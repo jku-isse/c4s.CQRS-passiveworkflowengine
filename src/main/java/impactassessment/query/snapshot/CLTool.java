@@ -1,8 +1,11 @@
 package impactassessment.query.snapshot;//package pingpong.query.history;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
+@Component
 public class CLTool {
 
     public CompletableFuture<Action> readAction() {
@@ -26,5 +29,5 @@ public class CLTool {
         return completableFuture;
     }
 
-    enum Action {STORE, STEP, STOP, PRINT};
+    public enum Action {STORE, STEP, STOP, PRINT};
 }

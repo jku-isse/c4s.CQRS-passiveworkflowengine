@@ -4,6 +4,7 @@ import impactassessment.api.*;
 import impactassessment.command.WorkflowAggregate;
 import impactassessment.query.MockDatabase;
 import impactassessment.query.WorkflowModel;
+import impactassessment.query.snapshot.CLTool;
 import impactassessment.query.snapshot.Snapshotter;
 import impactassessment.rulebase.RuleBaseService;
 import org.axonframework.eventhandling.EventMessage;
@@ -29,6 +30,8 @@ public class SnapshotTest {
     private FixtureConfiguration<WorkflowAggregate> fixture;
     @Autowired
     private RuleBaseService ruleBaseService;
+    @Autowired
+    private CLTool cli;
 
     @Before
     public void setup() {
@@ -46,12 +49,13 @@ public class SnapshotTest {
                 .expectState(state -> {
                     // create an event stream out of the fixture and pass it to the snapshotter
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(aggregateId).asStream();
-                    Snapshotter snapshotter = new Snapshotter(fixture.getEventStore());
+                    Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
                     Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.now(), eventStream);
                     WorkflowModel snapshotState = null;
                     try {
                         snapshotState = future.get().getWorkflowModel(aggregateId);
                     } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
                         Assert.fail();
                     }
 
@@ -61,7 +65,26 @@ public class SnapshotTest {
     }
 
     @Test
-    public void testSnapshotEqualsAggregate() {
-        // TODO
+    public void testEmptySnapshot() {
+        String aggregateId = "test_wf";
+
+        fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
+                .andGiven(new CreatedWorkflowEvt(aggregateId), new EnabledEvt(aggregateId, 0))
+                .when(new CompleteCmd(aggregateId))
+                .expectSuccessfulHandlerExecution()
+                .expectState(state -> {
+                    // create an event stream out of the fixture and pass it to the snapshotter
+                    Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(aggregateId).asStream();
+                    Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
+                    Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-17T08:30:00.00Z"), eventStream);
+                    WorkflowModel snapshotState = null;
+                    try {
+                        snapshotState = future.get().getWorkflowModel(aggregateId);
+                    } catch (InterruptedException | ExecutionException e) {
+                        Assert.fail();
+                    }
+
+                    Assert.assertNull(snapshotState);
+                });
     }
 }

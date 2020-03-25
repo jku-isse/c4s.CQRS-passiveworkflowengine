@@ -23,7 +23,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedWorkflowEvt event) {
         log.debug("projecting {}", event);
-        WorkflowModel m = mockDB.getWorkflowModel(event.getId());
+        WorkflowModel m = mockDB.createAndPutWorkflowModel(event.getId());
         m.handle(event);
     }
 
