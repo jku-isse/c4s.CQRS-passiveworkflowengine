@@ -4,13 +4,15 @@ import impactassessment.api.IdentifiableEvt;
 import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.axonframework.eventhandling.EventMessage;
+import org.axonframework.eventhandling.TrackedEventMessage;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 import impactassessment.query.WorkflowModel;
 
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
+import java.util.stream.Stream;
 
 @Component
 @XSlf4j
@@ -20,22 +22,38 @@ public class Snapshotter {
     private final EventStore eventStore;
 
     private int sequenceNumber = 0;
+    private ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    public void replayEventsUntil(Instant timestamp) {
-        ReplayRunnable r = new ReplayRunnable(eventStore, ++sequenceNumber, timestamp);
-        new Thread(r).start();
+    public Future<MockDatabase> replayEventsUntil(Instant timestamp) {
+        Callable<MockDatabase> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp);
+        Future<MockDatabase> future = executor.submit(callable);
+        return future;
     }
 
-    public static class ReplayRunnable implements Runnable {
+    public Future<MockDatabase> replayEventsUntilWithOwnEvents(Instant timestamp, Stream<? extends EventMessage<?>> eventStream) {
+        Callable<MockDatabase> callable = new ReplayCallable(eventStream, ++sequenceNumber, timestamp);
+        Future<MockDatabase> future = executor.submit(callable);
+        return future;
+    }
 
-        private final EventStore eventStore;
-        private final int id;
-        private final Instant timestamp;
-        private final CLTool cli;
+    public static class ReplayCallable implements Callable {
+
+        private Stream<? extends EventMessage<?>> eventStream;
+        private int id;
+        private Instant timestamp;
+        private CLTool cli;
         private MockDatabase mockDB;
 
-        public ReplayRunnable(EventStore eventStore, int id, Instant timestamp) {
-            this.eventStore = eventStore;
+        public ReplayCallable(EventStore eventStore, int id, Instant timestamp) {
+            this.eventStream = eventStore.openStream(null).asStream();
+            this.id = id;
+            this.timestamp = timestamp;
+            this.mockDB = new MockDatabase();
+            this.cli = new CLTool();
+        }
+
+        public ReplayCallable(Stream<? extends EventMessage<?>> eventStream, int id, Instant timestamp) {
+            this.eventStream = eventStream;
             this.id = id;
             this.timestamp = timestamp;
             this.mockDB = new MockDatabase();
@@ -43,8 +61,8 @@ public class Snapshotter {
         }
 
         @Override
-        public void run() {
-            eventStore.openStream(null).asStream().forEach(m -> {
+        public MockDatabase call() {
+            eventStream.forEach(m -> {
                 mockDB.handle(m);
                 if (m.getTimestamp().isAfter(timestamp)) {
                     log.info(String.valueOf(id));
@@ -73,6 +91,7 @@ public class Snapshotter {
                     }
                 }
             });
+            return mockDB;
         }
 
     }

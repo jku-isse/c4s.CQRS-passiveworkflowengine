@@ -78,6 +78,25 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return "[WorkflowInstance: " + id + "]";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WorkflowInstance)) return false;
+        if (!super.equals(o)) return false;
+        WorkflowInstance that = (WorkflowInstance) o;
+        return Objects.equals(workflowDefinition, that.workflowDefinition) &&
+                Objects.equals(dnInst, that.dnInst) &&
+                Objects.equals(taskInst, that.taskInst) &&
+                Objects.equals(wfProps, that.wfProps) &&
+                Objects.equals(taskIntoDNI, that.taskIntoDNI) &&
+                Objects.equals(taskOutOfDNI, that.taskOutOfDNI);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), workflowDefinition, dnInst, taskInst, wfProps, taskIntoDNI, taskOutOfDNI);
+    }
+
     public WorkflowTask prepareTask(TaskDefinition td) {
         //WorkflowTask tf = new WorkflowTask(td.getId()+"#"+UUID.randomUUID().toString(), this, TaskLifecycle.buildStatemachine(), pub);
         WorkflowTask tf = new WorkflowTask(td.getId()+"#"+getId().toString(), this, TaskLifecycle.buildStatemachine(), pub);

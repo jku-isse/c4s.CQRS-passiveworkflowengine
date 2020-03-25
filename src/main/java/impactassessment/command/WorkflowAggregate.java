@@ -35,6 +35,12 @@ public class WorkflowAggregate {
         log.debug("empty constructor invoked");
     }
 
+    public String getId() {
+        return id;
+    }
+    public WorkflowModel getModel() {
+        return model;
+    }
     // Command Handlers
 
     @CommandHandler

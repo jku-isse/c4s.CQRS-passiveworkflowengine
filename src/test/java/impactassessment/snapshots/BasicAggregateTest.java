@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @SpringBootTest(classes = SpringTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TestSnapshot {
+public class BasicAggregateTest {
 
     /**
      * Focus of a Test Fixture
@@ -37,7 +37,7 @@ public class TestSnapshot {
     @Test
     public void testCreateCommand() {
         fixture.givenNoPriorActivity()
-                .when(new CreateWorkflowCmd("hi"))
+                .when(new CreateWorkflowCmd("test_wf"))
                 .expectSuccessfulHandlerExecution();
     }
 
@@ -51,15 +51,9 @@ public class TestSnapshot {
 
     @Test
     public void testCompleteCommand() {
-        fixture.given(new CreatedWorkflowEvt("test_wf"), new EnableCmd("test_wf", 0))
+        fixture.given(new CreatedWorkflowEvt("test_wf"), new EnabledEvt("test_wf", 0))
                 .when(new CompleteCmd("test_wf"))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new CompletedEvt("test_wf"));
     }
-
-    @Test
-    public void testSnapshotEqualsAggregate() {
-        // TODO
-    }
-
 }

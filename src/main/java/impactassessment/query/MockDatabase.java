@@ -2,6 +2,7 @@ package impactassessment.query;
 
 import impactassessment.api.IdentifiableEvt;
 import lombok.extern.slf4j.XSlf4j;
+import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.TrackedEventMessage;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ public class MockDatabase {
         return m;
     }
 
-    public void handle(TrackedEventMessage<?> message) {
+    public void handle(EventMessage<?> message) {
         try {
             IdentifiableEvt evt = (IdentifiableEvt) message.getPayload();
             getWorkflowModel(evt.getId()).handle(evt);
