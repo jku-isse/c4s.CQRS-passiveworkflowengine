@@ -4,10 +4,10 @@ dialect  "mvel"
 import impactassessment.rulebase.Count;
 import impactassessment.utils.SpringContext;
 import org.axonframework.commandhandling.gateway.CommandGateway
-import impactassessment.api.EnableCmd;
 import impactassessment.workflowmodel.*;
 import impactassessment.workflowmodel.definition.*;
-import impactassessment.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState;
+import impactassessment.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState
+import impactassessment.api.EnabledTasksAndDecisionsEvt;
 
 global CommandGateway commandGateway;
 
@@ -16,7 +16,7 @@ rule "increment"
         Count( )
     then
         System.out.println("Hello there from the KB!!");
-        commandGateway.send(new EnableCmd("1", 0));
+        commandGateway.send(new impactassessment.api.EnabledTasksAndDecisionsEvt("1"));
 end
 
 rule "CheckSWRequirementReleased"

@@ -28,13 +28,25 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(EnabledEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+    public void on(CreatedWorkflowInstanceOfEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
         log.debug("projecting {}", event);
         mockDB.getWorkflowModel(event.getId()).handle(event);
     }
 
     @EventHandler
-    public void on(CompletedEvt event) {
+    public void on(EnabledTasksAndDecisionsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+        log.debug("projecting {}", event);
+        mockDB.getWorkflowModel(event.getId()).handle(event);
+    }
+
+    @EventHandler
+    public void on(CompletedDataflowOfDecisionNodeInstanceEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+        log.debug("projecting {}", event);
+        mockDB.getWorkflowModel(event.getId()).handle(event);
+    }
+
+    @EventHandler
+    public void on(AddedQACheckDocumentsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
         log.debug("projecting {}", event);
         mockDB.getWorkflowModel(event.getId()).handle(event);
     }

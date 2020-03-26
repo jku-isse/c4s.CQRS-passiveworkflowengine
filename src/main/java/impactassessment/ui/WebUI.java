@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import impactassessment.workflowmodel.definition.WPManagementWorkflow;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryGateway;
 import impactassessment.api.*;
@@ -69,27 +70,29 @@ public class WebUI extends UI {
     private Panel commandPanel() {
         TextField id = new TextField("ID");
 //        TextField amount = new TextField("Amount");
-        Button create = new Button("Create");
-        Button enable = new Button("Enable");
-        Button complete = new Button("Complete");
+        Button create = new Button("CreateWorkflowCmd");
+        Button createInstance = new Button("CreateWorkflowInstanceOfCmd");
+        Button enable = new Button("EnabledTasksAndDecisionsEvt");
 
         create.addClickListener(evt -> {
             commandGateway.sendAndWait(new CreateWorkflowCmd(id.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        enable.addClickListener(evt -> {
-            commandGateway.sendAndWait(new EnableCmd(id.getValue(), 0));
+        WPManagementWorkflow workflow = new WPManagementWorkflow();
+        workflow.initWorkflowSpecification();
+        createInstance.addClickListener(evt -> {
+            commandGateway.sendAndWait(new CreateWorkflowInstanceOfCmd(id.getValue(), workflow));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        complete.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CompleteCmd(id.getValue()));
+        enable.addClickListener(evt -> {
+            commandGateway.sendAndWait(new EnabledTasksAndDecisionsEvt(id.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id/*, amount*/, create, enable, complete);
+        form.addComponents(id/*, amount*/, create, createInstance, enable);
         form.setMargin(true);
 
         Panel panel = new Panel("Send commands");

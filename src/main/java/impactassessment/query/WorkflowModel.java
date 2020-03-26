@@ -43,24 +43,16 @@ public class WorkflowModel {
     }
 
     public ConstraintTrigger handle(AddedQACheckDocumentsArtifactOutputsEvt evt){
+        QACheckDocument qacd = evt.getQacd();
+        qacd.setWorkflow(wfi);
         wfi.getWorkflowTasksReadonly().stream().forEach(wft -> {
-            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(evt.getQacd(), "QA_PROCESS_CONSTRAINTS_CHECK");
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qacd, "QA_PROCESS_CONSTRAINTS_CHECK");
             wft.addOutput(ao);
         });
         ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(evt.getId(), "QualityCheckRequest"));
         ct.addConstraint("*");
         return ct;
     }
-
-//    QACheckDocument qa = new QACheckDocument("QA1", wfi);
-//    int itemId = 1;
-//    RuleEngineBasedConstraint srsConstraint = new RuleEngineBasedConstraint("REBC2", qa, "CheckSWRequirementReleased", wfi, "Have all SRSs of the WP been released?");
-//        qa.addConstraint(srsConstraint);
-//        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=11", "self", "", "html", "SRS 11"));
-//        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=12", "self", "", "html", "SRS 12"));
-//        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=13", "self", "", "html", "SRS 13"));
-//        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=14", "self", "", "html", "SRS 14"));
-//        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=15", "self", "", "html", "SRS 15"));
 
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowInstanceOfEvt) {
