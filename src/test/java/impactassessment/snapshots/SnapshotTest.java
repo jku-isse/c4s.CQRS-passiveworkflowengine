@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -40,7 +41,7 @@ public class SnapshotTest {
     }
 
     @Test
-    public void testCreateSnapshot() throws ExecutionException, InterruptedException {
+    public void testSnapshotStateEqualAggregateState() throws ExecutionException, InterruptedException {
         String aggregateId = "test_wf";
 
         fixture.given(new CreatedWorkflowEvt(aggregateId), new EnabledEvt(aggregateId, 0))
@@ -65,7 +66,7 @@ public class SnapshotTest {
     }
 
     @Test
-    public void testEmptySnapshot() {
+    public void testSnapshotBeforeFirstEvent() {
         String aggregateId = "test_wf";
 
         fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
@@ -85,6 +86,33 @@ public class SnapshotTest {
                     }
 
                     Assert.assertNull(snapshotState);
+                });
+    }
+
+    @Test
+    public void testSnapshotStateNotEqualAggregateState() {
+        String aggregateId = "test_wf";
+
+        fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
+                .andGiven(new CreatedWorkflowEvt(aggregateId))
+                .andGivenCurrentTime(Instant.parse("2020-03-20T08:30:00.00Z"))
+                .andGiven(new EnabledEvt(aggregateId, 0))
+                .when(new CompleteCmd(aggregateId))
+                .expectSuccessfulHandlerExecution()
+                .expectState(state -> {
+                    // create an event stream out of the fixture and pass it to the snapshotter
+                    Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(aggregateId).asStream();
+                    Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
+                    Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-19T08:30:00.00Z"), eventStream);
+                    WorkflowModel snapshotState = null;
+                    try {
+                        snapshotState = future.get().getWorkflowModel(aggregateId);
+                    } catch (InterruptedException | ExecutionException e) {
+                        Assert.fail();
+                    }
+
+                    Assert.assertNotNull(state.getModel());
+                    Assert.assertFalse(snapshotState.equals(state.getModel()));
                 });
     }
 }
