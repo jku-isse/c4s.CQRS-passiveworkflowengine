@@ -1,25 +1,16 @@
 package impactassessment.command;
 
-import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.query.WorkflowModel;
 import impactassessment.rulebase.RuleBaseService;
-import impactassessment.workflowmodel.*;
 import impactassessment.workflowmodel.definition.ConstraintTrigger;
-import impactassessment.workflowmodel.definition.QACheckDocument;
-import impactassessment.workflowmodel.definition.RuleEngineBasedConstraint;
-import impactassessment.workflowmodel.definition.WPManagementWorkflow;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
-import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
-
-import java.util.List;
-import java.util.Set;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -52,19 +43,31 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(EnableCmd cmd) {
+    public void handle(CreateWorkflowInstanceOfCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new EnabledEvt(cmd.getId(), cmd.getDniNumber()));
+        apply(new CreatedWorkflowInstanceOfEvt(cmd.getId(), cmd.getWfd()));
     }
 
     @CommandHandler
-    public void handle(CompleteCmd cmd) {
+    public void handle(EnableTasksAndDecisionsCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new CompletedEvt(cmd.getId()));
+        apply(new EnabledTasksAndDecisionsEvt(cmd.getId()));
     }
 
     @CommandHandler
-    public void handle(DeleteCommand cmd) {
+    public void handle(CompleteDataflowOfDecisionNodeInstanceCmd cmd) {
+        log.debug("handling {}", cmd);
+        apply(new CompletedDataflowOfDecisionNodeInstanceEvt(cmd.getId(), cmd.getDniIndex()));
+    }
+
+    @CommandHandler
+    public void handle(AddQACheckDocumentsArtifactOutputsCmd cmd) {
+        log.debug("handling {}", cmd);
+        apply(new AddedQACheckDocumentsArtifactOutputsEvt(cmd.getId(), cmd.getQacd()));
+    }
+
+    @CommandHandler
+    public void handle(DeleteCmd cmd) {
         log.debug("handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()));
     }
@@ -72,10 +75,15 @@ public class WorkflowAggregate {
     // Event Handlers
 
     @EventSourcingHandler
-    public void on(CreatedWorkflowEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+    public void on(CreatedWorkflowEvt evt) {
         log.debug("applying {}", evt);
         id = evt.getId();
         model = new WorkflowModel();
+    }
+
+    @EventSourcingHandler
+    public void on(CreatedWorkflowInstanceOfEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+        log.debug("applying {}", evt);
         model.handle(evt);
         if (!status.isReplay()) {
             ruleBaseService.insertAndFire(model.getWorkflowInstance());
@@ -83,17 +91,23 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(EnabledEvt evt) {
+    public void on(EnabledTasksAndDecisionsEvt evt) {
         log.debug("applying {}", evt);
         model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(CompletedEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+    public void on(CompletedDataflowOfDecisionNodeInstanceEvt evt) {
         log.debug("applying {}", evt);
         model.handle(evt);
+    }
+
+    @EventSourcingHandler
+    public void on(AddedQACheckDocumentsArtifactOutputsEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+        log.debug("applying {}", evt);
+        ConstraintTrigger ct = model.handle(evt);
         if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(model.getWorkflowInstance());
+            ruleBaseService.insertAndFire(ct);
         }
     }
 
