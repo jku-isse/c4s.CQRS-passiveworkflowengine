@@ -8,26 +8,28 @@ import impactassessment.workflowmodel.*;
 import impactassessment.workflowmodel.definition.*;
 import impactassessment.workflowmodel.definition.QACheckDocument.QAConstraint.EvaluationState
 import impactassessment.api.EnabledTasksAndDecisionsEvt;
+import impactassessment.rulebase.RuleBaseUtils;
 
 global CommandGateway commandGateway;
 
-rule "increment"
+rule "dummy"
     when
         Count( )
     then
-        System.out.println("Hello there from the KB!!");
+        System.out.println("Hello there from the KB: dummy!!");
         commandGateway.send(new impactassessment.api.EnabledTasksAndDecisionsEvt("1"));
 end
 
 rule "CheckSWRequirementReleased"
 	no-loop
 	when
-		$qaConst : RuleEngineBasedConstraint( getConstraintType().equals( "CheckSWRequirementReleased" ) )
-		$ct : ConstraintTrigger ( )
+	    $ct : ConstraintTrigger ( )
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
+		                                        && getConstraintType().equals( "CheckSWRequirementReleased" ) )
 	then
-	    System.out.println("Hello there from the KB!!");
+	    System.out.println("Hello there from the KB: CheckSWRequirementReleased!!");
 		modify($qaConst) {
-            setEvaluationStatusMessage("") ,
+            setEvaluationStatusMessage("We evaluated some stuff") ,
             setEvaluationStatus(EvaluationState.SUCCESS) ,
             setLastChangeDueTo($ct.getRequestCorrelation())
         };

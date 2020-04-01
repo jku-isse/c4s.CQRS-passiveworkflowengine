@@ -5,8 +5,6 @@ import impactassessment.api.*;
 import impactassessment.workflowmodel.*;
 import impactassessment.workflowmodel.definition.ConstraintTrigger;
 import impactassessment.workflowmodel.definition.QACheckDocument;
-import impactassessment.workflowmodel.definition.RuleEngineBasedConstraint;
-import impactassessment.workflowmodel.definition.WPManagementWorkflow;
 import lombok.extern.slf4j.XSlf4j;
 
 import java.util.*;
@@ -42,13 +40,19 @@ public class WorkflowModel {
         });
     }
 
-    public ConstraintTrigger handle(AddedQACheckDocumentsArtifactOutputsEvt evt){
-        QACheckDocument qacd = evt.getQacd();
+    public void handle(AddedQAConstraintsAsArtifactOutputsEvt evt){
+        QACheckDocument qacd = new QACheckDocument("QA-"+wfi.getId(), wfi);
         qacd.setWorkflow(wfi);
+        QACheckDocument.QAConstraint qac = evt.getQac();
+        qac.setWorkflow(wfi);
+        qacd.addConstraint(qac);
         wfi.getWorkflowTasksReadonly().stream().forEach(wft -> {
             WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qacd, "QA_PROCESS_CONSTRAINTS_CHECK");
             wft.addOutput(ao);
         });
+    }
+
+    public ConstraintTrigger handle(CreatedConstraintTriggerEvt evt) {
         ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(evt.getId(), "QualityCheckRequest"));
         ct.addConstraint("*");
         return ct;
@@ -61,8 +65,10 @@ public class WorkflowModel {
             handle((EnabledTasksAndDecisionsEvt) evt);
         } else if (evt instanceof CompletedDataflowOfDecisionNodeInstanceEvt) {
             handle((CompletedDataflowOfDecisionNodeInstanceEvt) evt);
-        } else if (evt instanceof AddedQACheckDocumentsArtifactOutputsEvt) {
-            handle((AddedQACheckDocumentsArtifactOutputsEvt) evt);
+        } else if (evt instanceof AddedQAConstraintsAsArtifactOutputsEvt) {
+            handle((AddedQAConstraintsAsArtifactOutputsEvt) evt);
+        } else if (evt instanceof CreatedConstraintTriggerEvt) {
+            handle((CreatedConstraintTriggerEvt) evt);
         } else {
             log.error("Unknown message type: "+evt.getClass().getSimpleName());
         }

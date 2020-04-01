@@ -2,6 +2,7 @@ package impactassessment.rulebase;
 
 import impactassessment.workflowmodel.WorkflowInstance;
 import impactassessment.workflowmodel.definition.ConstraintTrigger;
+import impactassessment.workflowmodel.definition.QACheckDocument;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.annotation.Scope;
@@ -27,6 +28,11 @@ public class RuleBaseService {
 
     public void insertAndFire(ConstraintTrigger ct) {
         kieSession.insert(ct);
+        kieSession.fireAllRules();
+    }
+
+    public void insertAndFire(QACheckDocument qacd) {
+        kieSession.insert(qacd);
         kieSession.fireAllRules();
     }
 

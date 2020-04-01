@@ -4,6 +4,7 @@ import impactassessment.api.*;
 import impactassessment.query.WorkflowModel;
 import impactassessment.rulebase.RuleBaseService;
 import impactassessment.workflowmodel.definition.ConstraintTrigger;
+import impactassessment.workflowmodel.definition.QACheckDocument;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventhandling.ReplayStatus;
@@ -61,9 +62,15 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AddQACheckDocumentsArtifactOutputsCmd cmd) {
+    public void handle(AddQAConstraintsAsArtifactOutputsCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new AddedQACheckDocumentsArtifactOutputsEvt(cmd.getId(), cmd.getQacd()));
+        apply(new AddedQAConstraintsAsArtifactOutputsEvt(cmd.getId(), cmd.getQac()));
+    }
+
+    @CommandHandler
+    public void handle(CreateConstraintTriggerCmd cmd) {
+        log.debug("handling {}", cmd);
+        apply(new CreatedConstraintTriggerEvt(cmd.getId()));
     }
 
     @CommandHandler
@@ -103,7 +110,13 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(AddedQACheckDocumentsArtifactOutputsEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+    public void on(AddedQAConstraintsAsArtifactOutputsEvt evt) {
+        log.debug("applying {}", evt);
+        model.handle(evt);
+    }
+
+    @EventSourcingHandler
+    public void on(CreatedConstraintTriggerEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
         log.debug("applying {}", evt);
         ConstraintTrigger ct = model.handle(evt);
         if (!status.isReplay()) {

@@ -1,9 +1,7 @@
 package impactassessment.query;
 
-import impactassessment.rulebase.RuleBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.*;
 import org.axonframework.queryhandling.QueryHandler;
@@ -46,7 +44,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(AddedQACheckDocumentsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+    public void on(AddedQAConstraintsAsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
         log.debug("projecting {}", event);
         mockDB.getWorkflowModel(event.getId()).handle(event);
     }

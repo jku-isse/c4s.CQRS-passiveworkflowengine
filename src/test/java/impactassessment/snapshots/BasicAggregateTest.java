@@ -52,15 +52,16 @@ public class BasicAggregateTest {
     }
 
     @Test
-    public void testCommandsCreateEnableCompleteAdd() {
-        QACheckDocument qa = mockQACheckDocument();
+    public void testCommandsCreateEnableCompleteAddCreate() {
+        QACheckDocument.QAConstraint qac = mockQAConstraint();
         fixture.given(new CreatedWorkflowEvt(id))
                 .andGiven(new CreatedWorkflowInstanceOfEvt(id, workflow))
                 .andGiven(new EnabledTasksAndDecisionsEvt(id))
                 .andGiven(new CompletedDataflowOfDecisionNodeInstanceEvt(id, 0))
-                .when(new AddQACheckDocumentsArtifactOutputsCmd(id, qa))
+                .andGiven(new AddedQAConstraintsAsArtifactOutputsEvt(id, qac))
+                .when(new CreateConstraintTriggerCmd(id))
                 .expectSuccessfulHandlerExecution()
-                .expectEvents(new AddedQACheckDocumentsArtifactOutputsEvt(id, qa));
+                .expectEvents(new CreatedConstraintTriggerEvt(id));
     }
 
     @Test
@@ -72,15 +73,7 @@ public class BasicAggregateTest {
                 .expectMarkedDeleted();
     }
 
-    private QACheckDocument mockQACheckDocument() {
-        QACheckDocument qa = new QACheckDocument("QA1", null);
-        RuleEngineBasedConstraint srsConstraint = new RuleEngineBasedConstraint("REBC2", qa, "CheckSWRequirementReleased", null, "Have all SRSs of the WP been released?");
-        qa.addConstraint(srsConstraint);
-        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=11", "self", "", "html", "SRS 11"));
-        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=12", "self", "", "html", "SRS 12"));
-        srsConstraint.addAs(true, new ResourceLink("SRS", "http://testjama.frequentis/item=13", "self", "", "html", "SRS 13"));
-        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=14", "self", "", "html", "SRS 14"));
-        srsConstraint.addAs(false, new ResourceLink("SRS", "http://testjama.frequentis/item=15", "self", "", "html", "SRS 15"));
-        return qa;
+    private QACheckDocument.QAConstraint mockQAConstraint() {
+        return new RuleEngineBasedConstraint("REBC2", null, "CheckSWRequirementReleased", null, "Have all SRSs of the WP been released?");
     }
 }
