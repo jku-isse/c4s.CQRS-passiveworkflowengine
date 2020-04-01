@@ -16,18 +16,17 @@ rule "dummy"
     when
         Count( )
     then
-        System.out.println("Hello there from the KB: dummy!!");
         commandGateway.send(new impactassessment.api.EnabledTasksAndDecisionsEvt("1"));
 end
 
-rule "CheckSWRequirementReleased"
+rule "EvaluationRule"
 	no-loop
 	when
 	    $ct : ConstraintTrigger ( )
 		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
 		                                        && getConstraintType().equals( "CheckSWRequirementReleased" ) )
 	then
-	    System.out.println("Hello there from the KB: CheckSWRequirementReleased!!");
+	    System.out.println("Hello from KB rule: EvaluationRule");
 		modify($qaConst) {
             setEvaluationStatusMessage("We evaluated some stuff") ,
             setEvaluationStatus(EvaluationState.SUCCESS) ,
