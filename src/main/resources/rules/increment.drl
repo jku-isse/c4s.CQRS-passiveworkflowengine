@@ -24,7 +24,7 @@ rule "EvaluationRule"
 	when
 	    $ct : ConstraintTrigger ( )
 		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
-		                                        && getConstraintType().equals( "CheckSWRequirementReleased" ) )
+		                                        && getConstraintType().equals( "EvaluationRule" ) )
 	then
 	    System.out.println("Hello from KB rule: EvaluationRule");
 		modify($qaConst) {

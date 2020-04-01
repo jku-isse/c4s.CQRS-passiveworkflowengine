@@ -74,6 +74,6 @@ public class BasicAggregateTest {
     }
 
     private QACheckDocument.QAConstraint mockQAConstraint() {
-        return new RuleEngineBasedConstraint("REBC2", null, "CheckSWRequirementReleased", null, "Have all SRSs of the WP been released?");
+        return new RuleEngineBasedConstraint("REBC", null, "EvaluationRule", null, "This is a simple evaluation test!");
     }
 }
