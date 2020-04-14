@@ -40,7 +40,7 @@ public class WorkflowModel {
         });
     }
 
-    public void handle(AddedQAConstraintsAsArtifactOutputsEvt evt){
+    public QACheckDocument.QAConstraint handle(AddedQAConstraintsAsArtifactOutputsEvt evt){
         QACheckDocument qacd = new QACheckDocument("QA-"+wfi.getId(), wfi);
         qacd.setWorkflow(wfi);
         QACheckDocument.QAConstraint qac = evt.getQac();
@@ -50,6 +50,7 @@ public class WorkflowModel {
             WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qacd, "QA_PROCESS_CONSTRAINTS_CHECK");
             wft.addOutput(ao);
         });
+        return qac;
     }
 
     public ConstraintTrigger handle(CreatedConstraintTriggerEvt evt) {

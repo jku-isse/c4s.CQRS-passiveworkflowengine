@@ -36,4 +36,9 @@ public class RuleBaseService {
         kieSession.fireAllRules();
     }
 
+    public void insertAndFire(QACheckDocument.QAConstraint qacd) {
+        kieSession.insert(qacd);
+        kieSession.fireAllRules();
+    }
+
 }

@@ -110,9 +110,12 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(AddedQAConstraintsAsArtifactOutputsEvt evt) {
+    public void on(AddedQAConstraintsAsArtifactOutputsEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
         log.debug("applying {}", evt);
-        model.handle(evt);
+        QACheckDocument.QAConstraint qac = model.handle(evt);
+        if (!status.isReplay()) {
+            ruleBaseService.insertAndFire(qac);
+        }
     }
 
     @EventSourcingHandler
