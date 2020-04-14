@@ -15,17 +15,17 @@ import impactassessment.neo4j.BasicServices.TaskDefinitionService;
 import impactassessment.neo4j.BasicServices.WorkflowDefinitionService;
 import impactassessment.neo4j.BasicServices.WorkflowInstanceService;
 import impactassessment.neo4j.BasicServices.WorkflowTaskService;
-import impactassessment.workflowmodel.AbstractArtifact;
-import impactassessment.workflowmodel.AbstractWorkflowInstanceObject;
-import impactassessment.workflowmodel.ArtifactType;
-import impactassessment.workflowmodel.DecisionNodeDefinition;
-import impactassessment.workflowmodel.DecisionNodeInstance;
-import impactassessment.workflowmodel.DefaultWorkflowDefinition;
-import impactassessment.workflowmodel.TaskDefinition;
-import impactassessment.workflowmodel.TaskStateTransitionEventPublisher;
-import impactassessment.workflowmodel.WorkflowDefinition;
-import impactassessment.workflowmodel.WorkflowInstance;
-import impactassessment.workflowmodel.WorkflowTask;
+import impactassessment.model.workflowmodel.AbstractArtifact;
+import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject;
+import impactassessment.model.workflowmodel.ArtifactType;
+import impactassessment.model.workflowmodel.DecisionNodeDefinition;
+import impactassessment.model.workflowmodel.DecisionNodeInstance;
+import impactassessment.model.workflowmodel.DefaultWorkflowDefinition;
+import impactassessment.model.workflowmodel.TaskDefinition;
+import impactassessment.model.workflowmodel.TaskStateTransitionEventPublisher;
+import impactassessment.model.workflowmodel.WorkflowDefinition;
+import impactassessment.model.workflowmodel.WorkflowInstance;
+import impactassessment.model.workflowmodel.WorkflowTask;
 
 public class BasicServiceImpl {
 

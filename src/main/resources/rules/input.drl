@@ -1,0 +1,35 @@
+package rules;
+dialect  "mvel"
+
+import impactassessment.rulebase.Count;
+import impactassessment.utils.SpringContext;
+import org.axonframework.commandhandling.gateway.CommandGateway
+import impactassessment.model.*;
+import impactassessment.model.definition.*;
+import impactassessment.model.definition.QACheckDocument.QAConstraint.EvaluationState
+import impactassessment.api.EnabledTasksAndDecisionsEvt;
+import impactassessment.rulebase.RuleBaseUtils;
+
+global CommandGateway commandGateway;
+
+rule "dummy"
+    when
+        Count( )
+    then
+        commandGateway.send(new impactassessment.api.EnabledTasksAndDecisionsEvt("1"));
+end
+
+rule "EvaluationRule"
+	no-loop
+	when
+	    $ct : ConstraintTrigger ( )
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
+		                                        && getConstraintType().equals( "EvaluationRule" ) )
+	then
+	    System.out.println("Hello from KB rule: EvaluationRule");
+		modify($qaConst) {
+            setEvaluationStatusMessage("We evaluated some stuff") ,
+            setEvaluationStatus(EvaluationState.SUCCESS) ,
+            setLastChangeDueTo($ct.getRequestCorrelation())
+        };
+end

@@ -4,9 +4,9 @@ import org.neo4j.ogm.typeconversion.AttributeConverter;
 
 import com.github.oxo42.stateless4j.StateMachine;
 
-import impactassessment.workflowmodel.DecisionNodeDefinition;
-import impactassessment.workflowmodel.DecisionNodeDefinition.Events;
-import impactassessment.workflowmodel.DecisionNodeDefinition.States;
+import impactassessment.model.workflowmodel.DecisionNodeDefinition;
+import impactassessment.model.workflowmodel.DecisionNodeDefinition.Events;
+import impactassessment.model.workflowmodel.DecisionNodeDefinition.States;
 
 public class DNIStatemachineConverter implements AttributeConverter<StateMachine<DecisionNodeDefinition.States, DecisionNodeDefinition.Events>,String>{
 

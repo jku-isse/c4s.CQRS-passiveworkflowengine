@@ -1,6 +1,6 @@
 package impactassessment.neo4j;
 
-import impactassessment.workflowmodel.IdentifiableObject;
+import impactassessment.model.workflowmodel.IdentifiableObject;
 
 public interface IPersistable<T extends IdentifiableObject> {
 

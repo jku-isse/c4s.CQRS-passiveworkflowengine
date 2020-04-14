@@ -1,8 +1,8 @@
 package impactassessment.rulebase;
 
-import impactassessment.workflowmodel.WorkflowInstance;
-import impactassessment.workflowmodel.definition.ConstraintTrigger;
-import impactassessment.workflowmodel.definition.QACheckDocument;
+import impactassessment.model.workflowmodel.WorkflowInstance;
+import impactassessment.model.definition.ConstraintTrigger;
+import impactassessment.model.definition.QACheckDocument;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.annotation.Scope;

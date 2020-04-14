@@ -1,8 +1,7 @@
 package impactassessment.api
 
-import impactassessment.workflowmodel.ResourceLink
-import impactassessment.workflowmodel.WorkflowDefinition
-import impactassessment.workflowmodel.definition.QACheckDocument
+import impactassessment.model.workflowmodel.WorkflowDefinition
+import impactassessment.model.definition.QACheckDocument
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 
 // COMMANDS

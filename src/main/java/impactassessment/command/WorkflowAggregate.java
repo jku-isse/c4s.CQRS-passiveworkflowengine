@@ -1,10 +1,10 @@
 package impactassessment.command;
 
 import impactassessment.api.*;
-import impactassessment.query.WorkflowModel;
+import impactassessment.model.WorkflowModel;
 import impactassessment.rulebase.RuleBaseService;
-import impactassessment.workflowmodel.definition.ConstraintTrigger;
-import impactassessment.workflowmodel.definition.QACheckDocument;
+import impactassessment.model.definition.ConstraintTrigger;
+import impactassessment.model.definition.QACheckDocument;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventhandling.ReplayStatus;

@@ -51,7 +51,7 @@ public class RuleBaseFactory {
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
 
-        kieFileSystem.write(ResourceFactory.newClassPathResource("rules/increment.drl"));
+        kieFileSystem.write(ResourceFactory.newClassPathResource("rules/input.drl"));
 
 
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);

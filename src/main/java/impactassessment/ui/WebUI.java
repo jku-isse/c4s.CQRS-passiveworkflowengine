@@ -1,6 +1,6 @@
 package impactassessment.ui;
 
-import impactassessment.workflowmodel.definition.WPManagementWorkflow;
+import impactassessment.model.definition.WPManagementWorkflow;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryGateway;
 import impactassessment.api.*;
