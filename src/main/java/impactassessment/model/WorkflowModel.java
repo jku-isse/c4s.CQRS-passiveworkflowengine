@@ -4,6 +4,7 @@ import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.definition.ConstraintTrigger;
+import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.WPManagementWorkflow;
 import impactassessment.model.workflowmodel.*;
@@ -64,7 +65,7 @@ public class WorkflowModel {
     public void handle(AddedArtifactEvt evt) {
         Artifact artifact = evt.getArtifact();
         log.debug("Artifact ID: "+artifact.getId());
-        WPManagementWorkflow wfd = new WPManagementWorkflow();
+        DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
         wfi = wfd.createInstance(artifact.getId());
@@ -77,7 +78,19 @@ public class WorkflowModel {
     }
 
     public void handle(CompletedDataflowEvt evt) {
-        evt.getDni().completedDataflowInvolvingActivationPropagation();
+        DecisionNodeInstance dni = evt.getDni();
+        dni.completedDataflowInvolvingActivationPropagation();
+        List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
+        tds.stream()
+            .forEach(td -> {
+                log.debug(String.format("Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
+                WorkflowTask wt = wfi.instantiateTask(td);
+                //TODO wt.addOutput(new WorkflowTask.ArtifactOutput(JiraUtils.getHumanReadableResourceLinkEndpoint($a), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
+                Set<AbstractWorkflowInstanceObject> newDNIs = wfi.activateDecisionNodesFromTask(wt);
+                dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
+                log.debug("Input Conditions for task fullfilled: "+wt.toString());
+            });
     }
 
     public void handle(ActivatedInBranchEvt evt) {

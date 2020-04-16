@@ -12,7 +12,7 @@ import impactassessment.model.workflowmodel.WorkflowTask
 import impactassessment.model.workflowmodel.TaskLifecycle.Events
 import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
 import impactassessment.model.workflowmodel.WorkflowDefinition
-import impactassessment.model.definition.WPManagementWorkflow
+import impactassessment.model.definition.DronologyWorkflow
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
@@ -27,25 +27,16 @@ import java.util.Set
 global CommandGateway commandGateway;
 global Logger log;
 
-
-rule "SimpleTest1"
-    when
-        Artifact(  )
-    then
-        log.debug("execution.drl: rule SimpleTest1");
-end
-
-
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
     	$a : Artifact(  )
-        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getField("id")) &&
-        							 getWorkflow().getWorkflowDefinition().getId().equals(WPManagementWorkflow.WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE) &&
+        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
+        							 getWorkflow().getWorkflowDefinition().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
 									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
-        log.debug("sending CompleteDataflowCmd from KB "+$wfi.getId());
+        log.debug("sending CompleteDataflowCmd from KB");
         commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni));
 
 end
@@ -55,7 +46,7 @@ rule "Open2InProgress-InBranchConditions"
     	$a : Artifact( getField("status").equals("In Progress") )
         $task : WorkflowTask( getTaskType().getId().equals("open") )
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getField("id")) &&
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
         							getInBranchForWorkflowTask($task) != null &&
@@ -72,9 +63,9 @@ end
 rule "InProgress2Resolved-InBranchConditions"
     when
     	$a : Artifact( getField("status").equals("Resolved") )
-        $task : WorkflowTask( getTaskType().getId().equals("inprogress"))
+        $task : WorkflowTask( getTaskType().getId().equals("In Progress"))
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getField("id")) &&
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("inProgressToResolved") &&
         							getInBranchForWorkflowTask($task) != null &&
@@ -93,7 +84,7 @@ rule "Open2Resolved-InBranchConditions"
     	$a : Artifact( getField("status").equals("Resolved") || getField("status").equals("Closed") )
         $task : WorkflowTask( getTaskType().getId().equals("open") )
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getField("id")) &&
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
         							getInBranchForWorkflowTask($task) != null &&

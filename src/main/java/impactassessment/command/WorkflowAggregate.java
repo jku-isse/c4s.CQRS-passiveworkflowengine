@@ -44,9 +44,9 @@ public class WorkflowAggregate {
 
     @CommandHandler
     public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
-        log.debug("handling {}", cmd);
+    log.debug("handling {}", cmd);
         apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
-            log.debug("##################");
+            log.debug("insert workflow artifacts into knowledge base");
             ruleBaseService.insert(cmd.getArtifact());
             ruleBaseService.insert(model.getWorkflowInstance());
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
@@ -58,9 +58,14 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(CompleteDataflowCmd cmd) {
+    public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
         log.debug("handling {}", cmd);
-        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDni()));
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDni())).andThen(() -> {
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(w -> ruleBaseService.insert(w));
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(d -> ruleBaseService.insert(d));
+        });
     }
 
     @CommandHandler

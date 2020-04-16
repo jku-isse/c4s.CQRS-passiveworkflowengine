@@ -163,7 +163,10 @@ public class PlaceHolderTask extends WorkflowTask{
 		throw new RuntimeException("PlaceHolderTask invocation disallowed");
 	}
 
-	
+	@Override
+	public String toString() {
+		return "PlaceholderTask";
+	}
 	
 	
 }

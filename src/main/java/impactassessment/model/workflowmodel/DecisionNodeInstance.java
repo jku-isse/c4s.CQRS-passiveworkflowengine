@@ -395,6 +395,16 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				.filter(td -> td != null)
 				.collect(Collectors.toList());
 	}
+
+	public List<TaskDefinition> getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks() {
+		List<TaskDefinition> tds = outBranches.stream()
+				.filter(b -> b.getState()==BranchState.TransitionPassed)
+				.filter(b -> b.getTask() == null)
+				.map(b -> b.getBranchDefinition().getTask())
+				.filter(td -> td != null)
+				.collect(Collectors.toList());
+		return tds;
+	}
 	
 	public List<WorkflowTask> getNonDisabledTasksByInBranchName(String branchName) {
 		return inBranches.stream()
@@ -430,7 +440,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 
 	@Override
 	public String toString() {
-		return "DNI [" + ofType + ", ("+getState()+")" + workflow + ", "
+		return "DNI [" + ofType + ", " /*+ "("+getState()+")"*/ + workflow + ", "	//TODO
 				+ ", taskCompletionConditionsFullfilled=" + taskCompletionConditionsFullfilled + ", contextConditionsFullfilled=" + contextConditionsFullfilled 
 				+ ", taskActivationConditionsFullfilled=" + taskActivationConditionsFullfilled + ", activationPropagationCompleted=" + activationPropagationCompleted
 				+ " inBranches=" + inBranches + ", outBranches=" + outBranches  				

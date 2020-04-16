@@ -121,7 +121,7 @@ public abstract class AbstractBranchInstance implements IBranchInstance {
 	@Override
 	public String toString() {
 		if (task == null || task instanceof PlaceHolderTask)
-			return "BranchInstance [task=NONE-YET , state=" + state + " , ofType: " + bd.getName() + "]";			
+			return "BranchInstance [task=NONE-YET , state=" + state + " , ofType: " + /*bd.getName() +*/ "]";	//TODO
 		else
 			return "BranchInstance [task=" + task.getId() + ", state=" + state + " , ofType: " + bd.getName() + "]";
 	}
