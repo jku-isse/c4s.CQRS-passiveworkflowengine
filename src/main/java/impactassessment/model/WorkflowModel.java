@@ -2,8 +2,10 @@ package impactassessment.model;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
+import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
+import impactassessment.model.definition.WPManagementWorkflow;
 import impactassessment.model.workflowmodel.*;
 import lombok.extern.slf4j.XSlf4j;
 
@@ -17,7 +19,7 @@ public class WorkflowModel {
     public WorkflowInstance getWorkflowInstance() {
         return wfi;
     }
-
+/*
     public void handle(CreatedWorkflowInstanceOfEvt evt){
         WorkflowDefinition wfd = evt.getWfd();
         wfi = wfd.createInstance(evt.getId());
@@ -58,11 +60,48 @@ public class WorkflowModel {
         ct.addConstraint("*");
         return ct;
     }
+*/
+    public void handle(AddedArtifactEvt evt) {
+        Artifact artifact = evt.getArtifact();
+        log.debug("Artifact ID: "+artifact.getId());
+        WPManagementWorkflow wfd = new WPManagementWorkflow();
+        wfd.initWorkflowSpecification();
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
+        wfi = wfd.createInstance(artifact.getId());
+        wfi.addOrReplaceProperty("ID", artifact.getId());
+        wfi.addOrReplaceProperty("Issue Type", artifact.getField("issuetype"));
+        if (!artifact.getField("issuetype").equals("Hazard")) {
+            wfi.addOrReplaceProperty("Priority", "" + artifact.getField("priority"));
+        }
+        wfi.enableWorkflowTasksAndDecisionNodes();
+    }
+
+    public void handle(CompletedDataflowEvt evt) {
+        evt.getDni().completedDataflowInvolvingActivationPropagation();
+    }
+
+    public void handle(ActivatedInBranchEvt evt) {
+        evt.getDni().activateInBranch(evt.getDni().getInBranchForWorkflowTask(evt.getWft()));
+    }
+
+    public void handle(ActivatedOutBranchEvt evt) {
+        evt.getDni().activateOutBranch(evt.getBranchId());
+    }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof CreatedWorkflowInstanceOfEvt) {
+        if (evt instanceof AddedArtifactEvt) {
+            handle((AddedArtifactEvt) evt);
+        } else if (evt instanceof CompletedDataflowEvt) {
+            handle((CompletedDataflowEvt) evt);
+        } else if (evt instanceof ActivatedInBranchEvt) {
+            handle((ActivatedInBranchEvt) evt);
+        } else if (evt instanceof ActivatedOutBranchEvt) {
+            handle((ActivatedOutBranchEvt) evt);
+        }
+
+        /*else if (evt instanceof CreatedWorkflowInstanceOfEvt) {
             handle((CreatedWorkflowInstanceOfEvt) evt);
-        }  else if (evt instanceof EnabledTasksAndDecisionsEvt) {
+        } else if (evt instanceof EnabledTasksAndDecisionsEvt) {
             handle((EnabledTasksAndDecisionsEvt) evt);
         } else if (evt instanceof CompletedDataflowOfDecisionNodeInstanceEvt) {
             handle((CompletedDataflowOfDecisionNodeInstanceEvt) evt);
@@ -70,7 +109,7 @@ public class WorkflowModel {
             handle((AddedQAConstraintsAsArtifactOutputsEvt) evt);
         } else if (evt instanceof CreatedConstraintTriggerEvt) {
             handle((CreatedConstraintTriggerEvt) evt);
-        } else {
+        } */else {
             log.error("Unknown message type: "+evt.getClass().getSimpleName());
         }
     }

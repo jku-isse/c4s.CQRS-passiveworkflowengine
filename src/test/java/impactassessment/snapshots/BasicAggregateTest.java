@@ -2,6 +2,8 @@ package impactassessment.snapshots;
 
 import impactassessment.api.*;
 import impactassessment.command.WorkflowAggregate;
+import impactassessment.mock.artifact.Artifact;
+import impactassessment.mock.artifact.MockService;
 import impactassessment.rulebase.RuleBaseService;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -30,49 +32,42 @@ public class BasicAggregateTest {
     private FixtureConfiguration<WorkflowAggregate> fixture;
     @Autowired
     private RuleBaseService ruleBaseService;
-    private WPManagementWorkflow workflow;
     private String id;
 
     @Before
     public void setup() {
         fixture = new AggregateTestFixture<>(WorkflowAggregate.class);
         fixture.registerInjectableResource(ruleBaseService);
-        workflow = new WPManagementWorkflow();
-        workflow.initWorkflowSpecification();
-        workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        id = "test_wf";
+        id = "test-wf";
     }
 
     @Test
-    public void testCreateWorkflowCommandOnly() {
+    public void testAddArtifactCommand() {
+        Artifact a = MockService.mockArtifact("A1");
         fixture.givenNoPriorActivity()
-                .when(new CreateWorkflowCmd(id))
-                .expectSuccessfulHandlerExecution();
+                .when(new AddArtifactCmd("A1", a))
+                .expectEvents(new AddedArtifactEvt(id, a));
     }
 
-    @Test
-    public void testCommandsCreateEnableCompleteAddCreate() {
-        QACheckDocument.QAConstraint qac = mockQAConstraint();
-        fixture.given(new CreatedWorkflowEvt(id))
-                .andGiven(new CreatedWorkflowInstanceOfEvt(id, workflow))
-                .andGiven(new EnabledTasksAndDecisionsEvt(id))
-                .andGiven(new CompletedDataflowOfDecisionNodeInstanceEvt(id, 0))
-                .andGiven(new AddedQAConstraintsAsArtifactOutputsEvt(id, qac))
-                .when(new CreateConstraintTriggerCmd(id))
-                .expectSuccessfulHandlerExecution()
-                .expectEvents(new CreatedConstraintTriggerEvt(id));
-    }
+//    @Test
+//    public void testCommandsCreateEnableCompleteAddCreate() {
+//        Artifact a = mockArtifact("A2");
+//        fixture.given(new CreatedWorkflowEvt(id))
+//                .andGiven(new AddedArtifactEvt(id, a))
+//                .andGiven(new CompletedDataflowEvt(id))
+//                .andGiven(new ActivatedInBranchEvt(id))
+//                .andGiven(new ActivatedOutBranchEvt(id))
+//                .expectSuccessfulHandlerExecution();
+//    }
 
     @Test
     public void testDeleteCommand() {
-        fixture.given(new CreatedWorkflowEvt(id), new CreatedWorkflowInstanceOfEvt(id, workflow))
+        Artifact a = MockService.mockArtifact("A1");
+        fixture.given(new AddedArtifactEvt(id, a))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new DeletedEvt(id))
                 .expectMarkedDeleted();
     }
 
-    private QACheckDocument.QAConstraint mockQAConstraint() {
-        return new RuleEngineBasedConstraint("REBC", null, "EvaluationRule", null, "This is a simple evaluation test!");
-    }
 }

@@ -1,7 +1,10 @@
 package impactassessment.ui;
 
+import impactassessment.mock.artifact.Artifact;
+import impactassessment.mock.artifact.MockService;
 import impactassessment.model.definition.WPManagementWorkflow;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.queryhandling.QueryGateway;
 import impactassessment.api.*;
 import com.vaadin.annotations.Push;
@@ -24,9 +27,8 @@ import java.util.concurrent.CompletableFuture;
 @Push
 @Profile("ui")
 @RequiredArgsConstructor
+@XSlf4j
 public class WebUI extends UI {
-
-    private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
@@ -70,29 +72,21 @@ public class WebUI extends UI {
     private Panel commandPanel() {
         TextField id = new TextField("ID");
 //        TextField amount = new TextField("Amount");
-        Button create = new Button("CreateWorkflowCmd");
-        Button createInstance = new Button("CreateWorkflowInstanceOfCmd");
-        Button enable = new Button("EnabledTasksAndDecisionsEvt");
+        Button add = new Button("AddArtifactCmd");
+        Button complete = new Button("CompletedDataflowEvt");
 
-        create.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CreateWorkflowCmd(id.getValue()));
+        add.addClickListener(evt -> {
+            commandGateway.sendAndWait(new AddArtifactCmd(id.getValue(), MockService.mockArtifact(id.getValue())));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        WPManagementWorkflow workflow = new WPManagementWorkflow();
-        workflow.initWorkflowSpecification();
-        createInstance.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CreateWorkflowInstanceOfCmd(id.getValue(), workflow));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
-        });
-
-        enable.addClickListener(evt -> {
-            commandGateway.sendAndWait(new EnabledTasksAndDecisionsEvt(id.getValue()));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
-        });
+//        complete.addClickListener(evt -> {
+//            commandGateway.sendAndWait(new CompletedDataflowEvt(id.getValue()));
+//            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+//        });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id/*, amount*/, create, createInstance, enable);
+        form.addComponents(id/*, amount*/, add, complete);
         form.setMargin(true);
 
         Panel panel = new Panel("Send commands");

@@ -19,36 +19,36 @@ public class WorkflowProjection {
 
     private final MockDatabase mockDB;
 
-    @EventHandler
-    public void on(CreatedWorkflowEvt event) {
-        log.debug("projecting {}", event);
-        WorkflowModel m = mockDB.createAndPutWorkflowModel(event.getId());
-        m.handle(event);
-    }
-
-    @EventHandler
-    public void on(CreatedWorkflowInstanceOfEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-        log.debug("projecting {}", event);
-        mockDB.getWorkflowModel(event.getId()).handle(event);
-    }
-
-    @EventHandler
-    public void on(EnabledTasksAndDecisionsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-        log.debug("projecting {}", event);
-        mockDB.getWorkflowModel(event.getId()).handle(event);
-    }
-
-    @EventHandler
-    public void on(CompletedDataflowOfDecisionNodeInstanceEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-        log.debug("projecting {}", event);
-        mockDB.getWorkflowModel(event.getId()).handle(event);
-    }
-
-    @EventHandler
-    public void on(AddedQAConstraintsAsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-        log.debug("projecting {}", event);
-        mockDB.getWorkflowModel(event.getId()).handle(event);
-    }
+//    @EventHandler
+//    public void on(CreatedWorkflowEvt event) {
+//        log.debug("projecting {}", event);
+//        WorkflowModel m = mockDB.createAndPutWorkflowModel(event.getId());
+//        m.handle(event);
+//    }
+//
+//    @EventHandler
+//    public void on(CreatedWorkflowInstanceOfEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+//        log.debug("projecting {}", event);
+//        mockDB.getWorkflowModel(event.getId()).handle(event);
+//    }
+//
+//    @EventHandler
+//    public void on(EnabledTasksAndDecisionsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+//        log.debug("projecting {}", event);
+//        mockDB.getWorkflowModel(event.getId()).handle(event);
+//    }
+//
+//    @EventHandler
+//    public void on(CompletedDataflowOfDecisionNodeInstanceEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+//        log.debug("projecting {}", event);
+//        mockDB.getWorkflowModel(event.getId()).handle(event);
+//    }
+//
+//    @EventHandler
+//    public void on(AddedQAConstraintsAsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
+//        log.debug("projecting {}", event);
+//        mockDB.getWorkflowModel(event.getId()).handle(event);
+//    }
 
     @EventHandler
     public void on(DeletedEvt evt) {

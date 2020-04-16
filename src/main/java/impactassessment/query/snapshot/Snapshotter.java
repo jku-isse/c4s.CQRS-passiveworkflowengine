@@ -87,7 +87,7 @@ public class Snapshotter {
                             mockDB.handle(m);
                             break;
                         default:
-                            log.error("Replay received invalid action: {}", action);
+                            log.error("Replay received invalid action: {}", action.toString());
                     }
                 }
             });

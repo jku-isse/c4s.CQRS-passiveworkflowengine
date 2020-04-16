@@ -1,7 +1,9 @@
 package impactassessment.command;
 
 import impactassessment.api.*;
+import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.WorkflowModel;
+import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject;
 import impactassessment.rulebase.RuleBaseService;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
@@ -12,6 +14,8 @@ import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
+
+import java.util.List;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -35,42 +39,40 @@ public class WorkflowAggregate {
     public WorkflowModel getModel() {
         return model;
     }
+
     // Command Handlers
 
     @CommandHandler
-    public WorkflowAggregate(CreateWorkflowCmd cmd) {
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
         log.debug("handling {}", cmd);
-        apply(new CreatedWorkflowEvt(cmd.getId()));
+        apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
+            log.debug("##################");
+            ruleBaseService.insert(cmd.getArtifact());
+            ruleBaseService.insert(model.getWorkflowInstance());
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(w -> ruleBaseService.insert(w));
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(w -> ruleBaseService.insert(w));
+            ruleBaseService.fire();
+        });
     }
 
     @CommandHandler
-    public void handle(CreateWorkflowInstanceOfCmd cmd) {
+    public void handle(CompleteDataflowCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new CreatedWorkflowInstanceOfEvt(cmd.getId(), cmd.getWfd()));
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDni()));
     }
 
     @CommandHandler
-    public void handle(EnableTasksAndDecisionsCmd cmd) {
+    public void handle(ActivateInBranchCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new EnabledTasksAndDecisionsEvt(cmd.getId()));
+        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDni(), cmd.getWft()));
     }
 
     @CommandHandler
-    public void handle(CompleteDataflowOfDecisionNodeInstanceCmd cmd) {
+    public void handle(ActivateOutBranchCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new CompletedDataflowOfDecisionNodeInstanceEvt(cmd.getId(), cmd.getDniIndex()));
-    }
-
-    @CommandHandler
-    public void handle(AddQAConstraintsAsArtifactOutputsCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new AddedQAConstraintsAsArtifactOutputsEvt(cmd.getId(), cmd.getQac()));
-    }
-
-    @CommandHandler
-    public void handle(CreateConstraintTriggerCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new CreatedConstraintTriggerEvt(cmd.getId()));
+        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDni(), cmd.getBranchId()));
     }
 
     @CommandHandler
@@ -82,49 +84,29 @@ public class WorkflowAggregate {
     // Event Handlers
 
     @EventSourcingHandler
-    public void on(CreatedWorkflowEvt evt) {
+    public void on(AddedArtifactEvt evt) {
         log.debug("applying {}", evt);
-        id = evt.getId();
+        id = evt.getArtifact().getId();
         model = new WorkflowModel();
-    }
-
-    @EventSourcingHandler
-    public void on(CreatedWorkflowInstanceOfEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
-        log.debug("applying {}", evt);
         model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(model.getWorkflowInstance());
-        }
     }
 
     @EventSourcingHandler
-    public void on(EnabledTasksAndDecisionsEvt evt) {
+    public void on(CompletedDataflowEvt evt) {
         log.debug("applying {}", evt);
         model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(CompletedDataflowOfDecisionNodeInstanceEvt evt) {
+    public void on(ActivatedInBranchEvt evt) {
         log.debug("applying {}", evt);
         model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(AddedQAConstraintsAsArtifactOutputsEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
+    public void on(ActivatedOutBranchEvt evt) {
         log.debug("applying {}", evt);
-        QACheckDocument.QAConstraint qac = model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(qac);
-        }
-    }
-
-    @EventSourcingHandler
-    public void on(CreatedConstraintTriggerEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
-        log.debug("applying {}", evt);
-        ConstraintTrigger ct = model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(ct);
-        }
+        model.handle(evt);
     }
 
     @EventSourcingHandler
@@ -132,5 +114,4 @@ public class WorkflowAggregate {
         log.debug("applying {}", evt);
         markDeleted();
     }
-
 }
