@@ -1,23 +1,24 @@
 package rules;
-dialect  "mvel"
 
-import impactassessment.rulebase.Count;
-import impactassessment.utils.SpringContext;
+import org.slf4j.Logger
 import org.axonframework.commandhandling.gateway.CommandGateway
+
 import impactassessment.model.*;
 import impactassessment.model.definition.*;
-import impactassessment.model.definition.QACheckDocument.QAConstraint.EvaluationState
-import impactassessment.api.EnabledTasksAndDecisionsEvt;
-import impactassessment.rulebase.RuleBaseUtils;
+import impactassessment.model.definition.QACheckDocument.QAConstraint.EvaluationState;
+import impactassessment.mock.artifact.Artifact;
 
 global CommandGateway commandGateway;
+global Logger log;
 
-rule "dummy"
+/*
+rule "SimpleTest2"
     when
-        Count( )
+        Artifact(  )
     then
-        commandGateway.send(new impactassessment.api.EnabledTasksAndDecisionsEvt("1"));
+        log.debug("input.drl: rule SimpleTest2");
 end
+*/
 
 rule "EvaluationRule"
 	no-loop
@@ -26,7 +27,7 @@ rule "EvaluationRule"
 		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
 		                                        && getConstraintType().equals( "EvaluationRule" ) )
 	then
-	    System.out.println("Hello from KB rule: EvaluationRule");
+	    log.debug("Hello from KB rule: EvaluationRule");
 		modify($qaConst) {
             setEvaluationStatusMessage("We evaluated some stuff") ,
             setEvaluationStatus(EvaluationState.SUCCESS) ,

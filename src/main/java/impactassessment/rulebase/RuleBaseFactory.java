@@ -12,7 +12,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RuleBaseFactory {
+
     private static final String RULES_PATH = "rules/";
+    private static final String INPUT_RULES_FILE = "input.drl";
+    private static final String EXECUTION_RULES_FILE = "execution.drl";
+    private static final String CONSTRAINTS_RULES_FILE = "constraints.drl";
+
     private KieServices kieServices=KieServices.Factory.get();
 
     private KieFileSystem getKieFileSystem() throws IOException {
@@ -51,7 +56,8 @@ public class RuleBaseFactory {
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
 
-        kieFileSystem.write(ResourceFactory.newClassPathResource("rules/input.drl"));
+        kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+INPUT_RULES_FILE));
+        kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+EXECUTION_RULES_FILE));
 
 
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
