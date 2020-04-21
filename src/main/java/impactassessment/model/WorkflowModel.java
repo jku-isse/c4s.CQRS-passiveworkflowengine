@@ -3,6 +3,7 @@ package impactassessment.model;
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
+import impactassessment.mock.artifact.MockService;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
@@ -78,14 +79,14 @@ public class WorkflowModel {
     }
 
     public void handle(CompletedDataflowEvt evt) {
-        DecisionNodeInstance dni = evt.getDni();
+        DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         tds.stream()
             .forEach(td -> {
                 log.debug(String.format("Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                //TODO wt.addOutput(new WorkflowTask.ArtifactOutput(JiraUtils.getHumanReadableResourceLinkEndpoint($a), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.addOutput(new WorkflowTask.ArtifactOutput(MockService.getHumanReadableResourceLinkEndpoint(evt.getArtifact()), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 Set<AbstractWorkflowInstanceObject> newDNIs = wfi.activateDecisionNodesFromTask(wt);
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
@@ -94,11 +95,18 @@ public class WorkflowModel {
     }
 
     public void handle(ActivatedInBranchEvt evt) {
-        evt.getDni().activateInBranch(evt.getDni().getInBranchForWorkflowTask(evt.getWft()));
+        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
+        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
+        if (optDni.isPresent() && optWft.isPresent()) {
+            DecisionNodeInstance dni = optDni.get();
+            WorkflowTask wft = optWft.get();
+            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+        }
     }
 
     public void handle(ActivatedOutBranchEvt evt) {
-        evt.getDni().activateOutBranch(evt.getBranchId());
+        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
+        optDni.ifPresent(dni -> dni.activateOutBranch(evt.getBranchId()));
     }
 
     public void handle(IdentifiableEvt evt) {
@@ -129,6 +137,14 @@ public class WorkflowModel {
 
     public void reset() {
         wfi = null;
+    }
+
+    private Optional<DecisionNodeInstance> getDecisionNodeInstance(String id) {
+        return wfi.getDecisionNodeInstancesReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
+    }
+
+    private Optional<WorkflowTask> getWorkflowTask(String id) {
+        return wfi.getWorkflowTasksReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
     }
 
     @Override

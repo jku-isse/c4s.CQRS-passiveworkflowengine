@@ -50,9 +50,9 @@ public class WorkflowAggregate {
             ruleBaseService.insert(cmd.getArtifact());
             ruleBaseService.insert(model.getWorkflowInstance());
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                    .forEach(w -> ruleBaseService.insert(w));
+                    .forEach(wft -> ruleBaseService.insert(wft));
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(w -> ruleBaseService.insert(w));
+                    .forEach(dni -> ruleBaseService.insert(dni));
             ruleBaseService.fire();
         });
     }
@@ -60,24 +60,26 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
         log.debug("handling {}", cmd);
-        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDni())).andThen(() -> {
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact())).andThen(() -> {
+            log.debug("insert workflow artifacts into knowledge base");
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                    .forEach(w -> ruleBaseService.insert(w));
+                    .forEach(wft -> ruleBaseService.insert(wft));
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(d -> ruleBaseService.insert(d));
+                    .forEach(dni -> ruleBaseService.insert(dni));
+            ruleBaseService.fire();
         });
     }
 
     @CommandHandler
     public void handle(ActivateInBranchCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDni(), cmd.getWft()));
+        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
     }
 
     @CommandHandler
     public void handle(ActivateOutBranchCmd cmd) {
         log.debug("handling {}", cmd);
-        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDni(), cmd.getBranchId()));
+        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
     }
 
     @CommandHandler

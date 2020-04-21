@@ -8,18 +8,18 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier
 
 // COMMANDS
 data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: Artifact)
-data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dni: DecisionNodeInstance)
-data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dni: DecisionNodeInstance, val wft: WorkflowTask)
-data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dni: DecisionNodeInstance, val branchId: String)
+data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val artifact: Artifact)
+data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
+data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
 data class AddedArtifactEvt(override val id: String, val artifact: Artifact) : IdentifiableEvt
-data class CompletedDataflowEvt(override val id: String, val dni: DecisionNodeInstance) : IdentifiableEvt
-data class ActivatedInBranchEvt(override val id: String, val dni: DecisionNodeInstance, val wft: WorkflowTask) : IdentifiableEvt
-data class ActivatedOutBranchEvt(override val id: String, val dni: DecisionNodeInstance, val branchId: String) : IdentifiableEvt
+data class CompletedDataflowEvt(override val id: String, val dniId: String, val artifact: Artifact) : IdentifiableEvt
+data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
+data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 
 // QUERIES
