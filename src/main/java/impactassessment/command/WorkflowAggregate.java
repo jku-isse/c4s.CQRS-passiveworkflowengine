@@ -47,32 +47,33 @@ public class WorkflowAggregate {
 
     @CommandHandler
     public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
-    log.debug("[AGG] handling {}", cmd);
-    initKbContentIfNull();
-    apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
-        log.debug("[AGG] insert workflow artifacts into knowledge base");
-        updateOrInsert(cmd.getArtifact(), ruleBaseService);
-        updateOrInsert(model.getWorkflowInstance(), ruleBaseService);
-        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                .forEach(wft -> updateOrInsert(wft, ruleBaseService));
-        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                .forEach(dni -> updateOrInsert(dni, ruleBaseService));
-        ruleBaseService.fire();
-    });
+        log.debug("[AGG] handling {}", cmd);
+        apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
+            .andThen(() -> {
+                log.debug("[AGG] insert workflow artifacts into knowledge base");
+                updateOrInsert(cmd.getArtifact(), ruleBaseService);
+                updateOrInsert(model.getWorkflowInstance(), ruleBaseService);
+                model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                        .forEach(wft -> updateOrInsert(wft, ruleBaseService));
+                model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                        .forEach(dni -> updateOrInsert(dni, ruleBaseService));
+                ruleBaseService.fire();
+            });
     }
 
     @CommandHandler
     public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact())).andThen(() -> {
-            log.debug("[AGG] insert workflow artifacts into knowledge base");
-            updateOrInsert(cmd.getArtifact(), ruleBaseService);
-            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                    .forEach(wft -> updateOrInsert(wft, ruleBaseService));
-            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(dni -> updateOrInsert(dni, ruleBaseService));
-            ruleBaseService.fire();
-        });
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact()))
+            .andThen(() -> {
+                log.debug("[AGG] insert workflow artifacts into knowledge base");
+                updateOrInsert(cmd.getArtifact(), ruleBaseService);
+                model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                        .forEach(wft -> updateOrInsert(wft, ruleBaseService));
+                model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                        .forEach(dni -> updateOrInsert(dni, ruleBaseService));
+                ruleBaseService.fire();
+            });
     }
 
     @CommandHandler
@@ -100,6 +101,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getArtifact().getId();
         model = new WorkflowModel();
+        kbContent = new HashMap<>();
         model.handle(evt);
     }
 
@@ -127,30 +129,39 @@ public class WorkflowAggregate {
         markDeleted();
     }
 
-
-    private void initKbContentIfNull() {
-        // TODO put this into cmd/evt handler later..not sure at the moment
-        if (kbContent == null) {
-            kbContent = new HashMap<>();
-        }
-    }
     private void updateOrInsert(IdentifiableObject o, RuleBaseService ruleBaseService) {
-        if (kbContent.containsKey(o.getId())) {
-            FactHandle handle = kbContent.get(o.getId());
+        String key = o.getClass().getSimpleName() + ":" + o.getId();
+        if (kbContent.containsKey(key)) {
+            FactHandle handle = kbContent.get(key);
             ruleBaseService.update(handle, o);
         } else {
             FactHandle handle = ruleBaseService.insert(o);
-            kbContent.put(o.getId(), handle);
+            kbContent.put(key, handle);
         }
     }
 
     private void updateOrInsert(Artifact a, RuleBaseService ruleBaseService) {
-        if (kbContent.containsKey(a.getId())) {
-            FactHandle handle = kbContent.get(a.getId());
+        String key = a.getClass().getSimpleName() + ":" + a.getId();
+        if (kbContent.containsKey(key)) {
+            FactHandle handle = kbContent.get(key);
             ruleBaseService.update(handle, a);
         } else {
             FactHandle handle = ruleBaseService.insert(a);
-            kbContent.put(a.getId(), handle);
+            kbContent.put(key, handle);
+        }
+    }
+
+    private void putHandle(IdentifiableObject o, FactHandle handle) {
+        String key = o.getClass().getSimpleName() + ":" + o.getId();
+        if (!kbContent.containsKey(key)) {
+            kbContent.put(key, handle);
+        }
+    }
+
+    private void putHandle(Artifact a, FactHandle handle) {
+        String key = a.getClass().getSimpleName() + ":" + a.getId();
+        if (!kbContent.containsKey(key)) {
+            kbContent.put(key, handle);
         }
     }
 }

@@ -17,4 +17,11 @@ public class Artifact {
     public void setField(String fieldName, String fieldValue) {
         fields.put(fieldName, fieldValue);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        fields.entrySet().stream().forEach(entry -> builder.append(entry.getKey() + ": " + entry.getValue() + ", "));
+        return "Artifact ["+builder+"]";
+    }
 }

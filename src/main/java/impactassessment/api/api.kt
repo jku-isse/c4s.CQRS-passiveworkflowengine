@@ -1,9 +1,6 @@
 package impactassessment.api
 
 import impactassessment.mock.artifact.Artifact
-import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
-import impactassessment.model.workflowmodel.DecisionNodeInstance
-import impactassessment.model.workflowmodel.WorkflowTask
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 
 // COMMANDS
