@@ -1,17 +1,14 @@
 package impactassessment.model;
 
-import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
-import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.DronologyWorkflow;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.WPManagementWorkflow;
 import impactassessment.model.workflowmodel.*;
 import lombok.extern.slf4j.XSlf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @XSlf4j
 public class WorkflowModel {
@@ -65,7 +62,6 @@ public class WorkflowModel {
 */
     public void handle(AddedArtifactEvt evt) {
         Artifact artifact = evt.getArtifact();
-        log.debug("Artifact ID: "+artifact.getId());
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
@@ -78,20 +74,23 @@ public class WorkflowModel {
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    public void handle(CompletedDataflowEvt evt) {
+    public List<String> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
+        var newDNIs = new ArrayList<AbstractWorkflowInstanceObject>();
         tds.stream()
             .forEach(td -> {
-                log.debug(String.format("Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
+                log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
                 wt.addOutput(new WorkflowTask.ArtifactOutput(MockService.getHumanReadableResourceLinkEndpoint(evt.getArtifact()), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
-                Set<AbstractWorkflowInstanceObject> newDNIs = wfi.activateDecisionNodesFromTask(wt);
+                newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
-                log.debug("Input Conditions for task fullfilled: "+wt.toString());
+                log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
             });
+        List<String> newDNIIds = newDNIs.stream().map(d -> d.getId()).collect(Collectors.toList());
+        return newDNIIds;
     }
 
     public void handle(ActivatedInBranchEvt evt) {
@@ -131,7 +130,7 @@ public class WorkflowModel {
         } else if (evt instanceof CreatedConstraintTriggerEvt) {
             handle((CreatedConstraintTriggerEvt) evt);
         } */else {
-            log.error("Unknown message type: "+evt.getClass().getSimpleName());
+            log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
     }
 

@@ -382,7 +382,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	
 	@Override
 	public String toString() {
-		return "WFTask (" + getLifecycleState() + "|"+getInputState()+"|"+getOutputState()+") [ tType=" + taskType + ", " + workflow.getId() + ", respEngineer="
+		return "WFTask (" + getLifecycleState() + "|"+getInputState()+"|"+getOutputState()+") [ id="+getId()+", tType=" + taskType + ", " + workflow.getId() + ", respEngineer="
 				+ responsibleEngineer + ", output=" + output + ", input=" + input + "]";
 	}
 

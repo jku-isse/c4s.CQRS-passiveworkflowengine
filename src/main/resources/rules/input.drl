@@ -27,7 +27,6 @@ rule "EvaluationRule"
 		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ct.getWorkflow().getId())
 		                                        && getConstraintType().equals( "EvaluationRule" ) )
 	then
-	    log.debug("Hello from KB rule: EvaluationRule");
 		modify($qaConst) {
             setEvaluationStatusMessage("We evaluated some stuff") ,
             setEvaluationStatus(EvaluationState.SUCCESS) ,
