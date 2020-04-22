@@ -3,19 +3,19 @@ package impactassessment.command;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.WorkflowModel;
-import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject;
+import impactassessment.model.workflowmodel.IdentifiableObject;
 import impactassessment.rulebase.RuleBaseService;
-import impactassessment.model.definition.ConstraintTrigger;
-import impactassessment.model.definition.QACheckDocument;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
-import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
+import org.kie.api.runtime.rule.FactHandle;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.annotation.Transient;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -28,6 +28,9 @@ public class WorkflowAggregate {
     @AggregateIdentifier
     private String id;
     private WorkflowModel model;
+
+    @Transient
+    private Map<String, FactHandle> kbContent;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -45,16 +48,17 @@ public class WorkflowAggregate {
     @CommandHandler
     public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
     log.debug("[AGG] handling {}", cmd);
-        apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
-            log.debug("[AGG] insert workflow artifacts into knowledge base");
-            ruleBaseService.insert(cmd.getArtifact());
-            ruleBaseService.insert(model.getWorkflowInstance());
-            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                    .forEach(wft -> ruleBaseService.insert(wft));
-            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(dni -> ruleBaseService.insert(dni));
-            ruleBaseService.fire();
-        });
+    initKbContentIfNull();
+    apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
+        log.debug("[AGG] insert workflow artifacts into knowledge base");
+        updateOrInsert(cmd.getArtifact(), ruleBaseService);
+        updateOrInsert(model.getWorkflowInstance(), ruleBaseService);
+        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                .forEach(wft -> updateOrInsert(wft, ruleBaseService));
+        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                .forEach(dni -> updateOrInsert(dni, ruleBaseService));
+        ruleBaseService.fire();
+    });
     }
 
     @CommandHandler
@@ -62,10 +66,11 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact())).andThen(() -> {
             log.debug("[AGG] insert workflow artifacts into knowledge base");
+            updateOrInsert(cmd.getArtifact(), ruleBaseService);
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                    .forEach(wft -> ruleBaseService.insert(wft));
+                    .forEach(wft -> updateOrInsert(wft, ruleBaseService));
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(dni -> ruleBaseService.insert(dni));
+                    .forEach(dni -> updateOrInsert(dni, ruleBaseService));
             ruleBaseService.fire();
         });
     }
@@ -120,5 +125,32 @@ public class WorkflowAggregate {
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
         markDeleted();
+    }
+
+
+    private void initKbContentIfNull() {
+        // TODO put this into cmd/evt handler later..not sure at the moment
+        if (kbContent == null) {
+            kbContent = new HashMap<>();
+        }
+    }
+    private void updateOrInsert(IdentifiableObject o, RuleBaseService ruleBaseService) {
+        if (kbContent.containsKey(o.getId())) {
+            FactHandle handle = kbContent.get(o.getId());
+            ruleBaseService.update(handle, o);
+        } else {
+            FactHandle handle = ruleBaseService.insert(o);
+            kbContent.put(o.getId(), handle);
+        }
+    }
+
+    private void updateOrInsert(Artifact a, RuleBaseService ruleBaseService) {
+        if (kbContent.containsKey(a.getId())) {
+            FactHandle handle = kbContent.get(a.getId());
+            ruleBaseService.update(handle, a);
+        } else {
+            FactHandle handle = ruleBaseService.insert(a);
+            kbContent.put(a.getId(), handle);
+        }
     }
 }

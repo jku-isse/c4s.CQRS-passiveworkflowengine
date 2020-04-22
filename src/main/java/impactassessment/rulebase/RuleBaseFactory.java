@@ -9,10 +9,6 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
 @XSlf4j
 public class RuleBaseFactory {
 
