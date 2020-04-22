@@ -1,28 +1,25 @@
 package impactassessment.api
 
-import impactassessment.workflowmodel.ResourceLink
-import impactassessment.workflowmodel.WorkflowDefinition
-import impactassessment.workflowmodel.definition.QACheckDocument
+import impactassessment.mock.artifact.Artifact
+import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
+import impactassessment.model.workflowmodel.DecisionNodeInstance
+import impactassessment.model.workflowmodel.WorkflowTask
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 
 // COMMANDS
-data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String)
-data class CreateWorkflowInstanceOfCmd(@TargetAggregateIdentifier val id: String, val wfd: WorkflowDefinition)
-data class EnableTasksAndDecisionsCmd(@TargetAggregateIdentifier val id: String)
-data class CompleteDataflowOfDecisionNodeInstanceCmd(@TargetAggregateIdentifier val id: String, val dniIndex: Int)
-data class AddQAConstraintsAsArtifactOutputsCmd(@TargetAggregateIdentifier val id: String, val qac: QACheckDocument.QAConstraint)
-data class CreateConstraintTriggerCmd(@TargetAggregateIdentifier val id: String)
+data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: Artifact)
+data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val artifact: Artifact)
+data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
+data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
-data class CreatedWorkflowEvt(override val id: String) : IdentifiableEvt
-data class CreatedWorkflowInstanceOfEvt(override val id: String, val wfd: WorkflowDefinition) : IdentifiableEvt
-data class EnabledTasksAndDecisionsEvt(override val id: String) : IdentifiableEvt
-data class CompletedDataflowOfDecisionNodeInstanceEvt(override val id: String, val dniIndex: Int) : IdentifiableEvt
-data class AddedQAConstraintsAsArtifactOutputsEvt(override val id: String, val qac: QACheckDocument.QAConstraint) : IdentifiableEvt
-data class CreatedConstraintTriggerEvt(override val id: String) : IdentifiableEvt
+data class AddedArtifactEvt(override val id: String, val artifact: Artifact) : IdentifiableEvt
+data class CompletedDataflowEvt(override val id: String, val dniId: String, val artifact: Artifact) : IdentifiableEvt
+data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
+data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 
 // QUERIES

@@ -5,7 +5,7 @@ import javax.inject.Inject;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 
-import impactassessment.workflowmodel.IdentifiableObject;
+import impactassessment.model.workflowmodel.IdentifiableObject;
 
 public abstract class Persistable<T extends IdentifiableObject> implements IPersistable<T> {
 

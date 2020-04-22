@@ -1,10 +1,12 @@
 package impactassessment.command;
 
 import impactassessment.api.*;
-import impactassessment.query.WorkflowModel;
+import impactassessment.mock.artifact.Artifact;
+import impactassessment.model.WorkflowModel;
+import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject;
 import impactassessment.rulebase.RuleBaseService;
-import impactassessment.workflowmodel.definition.ConstraintTrigger;
-import impactassessment.workflowmodel.definition.QACheckDocument;
+import impactassessment.model.definition.ConstraintTrigger;
+import impactassessment.model.definition.QACheckDocument;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventhandling.ReplayStatus;
@@ -12,6 +14,8 @@ import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
+
+import java.util.List;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -26,7 +30,7 @@ public class WorkflowAggregate {
     private WorkflowModel model;
 
     public WorkflowAggregate() {
-        log.debug("empty constructor invoked");
+        log.debug("[AGG] empty constructor invoked");
     }
 
     public String getId() {
@@ -35,102 +39,86 @@ public class WorkflowAggregate {
     public WorkflowModel getModel() {
         return model;
     }
+
     // Command Handlers
 
     @CommandHandler
-    public WorkflowAggregate(CreateWorkflowCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new CreatedWorkflowEvt(cmd.getId()));
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
+    log.debug("[AGG] handling {}", cmd);
+        apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact())).andThen(() -> {
+            log.debug("[AGG] insert workflow artifacts into knowledge base");
+            ruleBaseService.insert(cmd.getArtifact());
+            ruleBaseService.insert(model.getWorkflowInstance());
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(wft -> ruleBaseService.insert(wft));
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(dni -> ruleBaseService.insert(dni));
+            ruleBaseService.fire();
+        });
     }
 
     @CommandHandler
-    public void handle(CreateWorkflowInstanceOfCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new CreatedWorkflowInstanceOfEvt(cmd.getId(), cmd.getWfd()));
+    public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact())).andThen(() -> {
+            log.debug("[AGG] insert workflow artifacts into knowledge base");
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(wft -> ruleBaseService.insert(wft));
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(dni -> ruleBaseService.insert(dni));
+            ruleBaseService.fire();
+        });
     }
 
     @CommandHandler
-    public void handle(EnableTasksAndDecisionsCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new EnabledTasksAndDecisionsEvt(cmd.getId()));
+    public void handle(ActivateInBranchCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
     }
 
     @CommandHandler
-    public void handle(CompleteDataflowOfDecisionNodeInstanceCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new CompletedDataflowOfDecisionNodeInstanceEvt(cmd.getId(), cmd.getDniIndex()));
-    }
-
-    @CommandHandler
-    public void handle(AddQAConstraintsAsArtifactOutputsCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new AddedQAConstraintsAsArtifactOutputsEvt(cmd.getId(), cmd.getQac()));
-    }
-
-    @CommandHandler
-    public void handle(CreateConstraintTriggerCmd cmd) {
-        log.debug("handling {}", cmd);
-        apply(new CreatedConstraintTriggerEvt(cmd.getId()));
+    public void handle(ActivateOutBranchCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
     }
 
     @CommandHandler
     public void handle(DeleteCmd cmd) {
-        log.debug("handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()));
     }
 
     // Event Handlers
 
     @EventSourcingHandler
-    public void on(CreatedWorkflowEvt evt) {
-        log.debug("applying {}", evt);
-        id = evt.getId();
+    public void on(AddedArtifactEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        id = evt.getArtifact().getId();
         model = new WorkflowModel();
-    }
-
-    @EventSourcingHandler
-    public void on(CreatedWorkflowInstanceOfEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
-        log.debug("applying {}", evt);
-        model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(model.getWorkflowInstance());
-        }
-    }
-
-    @EventSourcingHandler
-    public void on(EnabledTasksAndDecisionsEvt evt) {
-        log.debug("applying {}", evt);
         model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(CompletedDataflowOfDecisionNodeInstanceEvt evt) {
-        log.debug("applying {}", evt);
+    public void on(CompletedDataflowEvt evt) {
+        log.debug("[AGG] applying {}", evt);
         model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(AddedQAConstraintsAsArtifactOutputsEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
-        log.debug("applying {}", evt);
-        QACheckDocument.QAConstraint qac = model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(qac);
-        }
+    public void on(ActivatedInBranchEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        model.handle(evt);
     }
 
     @EventSourcingHandler
-    public void on(CreatedConstraintTriggerEvt evt, ReplayStatus status, RuleBaseService ruleBaseService) {
-        log.debug("applying {}", evt);
-        ConstraintTrigger ct = model.handle(evt);
-        if (!status.isReplay()) {
-            ruleBaseService.insertAndFire(ct);
-        }
+    public void on(ActivatedOutBranchEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        model.handle(evt);
     }
 
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
-        log.debug("applying {}", evt);
+        log.debug("[AGG] applying {}", evt);
         markDeleted();
     }
-
 }

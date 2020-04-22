@@ -1,14 +1,11 @@
 package impactassessment.query.snapshot;
 
-import impactassessment.api.IdentifiableEvt;
 import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
-import org.axonframework.eventhandling.TrackedEventMessage;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
-import impactassessment.query.WorkflowModel;
 
 import java.time.Instant;
 import java.util.concurrent.*;
@@ -90,7 +87,7 @@ public class Snapshotter {
                             mockDB.handle(m);
                             break;
                         default:
-                            log.error("Replay received invalid action: {}", action);
+                            log.error("Replay received invalid action: {}", action.toString());
                     }
                 }
             });
