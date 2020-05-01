@@ -2,6 +2,7 @@ package impactassessment.api
 
 import impactassessment.mock.artifact.Artifact
 import org.axonframework.modelling.command.TargetAggregateIdentifier
+import org.kie.api.runtime.rule.FactHandle
 
 // COMMANDS
 data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: Artifact)
