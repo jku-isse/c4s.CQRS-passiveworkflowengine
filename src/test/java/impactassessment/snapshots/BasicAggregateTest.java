@@ -5,9 +5,6 @@ import impactassessment.command.WorkflowAggregate;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
 import impactassessment.rulebase.RuleBaseService;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.model.definition.WPManagementWorkflow;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -38,31 +35,31 @@ public class BasicAggregateTest {
     public void setup() {
         fixture = new AggregateTestFixture<>(WorkflowAggregate.class);
         fixture.registerInjectableResource(ruleBaseService);
-        id = "test-wf";
+        id = "Test-Workflow";
     }
 
     @Test
-    public void testAddArtifactCommand() {
-        Artifact a = MockService.mockArtifact("A1");
+    public void testAdd() {
+        Artifact a = MockService.mockArtifact(id);
         fixture.givenNoPriorActivity()
-                .when(new AddArtifactCmd("A1", a))
+                .when(new AddArtifactCmd(id, a))
                 .expectEvents(new AddedArtifactEvt(id, a));
     }
 
-//    @Test
-//    public void testCommandsCreateEnableCompleteAddCreate() {
-//        Artifact a = mockArtifact("A2");
-//        fixture.given(new CreatedWorkflowEvt(id))
-//                .andGiven(new AddedArtifactEvt(id, a))
-//                .andGiven(new CompletedDataflowEvt(id))
-//                .andGiven(new ActivatedInBranchEvt(id))
-//                .andGiven(new ActivatedOutBranchEvt(id))
-//                .expectSuccessfulHandlerExecution();
-//    }
+    @Test
+    public void testAddCompleteActivate() {
+        Artifact a = MockService.mockArtifact(id);
+        fixture.given(new AddedArtifactEvt(id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
+                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+                .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
+                .expectSuccessfulHandlerExecution();
+    }
 
     @Test
-    public void testDeleteCommand() {
-        Artifact a = MockService.mockArtifact("A1");
+    public void testDelete() {
+        Artifact a = MockService.mockArtifact(id);
         fixture.given(new AddedArtifactEvt(id, a))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
