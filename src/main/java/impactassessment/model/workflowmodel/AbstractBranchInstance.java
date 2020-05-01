@@ -125,5 +125,5 @@ public abstract class AbstractBranchInstance implements IBranchInstance {
 		else
 			return "BranchInstance [task=" + task.getId() + ", state=" + state + " , ofType: " + bd.getName() + "]";
 	}
-	
+
 }
