@@ -1,5 +1,6 @@
 package impactassessment.model.definition;
 
+import impactassessment.analytics.CorrelationTuple;
 import impactassessment.model.workflowmodel.WorkflowInstance;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
@@ -33,6 +34,18 @@ public class RuleEngineBasedConstraint extends QAConstraint {
 	@Override
 	public void checkConstraint() {
 		// no op, check is triggered/run by rule engine, only output stored here
+	}
+
+	public boolean isAffectedBy(ConstraintTrigger ct) {
+		if (ct.getConstraintsToTrigger().contains("*") || ct.doesConstraintTypeMatchConstraintsToTrigger(getConstraintType()))
+			return true;
+		return false;
+	}
+
+	public void setEvaluated(CorrelationTuple lastChangeDueTo) {
+		setEvaluationStatusMessage("");
+		setEvaluationStatus(EvaluationState.SUCCESS);
+		setLastChangeDueTo(lastChangeDueTo);
 	}
 
 	@Override

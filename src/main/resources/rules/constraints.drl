@@ -1,0 +1,371 @@
+package rules;
+
+import impactassessment.model.definition.QACheckDocument
+import impactassessment.model.workflowmodel.WorkflowTask
+import impactassessment.model.workflowmodel.ResourceLink
+import java.util.Optional
+import impactassessment.model.definition.RuleEngineBasedConstraint
+import java.time.Instant
+import impactassessment.analytics.CorrelationTuple
+import impactassessment.model.definition.ConstraintTrigger
+import impactassessment.model.definition.DronologyWorkflow
+
+import impactassessment.mock.artifact.Artifact
+import impactassessment.mock.artifact.MockService;
+
+//constraints for state open
+rule "InsertQAConstraintsStateOpen"
+	when
+		$task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
+							  getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+	then
+//		QACheckDocument qa = new QACheckDocument("QA-OPEN-"+$task.getWorkflow().getId(), $task.getWorkflow());
+//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+//
+//		//constraints for Tasks and Sub-Taks
+//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
+//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_open_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
+//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_open_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
+//			rebc2.setLastChanged(Instant.now());
+//			qa.addConstraint(rebc1);
+//			qa.addConstraint(rebc2);
+////			insert(rebc1);
+////			insert(rebc2);
+//		//constraints for Design Definitions
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
+//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_open_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
+//			qa.addConstraint(rebc3);
+////			insert(rebc3);
+//		//constraints for Bugs
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
+//
+//		//constraints for Hazards
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Hazard")){
+//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_open_"+$task.getWorkflow().getId(), qa, "CheckHazardIsMitigated", $task.getWorkflow(), "Is the hazard mitigated by a Design Definition?");
+//			qa.addConstraint(rebc4);
+////			insert(rebc4);
+//		}
+//
+//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-OPEN-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
+//		insert(qa);
+//
+//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+//		qa.setLastChangeDueTo(corr);
+//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
+//		ct.addConstraint("*");
+//		insert(ct);
+//		modify($task){ addOutput(ao) };
+end
+
+//constraints for state in-progress
+rule "InsertQAConstraintsStateInProgress"
+	when
+		$task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) &&
+							  getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+	then
+//		QACheckDocument qa = new QACheckDocument("QA-IN-PROGRESS-"+$task.getWorkflow().getId(), $task.getWorkflow());
+//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+//
+//		//constraints for Tasks and Sub-Taks
+//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
+//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
+//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
+//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasAssignee", $task.getWorkflow(), "Has the Jira ticket an assignee?");
+//			rebc2.setLastChanged(Instant.now());
+//			qa.addConstraint(rebc1);
+//			qa.addConstraint(rebc2);
+//			qa.addConstraint(rebc4);
+////			insert(rebc1);
+////			insert(rebc2);
+////			insert(rebc4);
+//		//constraints for Design Definitions
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
+//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_in_progress_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
+//			qa.addConstraint(rebc3);
+////			insert(rebc3);
+//		//constraints for Bugs
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
+//
+//		}
+//
+//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-IN-PROGRESS-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
+//		insert(qa);
+//
+//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+//		qa.setLastChangeDueTo(corr);
+//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
+//		ct.addConstraint("*");
+//		insert(ct);
+//		modify($task){ addOutput(ao) };
+end
+
+//constraints for state resolved
+rule "InsertQAConstraintsStateResolved"
+	when
+		$task : WorkflowTask ( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
+							   getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+	then
+//		QACheckDocument qa = new QACheckDocument("QA-RESOLVED-"+$task.getWorkflow().getId(), $task.getWorkflow());
+//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+//
+//		//constraints for Tasks and Sub-Taks
+//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
+//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
+//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
+//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToUnitTest", $task.getWorkflow(), "Is the Jira ticket related to at least one Unit-Test?");
+//			RuleEngineBasedConstraint rebc5 = new RuleEngineBasedConstraint("5_resolved_"+$task.getWorkflow().getId(), qa, "CheckAllRelatedBugsClosed", $task.getWorkflow(), "Are all related bugs closed?");
+//			rebc4.setLastChanged(Instant.now());
+//			qa.addConstraint(rebc1);
+//			qa.addConstraint(rebc2);
+//			qa.addConstraint(rebc4);
+//			qa.addConstraint(rebc5);
+////			insert(rebc1);
+////			insert(rebc2);
+////			insert(rebc4);
+////			insert(rebc5);
+//		//constraints for Design Definitions
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
+//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_resolved_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
+//			qa.addConstraint(rebc3);
+////			insert(rebc3);
+//		//constraints for Bugs
+//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
+//			RuleEngineBasedConstraint rebc6 = new RuleEngineBasedConstraint("5_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Bug have at least one FixVersion?");
+//			qa.addConstraint(rebc6);
+////			insert(rebc6);
+//		}
+//
+//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-RESOLVED-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
+//		insert(qa);
+//
+//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+//		qa.setLastChangeDueTo(corr);
+//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
+//		ct.addConstraint("*");
+//		insert(ct);
+//		modify($task){ addOutput(ao) };
+end
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////QA-constraints///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+rule "CheckJiraIssueBase"
+	no-loop
+	when
+		$ia : Artifact ( )
+		$ct : ConstraintTrigger ( getWorkflow().getId().equals($ia.getId()) )
+	then
+end
+
+rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean hasFixVersion;
+//		if ($ia.getField("fixVersion") == null) {
+//		    hasFixVersion = false;
+//		}
+//		else {
+//		    hasFixVersion = !$ia.getField("fixVersion").equals("None");
+//		}
+//		modify($qaConst) {
+//				addAs(hasFixVersion, MockService.getHumanReadableResourceLinkEndpoint($ia)) ,
+//				setLastEvaluated(Instant.now())
+//		};
+end
+
+rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean isRelatedToOne = true;
+//		int n = 0;
+//		for (Relation r : $ia.getRelationsIncoming()){
+//			Artifact p = r.getSource();
+//			if ((p != null) && (p.getFields() != null) && (((IssueType)p.getFields().get("issuetype").getValue()).getName().orElse("").equals("Design Definition"))){
+//				n++;
+//				modify($qaConst) {
+//					addAs(isRelatedToOne, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//				};
+//				isRelatedToOne = false;
+//			}
+//		}
+//		if (n == 0) {
+//			modify($qaConst) {
+//				addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint($ia))
+//			};
+//		}
+//		modify($qaConst) {
+//			setEvaluated($ct.getRequestCorrelation())
+//		};
+end
+
+rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean isRelatedToOne = true;
+//		int n = 0;
+//		for (Relation r : $ia.getRelationsOutgoing()){
+//			System.out.println(r);
+//			Artifact p = r.getDestination();
+//			System.out.println(p);
+//			System.out.println(p.getFields());
+//			if ((p != null) && (p.getFields() != null) && (((IssueType)p.getFields().get("issuetype").getValue()).getName().orElse("").equals("Requirement"))){
+//				System.out.println("##############################  2");
+//				n++;
+//				if (r.getSourceRole().equals("realizes")){
+//					modify($qaConst) {
+//						addAs(isRelatedToOne, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//					};
+//					isRelatedToOne = false;
+//				} else {
+//					modify($qaConst) {
+//						addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//					};
+//				}
+//			}
+//			System.out.println("##############################  3");
+//		}
+//		if (n == 0) {
+//			modify($qaConst) {
+//				addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint($ia))
+//			};
+//		}
+//		modify($qaConst) {
+//			setEvaluated($ct.getRequestCorrelation())
+//		};
+end
+
+rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckJiraIssueHasAssignee" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean hasAssignee;
+//		if ($ia.getField("assignee") == null) {
+//		    hasAssignee = false;
+//		}
+//		else {
+//		    hasAssignee = !$ia.getField("assignee").equals("None");
+//		}
+//		modify($qaConst) {
+//            addAs(hasAssignee, MockService.getHumanReadableResourceLinkEndpoint($ia)) ,
+//            setEvaluated($ct.getRequestCorrelation())
+//        };
+end
+
+rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
+											&& isAffectedBy($ct) )
+	then
+//		int n = 0;
+//		for (Relation r : $ia.getRelationsOutgoing()){
+//			Artifact p = (Artifact) r.getDestination();
+//			if ((p != null) && (p.getFields() != null) && (((IssueType)p.getFields().get("issuetype").getValue()).getName().orElse("").equals("Unit Test"))){
+//				modify($qaConst) {
+//					addAs(true, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//				};
+//				n++;
+//			}
+//		}
+//		if (n == 0) {
+//			modify($qaConst) {
+//				addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint($ia))
+//			};
+//		}
+//		modify($qaConst) {
+//			setEvaluated($ct.getRequestCorrelation())
+//		};
+end
+
+rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckAllRelatedBugsClosed" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean relatedBug = false;
+//		for (Relation r : $ia.getRelationsOutgoing()){
+//			Artifact p = (Artifact) r.getDestination();
+//			if ((p != null) && (p.getFields() != null) && ((IssueType)p.getFields().get("issuetype").getValue()).getName().orElse("").equals("Bug") ){
+//				if ( ((Status)p.getFields().get("status").getValue()).getName().orElse("").equals("closed") ) {
+//					modify($qaConst) {
+//						addAs(true, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//					};
+//				} else {
+//					modify($qaConst) {
+//						addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//					};
+//				}
+//				relatedBug = true;
+//			}
+//		}
+//		if (!relatedBug) {
+//			modify($qaConst) {
+//				addAs(true, JiraUtils.getHumanReadableResourceLinkEndpoint($ia))
+//			};
+//		}
+//		modify($qaConst) {
+//			setEvaluated($ct.getRequestCorrelation())
+//		};
+end
+
+rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qaConst : RuleEngineBasedConstraint( getWorkflow().getId().equals($ia.getId())
+											&& getConstraintType().equals( "CheckHazardIsMitigated" )
+											&& isAffectedBy($ct) )
+	then
+//		boolean isMitigated = false;
+//		for (Relation r : $ia.getRelationsIncoming()){
+//			Artifact p = r.getSource();
+//			log.info("source: "+p.getIdInSource());
+//			log.info("test: "+p.getFields());
+//			if ((p != null) && (p.getFields() != null) && (((IssueType)p.getFields().get("issuetype").getValue()).getName().orElse("").equals("Design Definition"))){
+//				if (r.getSourceRole().equals("mitigates")){
+//					isMitigated = true;
+//					modify($qaConst) {
+//						addAs(isMitigated, JiraUtils.getHumanReadableResourceLinkEndpoint(p))
+//					};
+//					break;
+//				}
+//			}
+//		}
+//		if (!isMitigated) {
+//			modify($qaConst) {
+//				addAs(false, JiraUtils.getHumanReadableResourceLinkEndpoint($ia))
+//			};
+//		}
+//		modify($qaConst) {
+//			setEvaluated($ct.getRequestCorrelation())
+//		};
+end
+
+rule "RemoveConstraintTrigger"
+	salience -1000
+	when
+		$ct : ConstraintTrigger()
+	then
+//		delete($ct);
+end

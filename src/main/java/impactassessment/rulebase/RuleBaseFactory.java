@@ -29,6 +29,7 @@ public class RuleBaseFactory {
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
         kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+INPUT_RULES_FILE));
         kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+EXECUTION_RULES_FILE));
+        kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+CONSTRAINTS_RULES_FILE));
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();
         KieModule kieModule = kb.getKieModule();
