@@ -1,0 +1,40 @@
+package impactassessment.aggregates;
+
+import impactassessment.command.WorkflowAggregate;
+import impactassessment.rulebase.RuleBaseService;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.commandhandling.gateway.DefaultCommandGateway;
+import org.axonframework.test.aggregate.AggregateTestFixture;
+import org.axonframework.test.aggregate.FixtureConfiguration;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@SpringBootTest(classes = AggregateTestConfig.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+public abstract class AbstractFixtureTest {
+
+    /**
+     * Focus of a Test Fixture
+     * Since the unit of testing here is the aggregate, AggregateTestFixture is meant to test
+     * one aggregate only. So, all commands in the when (or given) clause are meant to target
+     * the aggregate under test fixture. Also, all given and expected events are meant to be
+     * triggered from the aggregate under test fixture.
+     * (https://docs.axoniq.io/reference-guide/implementing-domain-logic/command-handling/testing)
+     */
+    FixtureConfiguration<WorkflowAggregate> fixture;
+    RuleBaseService ruleBaseService;
+    String id;
+
+    @Before
+    public void setup() {
+        fixture = new AggregateTestFixture<>(WorkflowAggregate.class);
+        CommandGateway gateway = DefaultCommandGateway.builder()
+                .commandBus(fixture.getCommandBus())
+                .build();
+        ruleBaseService = new RuleBaseService(gateway);
+        fixture.registerInjectableResource(ruleBaseService);
+        id = "Test-Workflow";
+    }
+}

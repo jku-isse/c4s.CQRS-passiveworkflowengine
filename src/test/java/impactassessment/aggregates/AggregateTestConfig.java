@@ -1,22 +1,14 @@
-package impactassessment.snapshots;
+package impactassessment.aggregates;
 
+import impactassessment.model.definition.WPManagementWorkflow;
 import impactassessment.query.snapshot.CLTool;
-import impactassessment.rulebase.RuleBaseService;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.CompletableFuture;
 
 @EnableAutoConfiguration
-public class SpringTestConfig {
-
-    @Bean
-    @Autowired
-    public RuleBaseService ruleBaseService(CommandGateway commandGateway) {
-        return new RuleBaseService(commandGateway);
-    }
+public class AggregateTestConfig {
 
     @Bean
     public CLTool cli() {
@@ -28,5 +20,13 @@ public class SpringTestConfig {
                 return completableFuture;
             }
         };
+    }
+
+    @Bean
+    public WPManagementWorkflow wpManagementWorkflow(){
+        WPManagementWorkflow workflow = new WPManagementWorkflow();
+        workflow.initWorkflowSpecification();
+        workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
+        return workflow;
     }
 }

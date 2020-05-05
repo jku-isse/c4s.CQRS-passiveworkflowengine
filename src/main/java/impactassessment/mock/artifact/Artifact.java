@@ -9,7 +9,7 @@ public class Artifact {
         fields = new HashMap<>();
     }
     public String getId() {
-        return fields.get("id");
+        return fields.get(MockService.ID);
     }
     public String getField(String fieldName) {
         return fields.get(fieldName);

@@ -26,4 +26,8 @@ public class RuleBaseService {
         kieSession.fireAllRules();
     }
 
+    public void dispose() {
+        kieSession.dispose();
+    }
+
 }
