@@ -19,28 +19,6 @@ public class WorkflowModel {
         return wfi;
     }
 /*
-    public void handle(CreatedWorkflowInstanceOfEvt evt){
-        WorkflowDefinition wfd = evt.getWfd();
-        wfi = wfd.createInstance(evt.getId());
-    }
-
-    public void handle(EnabledTasksAndDecisionsEvt evt){
-        wfi.enableWorkflowTasksAndDecisionNodes();
-    }
-
-    public void handle(CompletedDataflowOfDecisionNodeInstanceEvt evt){
-        List<DecisionNodeInstance> dnis = new ArrayList<>(wfi.getDecisionNodeInstancesReadonly());
-        DecisionNodeInstance dni = dnis.get(evt.getDniIndex());
-        dni.completedDataflowInvolvingActivationPropagation();
-        List<TaskDefinition> tds = dni.getTaskDefinitionsForNonDisabledOutBranchesWithUnresolvedTasks();
-        tds.stream().forEach(td -> {
-            WorkflowTask wft = wfi.instantiateTask(td);
-            wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
-            wfi.activateDecisionNodesFromTask(wft);
-            dni.consumeTaskForUnconnectedOutBranch(wft);
-        });
-    }
-
     public QACheckDocument.QAConstraint handle(AddedQAConstraintsAsArtifactOutputsEvt evt){
         QACheckDocument qacd = new QACheckDocument("QA-"+wfi.getId(), wfi);
         qacd.setWorkflow(wfi);
@@ -117,19 +95,7 @@ public class WorkflowModel {
             handle((ActivatedInBranchEvt) evt);
         } else if (evt instanceof ActivatedOutBranchEvt) {
             handle((ActivatedOutBranchEvt) evt);
-        }
-
-        /*else if (evt instanceof CreatedWorkflowInstanceOfEvt) {
-            handle((CreatedWorkflowInstanceOfEvt) evt);
-        } else if (evt instanceof EnabledTasksAndDecisionsEvt) {
-            handle((EnabledTasksAndDecisionsEvt) evt);
-        } else if (evt instanceof CompletedDataflowOfDecisionNodeInstanceEvt) {
-            handle((CompletedDataflowOfDecisionNodeInstanceEvt) evt);
-        } else if (evt instanceof AddedQAConstraintsAsArtifactOutputsEvt) {
-            handle((AddedQAConstraintsAsArtifactOutputsEvt) evt);
-        } else if (evt instanceof CreatedConstraintTriggerEvt) {
-            handle((CreatedConstraintTriggerEvt) evt);
-        } */else {
+        } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
     }

@@ -9,12 +9,19 @@ public class Artifact {
         fields = new HashMap<>();
     }
     public String getId() {
-        return fields.get("id");
+        return fields.get(MockService.ID);
     }
     public String getField(String fieldName) {
         return fields.get(fieldName);
     }
     public void setField(String fieldName, String fieldValue) {
         fields.put(fieldName, fieldValue);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        fields.entrySet().stream().forEach(entry -> builder.append(entry.getKey() + ": " + entry.getValue() + ", "));
+        return "Artifact ["+builder+"]";
     }
 }

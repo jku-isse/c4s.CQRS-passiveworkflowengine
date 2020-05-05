@@ -1,10 +1,8 @@
 package impactassessment.api
 
 import impactassessment.mock.artifact.Artifact
-import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
-import impactassessment.model.workflowmodel.DecisionNodeInstance
-import impactassessment.model.workflowmodel.WorkflowTask
 import org.axonframework.modelling.command.TargetAggregateIdentifier
+import org.kie.api.runtime.rule.FactHandle
 
 // COMMANDS
 data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: Artifact)

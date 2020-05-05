@@ -25,7 +25,6 @@ import java.util.Set
 
 
 global CommandGateway commandGateway;
-global Logger log;
 
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
@@ -36,15 +35,14 @@ rule "AddWPTicketAsInputToNewTasks"
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
-        //log.debug("sending CompleteDataflowCmd from KB");
         commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), $a));
 
 end
 
 rule "Open2InProgress-InBranchConditions"
     when
-    	$a : Artifact( getField("status").equals("In Progress") )
-        $task : WorkflowTask( getTaskType().getId().equals("open") )
+    	$a : Artifact( getField("status").equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) )
+        $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
@@ -53,10 +51,7 @@ rule "Open2InProgress-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        //log.debug("Transition from OPEN to IN_PROGRESS for triggertask: "+$task.toString());
-        //log.debug("sending ActivateInBranchCmd from KB");
         commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        //log.debug("sending ActivateOutBranchCmd from KB");
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
 end
 
@@ -72,17 +67,14 @@ rule "InProgress2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        //log.debug("Transition from IN_PROGRESS to RESOLVED for triggertask: "+$task.toString());
-		//log.debug("sending ActivateInBranchCmd from KB");
         commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        //log.debug("sending ActivateOutBranchCmd from KB");
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
 end
 
 rule "Open2Resolved-InBranchConditions"
     when
-    	$a : Artifact( getField("status").equals("Resolved") || getField("status").equals("Closed") )
-        $task : WorkflowTask( getTaskType().getId().equals("Open") )
+    	$a : Artifact( getField("status").equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getField("status").equals("Closed") )
+        $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
@@ -91,57 +83,7 @@ rule "Open2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        //log.info("Transition from OPEN to RESOLVED for triggertask: "+$task.toString());
-		//log.debug("sending ActivateInBranchCmd from KB");
         commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        //log.debug("sending ActivateOutBranchCmds from KB");
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
-end
-
-rule "Testrule1"
-    when
-    	$a : Artifact()
-    then
-end
-
-rule "Testrule2"
-    when
-        $task : WorkflowTask()
-    then
-end
-
-rule "Testrule3"
-    when
-        $dni : DecisionNodeInstance()
-    then
-end
-
-rule "Testrule4"
-    when
-    	$a : Artifact()
-    	$task : WorkflowTask()
-    then
-end
-
-rule "Testrule5"
-    when
-        $a : Artifact()
-        $dni : DecisionNodeInstance()
-    then
-end
-
-rule "Testrule6"
-    when
-        $task : WorkflowTask()
-        $dni : DecisionNodeInstance()
-    then
-end
-
-rule "Testrule7"
-    when
-        $a : Artifact()
-        $task : WorkflowTask()
-        $dni : DecisionNodeInstance()
-    then
 end

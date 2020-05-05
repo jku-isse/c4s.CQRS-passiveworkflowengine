@@ -60,7 +60,7 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
     }
 
     private DecisionNodeDefinition getWfKickOff(TaskDefinition tdOpen) {
-        DecisionNodeDefinition dnd = new DecisionNodeDefinition("WorkflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition("workflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
         return dnd;
     }

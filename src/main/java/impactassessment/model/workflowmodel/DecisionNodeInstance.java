@@ -447,4 +447,17 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				+ "]";
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof DecisionNodeInstance)) return false;
+		if (!super.equals(o)) return false;
+		DecisionNodeInstance that = (DecisionNodeInstance) o;
+		return taskCompletionConditionsFullfilled == that.taskCompletionConditionsFullfilled &&
+				taskActivationConditionsFullfilled == that.taskActivationConditionsFullfilled &&
+				contextConditionsFullfilled == that.contextConditionsFullfilled &&
+				activationPropagationCompleted == that.activationPropagationCompleted;
+	}
+
+
 }
