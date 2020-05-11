@@ -1,7 +1,9 @@
 package impactassessment.command;
 
 import impactassessment.api.*;
-import impactassessment.model.WorkflowModel;
+import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.model.definition.ConstraintTrigger;
+import impactassessment.model.definition.QACheckDocument;
 import impactassessment.rulebase.RuleBaseService;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
@@ -20,7 +22,7 @@ public class WorkflowAggregate {
 
     @AggregateIdentifier
     private String id;
-    private WorkflowModel model;
+    private WorkflowInstanceWrapper model;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -29,7 +31,7 @@ public class WorkflowAggregate {
     public String getId() {
         return id;
     }
-    public WorkflowModel getModel() {
+    public WorkflowInstanceWrapper getModel() {
         return model;
     }
 
@@ -84,13 +86,44 @@ public class WorkflowAggregate {
         apply(new DeletedEvt(cmd.getId()));
     }
 
+    @CommandHandler
+    public void handle(AppendQACheckDocumentCmd cmd, RuleBaseService ruleBaseService) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new AppendedQACheckDocumentEvt(cmd.getId(), cmd.getWftId(), cmd.getState()))
+                .andThen(() -> {
+                    log.debug("[AGG] insert workflow artifacts into knowledge base");
+                    QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
+                    ruleBaseService.insert(doc);
+                    ruleBaseService.fire();
+                });
+    }
+
+    @CommandHandler
+    public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
+                .andThen(() -> {
+                    log.debug("[AGG] insert workflow artifacts into knowledge base");
+
+                    QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
+                    doc.getConstraintsReadonly().stream()
+                            .forEach(q -> ruleBaseService.insert(q));
+
+                    // insert constraint trigger
+                    ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance());
+                    ct.addConstraint("*");
+
+                    ruleBaseService.fire();
+                });
+    }
+
     // Event Handlers
 
     @EventSourcingHandler
     public void on(AddedArtifactEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getArtifact().getId();
-        model = new WorkflowModel();
+        model = new WorkflowInstanceWrapper();
         model.handle(evt);
     }
 
@@ -116,6 +149,18 @@ public class WorkflowAggregate {
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
         markDeleted();
+    }
+
+    @EventSourcingHandler
+    public void on(AppendedQACheckDocumentEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        model.handle(evt);
+    }
+
+    @EventSourcingHandler
+    public void on(AddedQAConstraintEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        model.handle(evt);
     }
 
 }

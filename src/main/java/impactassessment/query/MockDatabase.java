@@ -1,7 +1,7 @@
 package impactassessment.query;
 
 import impactassessment.api.IdentifiableEvt;
-import impactassessment.model.WorkflowModel;
+import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.springframework.stereotype.Component;
@@ -13,22 +13,22 @@ import java.util.Map;
 @XSlf4j
 public class MockDatabase {
 
-    Map<String, WorkflowModel> db;
+    Map<String, WorkflowInstanceWrapper> db;
 
     public MockDatabase() {
         db = new HashMap<>();
     }
 
-    public WorkflowModel getWorkflowModel(String id) {
+    public WorkflowInstanceWrapper getWorkflowModel(String id) {
         return db.get(id);
     }
 
-    private WorkflowModel createAndPutWorkflowModel(String id) {
-        db.put(id, new WorkflowModel());
+    private WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
+        db.put(id, new WorkflowInstanceWrapper());
         return db.get(id);
     }
 
-    public WorkflowModel delete(String id) {
+    public WorkflowInstanceWrapper delete(String id) {
         return db.remove(id);
     }
 
@@ -49,7 +49,7 @@ public class MockDatabase {
     }
 
     public void print() {
-        for (Map.Entry<String, WorkflowModel> entry : db.entrySet()) {
+        for (Map.Entry<String, WorkflowInstanceWrapper> entry : db.entrySet()) {
             System.out.println(entry.getKey()+": "+entry.getValue());
         }
     }

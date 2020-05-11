@@ -4,7 +4,7 @@ import impactassessment.api.AddedArtifactEvt;
 import impactassessment.api.CompletedDataflowEvt;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
-import impactassessment.model.WorkflowModel;
+import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.rulebase.RuleBaseFactory;
 import lombok.extern.slf4j.XSlf4j;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 public class RuleTest {
 
     private KieSession kieSession;
-    private WorkflowModel model;
+    private WorkflowInstanceWrapper model;
     @Mock
     private CommandGateway gateway;
 
@@ -31,7 +31,7 @@ public class RuleTest {
         MockitoAnnotations.initMocks(this);
         kieSession = new RuleBaseFactory().getKieSession();
         kieSession.setGlobal("commandGateway", gateway);
-        model = new WorkflowModel();
+        model = new WorkflowInstanceWrapper();
     }
 
     @Test

@@ -1,5 +1,7 @@
 package rules;
 
+import org.axonframework.commandhandling.gateway.CommandGateway
+
 import impactassessment.model.definition.QACheckDocument
 import impactassessment.model.workflowmodel.WorkflowTask
 import impactassessment.model.workflowmodel.ResourceLink
@@ -11,51 +13,38 @@ import impactassessment.model.definition.ConstraintTrigger
 import impactassessment.model.definition.DronologyWorkflow
 
 import impactassessment.mock.artifact.Artifact
-import impactassessment.mock.artifact.MockService;
+import impactassessment.mock.artifact.MockService
+import impactassessment.api.AppendQACheckDocumentCmd
+import impactassessment.api.AddQAConstraintCmd;
+
+
+global CommandGateway commandGateway;
+
 
 //constraints for state open
 rule "InsertQAConstraintsStateOpen"
 	when
-		$task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
-							  getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+		$task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) ) // TODO extend again
 	then
-//		QACheckDocument qa = new QACheckDocument("QA-OPEN-"+$task.getWorkflow().getId(), $task.getWorkflow());
-//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
-//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-//
-//		//constraints for Tasks and Sub-Taks
-//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_open_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
-//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_open_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
-//			rebc2.setLastChanged(Instant.now());
-//			qa.addConstraint(rebc1);
-//			qa.addConstraint(rebc2);
-////			insert(rebc1);
-////			insert(rebc2);
-//		//constraints for Design Definitions
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_open_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
-//			qa.addConstraint(rebc3);
-////			insert(rebc3);
-//		//constraints for Bugs
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
-//
-//		//constraints for Hazards
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Hazard")){
-//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_open_"+$task.getWorkflow().getId(), qa, "CheckHazardIsMitigated", $task.getWorkflow(), "Is the hazard mitigated by a Design Definition?");
-//			qa.addConstraint(rebc4);
-////			insert(rebc4);
-//		}
-//
-//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-OPEN-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
-//		insert(qa);
-//
-//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
-//		qa.setLastChangeDueTo(corr);
-//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
-//		ct.addConstraint("*");
-//		insert(ct);
-//		modify($task){ addOutput(ao) };
+		commandGateway.send(new AppendQACheckDocumentCmd($task.getWorkflow().getId(), $task.getId(), DronologyWorkflow.TASK_STATE_OPEN));
+
+        Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+        WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+
+        //constraints for Tasks and Sub-Taks
+        if (aOut != null && (((ResourceLink) aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink) aOut.getArtifact()).getAs().equals("Sub-task"))) {
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "1_open_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "2_open_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+        //constraints for Design Definitions
+        } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Design Definition")) {
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "3_open_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+        //constraints for Bugs
+        } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Bug")) {
+            // add nothing
+        //constraints for Hazards
+        } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Hazard")) {
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "4_open_", "CheckHazardIsMitigated", "Is the hazard mitigated by a Design Definition?"));
+        }
 end
 
 //constraints for state in-progress
@@ -64,41 +53,23 @@ rule "InsertQAConstraintsStateInProgress"
 		$task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) &&
 							  getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
-//		QACheckDocument qa = new QACheckDocument("QA-IN-PROGRESS-"+$task.getWorkflow().getId(), $task.getWorkflow());
-//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
-//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-//
-//		//constraints for Tasks and Sub-Taks
-//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
-//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
-//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_in_progress_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasAssignee", $task.getWorkflow(), "Has the Jira ticket an assignee?");
-//			rebc2.setLastChanged(Instant.now());
-//			qa.addConstraint(rebc1);
-//			qa.addConstraint(rebc2);
-//			qa.addConstraint(rebc4);
-////			insert(rebc1);
-////			insert(rebc2);
-////			insert(rebc4);
-//		//constraints for Design Definitions
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_in_progress_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
-//			qa.addConstraint(rebc3);
-////			insert(rebc3);
-//		//constraints for Bugs
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
-//
-//		}
-//
-//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-IN-PROGRESS-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
-//		insert(qa);
-//
-//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
-//		qa.setLastChangeDueTo(corr);
-//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
-//		ct.addConstraint("*");
-//		insert(ct);
-//		modify($task){ addOutput(ao) };
+	    commandGateway.send(new AppendQACheckDocumentCmd($task.getWorkflow().getId(), $task.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS));
+
+	    Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+        WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+
+        //constraints for Tasks and Sub-Taks
+        if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "1_in_progress_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "2_in_progress_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "4_in_progress_", "CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?"));
+        //constraints for Design Definitions
+        } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
+            commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "3_in_progress_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+        //constraints for Bugs
+        } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
+            // add nothing
+        }
 end
 
 //constraints for state resolved
@@ -107,46 +78,24 @@ rule "InsertQAConstraintsStateResolved"
 		$task : WorkflowTask ( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
 							   getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
-//		QACheckDocument qa = new QACheckDocument("QA-RESOLVED-"+$task.getWorkflow().getId(), $task.getWorkflow());
-//		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
-//		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-//
-//		//constraints for Tasks and Sub-Taks
-//		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-//			RuleEngineBasedConstraint rebc1 = new RuleEngineBasedConstraint("1_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Jira ticket have at least one FixVersion?");
-//			RuleEngineBasedConstraint rebc2 = new RuleEngineBasedConstraint("2_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToDesignDefinition", $task.getWorkflow(), "Is the Jira ticket related to exactly one Design Definition?");
-//			RuleEngineBasedConstraint rebc4 = new RuleEngineBasedConstraint("4_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueRelatedToUnitTest", $task.getWorkflow(), "Is the Jira ticket related to at least one Unit-Test?");
-//			RuleEngineBasedConstraint rebc5 = new RuleEngineBasedConstraint("5_resolved_"+$task.getWorkflow().getId(), qa, "CheckAllRelatedBugsClosed", $task.getWorkflow(), "Are all related bugs closed?");
-//			rebc4.setLastChanged(Instant.now());
-//			qa.addConstraint(rebc1);
-//			qa.addConstraint(rebc2);
-//			qa.addConstraint(rebc4);
-//			qa.addConstraint(rebc5);
-////			insert(rebc1);
-////			insert(rebc2);
-////			insert(rebc4);
-////			insert(rebc5);
-//		//constraints for Design Definitions
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-//			RuleEngineBasedConstraint rebc3 = new RuleEngineBasedConstraint("3_resolved_"+$task.getWorkflow().getId(), qa, "CheckDesignDefinitionRelatedToRequirement", $task.getWorkflow(), "Does the ticket realize exactly one Requirement?");
-//			qa.addConstraint(rebc3);
-////			insert(rebc3);
-//		//constraints for Bugs
-//		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
-//			RuleEngineBasedConstraint rebc6 = new RuleEngineBasedConstraint("5_resolved_"+$task.getWorkflow().getId(), qa, "CheckJiraIssueHasFixVersion", $task.getWorkflow(), "Does the Bug have at least one FixVersion?");
-//			qa.addConstraint(rebc6);
-////			insert(rebc6);
-//		}
-//
-//		WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-RESOLVED-CONSTRAINTS-CHECK-"+$task.getWorkflow().getId());
-//		insert(qa);
-//
-//		CorrelationTuple corr = $task.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
-//		qa.setLastChangeDueTo(corr);
-//		ConstraintTrigger ct = new ConstraintTrigger($task.getWorkflow(), corr);
-//		ct.addConstraint("*");
-//		insert(ct);
-//		modify($task){ addOutput(ao) };
+		commandGateway.send(new AppendQACheckDocumentCmd($task.getWorkflow().getId(), $task.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS));
+
+		Optional opt = $task.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
+		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
+
+		//constraints for Tasks and Sub-Taks
+		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "1_resolved_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "2_resolved_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "4_resolved_", "CheckJiraIssueRelatedToUnitTest", "Is the Jira ticket related to at least one Unit-Test?"));
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "5_resolved_", "CheckAllRelatedBugsClosed", "Are all related bugs closed?"));
+		//constraints for Design Definitions
+		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "3_resolved_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+		//constraints for Bugs
+		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
+		    commandGateway.send(new AddQAConstraintCmd($task.getWorkflow().getId(), $task.getId(), "5_resolved_", "CheckJiraIssueHasFixVersion", "Does the Bug have at least one FixVersion?"));
+		}
 end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

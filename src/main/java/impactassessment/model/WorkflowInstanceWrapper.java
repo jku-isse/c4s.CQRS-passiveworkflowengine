@@ -1,9 +1,12 @@
 package impactassessment.model;
 
+import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
 import impactassessment.model.definition.DronologyWorkflow;
+import impactassessment.model.definition.QACheckDocument;
+import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.model.workflowmodel.*;
 import lombok.extern.slf4j.XSlf4j;
 
@@ -11,34 +14,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @XSlf4j
-public class WorkflowModel {
+public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
 
     public WorkflowInstance getWorkflowInstance() {
         return wfi;
     }
-/*
-    public QACheckDocument.QAConstraint handle(AddedQAConstraintsAsArtifactOutputsEvt evt){
-        QACheckDocument qacd = new QACheckDocument("QA-"+wfi.getId(), wfi);
-        qacd.setWorkflow(wfi);
-        QACheckDocument.QAConstraint qac = evt.getQac();
-        qac.setWorkflow(wfi);
-        qacd.addConstraint(qac);
-        wfi.getWorkflowTasksReadonly().stream().forEach(wft -> {
-            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qacd, "QA_PROCESS_CONSTRAINTS_CHECK");
-            wft.addOutput(ao);
-        });
-        return qac;
-    }
 
-    public ConstraintTrigger handle(CreatedConstraintTriggerEvt evt) {
-        ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(evt.getId(), "QualityCheckRequest"));
-        ct.addConstraint("*");
-        return ct;
-    }
-*/
-    public void handle(AddedArtifactEvt evt) {
+    private void handle(AddedArtifactEvt evt) {
         Artifact artifact = evt.getArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
@@ -52,7 +36,7 @@ public class WorkflowModel {
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    public List<String> handle(CompletedDataflowEvt evt) {
+    private List<String> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
@@ -71,7 +55,7 @@ public class WorkflowModel {
         return newDNIIds;
     }
 
-    public void handle(ActivatedInBranchEvt evt) {
+    private void handle(ActivatedInBranchEvt evt) {
         Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
         Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
         if (optDni.isPresent() && optWft.isPresent()) {
@@ -81,9 +65,32 @@ public class WorkflowModel {
         }
     }
 
-    public void handle(ActivatedOutBranchEvt evt) {
+    private void handle(ActivatedOutBranchEvt evt) {
         Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
         optDni.ifPresent(dni -> dni.activateOutBranch(evt.getBranchId()));
+    }
+
+    private void handle(AppendedQACheckDocumentEvt evt) {
+        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
+        if (optWft.isPresent()) {
+            WorkflowTask wft = optWft.get();
+            QACheckDocument qa = new QACheckDocument("QA-"+evt.getState()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-"+evt.getState()+"-CONSTRAINTS-CHECK-" + wft.getWorkflow().getId());
+            wft.addOutput(ao);
+            CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+            qa.setLastChangeDueTo(corr);
+        }
+    }
+
+    private void handle(AddedQAConstraintEvt evt) {
+        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
+        if (optWft.isPresent()) {
+            WorkflowTask wft = optWft.get();
+            QACheckDocument qa = getQACDocFor(evt.getWftId());
+            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getConstrPrefix() + wft.getWorkflow().getId(), qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
+            qa.addConstraint(rebc);
+        }
+
     }
 
     public void handle(IdentifiableEvt evt) {
@@ -95,6 +102,10 @@ public class WorkflowModel {
             handle((ActivatedInBranchEvt) evt);
         } else if (evt instanceof ActivatedOutBranchEvt) {
             handle((ActivatedOutBranchEvt) evt);
+        } else if (evt instanceof AppendedQACheckDocumentEvt) {
+            handle((AppendedQACheckDocumentEvt) evt);
+        } else if (evt instanceof AddedQAConstraintEvt) {
+            handle((AddedQAConstraintEvt) evt);
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
@@ -112,11 +123,24 @@ public class WorkflowModel {
         return wfi.getWorkflowTasksReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
     }
 
+    public QACheckDocument getQACDocFor(String wfiId) {
+        Optional<WorkflowTask> optWft = getWorkflowTask(wfiId);
+        Optional<QACheckDocument> optQACD = Optional.empty();
+        if (optWft.isPresent()){
+            optQACD = optWft.get().getOutput().stream()
+                    .map(ao -> ao.getArtifact())
+                    .filter(ao -> ao instanceof QACheckDocument)
+                    .map(a -> (QACheckDocument) a)
+                    .findAny();
+        }
+        return optQACD.orElse(null);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof WorkflowModel)) return false;
-        WorkflowModel that = (WorkflowModel) o;
+        if (!(o instanceof WorkflowInstanceWrapper)) return false;
+        WorkflowInstanceWrapper that = (WorkflowInstanceWrapper) o;
         return Objects.equals(wfi, that.wfi);
     }
 
