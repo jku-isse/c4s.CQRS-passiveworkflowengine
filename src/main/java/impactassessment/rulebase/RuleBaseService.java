@@ -28,14 +28,10 @@ public class RuleBaseService {
         if (o instanceof Artifact) {
             Artifact a = (Artifact) o;
             String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
-            System.out.println(key);
-            System.out.println(sessionHandles.size());
             insertOrUpdate(key, a);
         } else if (o instanceof IdentifiableObject) {
             IdentifiableObject idO = (IdentifiableObject) o;
             String key = idO.getId() + "[" + idO.getClass().getSimpleName() + "]";
-            System.out.println(key);
-            System.out.println(sessionHandles.size());
             insertOrUpdate(key, idO);
         } else {
             // unmanaged objects

@@ -89,7 +89,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AppendedQACheckDocumentEvt(cmd.getId(), cmd.getWftId(), cmd.getState()))
                 .andThen(() -> {
-                    QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
+                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
                     ruleBaseService.insertOrUpdate(doc);
                     ruleBaseService.fire();
                 });
@@ -100,7 +100,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
-                    QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
+                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
                     doc.getConstraintsReadonly().stream()
                             .forEach(q -> ruleBaseService.insertOrUpdate(q));
 
@@ -113,6 +113,16 @@ public class WorkflowAggregate {
                 });
     }
 
+    @CommandHandler
+    public void handle(AddResourceToConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes()))
+                .andThen(() -> {
+                    QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
+                    ruleBaseService.insertOrUpdate(qac);
+                    ruleBaseService.fire();
+                });
+    }
     // Event Handlers
 
     @EventSourcingHandler

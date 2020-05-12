@@ -10,7 +10,9 @@ import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.model.workflowmodel.*;
 import lombok.extern.slf4j.XSlf4j;
 
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @XSlf4j
@@ -86,11 +88,17 @@ public class WorkflowInstanceWrapper {
         Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
         if (optWft.isPresent()) {
             WorkflowTask wft = optWft.get();
-            QACheckDocument qa = getQACDocFor(evt.getWftId());
+            QACheckDocument qa = getQACDocOfWft(evt.getWftId());
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getConstrPrefix() + wft.getWorkflow().getId(), qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
             qa.addConstraint(rebc);
         }
 
+    }
+
+    private void handle(AddedResourceToConstraintEvt evt) {
+        QACheckDocument.QAConstraint qac = getQAC(evt.getQacId());
+        qac.addAs(evt.getFulfilled(), evt.getRes());
+        qac.setLastEvaluated(Instant.now());
     }
 
     public void handle(IdentifiableEvt evt) {
@@ -106,6 +114,8 @@ public class WorkflowInstanceWrapper {
             handle((AppendedQACheckDocumentEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
+        } else if (evt instanceof AddedResourceToConstraintEvt) {
+            handle((AddedResourceToConstraintEvt) evt);
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
@@ -123,8 +133,8 @@ public class WorkflowInstanceWrapper {
         return wfi.getWorkflowTasksReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
     }
 
-    public QACheckDocument getQACDocFor(String wfiId) {
-        Optional<WorkflowTask> optWft = getWorkflowTask(wfiId);
+    public QACheckDocument getQACDocOfWft(String wftId) {
+        Optional<WorkflowTask> optWft = getWorkflowTask(wftId);
         Optional<QACheckDocument> optQACD = Optional.empty();
         if (optWft.isPresent()){
             optQACD = optWft.get().getOutput().stream()
@@ -134,6 +144,22 @@ public class WorkflowInstanceWrapper {
                     .findAny();
         }
         return optQACD.orElse(null);
+    }
+
+    public QACheckDocument.QAConstraint getQAC(String qacId) {
+        for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
+            for (WorkflowTask.ArtifactOutput ao : wft.getOutput()) {
+                if (ao.getArtifact() instanceof QACheckDocument) {
+                    QACheckDocument qacd = (QACheckDocument) ao.getArtifact();
+                    for (QACheckDocument.QAConstraint qac : qacd.getConstraintsReadonly()) {
+                        if (qac.getId().equals(qacId)) {
+                            return qac;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -152,6 +178,5 @@ public class WorkflowInstanceWrapper {
     public String toString() {
         return wfi.toString();
     }
-
 
 }

@@ -1,6 +1,7 @@
 package impactassessment.api
 
 import impactassessment.mock.artifact.Artifact
+import impactassessment.model.workflowmodel.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import org.kie.api.runtime.rule.FactHandle
 
@@ -12,6 +13,7 @@ data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val d
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AppendQACheckDocumentCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val state: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val constrPrefix: String, val ruleName: String, val description: String)
+data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
@@ -23,6 +25,7 @@ data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AppendedQACheckDocumentEvt(override val id: String, val wftId: String, val state: String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val constrPrefix: String, val ruleName: String, val description: String) : IdentifiableEvt
+data class AddedResourceToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink) : IdentifiableEvt
 
 // QUERIES
 data class FindQuery(val id: String)

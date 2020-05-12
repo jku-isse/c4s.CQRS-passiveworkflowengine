@@ -1,10 +1,16 @@
 package impactassessment.mock.artifact;
 
+import lombok.Getter;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Artifact {
+
     private Map<String,String> fields;
+    private @Getter List<Relation> relationsIncoming;
+    private @Getter List<Relation> relationsOutgoing;
     public Artifact() {
         fields = new HashMap<>();
     }
