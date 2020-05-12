@@ -42,13 +42,12 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
-                log.debug("[AGG] insert workflow artifacts into knowledge base");
-                ruleBaseService.insert(cmd.getArtifact());
-                ruleBaseService.insert(model.getWorkflowInstance());
+                ruleBaseService.insertOrUpdate(cmd.getArtifact());
+                ruleBaseService.insertOrUpdate(model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insert(wft));
+                        .forEach(wft -> ruleBaseService.insertOrUpdate(wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insert(dni));
+                        .forEach(dni -> ruleBaseService.insertOrUpdate(dni));
                 ruleBaseService.fire();
             });
     }
@@ -58,12 +57,11 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact()))
             .andThen(() -> {
-                log.debug("[AGG] insert workflow artifacts into knowledge base");
-                ruleBaseService.insert(cmd.getArtifact());
+                ruleBaseService.insertOrUpdate(cmd.getArtifact());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insert(wft));
+                        .forEach(wft -> ruleBaseService.insertOrUpdate(wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insert(dni));
+                        .forEach(dni -> ruleBaseService.insertOrUpdate(dni));
                 ruleBaseService.fire();
             });
     }
@@ -91,9 +89,8 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AppendedQACheckDocumentEvt(cmd.getId(), cmd.getWftId(), cmd.getState()))
                 .andThen(() -> {
-                    log.debug("[AGG] insert workflow artifacts into knowledge base");
                     QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
-                    ruleBaseService.insert(doc);
+                    ruleBaseService.insertOrUpdate(doc);
                     ruleBaseService.fire();
                 });
     }
@@ -103,16 +100,14 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
-                    log.debug("[AGG] insert into knowledge base");
-
                     QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
                     doc.getConstraintsReadonly().stream()
-                            .forEach(q -> ruleBaseService.insert(q));
+                            .forEach(q -> ruleBaseService.insertOrUpdate(q));
 
                     // insert constraint trigger
                     ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance());
                     ct.addConstraint("*");
-                    ruleBaseService.insert(ct);
+                    ruleBaseService.insertOrUpdate(ct);
 
                     ruleBaseService.fire();
                 });
@@ -127,7 +122,7 @@ public class WorkflowAggregate {
         model = new WorkflowInstanceWrapper();
         model.handle(evt);
     }
-    
+
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
