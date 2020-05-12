@@ -103,7 +103,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] handling {}", cmd);
         apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
-                    log.debug("[AGG] insert workflow artifacts into knowledge base");
+                    log.debug("[AGG] insert into knowledge base");
 
                     QACheckDocument doc = model.getQACDocFor(cmd.getWftId());
                     doc.getConstraintsReadonly().stream()
@@ -112,6 +112,7 @@ public class WorkflowAggregate {
                     // insert constraint trigger
                     ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance());
                     ct.addConstraint("*");
+                    ruleBaseService.insert(ct);
 
                     ruleBaseService.fire();
                 });
@@ -126,25 +127,7 @@ public class WorkflowAggregate {
         model = new WorkflowInstanceWrapper();
         model.handle(evt);
     }
-
-    @EventSourcingHandler
-    public void on(CompletedDataflowEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
-    }
-
-    @EventSourcingHandler
-    public void on(ActivatedInBranchEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
-    }
-
-    @EventSourcingHandler
-    public void on(ActivatedOutBranchEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
-    }
-
+    
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
@@ -152,13 +135,7 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(AppendedQACheckDocumentEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
-    }
-
-    @EventSourcingHandler
-    public void on(AddedQAConstraintEvt evt) {
+    public void on(IdentifiableEvt evt) {
         log.debug("[AGG] applying {}", evt);
         model.handle(evt);
     }
