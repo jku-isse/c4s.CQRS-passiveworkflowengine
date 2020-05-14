@@ -71,22 +71,26 @@ public class WebUI extends UI {
 
     private Panel commandPanel() {
         TextField id = new TextField("ID");
-//        TextField amount = new TextField("Amount");
+        TextField status = new TextField("Status");
+        status.setValue(MockService.DEFAULT_STATUS);
+        TextField issuetype = new TextField("Issue-Type");
+        issuetype.setValue(MockService.DEFAULT_ISSUETYPE);
+        TextField priority = new TextField("Priority");
+        priority.setValue(MockService.DEFAULT_PRIORITY);
+        TextField summary = new TextField("Summary");
+        summary.setSizeFull();
+        summary.setValue(MockService.DEFAULT_SUMMARY);
+
         Button add = new Button("AddArtifactCmd");
-        Button complete = new Button("CompletedDataflowEvt");
 
         add.addClickListener(evt -> {
-            commandGateway.sendAndWait(new AddArtifactCmd(id.getValue(), MockService.mockArtifact(id.getValue())));
+            Artifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
+            commandGateway.sendAndWait(new AddArtifactCmd(id.getValue(), a));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
 
-//        complete.addClickListener(evt -> {
-//            commandGateway.sendAndWait(new CompletedDataflowEvt(id.getValue()));
-//            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
-//        });
-
         FormLayout form = new FormLayout();
-        form.addComponents(id/*, amount*/, add, complete);
+        form.addComponents(id, status, issuetype, priority, summary, add);
         form.setMargin(true);
 
         Panel panel = new Panel("Send commands");
