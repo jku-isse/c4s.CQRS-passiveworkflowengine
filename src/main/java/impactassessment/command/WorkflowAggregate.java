@@ -1,5 +1,6 @@
 package impactassessment.command;
 
+import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
@@ -112,7 +113,7 @@ public class WorkflowAggregate {
                     rebc.ifPresent(r -> {
                         ruleBaseService.insertOrUpdate(r);
                         // insert constraint trigger
-                        ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance());
+                        ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(r.getId(), "AddQAConstraintCmd"));
                         ct.addConstraint(r.getConstraintType());
                         ruleBaseService.insertOrUpdate(ct);
 
@@ -120,6 +121,12 @@ public class WorkflowAggregate {
                     });
 
                 });
+    }
+
+    @CommandHandler
+    public void handle(SetEvaluatedCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new SetEvaluatedEvt(cmd.getId(), cmd.getQacId(), cmd.getCorr()));
     }
 
     @CommandHandler

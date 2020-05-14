@@ -1,5 +1,6 @@
 package impactassessment.api
 
+import impactassessment.analytics.CorrelationTuple
 import impactassessment.mock.artifact.Artifact
 import impactassessment.model.workflowmodel.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
@@ -14,7 +15,7 @@ data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AppendQACheckDocumentCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val state: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val constrPrefix: String, val ruleName: String, val description: String)
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink)
-
+data class SetEvaluatedCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val corr: CorrelationTuple)
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
@@ -26,6 +27,7 @@ data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AppendedQACheckDocumentEvt(override val id: String, val wftId: String, val state: String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val constrPrefix: String, val ruleName: String, val description: String) : IdentifiableEvt
 data class AddedResourceToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink) : IdentifiableEvt
+data class SetEvaluatedEvt(override val id: String, val qacId: String, val corr: CorrelationTuple) : IdentifiableEvt
 
 // QUERIES
 data class FindQuery(val id: String)
