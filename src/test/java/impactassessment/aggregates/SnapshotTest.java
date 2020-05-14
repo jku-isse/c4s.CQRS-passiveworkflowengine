@@ -1,12 +1,9 @@
 package impactassessment.aggregates;
 
-import impactassessment.api.ActivateOutBranchCmd;
-import impactassessment.api.ActivatedInBranchEvt;
-import impactassessment.api.AddedArtifactEvt;
-import impactassessment.api.CompletedDataflowEvt;
+import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
-import impactassessment.model.WorkflowModel;
+import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.MockDatabase;
 import impactassessment.query.snapshot.CLTool;
 import impactassessment.query.snapshot.Snapshotter;
@@ -31,7 +28,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         fixture.given(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
     }
@@ -42,7 +39,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         fixture.given(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {
@@ -50,7 +47,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
                     Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.now(), eventStream);
-                    WorkflowModel snapshotState = null;
+                    WorkflowInstanceWrapper snapshotState = null;
                     try {
                         snapshotState = future.get().getWorkflowModel(id);
                     } catch (InterruptedException | ExecutionException e) {
@@ -70,7 +67,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                 .andGiven(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {
@@ -78,7 +75,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
                     Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-17T08:30:00.00Z"), eventStream);
-                    WorkflowModel snapshotState = null;
+                    WorkflowInstanceWrapper snapshotState = null;
                     try {
                         snapshotState = future.get().getWorkflowModel(id);
                     } catch (InterruptedException | ExecutionException e) {
@@ -97,7 +94,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGivenCurrentTime(Instant.parse("2020-03-20T08:30:00.00Z"))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {
@@ -105,7 +102,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
                     Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-19T08:30:00.00Z"), eventStream);
-                    WorkflowModel snapshotState = null;
+                    WorkflowInstanceWrapper snapshotState = null;
                     try {
                         snapshotState = future.get().getWorkflowModel(id);
                     } catch (InterruptedException | ExecutionException e) {
