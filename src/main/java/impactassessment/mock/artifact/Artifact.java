@@ -2,6 +2,7 @@ package impactassessment.mock.artifact;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ public class Artifact {
     private @Getter List<Relation> relationsOutgoing;
     public Artifact() {
         fields = new HashMap<>();
+        relationsIncoming = new ArrayList<>();
+        relationsOutgoing = new ArrayList<>();
     }
     public String getId() {
         return fields.get(MockService.ID);

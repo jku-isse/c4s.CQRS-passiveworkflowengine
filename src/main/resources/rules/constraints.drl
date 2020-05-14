@@ -18,6 +18,7 @@ import impactassessment.api.AppendQACheckDocumentCmd
 import impactassessment.api.AddQAConstraintCmd
 import impactassessment.api.AddResourceToConstraintCmd
 import impactassessment.mock.artifact.Relation
+import java.util.concurrent.TimeUnit
 
 
 global CommandGateway commandGateway;
@@ -80,7 +81,7 @@ rule "InsertQAConstraintsStateResolved"
 		$wft : WorkflowTask ( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
 							   getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
-		commandGateway.send(new AppendQACheckDocumentCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS));
+		commandGateway.send(new AppendQACheckDocumentCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED));
 
 		Optional opt = $wft.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
 		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
@@ -305,6 +306,5 @@ rule "RemoveConstraintTrigger"
 	when
 		$ct : ConstraintTrigger()
 	then
-	    // TODO introduce delete ct cmd
-//		delete($ct);
+		delete($ct);
 end

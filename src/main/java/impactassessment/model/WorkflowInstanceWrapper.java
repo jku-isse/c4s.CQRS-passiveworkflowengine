@@ -146,14 +146,16 @@ public class WorkflowInstanceWrapper {
         return optQACD.orElse(null);
     }
 
-    public QACheckDocument.QAConstraint getQAC(String qacId) {
+    public RuleEngineBasedConstraint getQAC(String qacId) {
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
             for (WorkflowTask.ArtifactOutput ao : wft.getOutput()) {
                 if (ao.getArtifact() instanceof QACheckDocument) {
                     QACheckDocument qacd = (QACheckDocument) ao.getArtifact();
                     for (QACheckDocument.QAConstraint qac : qacd.getConstraintsReadonly()) {
                         if (qac.getId().equals(qacId)) {
-                            return qac;
+                            if (qac instanceof RuleEngineBasedConstraint) {
+                                return (RuleEngineBasedConstraint) qac;
+                            }
                         }
                     }
                 }
