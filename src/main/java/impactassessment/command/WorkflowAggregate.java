@@ -89,22 +89,12 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AppendQACheckDocumentCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AppendedQACheckDocumentEvt(cmd.getId(), cmd.getWftId(), cmd.getState()))
+        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getState(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
                     QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
                     ruleBaseService.insertOrUpdate(doc);
-                    ruleBaseService.fire();
-                });
-    }
-
-    @CommandHandler
-    public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
-                .andThen(() -> {
-                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
                     Optional<RuleEngineBasedConstraint> rebc = doc.getConstraintsReadonly().stream()
                             .filter(q -> q instanceof RuleEngineBasedConstraint)
                             .map(q -> (RuleEngineBasedConstraint) q)
@@ -116,10 +106,8 @@ public class WorkflowAggregate {
                         ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(r.getId(), "AddQAConstraintCmd"));
                         ct.addConstraint(r.getConstraintType());
                         ruleBaseService.insertOrUpdate(ct);
-
-                        ruleBaseService.fire();
                     });
-
+                    ruleBaseService.fire();
                 });
     }
 
