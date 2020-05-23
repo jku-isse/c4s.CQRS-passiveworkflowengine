@@ -7,10 +7,12 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Scope;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
+//@Scope("prototype") TODO one kiesession per aggregate (maybe a problem, not kie session per method call but per event handler)
 public class RuleBaseService {
 
     private final CommandGateway commandGateway;

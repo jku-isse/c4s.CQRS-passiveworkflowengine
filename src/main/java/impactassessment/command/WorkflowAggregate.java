@@ -124,15 +124,9 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(SetEvaluatedCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new SetEvaluatedEvt(cmd.getId(), cmd.getQacId(), cmd.getCorr()));
-    }
-
-    @CommandHandler
     public void handle(AddResourceToConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes()))
+        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
                     ruleBaseService.insertOrUpdate(qac);
