@@ -1,5 +1,6 @@
 package impactassessment.query;
 
+import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.config.ProcessingGroup;
@@ -18,42 +19,28 @@ public class WorkflowProjection {
 
     private final MockDatabase mockDB;
 
-//    @EventHandler
-//    public void on(CreatedWorkflowEvt event) {
-//        log.debug("projecting {}", event);
-//        WorkflowModel m = mockDB.createAndPutWorkflowModel(event.getId());
-//        m.handle(event);
-//    }
-//
-//    @EventHandler
-//    public void on(CreatedWorkflowInstanceOfEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-//        log.debug("projecting {}", event);
-//        mockDB.getWorkflowModel(event.getId()).handle(event);
-//    }
-//
-//    @EventHandler
-//    public void on(EnabledTasksAndDecisionsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-//        log.debug("projecting {}", event);
-//        mockDB.getWorkflowModel(event.getId()).handle(event);
-//    }
-//
-//    @EventHandler
-//    public void on(CompletedDataflowOfDecisionNodeInstanceEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-//        log.debug("projecting {}", event);
-//        mockDB.getWorkflowModel(event.getId()).handle(event);
-//    }
-//
-//    @EventHandler
-//    public void on(AddedQAConstraintsAsArtifactOutputsEvt event/*, ReplayStatus replayStatus, @Timestamp Instant t, @SequenceNumber Long l*/) {
-//        log.debug("projecting {}", event);
-//        mockDB.getWorkflowModel(event.getId()).handle(event);
-//    }
+    // Event Handlers
+
+    @EventHandler
+    public void on(AddedArtifactEvt evt) {
+        log.info("projecting {}", evt);
+        WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
+        m.handle(evt);
+    }
+
+    @EventHandler
+    public void on(IdentifiableEvt evt) {
+        log.info("projecting {}", evt);
+        mockDB.getWorkflowModel(evt.getId()).handle(evt);
+    }
 
     @EventHandler
     public void on(DeletedEvt evt) {
-        log.debug("projecting {}", evt);
+        log.info("projecting {}", evt);
         mockDB.delete(evt.getId());
     }
+
+    // Query Handlers
 
     @QueryHandler
     public FindResponse handle(FindQuery query) {
@@ -62,6 +49,8 @@ public class WorkflowProjection {
         String id = query.getId();
         return new FindResponse(id, 404); // TODO replace
     }
+
+    // Reset Handler
 
     @ResetHandler
     public void reset() {
