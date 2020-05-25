@@ -16,6 +16,7 @@ data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wft
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple)
 data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple)
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
+data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}

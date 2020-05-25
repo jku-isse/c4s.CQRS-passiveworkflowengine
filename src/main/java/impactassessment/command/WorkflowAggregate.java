@@ -146,6 +146,19 @@ public class WorkflowAggregate {
         }
     }
 
+    @CommandHandler
+    public void handle(PrintKBCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        if (ruleBaseService.getKieSession() != null) {
+            StringBuilder s = new StringBuilder();
+            s.append("\n############## KB CONTENT ################\n");
+            ruleBaseService.getKieSession().getObjects().stream()
+                    .forEach(o -> s.append(o.toString() + "\n"));
+            s.append("############## SIZE: " + ruleBaseService.getKieSession().getObjects().size() + " ################");
+            log.info(s.toString());
+        }
+    }
+
     // Event Handlers
 
     @EventSourcingHandler

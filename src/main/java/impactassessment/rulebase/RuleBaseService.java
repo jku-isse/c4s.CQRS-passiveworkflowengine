@@ -2,6 +2,7 @@ package impactassessment.rulebase;
 
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.workflowmodel.IdentifiableObject;
+import lombok.Getter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -16,7 +17,7 @@ import java.util.Map;
 public class RuleBaseService {
 
     private final CommandGateway commandGateway;
-    private KieSession kieSession;
+    private @Getter KieSession kieSession;
     private Map<String, FactHandle> sessionHandles;
 
     public RuleBaseService(CommandGateway commandGateway) {

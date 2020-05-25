@@ -126,14 +126,19 @@ public class WebUI extends UI {
         TextField corr = new TextField("Corr");
         corr.setValue("4_open_A3");
         Button check = new Button("Check");
+        Button print = new Button("Print KB");
 
         check.addClickListener(evt -> {
             commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
         });
+        print.addClickListener(evt -> {
+            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+        });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, corr, check);
+        form.addComponents(id, corr, check, print);
         form.setMargin(true);
 
         Panel panel = new Panel("Check QA-Constraint");
