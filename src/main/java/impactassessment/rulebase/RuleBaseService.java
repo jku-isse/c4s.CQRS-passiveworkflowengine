@@ -3,6 +3,7 @@ package impactassessment.rulebase;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.workflowmodel.IdentifiableObject;
 import lombok.Getter;
+import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -34,6 +35,19 @@ public class RuleBaseService {
         kieSessions.get(id).dispose();
     }
 
+    public boolean isInitialized(String id) {
+        if (kieSessions.containsKey(id)) {
+            boolean b = kieSessions.get(id).isInitialized();
+            return kieSessions.get(id).isInitialized();
+        } else {
+            return false;
+        }
+    }
+
+    public void initialize(String id) {
+        kieSessions.get(id).setInitialized(true);
+    }
+
     public KieSession getKieSession(String id) {
         return kieSessions.get(id).getKieSession();
     }
@@ -53,11 +67,13 @@ public class RuleBaseService {
 
         private @Getter KieSession kieSession;
         private Map<String, FactHandle> sessionHandles;
+        private @Getter @Setter boolean isInitialized;
 
         public KieSessionWrapper(CommandGateway commandGateway) {
             kieSession = new RuleBaseFactory().getKieSession();
             kieSession.setGlobal("commandGateway", commandGateway);
             sessionHandles = new HashMap<>();
+            isInitialized = false;
         }
 
         public void insertOrUpdate(Object o) {

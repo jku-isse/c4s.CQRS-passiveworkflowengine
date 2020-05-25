@@ -46,12 +46,14 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
+
                 ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                         .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
                         .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                ruleBaseService.initialize(cmd.getId());
                 ruleBaseService.fire(cmd.getId());
             });
     }
@@ -136,6 +138,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(CheckConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), ruleBaseService);
         RuleEngineBasedConstraint rebc = model.getQAC(cmd.getCorrId());
         if (rebc != null) {
             ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
@@ -181,4 +184,35 @@ public class WorkflowAggregate {
         model.handle(evt);
     }
 
+
+    /**
+     * Needed for user commands, because then the KB must be checked if it is initialized.
+     * First call in such command handlers!
+     *
+     * @param id
+     * @param ruleBaseService
+     */
+    private void ensureInitializedKB(String id, RuleBaseService ruleBaseService) {
+        if (!ruleBaseService.isInitialized(id)) {
+            log.info(">>INIT KB<<");
+            // if kieSession is not initialized, try to add all artifacts
+            ruleBaseService.insertOrUpdate(id, model.getWorkflowInstance());
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(wft -> {
+                        ruleBaseService.insertOrUpdate(id, wft);
+                        QACheckDocument doc = model.getQACDocOfWft(wft.getTaskId());
+                        ruleBaseService.insertOrUpdate(id, doc);
+                        doc.getConstraintsReadonly().stream()
+                                .filter(q -> q instanceof RuleEngineBasedConstraint)
+                                .map(q -> (RuleEngineBasedConstraint) q)
+                                .forEach(rebc -> ruleBaseService.insertOrUpdate(id, rebc));
+                    });
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(dni -> ruleBaseService.insertOrUpdate(id, dni));
+
+            ruleBaseService.fire(id);
+
+            // TODO what about Artifact?!
+        }
+    }
 }
