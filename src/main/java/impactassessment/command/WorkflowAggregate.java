@@ -46,13 +46,13 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
-                ruleBaseService.insertOrUpdate(cmd.getArtifact());
-                ruleBaseService.insertOrUpdate(model.getWorkflowInstance());
+                ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
+                ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insertOrUpdate(wft));
+                        .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insertOrUpdate(dni));
-                ruleBaseService.fire();
+                        .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                ruleBaseService.fire(cmd.getId());
             });
     }
 
@@ -61,12 +61,12 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact()))
             .andThen(() -> {
-                ruleBaseService.insertOrUpdate(cmd.getArtifact());
+                ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insertOrUpdate(wft));
+                        .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insertOrUpdate(dni));
-                ruleBaseService.fire();
+                        .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                ruleBaseService.fire(cmd.getId());
             });
     }
 
@@ -89,56 +89,76 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AppendQACheckDocumentCmd cmd, RuleBaseService ruleBaseService) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new AppendedQACheckDocumentEvt(cmd.getId(), cmd.getWftId(), cmd.getState()))
-                .andThen(() -> {
-                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
-                    ruleBaseService.insertOrUpdate(doc);
-                    ruleBaseService.fire();
-                });
-    }
-
-    @CommandHandler
     public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
+        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getState(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
                     QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
+                    ruleBaseService.insertOrUpdate(cmd.getId(), doc);
                     Optional<RuleEngineBasedConstraint> rebc = doc.getConstraintsReadonly().stream()
                             .filter(q -> q instanceof RuleEngineBasedConstraint)
                             .map(q -> (RuleEngineBasedConstraint) q)
                             .filter(r -> r.getConstraintType().equals(cmd.getRuleName()))
                             .findAny();
                     rebc.ifPresent(r -> {
-                        ruleBaseService.insertOrUpdate(r);
+                        ruleBaseService.insertOrUpdate(cmd.getId(), r);
                         // insert constraint trigger
                         ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(r.getId(), "AddQAConstraintCmd"));
                         ct.addConstraint(r.getConstraintType());
-                        ruleBaseService.insertOrUpdate(ct);
-
-                        ruleBaseService.fire();
+                        ruleBaseService.insertOrUpdate(cmd.getId(), ct);
                     });
-
+                    ruleBaseService.fire(cmd.getId());
                 });
-    }
-
-    @CommandHandler
-    public void handle(SetEvaluatedCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new SetEvaluatedEvt(cmd.getId(), cmd.getQacId(), cmd.getCorr()));
     }
 
     @CommandHandler
     public void handle(AddResourceToConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes()))
+        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
-                    ruleBaseService.insertOrUpdate(qac);
-                    ruleBaseService.fire();
+                    ruleBaseService.insertOrUpdate(cmd.getId(), qac);
+                    ruleBaseService.fire(cmd.getId());
                 });
     }
+
+    @CommandHandler
+    public void handle(AddResourcesToConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
+                .andThen(() -> {
+                    QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
+                    ruleBaseService.insertOrUpdate(cmd.getId(), qac);
+                    ruleBaseService.fire(cmd.getId());
+                });
+    }
+
+    @CommandHandler
+    public void handle(CheckConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        RuleEngineBasedConstraint rebc = model.getQAC(cmd.getCorrId());
+        if (rebc != null) {
+            ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
+            ct.addConstraint(rebc.getConstraintType());
+            ruleBaseService.insertOrUpdate(cmd.getId(), ct);
+        } else {
+            log.warn("Concerened RuleEngineBasedConstraint wasn't found");
+        }
+    }
+
+    @CommandHandler
+    public void handle(PrintKBCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        if (ruleBaseService.getKieSession(cmd.getId()) != null) {
+            StringBuilder s = new StringBuilder();
+            s.append("\n############## KB CONTENT ################\n");
+            ruleBaseService.getKieSession(cmd.getId()).getObjects().stream()
+                    .forEach(o -> s.append(o.toString() + "\n"));
+            s.append("############## SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ################");
+            log.info(s.toString());
+        }
+    }
+
     // Event Handlers
 
     @EventSourcingHandler

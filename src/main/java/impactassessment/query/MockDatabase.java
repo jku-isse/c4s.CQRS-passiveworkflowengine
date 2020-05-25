@@ -23,7 +23,7 @@ public class MockDatabase {
         return db.get(id);
     }
 
-    private WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
+    public WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
         db.put(id, new WorkflowInstanceWrapper());
         return db.get(id);
     }

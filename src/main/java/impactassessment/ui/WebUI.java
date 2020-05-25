@@ -41,6 +41,7 @@ public class WebUI extends UI {
         Panel replayPanel = replayPanel();
         Panel queryPanel = queryPanel();
         Panel snapshotPanel = snapshot();
+        Panel checkPanel = checkPanel();
 
         HorizontalLayout panels12 = new HorizontalLayout();
         panels12.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
@@ -53,7 +54,7 @@ public class WebUI extends UI {
         panels34.setSizeFull();
 
         VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.addComponents(panels12, panels34);
+        verticalLayout.addComponents(panels12, checkPanel, panels34);
 
         setContent(verticalLayout);
 
@@ -116,6 +117,31 @@ public class WebUI extends UI {
         form.setMargin(true);
 
         Panel panel = new Panel("Send history query");
+        panel.setContent(form);
+        return panel;
+    }
+
+    private Panel checkPanel() {
+        TextField id = new TextField("ID");
+        TextField corr = new TextField("Corr");
+        corr.setValue("4_open_A3");
+        Button check = new Button("Check");
+        Button print = new Button("Print KB");
+
+        check.addClickListener(evt -> {
+            commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
+            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+        });
+        print.addClickListener(evt -> {
+            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+        });
+
+        FormLayout form = new FormLayout();
+        form.addComponents(id, corr, check, print);
+        form.setMargin(true);
+
+        Panel panel = new Panel("Check QA-Constraint");
         panel.setContent(form);
         return panel;
     }
