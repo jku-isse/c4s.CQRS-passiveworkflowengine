@@ -133,6 +133,19 @@ public class WorkflowAggregate {
                 });
     }
 
+    @CommandHandler
+    public void handle(CheckConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        RuleEngineBasedConstraint rebc = model.getQAC(cmd.getCorrId());
+        if (rebc != null) {
+            ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
+            ct.addConstraint(rebc.getConstraintType());
+            ruleBaseService.insertOrUpdate(ct);
+        } else {
+            log.warn("Concerened RuleEngineBasedConstraint wasn't found");
+        }
+    }
+
     // Event Handlers
 
     @EventSourcingHandler

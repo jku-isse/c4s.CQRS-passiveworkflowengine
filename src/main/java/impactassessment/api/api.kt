@@ -15,6 +15,7 @@ data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val state: String, val constrPrefix: String, val ruleName: String, val description: String)
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple)
 data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple)
+data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
