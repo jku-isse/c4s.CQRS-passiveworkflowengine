@@ -97,6 +97,15 @@ public class WorkflowInstanceWrapper {
         rebc.setEvaluated(evt.getCorr());
     }
 
+    private void handle(AddedResourcesToConstraintEvt evt) {
+        RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
+        for (ResourceLink rl : evt.getRes()){
+            rebc.addAs(evt.getFulfilled(), rl);
+        }
+        rebc.setLastEvaluated(Instant.now());
+        rebc.setEvaluated(evt.getCorr());
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof AddedArtifactEvt) {
             handle((AddedArtifactEvt) evt);
@@ -110,6 +119,8 @@ public class WorkflowInstanceWrapper {
             handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedResourceToConstraintEvt) {
             handle((AddedResourceToConstraintEvt) evt);
+        } else if (evt instanceof AddedResourcesToConstraintEvt) {
+            handle((AddedResourcesToConstraintEvt) evt);
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }

@@ -14,6 +14,8 @@ data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val d
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val state: String, val constrPrefix: String, val ruleName: String, val description: String)
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple)
+data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple)
+
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
@@ -24,6 +26,7 @@ data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val state: String, val constrPrefix: String, val ruleName: String, val description: String) : IdentifiableEvt
 data class AddedResourceToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple) : IdentifiableEvt
+data class AddedResourcesToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple) : IdentifiableEvt
 
 // QUERIES
 data class FindQuery(val id: String)

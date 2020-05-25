@@ -18,6 +18,8 @@ import impactassessment.api.AddQAConstraintCmd
 import impactassessment.api.AddResourceToConstraintCmd
 import impactassessment.mock.artifact.Relation
 import java.util.concurrent.TimeUnit
+import java.util.List
+import java.util.ArrayList
 
 
 global CommandGateway commandGateway;

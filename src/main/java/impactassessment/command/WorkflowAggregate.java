@@ -121,6 +121,18 @@ public class WorkflowAggregate {
                     ruleBaseService.fire();
                 });
     }
+
+    @CommandHandler
+    public void handle(AddResourcesToConstraintCmd cmd, RuleBaseService ruleBaseService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
+                .andThen(() -> {
+                    QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
+                    ruleBaseService.insertOrUpdate(qac);
+                    ruleBaseService.fire();
+                });
+    }
+
     // Event Handlers
 
     @EventSourcingHandler
