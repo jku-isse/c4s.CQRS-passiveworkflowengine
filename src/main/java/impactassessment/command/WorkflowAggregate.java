@@ -2,6 +2,7 @@ package impactassessment.command;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
+import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
@@ -27,6 +28,7 @@ public class WorkflowAggregate {
     @AggregateIdentifier
     private String id;
     private WorkflowInstanceWrapper model;
+    private Artifact artifact;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -46,7 +48,6 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
-
                 ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
@@ -144,6 +145,7 @@ public class WorkflowAggregate {
             ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
             ct.addConstraint(rebc.getConstraintType());
             ruleBaseService.insertOrUpdate(cmd.getId(), ct);
+            ruleBaseService.fire(cmd.getId());
         } else {
             log.warn("Concerened RuleEngineBasedConstraint wasn't found");
         }
@@ -169,6 +171,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getArtifact().getId();
         model = new WorkflowInstanceWrapper();
+        artifact = evt.getArtifact();
         model.handle(evt);
     }
 
@@ -196,23 +199,22 @@ public class WorkflowAggregate {
         if (!ruleBaseService.isInitialized(id)) {
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
+            ruleBaseService.insertOrUpdate(id, artifact);
             ruleBaseService.insertOrUpdate(id, model.getWorkflowInstance());
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                     .forEach(wft -> {
                         ruleBaseService.insertOrUpdate(id, wft);
                         QACheckDocument doc = model.getQACDocOfWft(wft.getTaskId());
-                        ruleBaseService.insertOrUpdate(id, doc);
-                        doc.getConstraintsReadonly().stream()
-                                .filter(q -> q instanceof RuleEngineBasedConstraint)
-                                .map(q -> (RuleEngineBasedConstraint) q)
-                                .forEach(rebc -> ruleBaseService.insertOrUpdate(id, rebc));
+                        if (doc != null) {
+                            ruleBaseService.insertOrUpdate(id, doc);
+                            doc.getConstraintsReadonly().stream()
+                                    .filter(q -> q instanceof RuleEngineBasedConstraint)
+                                    .map(q -> (RuleEngineBasedConstraint) q)
+                                    .forEach(rebc -> ruleBaseService.insertOrUpdate(id, rebc));
+                        }
                     });
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
                     .forEach(dni -> ruleBaseService.insertOrUpdate(id, dni));
-
-            ruleBaseService.fire(id);
-
-            // TODO what about Artifact?!
         }
     }
 }

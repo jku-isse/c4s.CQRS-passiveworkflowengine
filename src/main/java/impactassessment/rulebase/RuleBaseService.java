@@ -49,7 +49,8 @@ public class RuleBaseService {
     }
 
     public KieSession getKieSession(String id) {
-        return kieSessions.get(id).getKieSession();
+        KieSessionWrapper wrappedKB = kieSessions.get(id);
+        return wrappedKB == null ? null : wrappedKB.getKieSession();
     }
 
     private KieSessionWrapper getOtherwiseCreate(String id) {

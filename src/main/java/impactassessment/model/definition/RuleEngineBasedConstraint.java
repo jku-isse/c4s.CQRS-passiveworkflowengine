@@ -50,10 +50,7 @@ public class RuleEngineBasedConstraint extends QAConstraint {
 
 	@Override
 	public String toString() {
-		return "RuleEngineBasedConstraint [constraintType=" + constraintType + ", fulfilledFor=" + fulfilledFor
-				+ ", unsatisfiedFor=" + unsatisfiedFor + ", evaluationStatus=" + evaluationStatus
-				+ ", evaluationStatusMessage=" + evaluationStatusMessage + ", lastEvaluated=" + lastEvaluated
-				+ ", lastChanged=" + lastChanged + "]";
+		return "RuleEngineBasedConstraint [constraintType=" + constraintType + " " + super.toString() + " ]";
 	}
 
 	

@@ -23,20 +23,21 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedArtifactEvt evt) {
-        log.info("projecting {}", evt);
+        log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
         m.handle(evt);
     }
 
     @EventHandler
     public void on(IdentifiableEvt evt) {
-        log.info("projecting {}", evt);
-        mockDB.getWorkflowModel(evt.getId()).handle(evt);
+        log.info("[PRJ] projecting {}", evt);
+        WorkflowInstanceWrapper wfi = mockDB.getWorkflowModel(evt.getId());
+        if (wfi != null) wfi.handle(evt);
     }
 
     @EventHandler
     public void on(DeletedEvt evt) {
-        log.info("projecting {}", evt);
+        log.info("[PRJ] projecting {}", evt);
         mockDB.delete(evt.getId());
     }
 
@@ -44,7 +45,7 @@ public class WorkflowProjection {
 
     @QueryHandler
     public FindResponse handle(FindQuery query) {
-        log.debug("handle {}", query);
+        log.debug("[PRJ] handle {}", query);
         System.out.println(mockDB.getWorkflowModel(query.getId()).toString()); // TODO remove
         String id = query.getId();
         return new FindResponse(id, 404); // TODO replace
@@ -54,7 +55,7 @@ public class WorkflowProjection {
 
     @ResetHandler
     public void reset() {
-        log.debug("reset view db");
+        log.debug("[PRJ] reset view db");
         mockDB.reset();
     }
 }
