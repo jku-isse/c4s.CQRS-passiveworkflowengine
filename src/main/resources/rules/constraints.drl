@@ -28,7 +28,8 @@ global CommandGateway commandGateway;
 //constraints for state open
 rule "InsertQAConstraintsStateOpen"
 	when
-		$wft : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) ) // TODO extend again
+		$wft : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
+		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
 	then
         Optional opt = $wft.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
         WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);

@@ -73,6 +73,16 @@ public class ConstraintTrigger extends AbstractArtifact {
 	public void setRequestCorrelation(CorrelationTuple requestCorrelation) {
 		this.requestCorrelation = requestCorrelation;
 	}
-	
-	
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ConstraintTrigger{");
+        sb.append("constraintsToTrigger=[");
+        constraintsToTrigger.stream().forEach(c -> sb.append(c).append(", "));
+        sb.append("], requestCorrelation=").append(requestCorrelation);
+        sb.append(", workflow id=").append(workflow.getId());
+        sb.append(", id='").append(id).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

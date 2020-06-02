@@ -31,10 +31,12 @@ rule "AddWPTicketAsInputToNewTasks"
     	$a : Artifact(  )
         $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							 getWorkflow().getWorkflowDefinition().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
-									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS
+									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS &&
+									 !isActivationPropagationCompleted()
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
+        System.out.println("################### "+$dni.isActivationPropagationCompleted());
         commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), $a));
 
 end
@@ -84,6 +86,6 @@ rule "Open2Resolved-InBranchConditions"
         							, $wfi : getWorkflow() )
     then
         commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
+        //commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
 end

@@ -21,7 +21,7 @@ public class BasicAggregateTest extends AbstractFixtureTest {
         fixture.given(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+//                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
     }

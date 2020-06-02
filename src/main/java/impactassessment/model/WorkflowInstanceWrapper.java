@@ -12,7 +12,6 @@ import lombok.extern.slf4j.XSlf4j;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @XSlf4j
@@ -80,7 +79,7 @@ public class WorkflowInstanceWrapper {
             if (qa == null) {
                 //create and append new QACheckDocument to WFT
                 qa = new QACheckDocument("QA-"+evt.getState()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-"+evt.getState()+"-CONSTRAINTS-CHECK-" + wft.getWorkflow().getId());
+                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK");
                 wft.addOutput(ao);
                 CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
                 qa.setLastChangeDueTo(corr);
@@ -92,6 +91,7 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
+        // TODO remove old resource
         rebc.addAs(evt.getFulfilled(), evt.getRes());
         rebc.setLastEvaluated(Instant.now());
         rebc.setEvaluated(evt.getCorr());

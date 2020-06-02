@@ -2,6 +2,7 @@ package impactassessment.command;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
+import impactassessment.mock.artifact.Artifact;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
@@ -27,6 +28,7 @@ public class WorkflowAggregate {
     @AggregateIdentifier
     private String id;
     private WorkflowInstanceWrapper model;
+    private Artifact artifact;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -52,6 +54,7 @@ public class WorkflowAggregate {
                         .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
                         .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                ruleBaseService.setInitialized(cmd.getId());
                 ruleBaseService.fire(cmd.getId());
             });
     }
@@ -71,15 +74,29 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(ActivateInBranchCmd cmd) {
+    public void handle(ActivateInBranchCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
+        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                    ruleBaseService.fire(cmd.getId());
+                });
     }
 
     @CommandHandler
-    public void handle(ActivateOutBranchCmd cmd) {
+    public void handle(ActivateOutBranchCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
+        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                    ruleBaseService.fire(cmd.getId());
+                });
     }
 
     @CommandHandler
@@ -136,11 +153,13 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(CheckConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), ruleBaseService);
         RuleEngineBasedConstraint rebc = model.getQAC(cmd.getCorrId());
         if (rebc != null) {
             ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
             ct.addConstraint(rebc.getConstraintType());
             ruleBaseService.insertOrUpdate(cmd.getId(), ct);
+            ruleBaseService.fire(cmd.getId());
         } else {
             log.warn("Concerened RuleEngineBasedConstraint wasn't found");
         }
@@ -166,6 +185,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getArtifact().getId();
         model = new WorkflowInstanceWrapper();
+        artifact = evt.getArtifact();
         model.handle(evt);
     }
 
@@ -181,4 +201,35 @@ public class WorkflowAggregate {
         model.handle(evt);
     }
 
+
+    /**
+     * Needed for user commands, because then the KB must be checked if it is initialized.
+     * First call in such command handlers!
+     *
+     * @param id
+     * @param ruleBaseService
+     */
+    private void ensureInitializedKB(String id, RuleBaseService ruleBaseService) {
+        if (!ruleBaseService.isInitialized(id)) {
+            log.info(">>INIT KB<<");
+            // if kieSession is not initialized, try to add all artifacts
+            ruleBaseService.insertOrUpdate(id, artifact);
+            ruleBaseService.insertOrUpdate(id, model.getWorkflowInstance());
+            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                    .forEach(wft -> {
+                        ruleBaseService.insertOrUpdate(id, wft);
+                        QACheckDocument doc = model.getQACDocOfWft(wft.getTaskId());
+                        if (doc != null) {
+                            ruleBaseService.insertOrUpdate(id, doc);
+                            doc.getConstraintsReadonly().stream()
+                                    .filter(q -> q instanceof RuleEngineBasedConstraint)
+                                    .map(q -> (RuleEngineBasedConstraint) q)
+                                    .forEach(rebc -> ruleBaseService.insertOrUpdate(id, rebc));
+                        }
+                    });
+            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                    .forEach(dni -> ruleBaseService.insertOrUpdate(id, dni));
+            ruleBaseService.setInitialized(id);
+        }
+    }
 }

@@ -22,4 +22,13 @@ public class CorrelationTuple {
     }
 
     public CorrelationTuple(){}
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("CorrelationTuple{");
+        sb.append("correlationId='").append(correlationId).append('\'');
+        sb.append(", correlationObjectType='").append(correlationObjectType).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

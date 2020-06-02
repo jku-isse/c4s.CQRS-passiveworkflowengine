@@ -8,6 +8,7 @@ import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -24,16 +25,18 @@ public abstract class AbstractFixtureTest {
      * (https://docs.axoniq.io/reference-guide/implementing-domain-logic/command-handling/testing)
      */
     FixtureConfiguration<WorkflowAggregate> fixture;
+    @Mock
     RuleBaseService ruleBaseService;
     String id;
 
     @Before
     public void setup() {
         fixture = new AggregateTestFixture<>(WorkflowAggregate.class);
-        CommandGateway gateway = DefaultCommandGateway.builder()
-                .commandBus(fixture.getCommandBus())
-                .build();
-        ruleBaseService = new RuleBaseService(gateway);
+        // real ruleBaseService:
+//        CommandGateway gateway = DefaultCommandGateway.builder()
+//                .commandBus(fixture.getCommandBus())
+//                .build();
+//        ruleBaseService = new RuleBaseService(gateway);
         fixture.registerInjectableResource(ruleBaseService);
         id = "Test-Workflow";
     }
