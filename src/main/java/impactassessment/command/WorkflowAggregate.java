@@ -54,7 +54,7 @@ public class WorkflowAggregate {
                         .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
                         .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                ruleBaseService.initialize(cmd.getId());
+                ruleBaseService.setInitialized(cmd.getId());
                 ruleBaseService.fire(cmd.getId());
             });
     }
@@ -74,15 +74,29 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(ActivateInBranchCmd cmd) {
+    public void handle(ActivateInBranchCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
+        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                    ruleBaseService.fire(cmd.getId());
+                });
     }
 
     @CommandHandler
-    public void handle(ActivateOutBranchCmd cmd) {
+    public void handle(ActivateOutBranchCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
+        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                    ruleBaseService.fire(cmd.getId());
+                });
     }
 
     @CommandHandler
@@ -215,6 +229,7 @@ public class WorkflowAggregate {
                     });
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
                     .forEach(dni -> ruleBaseService.insertOrUpdate(id, dni));
+            ruleBaseService.setInitialized(id);
         }
     }
 }

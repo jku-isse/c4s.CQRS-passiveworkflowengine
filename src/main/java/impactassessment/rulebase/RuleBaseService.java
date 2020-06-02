@@ -37,14 +37,13 @@ public class RuleBaseService {
 
     public boolean isInitialized(String id) {
         if (kieSessions.containsKey(id)) {
-            boolean b = kieSessions.get(id).isInitialized();
             return kieSessions.get(id).isInitialized();
         } else {
             return false;
         }
     }
 
-    public void initialize(String id) {
+    public void setInitialized(String id) {
         kieSessions.get(id).setInitialized(true);
     }
 

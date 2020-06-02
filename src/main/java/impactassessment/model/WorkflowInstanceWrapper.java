@@ -39,7 +39,6 @@ public class WorkflowInstanceWrapper {
 
     private List<String> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
-        // TODO execute only if not already done
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         var newDNIs = new ArrayList<AbstractWorkflowInstanceObject>();
@@ -80,13 +79,12 @@ public class WorkflowInstanceWrapper {
             if (qa == null) {
                 //create and append new QACheckDocument to WFT
                 qa = new QACheckDocument("QA-"+evt.getState()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA-"+evt.getState()+"-CONSTRAINTS-CHECK-" + wft.getWorkflow().getId());
+                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK");
                 wft.addOutput(ao);
                 CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
                 qa.setLastChangeDueTo(corr);
             }
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getConstrPrefix() + wft.getWorkflow().getId(), qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
-            // TODO only add if not already there
             qa.addConstraint(rebc);
         }
     }
