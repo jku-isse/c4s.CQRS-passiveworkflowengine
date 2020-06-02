@@ -84,6 +84,6 @@ rule "Open2Resolved-InBranchConditions"
         							, $wfi : getWorkflow() )
     then
         commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
+        //commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
         commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
 end

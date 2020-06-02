@@ -28,7 +28,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         fixture.given(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+//                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
     }
@@ -39,7 +39,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         fixture.given(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+//                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {
@@ -67,7 +67,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                 .andGiven(new AddedArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+//                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {
@@ -94,7 +94,7 @@ public class SnapshotTest extends AbstractFixtureTest {
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
                 .andGivenCurrentTime(Instant.parse("2020-03-20T08:30:00.00Z"))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
-                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
+//                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution()
                 .expectState(state -> {

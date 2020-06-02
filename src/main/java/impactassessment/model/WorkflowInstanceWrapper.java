@@ -39,6 +39,7 @@ public class WorkflowInstanceWrapper {
 
     private List<String> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
+        // TODO execute only if not already done
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         var newDNIs = new ArrayList<AbstractWorkflowInstanceObject>();
@@ -85,12 +86,14 @@ public class WorkflowInstanceWrapper {
                 qa.setLastChangeDueTo(corr);
             }
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getConstrPrefix() + wft.getWorkflow().getId(), qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
+            // TODO only add if not already there
             qa.addConstraint(rebc);
         }
     }
 
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
+        // TODO remove old resource
         rebc.addAs(evt.getFulfilled(), evt.getRes());
         rebc.setLastEvaluated(Instant.now());
         rebc.setEvaluated(evt.getCorr());
