@@ -10,7 +10,7 @@ public class CLTool {
 
     public CompletableFuture<Action> readAction() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Choose action (store, stop, print, step):");
+        System.out.println("Choose action (store, print):");
         String s = scanner.nextLine();
         CompletableFuture<Action> completableFuture = new CompletableFuture<>();
         switch (s) {

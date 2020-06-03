@@ -91,7 +91,7 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        // TODO remove old resource
+        // TODO remove old resource?
         rebc.addAs(evt.getFulfilled(), evt.getRes());
         rebc.setLastEvaluated(Instant.now());
         rebc.setEvaluated(evt.getCorr());
