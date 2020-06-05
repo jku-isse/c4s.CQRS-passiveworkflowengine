@@ -3,6 +3,7 @@ package impactassessment.ui;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
 import impactassessment.model.definition.WPManagementWorkflow;
+import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.queryhandling.QueryGateway;
@@ -22,6 +23,8 @@ import impactassessment.utils.Replayer;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @SpringUI
 @Push
@@ -148,13 +151,13 @@ public class WebUI extends UI {
 
     private Panel snapshot() {
         TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
-        snapshotTimestamp.setValue("2020-05-01T11:06:00.00Z");
+        snapshotTimestamp.setValue(Instant.now().toString());
         snapshotTimestamp.setWidth("210px");
 
         Button snapshot = new Button("Snapshot");
 
         snapshot.addClickListener(evt -> {
-            snapshotter.replayEventsUntil(Instant.parse(snapshotTimestamp.getValue()));
+            Future<MockDatabase> future = snapshotter.replayEventsUntil(Instant.parse(snapshotTimestamp.getValue()));
         });
 
         FormLayout form = new FormLayout();

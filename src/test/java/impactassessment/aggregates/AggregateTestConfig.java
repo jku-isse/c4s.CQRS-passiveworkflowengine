@@ -16,7 +16,7 @@ public class AggregateTestConfig {
             @Override
             public CompletableFuture<Action> readAction() {
                 CompletableFuture<Action> completableFuture = new CompletableFuture<>();
-                completableFuture.complete(Action.STOP);
+                completableFuture.complete(Action.STORE);
                 return completableFuture;
             }
         };

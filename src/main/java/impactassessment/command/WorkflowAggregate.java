@@ -192,6 +192,7 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
+        // TODO delete kieSession
         markDeleted();
     }
 
