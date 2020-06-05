@@ -25,14 +25,16 @@ public class Snapshotter {
 
     private int sequenceNumber = 0;
     private ExecutorService executor = Executors.newFixedThreadPool(1);
-    private static boolean isInReplay = false;
+//    private static boolean isInReplay = false;
 
     public Future<MockDatabase> replayEventsUntil(Instant timestamp) {
+        /*
         if (isInReplay) {
             log.info("[SNP] replay is currently running");
             return null;
         }
         isInReplay = true;
+        */
         Callable<MockDatabase> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp, cli);
         Future<MockDatabase> future = executor.submit(callable);
         return future;
@@ -81,6 +83,20 @@ public class Snapshotter {
 
         @Override
         public MockDatabase call() {
+            eventStream.takeWhile(x -> x.getTimestamp().isBefore(timestamp)).forEach(m -> {
+                log.debug("[SNP] replay number {} from {} handle {}", id, m.getTimestamp(), m.getPayload());
+                mockDB.handle(m);
+            });
+            log.debug("[SNP] Replayed content:");
+            mockDB.print();
+            return mockDB;
+        }
+
+        /*
+        // eventStream is infinite, so we would need terminal operation on the stream
+        // as we don't know how far the user wants to step into the future, not sure how to implement this
+        @Override
+        public MockDatabase call() {
             AtomicReference<CLTool.Action> action = new AtomicReference<>();
             action.set(STEP);
             eventStream.forEach(m -> {
@@ -109,10 +125,10 @@ public class Snapshotter {
                     }
                 }
             });
-
             log.debug("[SNP] return snapshot");
             isInReplay = false;
             return mockDB;
         }
+        */
     }
 }
