@@ -2,6 +2,7 @@ package impactassessment.api
 
 import impactassessment.analytics.CorrelationTuple
 import impactassessment.mock.artifact.Artifact
+import impactassessment.model.WorkflowInstanceWrapper
 import impactassessment.model.workflowmodel.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import org.kie.api.runtime.rule.FactHandle
@@ -32,9 +33,11 @@ data class AddedResourcesToConstraintEvt(override val id: String, val qacId: Str
 
 // QUERIES
 data class FindQuery(val id: String)
+data class GetStateQuery(val depth: Int)
 
 // QUERY-RESPONSES
 data class FindResponse(val id: String, val amount: Int)
+data class GetStateResponse(val state: List<WorkflowInstanceWrapper>)
 
 // EXCEPTIONS
 class SomeException(message: String) : Exception(message)

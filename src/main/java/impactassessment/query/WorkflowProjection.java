@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import impactassessment.api.*;
 
+import java.util.stream.Collectors;
+
 @Component
 @XSlf4j
 @RequiredArgsConstructor
@@ -49,6 +51,14 @@ public class WorkflowProjection {
         System.out.println(mockDB.getWorkflowModel(query.getId()).toString()); // TODO remove
         String id = query.getId();
         return new FindResponse(id, 404); // TODO replace
+    }
+
+    @QueryHandler
+    public GetStateResponse handle(GetStateQuery query) {
+        log.debug("[PRJ] handle {}", query);
+        return new GetStateResponse(mockDB.db.entrySet().stream()
+                .map(entry -> entry.getValue())
+                .collect(Collectors.toList()));
     }
 
     // Reset Handler

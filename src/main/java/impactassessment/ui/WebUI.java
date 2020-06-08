@@ -1,80 +1,79 @@
 package impactassessment.ui;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.router.Route;
+import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
-import impactassessment.model.definition.WPManagementWorkflow;
+import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.MockDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.XSlf4j;
-import org.axonframework.queryhandling.QueryGateway;
-import impactassessment.api.*;
-import com.vaadin.annotations.Push;
-import com.vaadin.server.DefaultErrorHandler;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.spring.annotation.SpringUI;
-import com.vaadin.ui.*;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import impactassessment.query.snapshot.Snapshotter;
 import impactassessment.utils.Replayer;
+import lombok.extern.slf4j.XSlf4j;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.queryhandling.QueryGateway;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
-import java.lang.invoke.MethodHandles;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-@SpringUI
+@Route
 @Push
 @Profile("ui")
-@RequiredArgsConstructor
 @XSlf4j
-public class WebUI extends UI {
+public class WebUI extends VerticalLayout {
 
-    private final CommandGateway commandGateway;
-    private final QueryGateway queryGateway;
-    private final Snapshotter snapshotter;
-    private final Replayer replayer;
+    @Autowired
+    private CommandGateway commandGateway;
+    @Autowired
+    private QueryGateway queryGateway;
+    @Autowired
+    private Snapshotter snapshotter;
+    @Autowired
+    private Replayer replayer;
 
-    @Override
-    protected void init(VaadinRequest vaadinRequest) {
-        Panel commandPanel = commandPanel();
-        Panel replayPanel = replayPanel();
-        Panel queryPanel = queryPanel();
-        Panel snapshotPanel = snapshot();
-        Panel checkPanel = checkPanel();
+    public WebUI() {
+        Component commandPanel = commandPanel();
+        Component checkPanel = checkPanel();
+        Component printPanel = printPanel();
 
-        HorizontalLayout panels12 = new HorizontalLayout();
-        panels12.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-        panels12.addComponents(commandPanel, queryPanel);
-        panels12.setSizeFull();
+        Component replayPanel = replayPanel();
+        Component snapshotPanel = snapshot();
+        Component queryPanel = queryPanel();
 
-        HorizontalLayout panels34 = new HorizontalLayout();
-        panels34.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-        panels34.addComponents(replayPanel, snapshotPanel);
-        panels34.setSizeFull();
+        Component treeGrid = treeGrid();
+
+        HorizontalLayout line1 = new HorizontalLayout();
+        line1.setAlignItems(Alignment.CENTER);
+        line1.add(commandPanel, checkPanel, printPanel);
+        line1.setSizeFull();
+
+        HorizontalLayout line2 = new HorizontalLayout();
+        line2.setAlignItems(Alignment.CENTER);
+        line2.add(replayPanel, snapshotPanel, queryPanel);
+        line2.setSizeFull();
 
         VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.addComponents(panels12, checkPanel, panels34);
+        verticalLayout.add(line1, line2, treeGrid);
 
-        setContent(verticalLayout);
-
-        UI.getCurrent().setErrorHandler(new DefaultErrorHandler() {
-            @Override
-            public void error(com.vaadin.server.ErrorEvent event) {
-                Throwable cause = event.getThrowable();
-                log.error("an error occured", cause);
-                while(cause.getCause() != null) cause = cause.getCause();
-                Notification.show("Error", cause.getMessage(), Notification.Type.ERROR_MESSAGE);
-            }
-        });
-
+        add(verticalLayout);
     }
 
-    private Panel commandPanel() {
+    private Component commandPanel() {
         TextField id = new TextField("ID");
+        id.setLabel("A3");
         TextField status = new TextField("Status");
         status.setValue(MockService.DEFAULT_STATUS);
         TextField issuetype = new TextField("Issue-Type");
@@ -85,74 +84,79 @@ public class WebUI extends UI {
         summary.setSizeFull();
         summary.setValue(MockService.DEFAULT_SUMMARY);
 
-        Button add = new Button("AddArtifactCmd");
+        Button add = new Button("Add Artifact");
 
         add.addClickListener(evt -> {
             Artifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
             commandGateway.sendAndWait(new AddArtifactCmd(id.getValue(), a));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+            Notification.show("Success");
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, status, issuetype, priority, summary, add);
-        form.setMargin(true);
-
-        Panel panel = new Panel("Send commands");
-        panel.setContent(form);
-        return panel;
+        form.add(id, status, issuetype, priority, summary, add);
+        return form;
     }
 
-    private Panel queryPanel() {
+    private Component queryPanel() {
         TextField id = new TextField("ID");
+        id.setLabel("A3");
         Button query = new Button("Query");
 
         query.addClickListener(evt -> {
             CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
             try {
-                Notification.show(String.valueOf(val.get().getAmount()), Notification.Type.HUMANIZED_MESSAGE);
+                Notification.show(String.valueOf(val.get().getAmount()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, query);
-        form.setMargin(true);
-
-        Panel panel = new Panel("Send history query");
-        panel.setContent(form);
-        return panel;
+        form.add(id, query);
+        return form;
     }
 
-    private Panel checkPanel() {
+    private Component checkPanel() {
         TextField id = new TextField("ID");
+        id.setLabel("A3");
         TextField corr = new TextField("Corr");
-        corr.setValue("4_open_A3");
+        corr.setLabel("4_open_A3");
         Button check = new Button("Check");
         Button print = new Button("Print KB");
 
         check.addClickListener(evt -> {
             commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+            Notification.show("Success");
         });
         print.addClickListener(evt -> {
             commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
-            Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE);
+            Notification.show("Success");
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, corr, check, print);
-        form.setMargin(true);
-
-        Panel panel = new Panel("Check QA-Constraint");
-        panel.setContent(form);
-        return panel;
+        form.add(id, corr, check, print);
+        return form;
     }
 
-    private Panel snapshot() {
-        TextField snapshotTimestamp = new TextField("Snapshot Timestamp");
-        snapshotTimestamp.setValue(Instant.now().toString());
-        snapshotTimestamp.setWidth("210px");
+    private Component printPanel() {
+        TextField id = new TextField("ID");
+        id.setValue("A3");
+        Button print = new Button("Print KB");
+
+        print.addClickListener(evt -> {
+            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            Notification.show("Success");
+        });
+
+        FormLayout form = new FormLayout();
+        form.add(id, print);
+        return form;
+    }
+
+    private Component snapshot() {
+        TextField snapshotTimestamp = new TextField("Timestamp");
+        snapshotTimestamp.setLabel(Instant.now().toString());
+        snapshotTimestamp.setSizeFull();
 
         Button snapshot = new Button("Snapshot");
 
@@ -161,27 +165,39 @@ public class WebUI extends UI {
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(snapshotTimestamp, snapshot);
-        form.setMargin(true);
-
-        Panel panel = new Panel("Make Snapshot");
-        panel.setContent(form);
-        return panel;
+        form.add(snapshotTimestamp, snapshot);
+        return form;
     }
 
-    private Panel replayPanel() {
+    private Component replayPanel() {
         Button replay = new Button("Start Replay");
         replay.addClickListener(evt -> {
             replayer.replay("projection");
-            Notification.show("Replaying..", Notification.Type.HUMANIZED_MESSAGE);
+            Notification.show("Replaying..");
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(replay);
-        form.setMargin(true);
+        form.add(replay);
+        return form;
+    }
 
-        Panel panel = new Panel("Replaying");
-        panel.setContent(form);
-        return panel;
+    private Component treeGrid() {
+        Button getState = new Button("Get State");
+        TreeGrid<WorkflowInstanceWrapper> grid = new TreeGrid<>();
+
+        getState.addClickListener(evt -> {
+            CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+            try {
+                List<WorkflowInstanceWrapper> response = future.get().component1();
+                grid.setItems(response);
+                grid.addHierarchyColumn(wfi -> wfi.getWorkflowInstance().getWorkflow().getId());
+            } catch (InterruptedException | ExecutionException e) {
+               e.printStackTrace();
+            }
+        });
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.add(getState, grid);
+        return layout;
     }
 }
