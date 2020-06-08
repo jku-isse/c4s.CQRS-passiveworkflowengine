@@ -8,6 +8,7 @@ import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.rulebase.RuleBaseService;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -22,7 +23,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted
 
 @Aggregate
 @Profile("command")
-@XSlf4j
+@Slf4j
 public class WorkflowAggregate {
 
     @AggregateIdentifier

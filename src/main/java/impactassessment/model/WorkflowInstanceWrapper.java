@@ -8,13 +8,14 @@ import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.model.workflowmodel.*;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@XSlf4j
+@Slf4j
 public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;

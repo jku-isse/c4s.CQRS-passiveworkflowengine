@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@XSlf4j
+@Slf4j
 public class Replayer {
 
     private final EventProcessingConfiguration configuration;

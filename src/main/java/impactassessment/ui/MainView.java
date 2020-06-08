@@ -1,12 +1,12 @@
 package impactassessment.ui;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.Route;
@@ -17,11 +17,10 @@ import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.MockDatabase;
 import impactassessment.query.snapshot.Snapshotter;
 import impactassessment.utils.Replayer;
-import lombok.extern.slf4j.XSlf4j;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,11 +28,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+@Slf4j
 @Route
-@Push
-@Profile("ui")
-@XSlf4j
-public class WebUI extends VerticalLayout {
+public class MainView extends VerticalLayout {
 
     @Autowired
     private CommandGateway commandGateway;
@@ -44,36 +41,29 @@ public class WebUI extends VerticalLayout {
     @Autowired
     private Replayer replayer;
 
-    public WebUI() {
-        Component commandPanel = commandPanel();
-        Component checkPanel = checkPanel();
-        Component printPanel = printPanel();
-
-        Component replayPanel = replayPanel();
-        Component snapshotPanel = snapshot();
-        Component queryPanel = queryPanel();
-
-        Component treeGrid = treeGrid();
-
+    public MainView() {
         HorizontalLayout line1 = new HorizontalLayout();
         line1.setAlignItems(Alignment.CENTER);
-        line1.add(commandPanel, checkPanel, printPanel);
+        line1.add(commandPanel(), checkPanel(), printPanel());
         line1.setSizeFull();
 
         HorizontalLayout line2 = new HorizontalLayout();
         line2.setAlignItems(Alignment.CENTER);
-        line2.add(replayPanel, snapshotPanel, queryPanel);
+        line2.add(replayPanel(), snapshotPanel(), queryPanel());
         line2.setSizeFull();
 
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.add(line1, line2, treeGrid);
-
-        add(verticalLayout);
+        add(
+                new H1("CQRS Command/Query User Interface"),
+                line1,
+                line2,
+                line2,
+                treeGridPanel()
+        );
     }
 
-    private Component commandPanel() {
+    private FormLayout commandPanel() {
         TextField id = new TextField("ID");
-        id.setLabel("A3");
+        id.setValue("A3");
         TextField status = new TextField("Status");
         status.setValue(MockService.DEFAULT_STATUS);
         TextField issuetype = new TextField("Issue-Type");
@@ -93,13 +83,13 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(id, status, issuetype, priority, summary, add);
+        form.add(new H2("Send Add-Command"), id, status, issuetype, priority, summary, add);
         return form;
     }
 
-    private Component queryPanel() {
+    private FormLayout queryPanel() {
         TextField id = new TextField("ID");
-        id.setLabel("A3");
+        id.setValue("A3");
         Button query = new Button("Query");
 
         query.addClickListener(evt -> {
@@ -112,15 +102,15 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(id, query);
+        form.add(new H2("Find Query"), id, query);
         return form;
     }
 
-    private Component checkPanel() {
+    private FormLayout checkPanel() {
         TextField id = new TextField("ID");
-        id.setLabel("A3");
+        id.setValue("A3");
         TextField corr = new TextField("Corr");
-        corr.setLabel("4_open_A3");
+        corr.setValue("4_open_A3");
         Button check = new Button("Check");
         Button print = new Button("Print KB");
 
@@ -134,11 +124,11 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(id, corr, check, print);
+        form.add(new H2("Check Constraint"), id, corr, check, print);
         return form;
     }
 
-    private Component printPanel() {
+    private FormLayout printPanel() {
         TextField id = new TextField("ID");
         id.setValue("A3");
         Button print = new Button("Print KB");
@@ -149,13 +139,13 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(id, print);
+        form.add(new H2("PrintKBCmd"), id, print);
         return form;
     }
 
-    private Component snapshot() {
+    private FormLayout snapshotPanel() {
         TextField snapshotTimestamp = new TextField("Timestamp");
-        snapshotTimestamp.setLabel(Instant.now().toString());
+        snapshotTimestamp.setValue(Instant.now().toString());
         snapshotTimestamp.setSizeFull();
 
         Button snapshot = new Button("Snapshot");
@@ -165,11 +155,11 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(snapshotTimestamp, snapshot);
+        form.add(new H2("Make Snapshot"), snapshotTimestamp, snapshot);
         return form;
     }
 
-    private Component replayPanel() {
+    private FormLayout replayPanel() {
         Button replay = new Button("Start Replay");
         replay.addClickListener(evt -> {
             replayer.replay("projection");
@@ -177,11 +167,11 @@ public class WebUI extends VerticalLayout {
         });
 
         FormLayout form = new FormLayout();
-        form.add(replay);
+        form.add(new H2("Replay Projection"), replay);
         return form;
     }
 
-    private Component treeGrid() {
+    private VerticalLayout treeGridPanel() {
         Button getState = new Button("Get State");
         TreeGrid<WorkflowInstanceWrapper> grid = new TreeGrid<>();
 
@@ -190,14 +180,17 @@ public class WebUI extends VerticalLayout {
             try {
                 List<WorkflowInstanceWrapper> response = future.get().component1();
                 grid.setItems(response);
-                grid.addHierarchyColumn(wfi -> wfi.getWorkflowInstance().getWorkflow().getId());
+                grid.addHierarchyColumn(wfi -> {
+                    log.debug("#########  MainView DEBUG: "+wfi.getWorkflowInstance().getWorkflow().getId());
+                    return wfi.getWorkflowInstance().getWorkflow().getId();
+                });
             } catch (InterruptedException | ExecutionException e) {
                e.printStackTrace();
             }
         });
 
         VerticalLayout layout = new VerticalLayout();
-        layout.add(getState, grid);
+        layout.add(new H2("Workflow State"), getState, grid);
         return layout;
     }
 }

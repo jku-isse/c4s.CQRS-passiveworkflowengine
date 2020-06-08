@@ -2,6 +2,7 @@ package impactassessment.query.snapshot;
 
 import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventsourcing.eventstore.EventStore;
@@ -16,7 +17,7 @@ import static impactassessment.query.snapshot.CLTool.Action.STEP;
 import static impactassessment.query.snapshot.CLTool.Action.STORE;
 
 @Component
-@XSlf4j
+@Slf4j
 @RequiredArgsConstructor
 public class Snapshotter {
 

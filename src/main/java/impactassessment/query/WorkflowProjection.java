@@ -2,6 +2,7 @@ package impactassessment.query;
 
 import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.*;
@@ -13,7 +14,7 @@ import impactassessment.api.*;
 import java.util.stream.Collectors;
 
 @Component
-@XSlf4j
+@Slf4j
 @RequiredArgsConstructor
 @Profile("query")
 @ProcessingGroup("projection")
