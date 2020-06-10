@@ -12,6 +12,7 @@ import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.mock.artifact.Artifact;
 import impactassessment.mock.artifact.MockService;
+import impactassessment.mock.artifact.jira.JiraService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -25,6 +26,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +48,11 @@ public class MainView extends VerticalLayout {
     private Snapshotter snapshotter;
     @Autowired
     private Replayer replayer;
+    private JiraService jira = new JiraService();
 
     public MainView() {
         HorizontalLayout line1 = new HorizontalLayout();
-        line1.add(new VerticalLayout(commandPanel()), new VerticalLayout(checkPanel()), new VerticalLayout(printPanel(), queryPanel()));
+        line1.add(new VerticalLayout(commandPanel()), new VerticalLayout(jiraPanel()), new VerticalLayout(checkPanel()), new VerticalLayout(printPanel(), queryPanel()));
         line1.setSizeFull();
 
         VerticalLayout line2 = new VerticalLayout();
@@ -90,6 +93,17 @@ public class MainView extends VerticalLayout {
         v2.add(issuetype, priority);
         HorizontalLayout h = new HorizontalLayout(v1, v2);
         return new VerticalLayout(new H2("Send Add-Command"), h, new VerticalLayout(summary, add));
+    }
+
+    private VerticalLayout jiraPanel() {
+        TextField id = new TextField("Jira Key");
+        id.setValue("10076");
+        Button add = new Button("Import Jira Artifact");
+        add.addClickListener(evt -> {
+            String issue = jira.get(id.getValue());
+            log.info(issue);
+        });
+        return new VerticalLayout(new H2("Add from JIRA"), id, add);
     }
 
     private VerticalLayout queryPanel() {
