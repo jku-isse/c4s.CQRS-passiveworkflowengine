@@ -2,6 +2,7 @@ package impactassessment.query;
 
 import impactassessment.api.IdentifiableEvt;
 import impactassessment.model.WorkflowInstanceWrapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
@@ -14,7 +15,7 @@ import java.util.Map;
 @Slf4j
 public class MockDatabase {
 
-    Map<String, WorkflowInstanceWrapper> db;
+    private @Getter Map<String, WorkflowInstanceWrapper> db;
 
     public MockDatabase() {
         db = new HashMap<>();

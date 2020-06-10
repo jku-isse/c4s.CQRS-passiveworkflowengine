@@ -121,6 +121,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	}
 
 	public TaskLifecycle.State getLifecycleState() {
+		if (sm == null) return null;
 		lifecycleState = sm.getState();
 		return lifecycleState;
 	}

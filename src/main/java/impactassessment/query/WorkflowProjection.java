@@ -57,7 +57,7 @@ public class WorkflowProjection {
     @QueryHandler
     public GetStateResponse handle(GetStateQuery query) {
         log.debug("[PRJ] handle {}", query);
-        return new GetStateResponse(mockDB.db.entrySet().stream()
+        return new GetStateResponse(mockDB.getDb().entrySet().stream()
                 .map(entry -> entry.getValue())
                 .collect(Collectors.toList()));
     }
