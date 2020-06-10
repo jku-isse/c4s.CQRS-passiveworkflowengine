@@ -8,6 +8,7 @@ import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.rulebase.RuleBaseService;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -22,7 +23,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted
 
 @Aggregate
 @Profile("command")
-@XSlf4j
+@Slf4j
 public class WorkflowAggregate {
 
     @AggregateIdentifier
@@ -131,7 +132,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddResourceToConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
+        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
                     ruleBaseService.insertOrUpdate(cmd.getId(), qac);
@@ -142,7 +143,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddResourcesToConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr()))
+        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
                     ruleBaseService.insertOrUpdate(cmd.getId(), qac);

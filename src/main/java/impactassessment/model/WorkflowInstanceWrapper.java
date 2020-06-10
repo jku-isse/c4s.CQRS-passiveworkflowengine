@@ -8,13 +8,14 @@ import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.model.workflowmodel.*;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@XSlf4j
+@Slf4j
 public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
@@ -91,18 +92,31 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        // TODO remove old resource?
-        rebc.addAs(evt.getFulfilled(), evt.getRes());
-        rebc.setLastEvaluated(Instant.now());
+        if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(evt.getRes())) {
+            rebc.addAs(evt.getFulfilled(), evt.getRes());
+            rebc.setLastChanged(evt.getTime());
+        }
+        if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(evt.getRes())) {
+            rebc.addAs(evt.getFulfilled(), evt.getRes());
+            rebc.setLastChanged(evt.getTime());
+        }
+        rebc.setLastEvaluated(evt.getTime());
         rebc.setEvaluated(evt.getCorr());
     }
 
     private void handle(AddedResourcesToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
         for (ResourceLink rl : evt.getRes()){
-            rebc.addAs(evt.getFulfilled(), rl);
+            if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(rl)) {
+                rebc.addAs(evt.getFulfilled(), rl);
+                rebc.setLastChanged(evt.getTime());
+            }
+            if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(rl)) {
+                rebc.addAs(evt.getFulfilled(), rl);
+                rebc.setLastChanged(evt.getTime());
+            }
         }
-        rebc.setLastEvaluated(Instant.now());
+        rebc.setLastEvaluated(evt.getTime());
         rebc.setEvaluated(evt.getCorr());
     }
 

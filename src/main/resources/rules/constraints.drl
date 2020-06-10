@@ -126,7 +126,7 @@ rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 		    hasFixVersion = !$a.getField("fixVersion").equals("None");
 		}
 		ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint($a);
-		commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), hasFixVersion, rl, $ct.getRequestCorrelation()));
+		commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), hasFixVersion, rl, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
@@ -143,13 +143,13 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 			if ((p != null) && (p.getField("issuetype").equals("Design Definition"))){
 				n++;
 				ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint(p);
-                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, rl, $ct.getRequestCorrelation()));
+                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, rl, $ct.getRequestCorrelation(), Instant.now()));
 				isRelatedToOne = false;
 			}
 		}
 		if (n == 0) {
 		    ResourceLink rl1 = MockService.getHumanReadableResourceLinkEndpoint($a);
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation()));
+            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation(), Instant.now()));
 		}
 end
 
@@ -169,17 +169,17 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 				n++;
 				if (r.getSourceRole().equals("realizes")){
 				    ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint(p);
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, rl, $ct.getRequestCorrelation()));
+                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, rl, $ct.getRequestCorrelation(), Instant.now()));
 					isRelatedToOne = false;
 				} else {
 				    ResourceLink rl1 = MockService.getHumanReadableResourceLinkEndpoint(p);
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation()));
+                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation(), Instant.now()));
 				}
 			}
 		}
 		if (n == 0) {
 		    ResourceLink rl2 = MockService.getHumanReadableResourceLinkEndpoint($a);
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl2, $ct.getRequestCorrelation()));
+            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl2, $ct.getRequestCorrelation(), Instant.now()));
 		}
 end
 
@@ -198,7 +198,7 @@ rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 		    hasAssignee = !$a.getField("assignee").equals("None");
 		}
 		ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint($a);
-        commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), hasAssignee, rl, $ct.getRequestCorrelation()));
+        commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), hasAssignee, rl, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
@@ -213,13 +213,13 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 			Artifact p = (Artifact) r.getDestination();
 			if ((p != null) && (p.getField("issuetype").equals("Unit Test"))){
 			    ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint(p);
-                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl, $ct.getRequestCorrelation()));
+                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl, $ct.getRequestCorrelation(), Instant.now()));
 				n++;
 			}
 		}
 		if (n == 0) {
 		    ResourceLink rl1 = MockService.getHumanReadableResourceLinkEndpoint($a);
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation()));
+            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation(), Instant.now()));
 		}
 end
 
@@ -236,17 +236,17 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 			if ((p != null) && p.getField("issuetype").equals("Bug") ){
 				if (p.getField("status").equals("closed")) {
 				    ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint(p);
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl, $ct.getRequestCorrelation()));
+                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl, $ct.getRequestCorrelation(), Instant.now()));
 				} else {
 				    ResourceLink rl1 = MockService.getHumanReadableResourceLinkEndpoint(p);
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation()));
+                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation(), Instant.now()));
 				}
 				relatedBug = true;
 			}
 		}
 		if (!relatedBug) {
 		    ResourceLink rl2 = MockService.getHumanReadableResourceLinkEndpoint($a);
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl2, $ct.getRequestCorrelation()));
+            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, rl2, $ct.getRequestCorrelation(), Instant.now()));
 		}
 end
 
@@ -264,14 +264,14 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 				if (r.getSourceRole().equals("mitigates")){
 					isMitigated = true;
 					ResourceLink rl = MockService.getHumanReadableResourceLinkEndpoint(p);
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isMitigated, rl, $ct.getRequestCorrelation()));
+                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isMitigated, rl, $ct.getRequestCorrelation(), Instant.now()));
 					break;
 				}
 			}
 		}
 		if (!isMitigated) {
 		    ResourceLink rl1 = MockService.getHumanReadableResourceLinkEndpoint($a);
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation()));
+            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, rl1, $ct.getRequestCorrelation(), Instant.now()));
 		}
 end
 

@@ -1,12 +1,13 @@
 package impactassessment;
 
-import lombok.extern.slf4j.XSlf4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
-@XSlf4j
+@Slf4j
 @SpringBootApplication
-public class Application {
+public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         signature();
@@ -38,4 +39,5 @@ public class Application {
                 "         ~~                       \\/____/                  \\/____/                  \\/____/                  \\/____/          \\/____/                  \\|___|          \n" +
                 "                                                                                                                                                                       \n");
     }
+
 }

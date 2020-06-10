@@ -1,13 +1,16 @@
 package impactassessment.query.snapshot;
 
+import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.MockDatabase;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -16,7 +19,7 @@ import static impactassessment.query.snapshot.CLTool.Action.STEP;
 import static impactassessment.query.snapshot.CLTool.Action.STORE;
 
 @Component
-@XSlf4j
+@Slf4j
 @RequiredArgsConstructor
 public class Snapshotter {
 
@@ -27,7 +30,7 @@ public class Snapshotter {
     private ExecutorService executor = Executors.newFixedThreadPool(1);
 //    private static boolean isInReplay = false;
 
-    public Future<MockDatabase> replayEventsUntil(Instant timestamp) {
+    public Future<Map<String, WorkflowInstanceWrapper>> replayEventsUntil(Instant timestamp) {
         /*
         if (isInReplay) {
             log.info("[SNP] replay is currently running");
@@ -35,8 +38,8 @@ public class Snapshotter {
         }
         isInReplay = true;
         */
-        Callable<MockDatabase> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp, cli);
-        Future<MockDatabase> future = executor.submit(callable);
+        Callable<Map<String, WorkflowInstanceWrapper>> callable = new ReplayCallable(eventStore, ++sequenceNumber, timestamp, cli);
+        Future<Map<String, WorkflowInstanceWrapper>> future = executor.submit(callable);
         return future;
     }
 
@@ -45,9 +48,9 @@ public class Snapshotter {
      * openStream on eventStore would cause a java.lang.UnsupportedOperationException
      */
     @Deprecated
-    public Future<MockDatabase> replayEventsUntilWithOwnEvents(Instant timestamp, Stream<? extends EventMessage<?>> eventStream) {
-        Callable<MockDatabase> callable = new ReplayCallable(eventStream, ++sequenceNumber, timestamp, cli);
-        Future<MockDatabase> future = executor.submit(callable);
+    public Future<Map<String, WorkflowInstanceWrapper>> replayEventsUntilWithOwnEvents(Instant timestamp, Stream<? extends EventMessage<?>> eventStream) {
+        Callable<Map<String, WorkflowInstanceWrapper>> callable = new ReplayCallable(eventStream, ++sequenceNumber, timestamp, cli);
+        Future<Map<String, WorkflowInstanceWrapper>> future = executor.submit(callable);
         return future;
     }
 
@@ -82,14 +85,14 @@ public class Snapshotter {
         }
 
         @Override
-        public MockDatabase call() {
+        public Map<String, WorkflowInstanceWrapper> call() {
             eventStream.takeWhile(x -> x.getTimestamp().isBefore(timestamp)).forEach(m -> {
                 log.debug("[SNP] replay number {} from {} handle {}", id, m.getTimestamp(), m.getPayload());
                 mockDB.handle(m);
             });
             log.debug("[SNP] Replayed content:");
             mockDB.print();
-            return mockDB;
+            return mockDB.getDb();
         }
 
         /*

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import impactassessment.model.workflowmodel.*;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -17,7 +18,7 @@ public class QACheckDocument extends AbstractArtifact {
 
 	@Override
 	public String toString() {
-		return "QACheckDocument [id=" + id + ", constraints=" + constraints + "]";
+		return "QACheckDocument [id=" + id + ", constraints=" + constraints.stream().map(c -> c.getId() + " ").collect(Collectors.joining()) + "]";
 	}
 
 	/**

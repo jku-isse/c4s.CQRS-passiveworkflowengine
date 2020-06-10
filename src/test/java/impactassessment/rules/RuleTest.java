@@ -7,6 +7,7 @@ import impactassessment.mock.artifact.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.rulebase.RuleBaseFactory;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -18,7 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertEquals;
 
-@XSlf4j
+@Slf4j
 public class RuleTest {
 
     private KieSession kieSession;

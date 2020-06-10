@@ -1,5 +1,6 @@
 package impactassessment.rulebase;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
@@ -9,7 +10,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
 
-@XSlf4j
+@Slf4j
 public class RuleBaseFactory {
 
     private static final String RULES_PATH = "rules/";

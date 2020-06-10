@@ -2,6 +2,7 @@ package impactassessment.query;
 
 import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.*;
@@ -10,8 +11,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import impactassessment.api.*;
 
+import java.util.stream.Collectors;
+
 @Component
-@XSlf4j
+@Slf4j
 @RequiredArgsConstructor
 @Profile("query")
 @ProcessingGroup("projection")
@@ -49,6 +52,14 @@ public class WorkflowProjection {
         System.out.println(mockDB.getWorkflowModel(query.getId()).toString()); // TODO remove
         String id = query.getId();
         return new FindResponse(id, 404); // TODO replace
+    }
+
+    @QueryHandler
+    public GetStateResponse handle(GetStateQuery query) {
+        log.debug("[PRJ] handle {}", query);
+        return new GetStateResponse(mockDB.getDb().entrySet().stream()
+                .map(entry -> entry.getValue())
+                .collect(Collectors.toList()));
     }
 
     // Reset Handler
