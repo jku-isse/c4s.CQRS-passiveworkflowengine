@@ -2,16 +2,14 @@ package impactassessment.model;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
-import impactassessment.mock.artifact.Artifact;
-import impactassessment.mock.artifact.MockService;
+import impactassessment.artifact.base.IArtifact;
+import impactassessment.artifact.mock.MockService;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.model.workflowmodel.*;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,16 +22,30 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    private void handle(AddedArtifactEvt evt) {
-        Artifact artifact = evt.getArtifact();
+    private void handle(AddedMockArtifactEvt evt) {
+        IArtifact artifact = evt.getArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId());
-        wfi.addOrReplaceProperty("ID", artifact.getId());
-        wfi.addOrReplaceProperty("Issue Type", artifact.getField("issuetype"));
-        if (!artifact.getField("issuetype").equals("Hazard")) {
-            wfi.addOrReplaceProperty("Priority", "" + artifact.getField("priority"));
+        wfi = wfd.createInstance(artifact.getId().toString());
+        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
+        if (!artifact.getIssueType().equals("Hazard")) {
+            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority());
+        }
+        wfi.enableWorkflowTasksAndDecisionNodes();
+    }
+
+    private void handle(AddedArtifactEvt evt) {
+        IArtifact artifact = evt.getArtifact();
+        DronologyWorkflow wfd = new DronologyWorkflow();
+        wfd.initWorkflowSpecification();
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
+        wfi = wfd.createInstance(artifact.getId().toString());
+        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
+        if (!artifact.getIssueType().equals("Hazard")) {
+            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority());
         }
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
@@ -47,7 +59,7 @@ public class WorkflowInstanceWrapper {
             .forEach(td -> {
                 log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(MockService.getHumanReadableResourceLinkEndpoint(evt.getArtifact()), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getArtifact().toResourceLink(), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
@@ -121,7 +133,9 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof AddedArtifactEvt) {
+        if (evt instanceof AddedMockArtifactEvt) {
+            handle((AddedMockArtifactEvt) evt);
+        } else if (evt instanceof AddedArtifactEvt) {
             handle((AddedArtifactEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);

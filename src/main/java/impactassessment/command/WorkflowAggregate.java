@@ -2,14 +2,14 @@ package impactassessment.command;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
-import impactassessment.mock.artifact.Artifact;
+import impactassessment.artifact.base.IArtifact;
+import impactassessment.artifact.jira.JiraService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
 import impactassessment.rulebase.RuleBaseService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -29,7 +29,7 @@ public class WorkflowAggregate {
     @AggregateIdentifier
     private String id;
     private WorkflowInstanceWrapper model;
-    private Artifact artifact;
+    private IArtifact artifact;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -45,9 +45,9 @@ public class WorkflowAggregate {
     // Command Handlers
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService) {
+    public WorkflowAggregate(AddMockArtifactCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedArtifactEvt(cmd.getId(), cmd.getArtifact()))
+        apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
                 ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
@@ -58,6 +58,28 @@ public class WorkflowAggregate {
                 ruleBaseService.setInitialized(cmd.getId());
                 ruleBaseService.fire(cmd.getId());
             });
+    }
+
+    @CommandHandler
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+        log.info("[AGG] handling {}", cmd);
+        if (cmd.getSource().equals(Sources.JIRA)) {
+            IArtifact a = jira.get(cmd.getId());
+            apply(new AddedArtifactEvt(cmd.getId(), a))
+                    .andThen(() -> {
+                        ruleBaseService.insertOrUpdate(cmd.getId(), a);
+                        ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
+                        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                                .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                                .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                        ruleBaseService.setInitialized(cmd.getId());
+                        ruleBaseService.fire(cmd.getId());
+                    });
+        } else {
+            log.error("Unsupported Artifact source: "+cmd.getSource());
+        }
+
     }
 
     @CommandHandler
@@ -182,9 +204,18 @@ public class WorkflowAggregate {
     // Event Handlers
 
     @EventSourcingHandler
+    public void on(AddedMockArtifactEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        id = evt.getArtifact().getId().toString();
+        model = new WorkflowInstanceWrapper();
+        artifact = evt.getArtifact();
+        model.handle(evt);
+    }
+
+    @EventSourcingHandler
     public void on(AddedArtifactEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        id = evt.getArtifact().getId();
+        id = evt.getId();
         model = new WorkflowInstanceWrapper();
         artifact = evt.getArtifact();
         model.handle(evt);

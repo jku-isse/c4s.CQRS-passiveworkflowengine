@@ -18,7 +18,7 @@ import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
 import impactassessment.api.ActivateOutBranchCmd
 
-import impactassessment.mock.artifact.Artifact
+import impactassessment.artifact.base.IArtifact
 
 import java.util.List
 import java.util.Set
@@ -28,7 +28,7 @@ global CommandGateway commandGateway;
 
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
-    	$a : Artifact(  )
+    	$a : IArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
         							 getWorkflow().getWorkflowDefinition().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
 									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS &&
@@ -42,7 +42,7 @@ end
 
 rule "Open2InProgress-InBranchConditions"
     when
-    	$a : Artifact( getField("status").equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) )
+    	$a : IArtifact( getStatus().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) )
         $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
@@ -58,7 +58,7 @@ end
 
 rule "InProgress2Resolved-InBranchConditions"
     when
-    	$a : Artifact( getField("status").equals("Resolved") )
+    	$a : IArtifact( getStatus().equals("Resolved") )
         $task : WorkflowTask( getTaskType().getId().equals("In Progress"))
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&
@@ -74,7 +74,7 @@ end
 
 rule "Open2Resolved-InBranchConditions"
     when
-    	$a : Artifact( getField("status").equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getField("status").equals("Closed") )
+    	$a : IArtifact( getStatus().equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getStatus().equals("Closed") )
         $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId()) &&

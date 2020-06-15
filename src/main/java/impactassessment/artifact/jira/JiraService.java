@@ -1,7 +1,10 @@
-package impactassessment.mock.artifact.jira;
+package impactassessment.artifact.jira;
 
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.*;
+import impactassessment.artifact.base.IArtifact;
+import impactassessment.artifact.base.IArtifactService;
+import impactassessment.artifact.base.IIssueLink;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -9,14 +12,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Component
-public class JiraService {
+public class JiraService implements IArtifactService {
 
     private JiraInstance jira;
 
@@ -40,8 +40,11 @@ public class JiraService {
         jira.init(username, pw, uri);
     }
 
-    public String get(String key) {
-        return jira.fetchAndMonitor(key).toString();
+    @Override
+    public IArtifact get(String key) {
+        IssueAgent issueAgent = jira.fetchAndMonitor(key);
+        log.debug(issueAgent.toString());
+        return new JiraArtifact(issueAgent.getIssue());
     }
 
     public static class MockCache implements IssueCache {

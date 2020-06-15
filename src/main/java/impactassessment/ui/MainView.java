@@ -10,9 +10,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
-import impactassessment.mock.artifact.Artifact;
-import impactassessment.mock.artifact.MockService;
-import impactassessment.mock.artifact.jira.JiraService;
+import impactassessment.artifact.base.IArtifact;
+import impactassessment.artifact.mock.MockService;
+import impactassessment.artifact.jira.JiraService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -26,7 +26,6 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -81,11 +80,11 @@ public class MainView extends VerticalLayout {
 
         Button add = new Button("Add Artifact");
 
-        add.addClickListener(evt -> {
-            Artifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
-            commandGateway.sendAndWait(new AddArtifactCmd(id.getValue(), a));
-            Notification.show("Success");
-        });
+//        add.addClickListener(evt -> {
+//            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
+//            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
+//            Notification.show("Success");
+//        });
 
         VerticalLayout v1 = new VerticalLayout();
         v1.add(id, status);
@@ -97,11 +96,12 @@ public class MainView extends VerticalLayout {
 
     private VerticalLayout jiraPanel() {
         TextField id = new TextField("Jira Key");
-        id.setValue("10076");
+        id.setValue("10524");
         Button add = new Button("Import Jira Artifact");
         add.addClickListener(evt -> {
-            String issue = jira.get(id.getValue());
-            log.info(issue);
+            IArtifact issue = jira.get(id.getValue());
+            log.info(issue.toString());
+            // TODO send add cmd
         });
         return new VerticalLayout(new H2("Add from JIRA"), id, add);
     }
