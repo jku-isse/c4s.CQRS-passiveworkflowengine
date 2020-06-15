@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
@@ -46,10 +47,10 @@ public class SnapshotTest extends AbstractFixtureTest {
                     // create an event stream out of the fixture and pass it to the snapshotter
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
-                    Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.now(), eventStream);
+                    Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.now(), eventStream);
                     WorkflowInstanceWrapper snapshotState = null;
                     try {
-                        snapshotState = future.get().getWorkflowModel(id);
+                        snapshotState = future.get().get(id);
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                         Assert.fail();
@@ -74,10 +75,10 @@ public class SnapshotTest extends AbstractFixtureTest {
                     // create an event stream out of the fixture and pass it to the snapshotter
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
-                    Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-17T08:30:00.00Z"), eventStream);
+                    Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-17T08:30:00.00Z"), eventStream);
                     WorkflowInstanceWrapper snapshotState = null;
                     try {
-                        snapshotState = future.get().getWorkflowModel(id);
+                        snapshotState = future.get().get(id);
                     } catch (InterruptedException | ExecutionException e) {
                         Assert.fail();
                     }
@@ -101,10 +102,10 @@ public class SnapshotTest extends AbstractFixtureTest {
                     // create an event stream out of the fixture and pass it to the snapshotter
                     Stream<? extends EventMessage<?>> eventStream = fixture.getEventStore().readEvents(id).asStream();
                     Snapshotter snapshotter = new Snapshotter(fixture.getEventStore(), cli);
-                    Future<MockDatabase> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-19T08:30:00.00Z"), eventStream);
+                    Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntilWithOwnEvents(Instant.parse("2020-03-19T08:30:00.00Z"), eventStream);
                     WorkflowInstanceWrapper snapshotState = null;
                     try {
-                        snapshotState = future.get().getWorkflowModel(id);
+                        snapshotState = future.get().get(id);
                     } catch (InterruptedException | ExecutionException e) {
                         Assert.fail();
                     }
