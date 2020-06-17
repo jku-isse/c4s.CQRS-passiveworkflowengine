@@ -4,7 +4,6 @@ import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.*;
 import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.base.IArtifactService;
-import impactassessment.artifact.base.IIssueLink;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +42,7 @@ public class JiraService implements IArtifactService {
     @Override
     public IArtifact get(String key) {
         IssueAgent issueAgent = jira.fetchAndMonitor(key);
-        log.debug(issueAgent.toString());
+        log.debug("Successfully fetched Jira Issue");
         return new JiraArtifact(issueAgent.getIssue());
     }
 

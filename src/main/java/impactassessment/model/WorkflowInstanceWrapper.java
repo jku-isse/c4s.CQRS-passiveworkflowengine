@@ -27,8 +27,8 @@ public class WorkflowInstanceWrapper {
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId().toString());
-        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi = wfd.createInstance(artifact.getId());
+        wfi.addOrReplaceProperty("ID", artifact.getId());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
         if (!artifact.getIssueType().getName().equals("Hazard")) {
             wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
@@ -41,8 +41,8 @@ public class WorkflowInstanceWrapper {
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId().toString());
-        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi = wfd.createInstance(artifact.getId());
+        wfi.addOrReplaceProperty("ID", artifact.getId());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
         if (!artifact.getIssueType().getName().equals("Hazard")) {
             wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());

@@ -35,8 +35,8 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public Long getId() {
-        return issue.getId();
+    public String getId() {
+        return issue.getId().toString();
     }
 
     @Override
@@ -424,9 +424,9 @@ public class JiraArtifact implements IArtifact {
 
     @Override
     public String toString() {
-        return "IssueAgent [summary=" + getSummary() + ", description=" + getDescription() + ", self=" + getSelf() + ", key=" + getKey()
-                + ", id=" + getId() + ", project=" + getProject().getName() + ", issueType=" + getIssueType().getName() + ", status=" + getStatus().getName()
-                + ", priority=" + getPriority().getName() + ", reporter=" + getReporter().getName() + ", assignee=" + getAssignee().getName() + ", creationDate=" + getCreationDate()
+        return "JiraArtifact [summary=" + getSummary() + ", description=" + getDescription() + ", self=" + getSelf() + ", key=" + getKey()
+                + ", id=" + getId() + ", project=" + getProject() + ", issueType=" + getIssueType() + ", status=" + getStatus()
+                + ", priority=" + getPriority() + ", reporter=" + getReporter() + ", assignee=" + getAssignee() + ", creationDate=" + getCreationDate()
                 + ", updateDate=" + getUpdateDate() + ", dueDate=" + getDueDate() + ", fixVersions=" + getFixVersions() + "]";
     }
 }

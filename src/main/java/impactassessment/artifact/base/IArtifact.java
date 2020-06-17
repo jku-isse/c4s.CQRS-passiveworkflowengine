@@ -10,7 +10,7 @@ public interface IArtifact {
 
     String getKey();
 
-    Long getId();
+    String getId();
 
     IStatus getStatus();
 
