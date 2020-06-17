@@ -204,14 +204,36 @@ public class MainView extends VerticalLayout {
         );
     }
 
-    private HorizontalLayout backendPanel() {
-        HorizontalLayout layout = new HorizontalLayout();
+    private VerticalLayout backendPanel() {
+        VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setPadding(true);
-        layout.add(
-                printPanel(),
-                queryPanel()
-        );
+
+        TextField id = new TextField("ID");
+        id.setValue("A3");
+
+        Button delete = new Button("send DeleteCmd");
+        delete.addClickListener(evt -> {
+            commandGateway.send(new DeleteCmd(id.getValue()));
+        });
+
+        Button print = new Button("send PrintKBCmd");
+        print.addClickListener(evt -> {
+            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            Notification.show("Success");
+        });
+
+        Button query = new Button("send FindQuery");
+        query.addClickListener(evt -> {
+            CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
+            try {
+                Notification.show(String.valueOf(val.get().getAmount()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        layout.add(id, delete, print, query);
         return layout;
     }
 
@@ -293,25 +315,6 @@ public class MainView extends VerticalLayout {
         return new VerticalLayout(h, h2);
     }
 
-    private VerticalLayout queryPanel() {
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-        Button query = new Button("Find");
-
-        query.addClickListener(evt -> {
-            CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
-            try {
-                Notification.show(String.valueOf(val.get().getAmount()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        VerticalLayout form = new VerticalLayout();
-        form.add(new H5("send FindQuery"), id, query);
-        return form;
-    }
-
     private VerticalLayout checkPanel() {
         TextField id = new TextField("ID");
         id.setValue("A3");
@@ -333,21 +336,6 @@ public class MainView extends VerticalLayout {
 
         VerticalLayout form = new VerticalLayout();
         form.add(h, check);
-        return form;
-    }
-
-    private VerticalLayout printPanel() {
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-        Button print = new Button("Print");
-
-        print.addClickListener(evt -> {
-            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
-            Notification.show("Success");
-        });
-
-        VerticalLayout form = new VerticalLayout();
-        form.add(new H5("send PrintKBCmd"), id, print);
         return form;
     }
 
