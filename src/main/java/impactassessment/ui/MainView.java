@@ -1,18 +1,22 @@
 package impactassessment.ui;
 
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.mock.MockService;
-import impactassessment.artifact.jira.JiraService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -25,8 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.*;
+import java.time.temporal.TemporalField;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -47,22 +53,164 @@ public class MainView extends VerticalLayout {
     private Snapshotter snapshotter;
     @Autowired
     private Replayer replayer;
-    private JiraService jira = new JiraService();
+
+    private TreeGrid<IdentifiableObject> stateGrid;
+    private TreeGrid<IdentifiableObject> snapshotGrid;
 
     public MainView() {
-        HorizontalLayout line1 = new HorizontalLayout();
-        line1.add(new VerticalLayout(commandPanel()), new VerticalLayout(jiraPanel()), new VerticalLayout(checkPanel()), new VerticalLayout(printPanel(), queryPanel()));
-        line1.setSizeFull();
+        setSizeFull();
+        setMargin(false);
+        setPadding(false);
 
-        VerticalLayout line2 = new VerticalLayout();
-        line2.add(replayPanel(), snapshotPanel());
-        line2.setSizeFull();
+        HorizontalLayout header = new HorizontalLayout();
+        header.setMargin(false);
+        header.setPadding(true);
+        header.setSizeFull();
+        header.add(new H1("CQRS Command/Query User Interface"));
+
+        HorizontalLayout main = new HorizontalLayout();
+        main.setSizeFull();
+        main.setPadding(false);
+        main.setMargin(false);
+
+        VerticalLayout menu = new VerticalLayout();
+        menu.setPadding(true);
+        menu.setMargin(false);
+        menu.setWidth("40%");
+        menu.setFlexGrow(0);
+
+        Button replay = new Button("Replay Events");
+        replay.addClickListener(evt -> {
+            replayer.replay("projection");
+            Notification.show("Replaying..");
+        });
+        Button getState = new Button("Update State");
+        getState.addClickListener(evt -> {
+            CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+            try {
+                List<WorkflowInstanceWrapper> response = future.get().component1();
+                updateTreeGrid(stateGrid, response);
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
+            }
+        });
+
+        Instant time = Instant.now();
+
+        DatePicker valueDatePicker = new DatePicker();
+        LocalDate now = LocalDate.now();
+        valueDatePicker.setValue(now);
+        valueDatePicker.setLabel("Date");
+
+        NumberField hour = new NumberField();
+        hour.setValue((double) time.atZone(ZoneId.systemDefault()).getHour());
+        hour.setHasControls(true);
+        hour.setMin(0);
+        hour.setMax(24);
+        hour.setLabel("Hour");
+
+        NumberField min = new NumberField();
+        min.setValue((double) time.atZone(ZoneId.systemDefault()).getMinute());
+        min.setHasControls(true);
+        min.setMin(0);
+        min.setMax(59);
+        min.setLabel("Minute");
+
+        NumberField sec = new NumberField();
+        sec.setValue((double) time.atZone(ZoneId.systemDefault()).getSecond());
+        sec.setHasControls(true);
+        sec.setMin(0);
+        sec.setMax(59);
+        sec.setLabel("Second");
+
+        TextField snapshotTimestamp = new TextField("Timestamp");
+        snapshotTimestamp.setValue(Instant.now().toString());
+        snapshotTimestamp.setWidthFull();
+
+
+        Button snapshot = new Button("Snapshot");
+        snapshot.addClickListener(evt -> {
+            LocalDateTime snapshotTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
+                    valueDatePicker.getValue().getMonth().getValue(),
+                    valueDatePicker.getValue().getDayOfMonth(),
+                    hour.getValue().intValue(),
+                    min.getValue().intValue(),
+                    sec.getValue().intValue());
+            Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntil(snapshotTime.atZone(ZoneId.systemDefault()).toInstant());
+            try {
+                List<WorkflowInstanceWrapper> response = future.get().entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
+                updateTreeGrid(snapshotGrid, response);
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
+            }
+        });
+        HorizontalLayout snap1 = new HorizontalLayout();
+        snap1.setWidthFull();
+        snap1.setMargin(false);
+        snap1.setPadding(false);
+        snap1.add(valueDatePicker);
+        snap1.setAlignItems(Alignment.END);
+        HorizontalLayout snap2 = new HorizontalLayout();
+        snap2.setWidthFull();
+        snap2.setMargin(false);
+        snap2.setPadding(false);
+        snap2.add(hour, min, sec);
+
+        Accordion accordion = new Accordion();
+        accordion.add("Import Artifact", addPanel());
+        accordion.add("Import Mock-Artifact", commandPanel());
+        accordion.add("Evaluate Constraint", checkPanel());
+        accordion.add("Backend commands", backendPanel());
+        accordion.close();
+        accordion.setWidthFull();
+
+        HorizontalLayout h = new HorizontalLayout();
+        h.setMargin(false);
+        h.setPadding(false);
+        h.setWidthFull();
+        h.add(getState, replay);
+
+        menu.add(
+                new H3("Controls"),
+                h,
+                snap1,
+                snap2,
+                snapshot,
+                accordion
+        );
+
+        VerticalLayout content = new VerticalLayout();
+        content.setSizeFull();
+        content.setPadding(false);
+        content.setMargin(false);
+        content.add(replayPanel(), snapshotPanel());
+
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setSizeFull();
+        footer.add(new Text("JKU ISSE - Stefan Bichler"));
+        footer.setJustifyContentMode(JustifyContentMode.END);
+
+        main.add(
+                menu,
+                content
+        );
 
         add(
-                new H1("CQRS Command/Query User Interface"),
-                line1,
-                line2
+                header,
+                main,
+                footer
         );
+    }
+
+    private HorizontalLayout backendPanel() {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setMargin(false);
+        layout.setPadding(true);
+        layout.add(
+                printPanel(),
+                queryPanel()
+        );
+        return layout;
     }
 
     private VerticalLayout commandPanel() {
@@ -88,28 +236,54 @@ public class MainView extends VerticalLayout {
 
         VerticalLayout v1 = new VerticalLayout();
         v1.add(id, status);
+        v1.setWidth("50%");
         VerticalLayout v2 = new VerticalLayout();
         v2.add(issuetype, priority);
+        v2.setWidth("50%");
         HorizontalLayout h = new HorizontalLayout(v1, v2);
-        return new VerticalLayout(new H2("Send Add-Command"), h, new VerticalLayout(summary, add));
+        VerticalLayout v3 = new VerticalLayout();
+        v3.add(summary, add);
+
+        v1.setMargin(false);
+        v1.setPadding(false);
+        v2.setMargin(false);
+        v2.setPadding(false);
+        v3.setMargin(false);
+        v3.setPadding(false);
+        h.setMargin(false);
+        h.setPadding(false);
+
+        return new VerticalLayout(h, v3);
     }
 
-    private VerticalLayout jiraPanel() {
-        TextField id = new TextField("Jira Key");
-        id.setValue("10524");
-        Button add = new Button("Import Jira Artifact");
+    private VerticalLayout addPanel() {
+        ComboBox<String> valueComboBox = new ComboBox<>();
+        valueComboBox.setItems(Sources.JIRA.toString(), "more coming soon..");
+        valueComboBox.setValue(Sources.JIRA.toString());
+        valueComboBox.setAllowCustomValue(false);
+        valueComboBox.setLabel("Source");
+
+        TextField id = new TextField("Key");
+        id.setValue("11320");
+        Button add = new Button("Import Artifact");
         add.addClickListener(evt -> {
-            IArtifact issue = jira.get(id.getValue());
-            log.info(issue.toString());
-            // TODO send add cmd
+            commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
         });
-        return new VerticalLayout(new H2("Add from JIRA"), id, add);
+
+        HorizontalLayout h = new HorizontalLayout();
+        h.setMargin(false);
+        h.setPadding(false);
+        h.setWidthFull();
+        h.add(valueComboBox, id);
+        h.setAlignItems(Alignment.END);
+
+        return new VerticalLayout(h, add);
     }
 
     private VerticalLayout queryPanel() {
         TextField id = new TextField("ID");
         id.setValue("A3");
-        Button query = new Button("Query");
+        Button query = new Button("Find");
 
         query.addClickListener(evt -> {
             CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
@@ -121,7 +295,7 @@ public class MainView extends VerticalLayout {
         });
 
         VerticalLayout form = new VerticalLayout();
-        form.add(new H2("Find Query"), id, query);
+        form.add(new H5("send FindQuery"), id, query);
         return form;
     }
 
@@ -131,26 +305,28 @@ public class MainView extends VerticalLayout {
         TextField corr = new TextField("Corr");
         corr.setValue("4_open_A3");
         Button check = new Button("Check");
-        Button print = new Button("Print KB");
 
         check.addClickListener(evt -> {
             commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
             Notification.show("Success");
         });
-        print.addClickListener(evt -> {
-            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
-            Notification.show("Success");
-        });
+
+        HorizontalLayout h = new HorizontalLayout();
+        h.setMargin(false);
+        h.setPadding(false);
+        h.setWidthFull();
+        h.add(id, corr);
+        h.setAlignItems(Alignment.END);
 
         VerticalLayout form = new VerticalLayout();
-        form.add(new H2("Check Constraint"), id, corr, check, print);
+        form.add(h, check);
         return form;
     }
 
     private VerticalLayout printPanel() {
         TextField id = new TextField("ID");
         id.setValue("A3");
-        Button print = new Button("Print KB");
+        Button print = new Button("Print");
 
         print.addClickListener(evt -> {
             commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
@@ -158,56 +334,27 @@ public class MainView extends VerticalLayout {
         });
 
         VerticalLayout form = new VerticalLayout();
-        form.add(new H2("PrintKBCmd"), id, print);
+        form.add(new H5("send PrintKBCmd"), id, print);
         return form;
     }
 
     private VerticalLayout snapshotPanel() {
-        TextField snapshotTimestamp = new TextField("Timestamp");
-        snapshotTimestamp.setValue(Instant.now().toString());
-        snapshotTimestamp.setWidthFull();
-        Button snapshot = new Button("Snapshot");
-        TreeGrid<IdentifiableObject> grid = new TreeGrid<>();
-        initTreeGrid(grid);
+        snapshotGrid = new TreeGrid<>();
+        initTreeGrid(snapshotGrid);
 
-        snapshot.addClickListener(evt -> {
-            Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntil(Instant.parse(snapshotTimestamp.getValue()));
-            try {
-                List<WorkflowInstanceWrapper> response = future.get().entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
-                updateTreeGrid(grid, response);
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
-            }
-        });
-
-        VerticalLayout form = new VerticalLayout();
-        form.add(new H2("Make Snapshot"), snapshotTimestamp, snapshot, grid);
-        return form;
+        VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(false);
+        layout.add(new H2("Make Snapshot"), snapshotGrid);
+        return layout;
     }
 
     private VerticalLayout replayPanel() {
-        Button replay = new Button("Start Replay");
-        Button getState = new Button("Get State");
-        TreeGrid<IdentifiableObject> grid = new TreeGrid<>();
-        initTreeGrid(grid);
-
-        replay.addClickListener(evt -> {
-            replayer.replay("projection");
-            Notification.show("Replaying..");
-        });
-
-        getState.addClickListener(evt -> {
-            CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
-            try {
-                List<WorkflowInstanceWrapper> response = future.get().component1();
-                updateTreeGrid(grid, response);
-            } catch (InterruptedException | ExecutionException e) {
-               log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
-            }
-        });
+        stateGrid = new TreeGrid<>();
+        initTreeGrid(stateGrid);
 
         VerticalLayout layout = new VerticalLayout();
-        layout.add(new H2("Workflow State"), replay, getState, grid);
+        layout.setMargin(false);
+        layout.add(new H2("Workflow State"), stateGrid);
         return layout;
     }
 
