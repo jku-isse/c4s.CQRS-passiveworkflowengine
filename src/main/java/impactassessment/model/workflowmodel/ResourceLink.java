@@ -69,7 +69,7 @@ public class ResourceLink extends AbstractArtifact implements Artifact{
 	}
 
 	public static ResourceLink of(IArtifact a) {
-		return new ResourceLink(a.getSummary(), a.getSelf().toString(), "self", a.getIssueType().getName(), "html", a.getId().toString());
+		return new ResourceLink(a.getSummary(), a.getSelf().toString(), "self", a.getIssueType().getName(), "html", a.getId());
 	}
 
 //	@Override

@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.time.temporal.TemporalField;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +68,7 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new H1("CQRS Command/Query User Interface"));
+        header.add(new H1("CQRS based Workflow-Engine"));
 
         HorizontalLayout main = new HorizontalLayout();
         main.setSizeFull();
@@ -344,7 +346,7 @@ public class MainView extends VerticalLayout {
 
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
-        layout.add(new H2("Make Snapshot"), snapshotGrid);
+        layout.add(new H2("Snapshot State"), snapshotGrid);
         return layout;
     }
 
@@ -354,18 +356,26 @@ public class MainView extends VerticalLayout {
 
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
-        layout.add(new H2("Workflow State"), stateGrid);
+        layout.add(new H2("Current State"), stateGrid);
         return layout;
     }
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
+
     private TreeGrid<IdentifiableObject> initTreeGrid(TreeGrid<IdentifiableObject> grid) {
-        grid.addHierarchyColumn(o -> o.getClass().getSimpleName() + " - " + o.getId())
-                .setHeader("Workflow Instance")
-                .setAutoWidth(true);
+        grid.addHierarchyColumn(o -> {
+            if (o instanceof RuleEngineBasedConstraint) {
+                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
+                return rebc.getConstraintType();
+            } else {
+                return o.getClass().getSimpleName() + " - " + o.getId();
+            }
+        }).setHeader("Workflow Instance")
+                .setWidth("40%");
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getLastEvaluated();
+                return formatter.format(rebc.getLastEvaluated());
             } else {
                 return "";
             }
@@ -373,7 +383,7 @@ public class MainView extends VerticalLayout {
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getLastChanged();
+                return formatter.format(rebc.getLastChanged());
             } else {
                 return "";
             }
@@ -381,7 +391,7 @@ public class MainView extends VerticalLayout {
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getFulfilledForReadOnly().stream().map(rl -> rl.getId() + " ").collect(Collectors.joining());
+                return rebc.getFulfilledForReadOnly().stream().map(rl -> rl.getTitle() + " ").collect(Collectors.joining());
             } else {
                 return "";
             }
@@ -389,7 +399,7 @@ public class MainView extends VerticalLayout {
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getUnsatisfiedForReadOnly().stream().map(rl -> rl.getId() + " ").collect(Collectors.joining());
+                return rebc.getUnsatisfiedForReadOnly().stream().map(rl -> rl.getTitle() + " ").collect(Collectors.joining());
             } else {
                 return "";
             }
