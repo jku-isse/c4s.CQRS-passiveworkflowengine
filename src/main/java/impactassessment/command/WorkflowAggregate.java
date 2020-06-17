@@ -83,6 +83,18 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
+    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+        log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), ruleBaseService);
+        if (cmd.getSource().equals(Sources.JIRA)) {
+            IArtifact a = jira.get(cmd.getId());
+            ruleBaseService.insertOrUpdate(cmd.getId(), a);
+        } else {
+            log.error("Unsupported Artifact source: "+cmd.getSource());
+        }
+    }
+
+    @CommandHandler
     public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()))

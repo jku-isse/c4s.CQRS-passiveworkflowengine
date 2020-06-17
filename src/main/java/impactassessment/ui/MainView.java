@@ -271,6 +271,10 @@ public class MainView extends VerticalLayout {
         add.addClickListener(evt -> {
             commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
         });
+        Button update = new Button("Update Artifact");
+        update.addClickListener(evt -> {
+            commandGateway.send(new UpdateArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
+        });
 
         HorizontalLayout h = new HorizontalLayout();
         h.setMargin(false);
@@ -279,7 +283,14 @@ public class MainView extends VerticalLayout {
         h.add(valueComboBox, id);
         h.setAlignItems(Alignment.END);
 
-        return new VerticalLayout(h, add);
+        HorizontalLayout h2 = new HorizontalLayout();
+        h2.setMargin(false);
+        h2.setPadding(false);
+        h2.setWidthFull();
+        h2.add(add, update);
+        h2.setAlignItems(Alignment.END);
+
+        return new VerticalLayout(h, h2);
     }
 
     private VerticalLayout queryPanel() {

@@ -10,6 +10,7 @@ import java.time.Instant
 // COMMANDS
 data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: IArtifact)
 data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
+data class UpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
