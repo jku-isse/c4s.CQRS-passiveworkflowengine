@@ -1,14 +1,10 @@
 package impactassessment.artifact.base;
 
-import impactassessment.model.workflowmodel.ResourceLink;
 import org.joda.time.DateTime;
 
 import java.net.URI;
-import java.util.List;
 
 public interface IArtifact {
-
-    ResourceLink toResourceLink();
 
     URI getSelf();
 

@@ -3,6 +3,7 @@ package impactassessment.artifact.base;
 import java.net.URI;
 
 public interface ISubtask {
+
     String getIssueKey();
 
     URI getIssueUri();
@@ -12,4 +13,5 @@ public interface ISubtask {
     IIssueType getIssueType();
 
     IStatus getStatus();
+
 }

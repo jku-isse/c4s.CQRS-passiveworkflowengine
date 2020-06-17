@@ -5,4 +5,5 @@ public interface ILink {
     IIssueLink getSource();
 
     IIssueLink getTarget();
+
 }

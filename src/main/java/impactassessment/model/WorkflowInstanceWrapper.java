@@ -30,8 +30,8 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(artifact.getId().toString());
         wfi.addOrReplaceProperty("ID", artifact.getId().toString());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
-        if (!artifact.getIssueType().equals("Hazard")) {
-            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority());
+        if (!artifact.getIssueType().getName().equals("Hazard")) {
+            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
         }
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
@@ -44,8 +44,8 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(artifact.getId().toString());
         wfi.addOrReplaceProperty("ID", artifact.getId().toString());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
-        if (!artifact.getIssueType().equals("Hazard")) {
-            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority());
+        if (!artifact.getIssueType().getName().equals("Hazard")) {
+            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
         }
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
@@ -59,7 +59,7 @@ public class WorkflowInstanceWrapper {
             .forEach(td -> {
                 log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getArtifact().toResourceLink(), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.addOutput(new WorkflowTask.ArtifactOutput(ResourceLink.of(evt.getArtifact()), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches

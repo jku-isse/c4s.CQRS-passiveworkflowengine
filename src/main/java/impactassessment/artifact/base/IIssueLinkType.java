@@ -12,4 +12,5 @@ public interface IIssueLinkType {
     String getDescription();
 
     Direction getDirection();
+
 }

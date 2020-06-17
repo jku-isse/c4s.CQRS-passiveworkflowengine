@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 
 public interface IVersion {
+
     URI getSelf();
 
     @Nullable
@@ -21,4 +22,5 @@ public interface IVersion {
 
     @Nullable
     DateTime getReleaseDate();
+
 }

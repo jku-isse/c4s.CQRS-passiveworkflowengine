@@ -13,4 +13,5 @@ public interface IIssueType {
     URI getSelf();
 
     String getDescription();
+
 }

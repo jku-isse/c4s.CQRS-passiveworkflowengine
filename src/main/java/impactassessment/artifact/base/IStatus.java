@@ -13,4 +13,5 @@ public interface IStatus {
     String getDescription();
 
     IStatusCategory getStatusCategory();
+
 }

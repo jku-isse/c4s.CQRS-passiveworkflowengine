@@ -1,6 +1,7 @@
 package impactassessment.artifact.base;
 
 public interface IIssueField {
+
     String getId();
 
     String getName();
@@ -8,4 +9,5 @@ public interface IIssueField {
     String getType();
 
     Object getValue();
+
 }

@@ -11,4 +11,5 @@ public interface IStatusCategory {
     String getKey();
 
     String getName();
+
 }

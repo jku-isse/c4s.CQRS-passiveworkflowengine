@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 
 public interface IBasicProject {
+
     URI getSelf();
 
     String getKey();

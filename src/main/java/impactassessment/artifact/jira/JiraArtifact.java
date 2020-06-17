@@ -25,11 +25,6 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public ResourceLink toResourceLink() {
-        return new ResourceLink(getSummary(), getSelf().toString(), "self", getIssueType().getName(), "html", getId().toString());
-    }
-
-    @Override
     public URI getSelf() {
         return issue.getSelf();
     }
