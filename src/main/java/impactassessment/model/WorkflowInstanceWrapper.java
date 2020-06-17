@@ -27,8 +27,8 @@ public class WorkflowInstanceWrapper {
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId().toString());
-        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi = wfd.createInstance(artifact.getId());
+        wfi.addOrReplaceProperty("ID", artifact.getId());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
         if (!artifact.getIssueType().getName().equals("Hazard")) {
             wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
@@ -41,8 +41,8 @@ public class WorkflowInstanceWrapper {
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId().toString());
-        wfi.addOrReplaceProperty("ID", artifact.getId().toString());
+        wfi = wfd.createInstance(artifact.getId());
+        wfi.addOrReplaceProperty("ID", artifact.getId());
         wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
         if (!artifact.getIssueType().getName().equals("Hazard")) {
             wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
@@ -59,7 +59,7 @@ public class WorkflowInstanceWrapper {
             .forEach(td -> {
                 log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(ResourceLink.of(evt.getArtifact()), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches

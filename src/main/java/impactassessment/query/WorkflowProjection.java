@@ -31,6 +31,12 @@ public class WorkflowProjection {
     }
 
     @EventHandler
+    public void on(AddedArtifactEvt evt) {
+        log.info("[PRJ] projecting {}", evt);
+        WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
+        m.handle(evt);
+    }
+    @EventHandler
     public void on(IdentifiableEvt evt) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfi = mockDB.getWorkflowModel(evt.getId());
@@ -56,9 +62,10 @@ public class WorkflowProjection {
     @QueryHandler
     public GetStateResponse handle(GetStateQuery query) {
         log.debug("[PRJ] handle {}", query);
-        return new GetStateResponse(mockDB.getDb().entrySet().stream()
+        GetStateResponse response = new GetStateResponse(mockDB.getDb().entrySet().stream()
                 .map(entry -> entry.getValue())
                 .collect(Collectors.toList()));
+        return response;
     }
 
     // Reset Handler
