@@ -1,6 +1,7 @@
 package impactassessment.rulebase;
 
-import impactassessment.mock.artifact.Artifact;
+import impactassessment.artifact.base.IArtifact;
+import impactassessment.artifact.base.IArtifactService;
 import impactassessment.model.workflowmodel.IdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,10 +17,12 @@ import java.util.Map;
 public class RuleBaseService {
 
     private final CommandGateway commandGateway;
+    private final IArtifactService artifactService;
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public RuleBaseService(CommandGateway commandGateway) {
+    public RuleBaseService(CommandGateway commandGateway, IArtifactService artifactService) {
         this.commandGateway = commandGateway;
+        this.artifactService = artifactService;
         kieSessions = new HashMap<>();
     }
 
@@ -57,7 +60,7 @@ public class RuleBaseService {
         if (kieSessions.containsKey(id)) {
             kb = kieSessions.get(id);
         } else {
-            kb = new KieSessionWrapper(commandGateway);
+            kb = new KieSessionWrapper(commandGateway, artifactService);
             kieSessions.put(id, kb);
         }
         return kb;
@@ -69,16 +72,17 @@ public class RuleBaseService {
         private Map<String, FactHandle> sessionHandles;
         private @Getter @Setter boolean isInitialized;
 
-        public KieSessionWrapper(CommandGateway commandGateway) {
+        public KieSessionWrapper(CommandGateway commandGateway, IArtifactService artifactService) {
             kieSession = new RuleBaseFactory().getKieSession();
             kieSession.setGlobal("commandGateway", commandGateway);
+            kieSession.setGlobal("artifactService", artifactService);
             sessionHandles = new HashMap<>();
             isInitialized = false;
         }
 
         public void insertOrUpdate(Object o) {
-            if (o instanceof Artifact) {
-                Artifact a = (Artifact) o;
+            if (o instanceof IArtifact) {
+                IArtifact a = (IArtifact) o;
                 String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
                 insertOrUpdate(key, a);
             } else if (o instanceof IdentifiableObject) {

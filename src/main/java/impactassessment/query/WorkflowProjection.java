@@ -3,7 +3,6 @@ package impactassessment.query;
 import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.*;
 import org.axonframework.queryhandling.QueryHandler;
@@ -25,7 +24,7 @@ public class WorkflowProjection {
     // Event Handlers
 
     @EventHandler
-    public void on(AddedArtifactEvt evt) {
+    public void on(AddedMockArtifactEvt evt) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
         m.handle(evt);
