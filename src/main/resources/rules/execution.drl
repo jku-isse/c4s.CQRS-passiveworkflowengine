@@ -13,6 +13,7 @@ import impactassessment.model.workflowmodel.TaskLifecycle.Events
 import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
 import impactassessment.model.workflowmodel.WorkflowDefinition
 import impactassessment.model.definition.DronologyWorkflow
+import impactassessment.model.workflowmodel.ResourceLink
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
@@ -37,7 +38,7 @@ rule "AddWPTicketAsInputToNewTasks"
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
-        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), $a));
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLink.of($a)));
 
 end
 

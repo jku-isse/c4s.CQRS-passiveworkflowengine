@@ -85,9 +85,8 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getArtifact()))
+        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()))
             .andThen(() -> {
-                ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                         .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
