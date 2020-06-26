@@ -1,5 +1,7 @@
 package impactassessment.ui;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -15,6 +17,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.artifact.mock.MockService;
@@ -30,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -371,8 +374,8 @@ public class MainView extends VerticalLayout {
             } else {
                 return o.getClass().getSimpleName() + " - " + o.getId();
             }
-        }).setHeader("Workflow Instance")
-                .setWidth("40%");
+        }).setHeader("Workflow Instance").setWidth("40%");
+
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
@@ -381,6 +384,7 @@ public class MainView extends VerticalLayout {
                 return "";
             }
         }).setHeader("Last Evaluated");
+
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
@@ -389,27 +393,45 @@ public class MainView extends VerticalLayout {
                 return "";
             }
         }).setHeader("Last Changed");
-        grid.addColumn(o -> {
+
+        grid.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getFulfilledForReadOnly().stream().map(rl -> rl.getTitle() + " ").collect(Collectors.joining());
+                Div div= new Div();
+                rebc.getFulfilledForReadOnly().stream()
+                    .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
+                    .forEach(anchor -> {
+                        anchor.setTarget("_blank");
+                        div.addComponentAsFirst(anchor);
+                        div.addComponentAsFirst(new Label(" "));
+                    });
+                return div;
             } else {
-                return "";
+                return new Label("");
             }
-        }).setHeader("Fulfilled").setClassNameGenerator(item -> {
+        })).setHeader("Fulfilled").setClassNameGenerator(item -> {
             if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getFulfilledForReadOnly().isEmpty()) {
                 return "success";
             }
             return "";
         });
-        grid.addColumn(o -> {
+
+        grid.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getUnsatisfiedForReadOnly().stream().map(rl -> rl.getTitle() + " ").collect(Collectors.joining());
+                Div div= new Div();
+                rebc.getUnsatisfiedForReadOnly().stream()
+                        .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
+                        .forEach(anchor -> {
+                            anchor.setTarget("_blank");
+                            div.addComponentAsFirst(anchor);
+                            div.addComponentAsFirst(new Label(" "));
+                        });
+                return div;
             } else {
-                return "";
+                return new Label("");
             }
-        }).setHeader("Unsatisfied").setClassNameGenerator(item -> {
+        })).setHeader("Unsatisfied").setClassNameGenerator(item -> {
             if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getUnsatisfiedForReadOnly().isEmpty()) {
                 return "error";
             }
@@ -417,7 +439,7 @@ public class MainView extends VerticalLayout {
         });
         return grid;
     }
-
+    
     private void updateTreeGrid(TreeGrid<IdentifiableObject> grid, List<WorkflowInstanceWrapper> content) {
         if (content != null) {
             grid.setItems(content.stream().map(WorkflowInstanceWrapper::getWorkflowInstance), o -> {
