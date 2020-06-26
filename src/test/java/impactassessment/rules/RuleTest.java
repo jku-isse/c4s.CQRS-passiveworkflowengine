@@ -6,6 +6,7 @@ import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.mock.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
+import impactassessment.model.workflowmodel.ResourceLink;
 import impactassessment.rulebase.RuleBaseFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -112,7 +113,7 @@ public class RuleTest {
 
     private void completeDataflow(IArtifact a) {
         String id = a.getId().toString();
-        model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, a));
+        model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, ResourceLink.of(a)));
     }
 
     private int insertAndFire(IArtifact a) {

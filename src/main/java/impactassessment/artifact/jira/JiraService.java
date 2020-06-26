@@ -42,8 +42,13 @@ public class JiraService implements IArtifactService {
     @Override
     public IArtifact get(String key) {
         IssueAgent issueAgent = jira.fetchAndMonitor(key);
-        log.debug("Successfully fetched Jira Issue");
-        return new JiraArtifact(issueAgent.getIssue());
+        if (issueAgent == null) {
+            log.debug("Not able to fetch Jira Issue");
+            return null;
+        } else  {
+            log.debug("Successfully fetched Jira Issue");
+            return new JiraArtifact(issueAgent.getIssue());
+        }
     }
 
     public static class MockCache implements IssueCache {

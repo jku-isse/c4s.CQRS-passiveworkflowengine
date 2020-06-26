@@ -427,6 +427,6 @@ public class JiraArtifact implements IArtifact {
         return "JiraArtifact [summary=" + getSummary() + ", description=" + getDescription() + ", self=" + getSelf() + ", key=" + getKey()
                 + ", id=" + getId() + ", project=" + getProject() + ", issueType=" + getIssueType() + ", status=" + getStatus()
                 + ", priority=" + getPriority() + ", reporter=" + getReporter() + ", assignee=" + getAssignee() + ", creationDate=" + getCreationDate()
-                + ", updateDate=" + getUpdateDate() + ", dueDate=" + getDueDate() + ", fixVersions=" + getFixVersions() + "]";
+                + ", updateDate=" + getUpdateDate() + ", dueDate=" + getDueDate() + "]";
     }
 }
