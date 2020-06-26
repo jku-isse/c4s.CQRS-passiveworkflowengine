@@ -236,10 +236,9 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
 			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
-				if (link.getIssueLinkType().getName().equals("mitigates")){
+				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
                     commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isMitigated, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
-					break;
 				}
 			}
 		}

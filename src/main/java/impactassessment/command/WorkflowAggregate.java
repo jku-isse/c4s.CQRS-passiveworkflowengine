@@ -65,17 +65,19 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IArtifact a = jira.get(cmd.getId());
-            apply(new AddedArtifactEvt(cmd.getId(), a))
-                    .andThen(() -> {
-                        ruleBaseService.insertOrUpdate(cmd.getId(), a);
-                        ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
-                        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                                .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
-                        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                                .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                        ruleBaseService.setInitialized(cmd.getId());
-                        ruleBaseService.fire(cmd.getId());
-                    });
+            if (a != null) {
+                apply(new AddedArtifactEvt(cmd.getId(), a))
+                        .andThen(() -> {
+                            ruleBaseService.insertOrUpdate(cmd.getId(), a);
+                            ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
+                            model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                                    .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                            model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                                    .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
+                            ruleBaseService.setInitialized(cmd.getId());
+                            ruleBaseService.fire(cmd.getId());
+                        });
+            }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
         }
@@ -88,7 +90,10 @@ public class WorkflowAggregate {
         ensureInitializedKB(cmd.getId(), ruleBaseService);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IArtifact a = jira.get(cmd.getId());
-            ruleBaseService.insertOrUpdate(cmd.getId(), a);
+            if (a != null) {
+                ruleBaseService.insertOrUpdate(cmd.getId(), a);
+                ruleBaseService.fire(cmd.getId());
+            }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
         }
@@ -137,6 +142,7 @@ public class WorkflowAggregate {
     public void handle(DeleteCmd cmd) {
         log.info("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()));
+        // TODO: delete kieSession for this Aggregate
     }
 
     @CommandHandler
