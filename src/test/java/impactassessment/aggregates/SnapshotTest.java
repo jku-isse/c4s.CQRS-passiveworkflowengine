@@ -4,6 +4,7 @@ import impactassessment.api.*;
 import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.mock.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.model.workflowmodel.ResourceLink;
 import impactassessment.query.snapshot.CLTool;
 import impactassessment.query.snapshot.Snapshotter;
 import org.axonframework.eventhandling.EventMessage;
@@ -26,7 +27,7 @@ public class SnapshotTest extends AbstractFixtureTest {
     public void testAddCompleteActivate() {
         IArtifact a = MockService.mockArtifact(id);
         fixture.given(new AddedMockArtifactEvt(id, a))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
 //                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
@@ -37,7 +38,7 @@ public class SnapshotTest extends AbstractFixtureTest {
     public void testSnapshotStateEqualAggregateState() {
         IArtifact a = MockService.mockArtifact(id);
         fixture.given(new AddedMockArtifactEvt(id, a))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
 //                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
@@ -65,7 +66,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         IArtifact a = MockService.mockArtifact(id);
         fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
                 .andGiven(new AddedMockArtifactEvt(id, a))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
 //                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
@@ -91,7 +92,7 @@ public class SnapshotTest extends AbstractFixtureTest {
         IArtifact a = MockService.mockArtifact(id);
         fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
                 .andGiven(new AddedMockArtifactEvt(id, a))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGivenCurrentTime(Instant.parse("2020-03-20T08:30:00.00Z"))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
 //                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))

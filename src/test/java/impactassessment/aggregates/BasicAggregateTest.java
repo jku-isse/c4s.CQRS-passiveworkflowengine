@@ -3,6 +3,7 @@ package impactassessment.aggregates;
 import impactassessment.api.*;
 import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.mock.MockService;
+import impactassessment.model.workflowmodel.ResourceLink;
 import org.junit.Test;
 
 public class BasicAggregateTest extends AbstractFixtureTest {
@@ -19,7 +20,7 @@ public class BasicAggregateTest extends AbstractFixtureTest {
     public void testAddCompleteActivate() {
         IArtifact a = MockService.mockArtifact(id);
         fixture.given(new AddedMockArtifactEvt(id, a))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, a))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
 //                .andGiven(new ActivatedOutBranchEvt(id, "open2inProgressOrResolved#"+id, "inProgressIn"))
                 .when(new ActivateOutBranchCmd(id, "open2inProgressOrResolved#"+id, "resolvedIn"))
