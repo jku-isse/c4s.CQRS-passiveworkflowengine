@@ -5,6 +5,7 @@ import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Route
+@CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 public class MainView extends VerticalLayout {
 
     @Autowired
@@ -68,7 +70,7 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new H1("CQRS based Workflow-Engine"));
+        header.add(new H1("CQRS based Quality Assurance User Interface"));
 
         HorizontalLayout main = new HorizontalLayout();
         main.setSizeFull();
@@ -288,7 +290,7 @@ public class MainView extends VerticalLayout {
         valueComboBox.setLabel("Source");
 
         TextField id = new TextField("Key");
-        id.setValue("11320");
+        id.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
         Button add = new Button("Import Artifact");
         add.addClickListener(evt -> {
             commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
@@ -394,7 +396,12 @@ public class MainView extends VerticalLayout {
             } else {
                 return "";
             }
-        }).setHeader("Fulfilled");
+        }).setHeader("Fulfilled").setClassNameGenerator(item -> {
+            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getFulfilledForReadOnly().isEmpty()) {
+                return "success";
+            }
+            return "";
+        });
         grid.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
@@ -402,7 +409,12 @@ public class MainView extends VerticalLayout {
             } else {
                 return "";
             }
-        }).setHeader("Unsatisfied");
+        }).setHeader("Unsatisfied").setClassNameGenerator(item -> {
+            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getUnsatisfiedForReadOnly().isEmpty()) {
+                return "error";
+            }
+            return "";
+        });
         return grid;
     }
 
