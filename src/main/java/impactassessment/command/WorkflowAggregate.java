@@ -139,10 +139,12 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(DeleteCmd cmd) {
+    public void handle(DeleteCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new DeletedEvt(cmd.getId()));
-        // TODO: delete kieSession for this Aggregate
+        apply(new DeletedEvt(cmd.getId()))
+            .andThen(() -> {
+                ruleBaseService.dispose(cmd.getId());
+            });
     }
 
     @CommandHandler
@@ -201,7 +203,7 @@ public class WorkflowAggregate {
             ruleBaseService.insertOrUpdate(cmd.getId(), ct);
             ruleBaseService.fire(cmd.getId());
         } else {
-            log.warn("Concerened RuleEngineBasedConstraint wasn't found");
+            log.warn("Concerned RuleEngineBasedConstraint wasn't found");
         }
     }
 
@@ -213,7 +215,7 @@ public class WorkflowAggregate {
             s.append("\n############## KB CONTENT ################\n");
             ruleBaseService.getKieSession(cmd.getId()).getObjects().stream()
                     .forEach(o -> s.append(o.toString() + "\n"));
-            s.append("############## SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ################");
+            s.append("####### SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ######### "+ruleBaseService.getNumKieSessions()+" #######");
             log.info(s.toString());
         }
     }
@@ -241,7 +243,6 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        // TODO delete kieSession
         markDeleted();
     }
 
