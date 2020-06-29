@@ -38,7 +38,17 @@ public class MockArtifact implements IArtifact {
     @Override
     public URI getSelf() {
         try {
-            return new URI("dummy-URI");
+            return new URI("dummy");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public URI getBrowserLink() {
+        try {
+            return new URI("dummy");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -47,7 +57,7 @@ public class MockArtifact implements IArtifact {
 
     @Override
     public String getKey() {
-        return null;
+        return "key";
     }
 
     @Override
