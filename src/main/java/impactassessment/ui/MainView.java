@@ -1,7 +1,6 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -9,25 +8,15 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.artifact.mock.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.model.workflowmodel.IdentifiableObject;
-import impactassessment.model.workflowmodel.WorkflowInstance;
-import impactassessment.model.workflowmodel.WorkflowTask;
 import impactassessment.query.snapshot.Snapshotter;
 import impactassessment.utils.Replayer;
 import lombok.extern.slf4j.Slf4j;
@@ -36,16 +25,12 @@ import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.time.temporal.TemporalField;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Route
@@ -61,8 +46,8 @@ public class MainView extends VerticalLayout {
     @Autowired
     private Replayer replayer;
 
-    private TreeGrid<IdentifiableObject> stateGrid;
-    private TreeGrid<IdentifiableObject> snapshotGrid;
+    private WorkflowTreeGrid stateGrid;
+    private WorkflowTreeGrid snapshotGrid;
 
     public MainView() {
         setSizeFull();
@@ -73,70 +58,118 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new H1("CQRS based Quality Assurance User Interface"));
+        header.add(new H1("CQRS-based Quality Assurance Application - User Interface"));
 
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setSizeFull();
+        footer.add(new Text("JKU ISSE - Stefan Bichler"));
+        footer.setJustifyContentMode(JustifyContentMode.END);
+
+        add(
+                header,
+                main(),
+                footer
+        );
+    }
+
+    private Component main() {
         HorizontalLayout main = new HorizontalLayout();
         main.setSizeFull();
         main.setPadding(false);
         main.setMargin(false);
 
+        VerticalLayout content = new VerticalLayout();
+        content.setSizeFull();
+        content.setPadding(false);
+        content.setMargin(false);
+        content.add(statePanel(), snapshotPanel());
+
+        main.add(menu(), content);
+
+        return main;
+    }
+
+    private Component menu() {
         VerticalLayout menu = new VerticalLayout();
         menu.setPadding(true);
         menu.setMargin(false);
         menu.setWidth("40%");
         menu.setFlexGrow(0);
 
-        Button replay = new Button("Replay Events");
-        replay.addClickListener(evt -> {
-            replayer.replay("projection");
-            Notification.show("Replaying..");
-        });
+        menu.add(
+                new H3("Controls"),
+                controlButtons(),
+                snapshot(),
+                accordion()
+        );
+
+        return menu;
+    }
+
+    private Component controlButtons() {
+        HorizontalLayout controlButtonLayout = new HorizontalLayout();
+        controlButtonLayout.setMargin(false);
+        controlButtonLayout.setPadding(false);
+        controlButtonLayout.setWidthFull();
+
         Button getState = new Button("Update State");
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
                 List<WorkflowInstanceWrapper> response = future.get().component1();
-                updateTreeGrid(stateGrid, response);
+                stateGrid.updateTreeGrid(response);
             } catch (InterruptedException | ExecutionException e) {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
+        Button replay = new Button("Replay Events");
+        replay.addClickListener(evt -> {
+            replayer.replay("projection");
+            Notification.show("Replaying..");
+        });
 
-        Instant time = Instant.now();
+        controlButtonLayout.add(getState, replay);
+        return controlButtonLayout;
+    }
 
+    private Component snapshot() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setWidthFull();
+        layout.setMargin(false);
+        layout.setPadding(false);
+        // Date Picker
         DatePicker valueDatePicker = new DatePicker();
         LocalDate now = LocalDate.now();
         valueDatePicker.setValue(now);
         valueDatePicker.setLabel("Date");
-
+        // Time Picker
+        HorizontalLayout timePicker = new HorizontalLayout();
+        timePicker.setWidthFull();
+        timePicker.setMargin(false);
+        timePicker.setPadding(false);
+        Instant time = Instant.now();
         NumberField hour = new NumberField();
         hour.setValue((double) time.atZone(ZoneId.systemDefault()).getHour());
         hour.setHasControls(true);
         hour.setMin(0);
         hour.setMax(24);
         hour.setLabel("Hour");
-
         NumberField min = new NumberField();
         min.setValue((double) time.atZone(ZoneId.systemDefault()).getMinute());
         min.setHasControls(true);
         min.setMin(0);
         min.setMax(59);
         min.setLabel("Minute");
-
         NumberField sec = new NumberField();
         sec.setValue((double) time.atZone(ZoneId.systemDefault()).getSecond());
         sec.setHasControls(true);
         sec.setMin(0);
         sec.setMax(59);
         sec.setLabel("Second");
-
-        TextField snapshotTimestamp = new TextField("Timestamp");
-        snapshotTimestamp.setValue(Instant.now().toString());
-        snapshotTimestamp.setWidthFull();
-
-
-        Button snapshot = new Button("Snapshot");
-        snapshot.addClickListener(evt -> {
+        timePicker.add(hour, min, sec);
+        // Snapshot Button
+        Button snapshotButton = new Button("Snapshot");
+        snapshotButton.addClickListener(evt -> {
             LocalDateTime snapshotTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
                     valueDatePicker.getValue().getMonth().getValue(),
                     valueDatePicker.getValue().getDayOfMonth(),
@@ -146,74 +179,137 @@ public class MainView extends VerticalLayout {
             Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntil(snapshotTime.atZone(ZoneId.systemDefault()).toInstant());
             try {
                 List<WorkflowInstanceWrapper> response = future.get().entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
-                updateTreeGrid(snapshotGrid, response);
+                snapshotGrid.updateTreeGrid(response);
             } catch (InterruptedException | ExecutionException e) {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
-        HorizontalLayout snap1 = new HorizontalLayout();
-        snap1.setWidthFull();
-        snap1.setMargin(false);
-        snap1.setPadding(false);
-        snap1.add(valueDatePicker);
-        snap1.setAlignItems(Alignment.END);
-        HorizontalLayout snap2 = new HorizontalLayout();
-        snap2.setWidthFull();
-        snap2.setMargin(false);
-        snap2.setPadding(false);
-        snap2.add(hour, min, sec);
 
-        Accordion accordion = new Accordion();
-        accordion.add("Import Artifact", addPanel());
-        accordion.add("Import Mock-Artifact", commandPanel());
-        accordion.add("Evaluate Constraint", checkPanel());
-        accordion.add("Backend commands", backendPanel());
-        accordion.close();
-        accordion.setWidthFull();
+        layout.add(valueDatePicker, timePicker, snapshotButton);
 
-        HorizontalLayout h = new HorizontalLayout();
-        h.setMargin(false);
-        h.setPadding(false);
-        h.setWidthFull();
-        h.add(getState, replay);
-
-        menu.add(
-                new H3("Controls"),
-                h,
-                snap1,
-                snap2,
-                snapshot,
-                accordion
-        );
-
-        VerticalLayout content = new VerticalLayout();
-        content.setSizeFull();
-        content.setPadding(false);
-        content.setMargin(false);
-        content.add(replayPanel(), snapshotPanel());
-
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setSizeFull();
-        footer.add(new Text("JKU ISSE - Stefan Bichler"));
-        footer.setJustifyContentMode(JustifyContentMode.END);
-
-        main.add(
-                menu,
-                content
-        );
-
-        add(
-                header,
-                main,
-                footer
-        );
+        return layout;
     }
 
-    private VerticalLayout backendPanel() {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setMargin(false);
-        layout.setPadding(true);
+    private Component accordion() {
+        Accordion accordion = new Accordion();
+        accordion.add("Import Artifact", importArtifact());
+        accordion.add("Import Mock-Artifact", importMockArtifact());
+        accordion.add("Evaluate Constraint", evaluate());
+        accordion.add("Backend commands", backend());
+        accordion.close();
+        accordion.setWidthFull();
+        return accordion;
+    }
 
+    private Component importArtifact() {
+        ComboBox<String> valueComboBox = new ComboBox<>();
+        valueComboBox.setItems(Sources.JIRA.toString(), "more coming soon..");
+        valueComboBox.setValue(Sources.JIRA.toString());
+        valueComboBox.setAllowCustomValue(false);
+        valueComboBox.setLabel("Source");
+
+        TextField id = new TextField("Key");
+        id.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
+
+        Button add = new Button("Import Artifact");
+        add.addClickListener(evt -> {
+            commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
+        });
+
+        Button update = new Button("Update Artifact");
+        update.addClickListener(evt -> {
+            commandGateway.send(new UpdateArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
+        });
+
+        HorizontalLayout layout1 = new HorizontalLayout();
+        layout1.setMargin(false);
+        layout1.setPadding(false);
+        layout1.setWidthFull();
+        layout1.add(valueComboBox, id);
+        layout1.setAlignItems(Alignment.END);
+
+        HorizontalLayout layout2 = new HorizontalLayout();
+        layout2.setMargin(false);
+        layout2.setPadding(false);
+        layout2.setWidthFull();
+        layout2.add(add, update);
+        layout2.setAlignItems(Alignment.END);
+
+        return new VerticalLayout(layout1, layout2);
+    }
+
+    private Component importMockArtifact() {
+        TextField id = new TextField("ID");
+        id.setValue("A3");
+
+        TextField status = new TextField("Status");
+        status.setValue(MockService.DEFAULT_STATUS);
+
+        TextField issuetype = new TextField("Issue-Type");
+        issuetype.setValue(MockService.DEFAULT_ISSUETYPE);
+
+        TextField priority = new TextField("Priority");
+        priority.setValue(MockService.DEFAULT_PRIORITY);
+
+        TextField summary = new TextField("Summary");
+        summary.setValue(MockService.DEFAULT_SUMMARY);
+        summary.setWidthFull();
+
+        Button add = new Button("Add Artifact");
+//        add.addClickListener(evt -> {
+//            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
+//            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
+//            Notification.show("Success");
+//        });
+
+        VerticalLayout column1 = new VerticalLayout();
+        column1.setMargin(false);
+        column1.setPadding(false);
+        column1.add(id, status);
+        column1.setWidth("50%");
+
+        VerticalLayout column2 = new VerticalLayout();
+        column2.setMargin(false);
+        column2.setPadding(false);
+        column2.add(issuetype, priority);
+        column2.setWidth("50%");
+
+        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
+        row1.setMargin(false);
+        row1.setPadding(false);
+
+        VerticalLayout row2 = new VerticalLayout();
+        row2.setMargin(false);
+        row2.setPadding(false);
+        row2.add(summary, add);
+
+        return new VerticalLayout(row1, row2);
+    }
+
+    private Component evaluate() {
+        TextField id = new TextField("ID");
+        id.setValue("A3");
+
+        TextField corr = new TextField("Corr");
+        corr.setValue("4_open_A3");
+
+        Button check = new Button("Check");
+        check.addClickListener(evt -> {
+            commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
+            Notification.show("Success");
+        });
+
+        HorizontalLayout row = new HorizontalLayout();
+        row.setMargin(false);
+        row.setPadding(false);
+        row.setWidthFull();
+        row.add(id, corr);
+        row.setAlignItems(Alignment.END);
+
+        return new VerticalLayout(row, check);
+    }
+
+    private Component backend() {
         TextField id = new TextField("ID");
         id.setValue("A3");
 
@@ -238,228 +334,26 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        layout.add(id, delete, print, query);
-        return layout;
-    }
-
-    private VerticalLayout commandPanel() {
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-        TextField status = new TextField("Status");
-        status.setValue(MockService.DEFAULT_STATUS);
-        TextField issuetype = new TextField("Issue-Type");
-        issuetype.setValue(MockService.DEFAULT_ISSUETYPE);
-        TextField priority = new TextField("Priority");
-        priority.setValue(MockService.DEFAULT_PRIORITY);
-        TextField summary = new TextField("Summary");
-        summary.setValue(MockService.DEFAULT_SUMMARY);
-        summary.setWidthFull();
-
-        Button add = new Button("Add Artifact");
-
-//        add.addClickListener(evt -> {
-//            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
-//            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
-//            Notification.show("Success");
-//        });
-
-        VerticalLayout v1 = new VerticalLayout();
-        v1.add(id, status);
-        v1.setWidth("50%");
-        VerticalLayout v2 = new VerticalLayout();
-        v2.add(issuetype, priority);
-        v2.setWidth("50%");
-        HorizontalLayout h = new HorizontalLayout(v1, v2);
-        VerticalLayout v3 = new VerticalLayout();
-        v3.add(summary, add);
-
-        v1.setMargin(false);
-        v1.setPadding(false);
-        v2.setMargin(false);
-        v2.setPadding(false);
-        v3.setMargin(false);
-        v3.setPadding(false);
-        h.setMargin(false);
-        h.setPadding(false);
-
-        return new VerticalLayout(h, v3);
-    }
-
-    private VerticalLayout addPanel() {
-        ComboBox<String> valueComboBox = new ComboBox<>();
-        valueComboBox.setItems(Sources.JIRA.toString(), "more coming soon..");
-        valueComboBox.setValue(Sources.JIRA.toString());
-        valueComboBox.setAllowCustomValue(false);
-        valueComboBox.setLabel("Source");
-
-        TextField id = new TextField("Key");
-        id.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
-        Button add = new Button("Import Artifact");
-        add.addClickListener(evt -> {
-            commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
-        });
-        Button update = new Button("Update Artifact");
-        update.addClickListener(evt -> {
-            commandGateway.send(new UpdateArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
-        });
-
-        HorizontalLayout h = new HorizontalLayout();
-        h.setMargin(false);
-        h.setPadding(false);
-        h.setWidthFull();
-        h.add(valueComboBox, id);
-        h.setAlignItems(Alignment.END);
-
-        HorizontalLayout h2 = new HorizontalLayout();
-        h2.setMargin(false);
-        h2.setPadding(false);
-        h2.setWidthFull();
-        h2.add(add, update);
-        h2.setAlignItems(Alignment.END);
-
-        return new VerticalLayout(h, h2);
-    }
-
-    private VerticalLayout checkPanel() {
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-        TextField corr = new TextField("Corr");
-        corr.setValue("4_open_A3");
-        Button check = new Button("Check");
-
-        check.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
-            Notification.show("Success");
-        });
-
-        HorizontalLayout h = new HorizontalLayout();
-        h.setMargin(false);
-        h.setPadding(false);
-        h.setWidthFull();
-        h.add(id, corr);
-        h.setAlignItems(Alignment.END);
-
-        VerticalLayout form = new VerticalLayout();
-        form.add(h, check);
-        return form;
+        return new VerticalLayout(id, delete, print, query);
     }
 
     private VerticalLayout snapshotPanel() {
-        snapshotGrid = new TreeGrid<>();
-        initTreeGrid(snapshotGrid);
-
+        snapshotGrid = new WorkflowTreeGrid();
+        snapshotGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.add(new H2("Snapshot State"), snapshotGrid);
         return layout;
     }
 
-    private VerticalLayout replayPanel() {
-        stateGrid = new TreeGrid<>();
-        initTreeGrid(stateGrid);
-
+    private VerticalLayout statePanel() {
+        stateGrid = new WorkflowTreeGrid();
+        stateGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.add(new H2("Current State"), stateGrid);
         return layout;
     }
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
 
-    private TreeGrid<IdentifiableObject> initTreeGrid(TreeGrid<IdentifiableObject> grid) {
-        grid.addHierarchyColumn(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getConstraintType();
-            } else {
-                return o.getClass().getSimpleName() + " - " + o.getId();
-            }
-        }).setHeader("Workflow Instance").setWidth("40%");
-
-        grid.addColumn(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return formatter.format(rebc.getLastEvaluated());
-            } else {
-                return "";
-            }
-        }).setHeader("Last Evaluated");
-
-        grid.addColumn(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return formatter.format(rebc.getLastChanged());
-            } else {
-                return "";
-            }
-        }).setHeader("Last Changed");
-
-        grid.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Div div= new Div();
-                rebc.getFulfilledForReadOnly().stream()
-                    .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
-                    .forEach(anchor -> {
-                        anchor.setTarget("_blank");
-                        div.addComponentAsFirst(anchor);
-                        div.addComponentAsFirst(new Label(" "));
-                    });
-                return div;
-            } else {
-                return new Label("");
-            }
-        })).setHeader("Fulfilled").setClassNameGenerator(item -> {
-            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getFulfilledForReadOnly().isEmpty()) {
-                return "success";
-            }
-            return "";
-        });
-
-        grid.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Div div= new Div();
-                rebc.getUnsatisfiedForReadOnly().stream()
-                        .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
-                        .forEach(anchor -> {
-                            anchor.setTarget("_blank");
-                            div.addComponentAsFirst(anchor);
-                            div.addComponentAsFirst(new Label(" "));
-                        });
-                return div;
-            } else {
-                return new Label("");
-            }
-        })).setHeader("Unsatisfied").setClassNameGenerator(item -> {
-            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getUnsatisfiedForReadOnly().isEmpty()) {
-                return "error";
-            }
-            return "";
-        });
-        return grid;
-    }
-    
-    private void updateTreeGrid(TreeGrid<IdentifiableObject> grid, List<WorkflowInstanceWrapper> content) {
-        if (content != null) {
-            grid.setItems(content.stream().map(WorkflowInstanceWrapper::getWorkflowInstance), o -> {
-                if (o instanceof WorkflowInstance) {
-                    WorkflowInstance wfi = (WorkflowInstance) o;
-                    return wfi.getWorkflowTasksReadonly().stream().map(wft -> (IdentifiableObject) wft);
-                } else if (o instanceof WorkflowTask) {
-                    WorkflowTask wft = (WorkflowTask) o;
-                    return wft.getOutput().stream().filter(ao -> ao.getArtifact() instanceof QACheckDocument).map(x -> (IdentifiableObject) x.getArtifact());
-                } else if (o instanceof QACheckDocument) {
-                    QACheckDocument qacd = (QACheckDocument) o;
-                    return qacd.getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
-                } else if (o instanceof RuleEngineBasedConstraint) {
-                    return Stream.empty();
-                } else {
-                    log.error("TreeGridPanel got unknown artifact: " + o.getClass().getSimpleName());
-                    return Stream.empty();
-                }
-            });
-            grid.getDataProvider().refreshAll();
-        }
-    }
 }
