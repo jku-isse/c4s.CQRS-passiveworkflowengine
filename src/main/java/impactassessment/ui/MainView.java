@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
+import impactassessment.artifact.base.IArtifact;
 import impactassessment.artifact.mock.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.snapshot.Snapshotter;
@@ -256,11 +257,11 @@ public class MainView extends VerticalLayout {
         summary.setWidthFull();
 
         Button add = new Button("Add Artifact");
-//        add.addClickListener(evt -> {
-//            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
-//            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
-//            Notification.show("Success");
-//        });
+        add.addClickListener(evt -> {
+            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
+            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
+            Notification.show("Success");
+        });
 
         VerticalLayout column1 = new VerticalLayout();
         column1.setMargin(false);

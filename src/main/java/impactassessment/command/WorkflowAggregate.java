@@ -61,7 +61,7 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) { // TODO replace JiraService with IArtifactService!
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IArtifact a = jira.get(cmd.getId());
@@ -223,7 +223,7 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(AddedMockArtifactEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        id = evt.getArtifact().getId().toString();
+        id = evt.getId();
         model = new WorkflowInstanceWrapper();
         artifact = evt.getArtifact();
         model.handle(evt);
