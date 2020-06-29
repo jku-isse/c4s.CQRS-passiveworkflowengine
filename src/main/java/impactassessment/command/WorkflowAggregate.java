@@ -3,7 +3,7 @@ package impactassessment.command;
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.jira.JiraService;
+import impactassessment.artifact.base.IArtifactService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
@@ -61,10 +61,10 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) { // TODO replace JiraService with IArtifactService!
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = jira.get(cmd.getId());
+            IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 apply(new AddedArtifactEvt(cmd.getId(), a))
                         .andThen(() -> {
@@ -85,11 +85,11 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         ensureInitializedKB(cmd.getId(), ruleBaseService);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = jira.get(cmd.getId());
+            IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 ruleBaseService.insertOrUpdate(cmd.getId(), a);
                 ruleBaseService.fire(cmd.getId());
