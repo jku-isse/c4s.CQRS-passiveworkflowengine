@@ -9,6 +9,7 @@ import org.joda.time.DateTime;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,15 @@ public class JiraArtifact implements IArtifact {
         return issue.getSelf();
     }
 
+    @Override
+    public URI getBrowserLink() {
+        try {
+            return new URI("http://"+getSelf().getHost()+":"+getSelf().getPort()+"/browse/"+getKey());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     @Override
     public String getKey() {
         return issue.getKey();

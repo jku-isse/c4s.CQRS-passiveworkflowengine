@@ -3,7 +3,7 @@ package impactassessment.command;
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.jira.JiraService;
+import impactassessment.artifact.base.IArtifactService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
@@ -61,10 +61,10 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = jira.get(cmd.getId());
+            IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 apply(new AddedArtifactEvt(cmd.getId(), a))
                         .andThen(() -> {
@@ -85,11 +85,11 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, JiraService jira) {
+    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         ensureInitializedKB(cmd.getId(), ruleBaseService);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = jira.get(cmd.getId());
+            IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 ruleBaseService.insertOrUpdate(cmd.getId(), a);
                 ruleBaseService.fire(cmd.getId());
@@ -139,10 +139,12 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(DeleteCmd cmd) {
+    public void handle(DeleteCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new DeletedEvt(cmd.getId()));
-        // TODO: delete kieSession for this Aggregate
+        apply(new DeletedEvt(cmd.getId()))
+            .andThen(() -> {
+                ruleBaseService.dispose(cmd.getId());
+            });
     }
 
     @CommandHandler
@@ -201,7 +203,7 @@ public class WorkflowAggregate {
             ruleBaseService.insertOrUpdate(cmd.getId(), ct);
             ruleBaseService.fire(cmd.getId());
         } else {
-            log.warn("Concerened RuleEngineBasedConstraint wasn't found");
+            log.warn("Concerned RuleEngineBasedConstraint wasn't found");
         }
     }
 
@@ -213,7 +215,7 @@ public class WorkflowAggregate {
             s.append("\n############## KB CONTENT ################\n");
             ruleBaseService.getKieSession(cmd.getId()).getObjects().stream()
                     .forEach(o -> s.append(o.toString() + "\n"));
-            s.append("############## SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ################");
+            s.append("####### SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ######### "+ruleBaseService.getNumKieSessions()+" #######");
             log.info(s.toString());
         }
     }
@@ -223,7 +225,7 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(AddedMockArtifactEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        id = evt.getArtifact().getId().toString();
+        id = evt.getId();
         model = new WorkflowInstanceWrapper();
         artifact = evt.getArtifact();
         model.handle(evt);
@@ -241,7 +243,6 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(DeletedEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        // TODO delete kieSession
         markDeleted();
     }
 

@@ -8,6 +8,8 @@ public interface IArtifact {
 
     URI getSelf();
 
+    URI getBrowserLink();
+
     String getKey();
 
     String getId();
