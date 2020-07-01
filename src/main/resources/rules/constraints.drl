@@ -36,17 +36,17 @@ rule "InsertQAConstraintsStateOpen"
 
         //constraints for Tasks and Sub-Taks
         if (aOut != null && (((ResourceLink) aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink) aOut.getArtifact()).getAs().equals("Sub-task"))) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "1_open_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "2_open_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN,"CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
         //constraints for Design Definitions
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Design Definition")) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "3_open_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
         //constraints for Bugs
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Bug")) {
             // add nothing
         //constraints for Hazards
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Hazard")) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "4_open_", "CheckHazardIsMitigated", "Is the hazard mitigated by a Design Definition?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckHazardIsMitigated", "Is the hazard mitigated by a Design Definition?"));
         }
 end
 
@@ -61,12 +61,12 @@ rule "InsertQAConstraintsStateInProgress"
 
         //constraints for Tasks and Sub-Taks
         if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "1_in_progress_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "2_in_progress_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "4_in_progress_", "CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?"));
         //constraints for Design Definitions
         } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "3_in_progress_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
         //constraints for Bugs
         } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
             // add nothing
@@ -84,16 +84,16 @@ rule "InsertQAConstraintsStateResolved"
 
 		//constraints for Tasks and Sub-Taks
 		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "1_resolved_", "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "2_resolved_", "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "4_resolved_", "CheckJiraIssueRelatedToUnitTest", "Is the Jira ticket related to at least one Unit-Test?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "5_resolved_", "CheckAllRelatedBugsClosed", "Are all related bugs closed?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueRelatedToUnitTest", "Is the Jira ticket related to at least one Unit-Test?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckAllRelatedBugsClosed", "Are all related bugs closed?"));
 		//constraints for Design Definitions
 		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "3_resolved_", "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
 		//constraints for Bugs
 		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "5_resolved_", "CheckJiraIssueHasFixVersion", "Does the Bug have at least one FixVersion?"));
+		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueHasFixVersion", "Does the Bug have at least one FixVersion?"));
 		}
 end
 
