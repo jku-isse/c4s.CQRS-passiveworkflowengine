@@ -18,9 +18,20 @@ A user can access the view model via queries to the projection.
 ## Architecture
 ### Components
 
-![](components.png)
+![](doc/components.png)
 
 ### Event-Flow
 Stronger focus which events/commands/querys are sent between the components.
 
-![](architecture.PNG)
+![](doc/architecture.PNG)
+
+## Workflow
+Throughout development and testing the following workflow for issues (in this case Jira isues) was used:
+
+
+![](doc/workflow.png)
+
+
+Rectangles represent the different states an issue can have, namely "Open", "In Progress" and "Resolved".
+The circles represent decision-nodes, that simply decides if the issue can enter the next process state. In our case this can be decided simply because of the "status" field of the issue, but it could be more sophisticated requirements or even multiple workflow-tasks that need to fulfill some conditions together.
+
