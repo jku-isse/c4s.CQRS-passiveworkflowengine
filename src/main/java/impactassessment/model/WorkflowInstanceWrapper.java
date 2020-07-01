@@ -96,8 +96,8 @@ public class WorkflowInstanceWrapper {
                 CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
                 qa.setLastChangeDueTo(corr);
             }
-            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getRuleName() +"_"+evt.getStatus() +"_"+ wft.getWorkflow().getId(),
-                    qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
+            String rebcId = evt.getRuleName() +"_"+evt.getStatus() +"_"+ wft.getWorkflow().getId();
+            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
             qa.addConstraint(rebc);
         }
     }

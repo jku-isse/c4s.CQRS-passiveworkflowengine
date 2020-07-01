@@ -14,6 +14,7 @@ import impactassessment.model.workflowmodel.WorkflowInstance;
 import impactassessment.model.workflowmodel.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -40,7 +41,11 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
         this.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return formatter.format(rebc.getLastEvaluated());
+                try {
+                    return formatter.format(rebc.getLastEvaluated());
+                } catch (DateTimeException e) {
+                    return "invalid time";
+                }
             } else {
                 return "";
             }
@@ -50,7 +55,11 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
         this.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return formatter.format(rebc.getLastChanged());
+                try {
+                    return formatter.format(rebc.getLastChanged());
+                } catch (DateTimeException e) {
+                    return "invalid time";
+                }
             } else {
                 return "";
             }
