@@ -7,7 +7,7 @@ import impactassessment.artifact.mock.MockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.workflowmodel.ResourceLink;
-import impactassessment.rulebase.RuleBaseFactory;
+import impactassessment.rulebase.KieSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -30,7 +30,7 @@ public class RuleTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        kieSession = new RuleBaseFactory().getKieSession();
+        kieSession = new KieSessionFactory().getKieSession();
         kieSession.setGlobal("commandGateway", gateway);
         model = new WorkflowInstanceWrapper();
     }

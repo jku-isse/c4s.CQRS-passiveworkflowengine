@@ -1,9 +1,7 @@
 package impactassessment.aggregates;
 
 import impactassessment.command.WorkflowAggregate;
-import impactassessment.rulebase.RuleBaseService;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.commandhandling.gateway.DefaultCommandGateway;
+import impactassessment.rulebase.KieSessionService;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -26,7 +24,7 @@ public abstract class AbstractFixtureTest {
      */
     FixtureConfiguration<WorkflowAggregate> fixture;
     @Mock
-    RuleBaseService ruleBaseService;
+    KieSessionService kieSessionService;
     String id;
 
     @Before
@@ -37,7 +35,7 @@ public abstract class AbstractFixtureTest {
 //                .commandBus(fixture.getCommandBus())
 //                .build();
 //        ruleBaseService = new RuleBaseService(gateway);
-        fixture.registerInjectableResource(ruleBaseService);
+        fixture.registerInjectableResource(kieSessionService);
         id = "Test-Workflow";
     }
 }

@@ -21,7 +21,7 @@ public class KieSessionWrapper {
     boolean isInitialized;
 
     public KieSessionWrapper(CommandGateway commandGateway, IArtifactService artifactService) {
-        kieSession = new RuleBaseFactory().getKieSession();
+        kieSession = new KieSessionFactory().getKieSession();
         kieSession.setGlobal("commandGateway", commandGateway);
         kieSession.setGlobal("artifactService", artifactService);
         sessionHandles = new HashMap<>();

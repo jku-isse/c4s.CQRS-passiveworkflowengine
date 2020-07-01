@@ -9,13 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class RuleBaseService {
+public class KieSessionService {
 
     private final CommandGateway commandGateway;
     private final IArtifactService artifactService;
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public RuleBaseService(CommandGateway commandGateway, IArtifactService artifactService) {
+    public KieSessionService(CommandGateway commandGateway, IArtifactService artifactService) {
         this.commandGateway = commandGateway;
         this.artifactService = artifactService;
         kieSessions = new HashMap<>();
