@@ -3,7 +3,6 @@ package impactassessment.model;
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.mock.MockService;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -91,13 +90,14 @@ public class WorkflowInstanceWrapper {
             QACheckDocument qa = getQACDocOfWft(evt.getWftId());
             if (qa == null) {
                 //create and append new QACheckDocument to WFT
-                qa = new QACheckDocument("QA-"+evt.getState()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
+                qa = new QACheckDocument("QA-"+evt.getStatus()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
                 WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK");
                 wft.addOutput(ao);
                 CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
                 qa.setLastChangeDueTo(corr);
             }
-            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(evt.getConstrPrefix() + wft.getWorkflow().getId(), qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
+            String rebcId = evt.getRuleName() +"_"+evt.getStatus() +"_"+ wft.getWorkflow().getId();
+            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
             qa.addConstraint(rebc);
         }
     }

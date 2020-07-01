@@ -11,7 +11,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
 
 @Slf4j
-public class RuleBaseFactory {
+public class KieSessionFactory {
 
     private static final String RULES_PATH = "rules/";
     private static final String EXECUTION_RULES_FILE = "execution.drl";

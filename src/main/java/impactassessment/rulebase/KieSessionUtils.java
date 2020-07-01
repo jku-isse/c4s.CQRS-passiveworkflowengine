@@ -1,6 +1,6 @@
 package impactassessment.rulebase;
 
-public class RuleBaseUtils {
+public class KieSessionUtils {
     public static boolean compareWorkflows(String ct, String qa) {
         return qa.equals(ct);
     }

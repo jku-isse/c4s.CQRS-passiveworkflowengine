@@ -8,7 +8,7 @@ import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.rulebase.RuleBaseService;
+import impactassessment.rulebase.KieSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -45,37 +45,37 @@ public class WorkflowAggregate {
     // Command Handlers
 
     @CommandHandler
-    public WorkflowAggregate(AddMockArtifactCmd cmd, RuleBaseService ruleBaseService) {
+    public WorkflowAggregate(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
-                ruleBaseService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
-                ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
+                kieSessionService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
+                kieSessionService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                        .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                ruleBaseService.setInitialized(cmd.getId());
-                ruleBaseService.fire(cmd.getId());
+                        .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                kieSessionService.setInitialized(cmd.getId());
+                kieSessionService.fire(cmd.getId());
             });
     }
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
+    public WorkflowAggregate(AddArtifactCmd cmd, KieSessionService kieSessionService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 apply(new AddedArtifactEvt(cmd.getId(), a))
                         .andThen(() -> {
-                            ruleBaseService.insertOrUpdate(cmd.getId(), a);
-                            ruleBaseService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
+                            kieSessionService.insertOrUpdate(cmd.getId(), a);
+                            kieSessionService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                                    .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                                    .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
                             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                                    .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                            ruleBaseService.setInitialized(cmd.getId());
-                            ruleBaseService.fire(cmd.getId());
+                                    .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                            kieSessionService.setInitialized(cmd.getId());
+                            kieSessionService.fire(cmd.getId());
                         });
             }
         } else {
@@ -85,14 +85,14 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(UpdateArtifactCmd cmd, RuleBaseService ruleBaseService, IArtifactService artifactService) {
+    public void handle(UpdateArtifactCmd cmd, KieSessionService kieSessionService, IArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
-        ensureInitializedKB(cmd.getId(), ruleBaseService);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                ruleBaseService.insertOrUpdate(cmd.getId(), a);
-                ruleBaseService.fire(cmd.getId());
+                kieSessionService.insertOrUpdate(cmd.getId(), a);
+                kieSessionService.fire(cmd.getId());
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
@@ -100,122 +100,123 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(CompleteDataflowCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(CompleteDataflowCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()))
             .andThen(() -> {
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                        .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                        .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
                 model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                        .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                ruleBaseService.fire(cmd.getId());
+                        .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                kieSessionService.fire(cmd.getId());
             });
     }
 
     @CommandHandler
-    public void handle(ActivateInBranchCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(ActivateInBranchCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()))
                 .andThen(() -> {
                     model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                            .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
                     model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                    ruleBaseService.fire(cmd.getId());
+                            .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                    kieSessionService.fire(cmd.getId());
                 });
     }
 
     @CommandHandler
-    public void handle(ActivateOutBranchCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(ActivateOutBranchCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()))
                 .andThen(() -> {
                     model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                            .forEach(wft -> ruleBaseService.insertOrUpdate(cmd.getId(), wft));
+                            .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
                     model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                            .forEach(dni -> ruleBaseService.insertOrUpdate(cmd.getId(), dni));
-                    ruleBaseService.fire(cmd.getId());
+                            .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                    kieSessionService.fire(cmd.getId());
                 });
     }
 
     @CommandHandler
-    public void handle(DeleteCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(DeleteCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()))
             .andThen(() -> {
-                ruleBaseService.dispose(cmd.getId());
+                kieSessionService.dispose(cmd.getId());
             });
     }
 
     @CommandHandler
-    public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(AddQAConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getState(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
+        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getStatus(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
                     QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
-                    ruleBaseService.insertOrUpdate(cmd.getId(), doc);
+                    kieSessionService.insertOrUpdate(cmd.getId(), doc);
                     Optional<RuleEngineBasedConstraint> rebc = doc.getConstraintsReadonly().stream()
                             .filter(q -> q instanceof RuleEngineBasedConstraint)
                             .map(q -> (RuleEngineBasedConstraint) q)
                             .filter(r -> r.getConstraintType().equals(cmd.getRuleName()))
                             .findAny();
                     rebc.ifPresent(r -> {
-                        ruleBaseService.insertOrUpdate(cmd.getId(), r);
+                        kieSessionService.insertOrUpdate(cmd.getId(), r);
                         // insert constraint trigger
                         ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(r.getId(), "AddQAConstraintCmd"));
                         ct.addConstraint(r.getConstraintType());
-                        ruleBaseService.insertOrUpdate(cmd.getId(), ct);
+                        kieSessionService.insertOrUpdate(cmd.getId(), ct);
                     });
-                    ruleBaseService.fire(cmd.getId());
+                    kieSessionService.fire(cmd.getId());
                 });
     }
 
     @CommandHandler
-    public void handle(AddResourceToConstraintCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(AddResourceToConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
-                    ruleBaseService.insertOrUpdate(cmd.getId(), qac);
-                    ruleBaseService.fire(cmd.getId());
+                    kieSessionService.insertOrUpdate(cmd.getId(), qac);
+                    kieSessionService.fire(cmd.getId());
                 });
     }
 
     @CommandHandler
-    public void handle(AddResourcesToConstraintCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(AddResourcesToConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
-                    ruleBaseService.insertOrUpdate(cmd.getId(), qac);
-                    ruleBaseService.fire(cmd.getId());
+                    kieSessionService.insertOrUpdate(cmd.getId(), qac);
+                    kieSessionService.fire(cmd.getId());
                 });
     }
 
     @CommandHandler
-    public void handle(CheckConstraintCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(CheckConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        ensureInitializedKB(cmd.getId(), ruleBaseService);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
         RuleEngineBasedConstraint rebc = model.getQAC(cmd.getCorrId());
         if (rebc != null) {
             ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getCorrId(), "CheckConstraintCmd"));
             ct.addConstraint(rebc.getConstraintType());
-            ruleBaseService.insertOrUpdate(cmd.getId(), ct);
-            ruleBaseService.fire(cmd.getId());
+            kieSessionService.insertOrUpdate(cmd.getId(), ct);
+            kieSessionService.fire(cmd.getId());
         } else {
             log.warn("Concerned RuleEngineBasedConstraint wasn't found");
         }
     }
 
     @CommandHandler
-    public void handle(PrintKBCmd cmd, RuleBaseService ruleBaseService) {
+    public void handle(PrintKBCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        if (ruleBaseService.getKieSession(cmd.getId()) != null) {
+        if (kieSessionService.getKieSession(cmd.getId()) != null) {
             StringBuilder s = new StringBuilder();
             s.append("\n############## KB CONTENT ################\n");
-            ruleBaseService.getKieSession(cmd.getId()).getObjects().stream()
+            kieSessionService.getKieSession(cmd.getId()).getObjects().stream()
                     .forEach(o -> s.append(o.toString() + "\n"));
-            s.append("####### SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ######### "+ruleBaseService.getNumKieSessions()+" #######");
+            s.append("####### SIZE: " + kieSessionService.getKieSession(cmd.getId()).getObjects().size() +
+                    " ######### "+ kieSessionService.getNumKieSessions()+" #######");
             log.info(s.toString());
         }
     }
@@ -258,29 +259,29 @@ public class WorkflowAggregate {
      * First call in such command handlers!
      *
      * @param id
-     * @param ruleBaseService
+     * @param kieSessionService
      */
-    private void ensureInitializedKB(String id, RuleBaseService ruleBaseService) {
-        if (!ruleBaseService.isInitialized(id)) {
+    private void ensureInitializedKB(String id, KieSessionService kieSessionService) {
+        if (!kieSessionService.isInitialized(id)) {
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
-            ruleBaseService.insertOrUpdate(id, artifact);
-            ruleBaseService.insertOrUpdate(id, model.getWorkflowInstance());
+            kieSessionService.insertOrUpdate(id, artifact);
+            kieSessionService.insertOrUpdate(id, model.getWorkflowInstance());
             model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                     .forEach(wft -> {
-                        ruleBaseService.insertOrUpdate(id, wft);
+                        kieSessionService.insertOrUpdate(id, wft);
                         QACheckDocument doc = model.getQACDocOfWft(wft.getTaskId());
                         if (doc != null) {
-                            ruleBaseService.insertOrUpdate(id, doc);
+                            kieSessionService.insertOrUpdate(id, doc);
                             doc.getConstraintsReadonly().stream()
                                     .filter(q -> q instanceof RuleEngineBasedConstraint)
                                     .map(q -> (RuleEngineBasedConstraint) q)
-                                    .forEach(rebc -> ruleBaseService.insertOrUpdate(id, rebc));
+                                    .forEach(rebc -> kieSessionService.insertOrUpdate(id, rebc));
                         }
                     });
             model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                    .forEach(dni -> ruleBaseService.insertOrUpdate(id, dni));
-            ruleBaseService.setInitialized(id);
+                    .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
+            kieSessionService.setInitialized(id);
         }
     }
 }
