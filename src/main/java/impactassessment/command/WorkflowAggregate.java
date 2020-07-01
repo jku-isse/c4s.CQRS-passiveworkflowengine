@@ -150,7 +150,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddQAConstraintCmd cmd, RuleBaseService ruleBaseService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getState(), cmd.getConstrPrefix(), cmd.getRuleName(), cmd.getDescription()))
+        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getStatus(), cmd.getRuleName(), cmd.getDescription()))
                 .andThen(() -> {
                     QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
                     ruleBaseService.insertOrUpdate(cmd.getId(), doc);
@@ -215,7 +215,8 @@ public class WorkflowAggregate {
             s.append("\n############## KB CONTENT ################\n");
             ruleBaseService.getKieSession(cmd.getId()).getObjects().stream()
                     .forEach(o -> s.append(o.toString() + "\n"));
-            s.append("####### SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() + " ######### "+ruleBaseService.getNumKieSessions()+" #######");
+            s.append("####### SIZE: " + ruleBaseService.getKieSession(cmd.getId()).getObjects().size() +
+                    " ######### "+ruleBaseService.getNumKieSessions()+" #######");
             log.info(s.toString());
         }
     }
