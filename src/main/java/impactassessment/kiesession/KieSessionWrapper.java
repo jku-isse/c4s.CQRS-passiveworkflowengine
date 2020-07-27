@@ -1,7 +1,7 @@
-package impactassessment.rulebase;
+package impactassessment.kiesession;
 
-import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.base.IArtifactService;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.model.workflowmodel.IdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +20,7 @@ public class KieSessionWrapper {
     private @Getter @Setter
     boolean isInitialized;
 
-    public KieSessionWrapper(CommandGateway commandGateway, IArtifactService artifactService) {
+    public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
         kieSession = new KieSessionFactory().getKieSession();
         kieSession.setGlobal("commandGateway", commandGateway);
         kieSession.setGlobal("artifactService", artifactService);
@@ -29,8 +29,8 @@ public class KieSessionWrapper {
     }
 
     public void insertOrUpdate(Object o) {
-        if (o instanceof IArtifact) {
-            IArtifact a = (IArtifact) o;
+        if (o instanceof IJiraArtifact) {
+            IJiraArtifact a = (IJiraArtifact) o;
             String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
             insertOrUpdate(key, a);
         } else if (o instanceof IdentifiableObject) {

@@ -1,8 +1,8 @@
 package impactassessment.aggregates;
 
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.mock.MockService;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.workflowmodel.ResourceLink;
 import impactassessment.query.snapshot.CLTool;
@@ -25,7 +25,7 @@ public class SnapshotTest extends AbstractFixtureTest {
 
     @Test
     public void testAddCompleteActivate() {
-        IArtifact a = MockService.mockArtifact(id);
+        IJiraArtifact a = JiraMockService.mockArtifact(id);
         fixture.given(new AddedMockArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
@@ -36,7 +36,7 @@ public class SnapshotTest extends AbstractFixtureTest {
 
     @Test
     public void testSnapshotStateEqualAggregateState() {
-        IArtifact a = MockService.mockArtifact(id);
+        IJiraArtifact a = JiraMockService.mockArtifact(id);
         fixture.given(new AddedMockArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .andGiven(new ActivatedInBranchEvt(id, "open2inProgressOrResolved#"+id, "Open#"+id))
@@ -63,7 +63,7 @@ public class SnapshotTest extends AbstractFixtureTest {
 
     @Test
     public void testSnapshotBeforeFirstEvent() {
-        IArtifact a = MockService.mockArtifact(id);
+        IJiraArtifact a = JiraMockService.mockArtifact(id);
         fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
                 .andGiven(new AddedMockArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
@@ -89,7 +89,7 @@ public class SnapshotTest extends AbstractFixtureTest {
 
     @Test
     public void testSnapshotStateNotEqualAggregateState() {
-        IArtifact a = MockService.mockArtifact(id);
+        IJiraArtifact a = JiraMockService.mockArtifact(id);
         fixture.givenCurrentTime(Instant.parse("2020-03-18T08:30:00.00Z"))
                 .andGiven(new AddedMockArtifactEvt(id, a))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))

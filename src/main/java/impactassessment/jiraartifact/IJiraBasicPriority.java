@@ -1,8 +1,8 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
 import java.net.URI;
 
-public interface IBasicPriority {
+public interface IJiraBasicPriority {
     URI getSelf();
     String getName();
     Long getId();

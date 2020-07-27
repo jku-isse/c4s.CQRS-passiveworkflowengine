@@ -1,6 +1,6 @@
 package impactassessment.model.workflowmodel;
 
-import impactassessment.artifact.base.IArtifact;
+import impactassessment.jiraartifact.IJiraArtifact;
 
 public class ResourceLink extends AbstractArtifact implements Artifact{
 	/**
@@ -68,7 +68,7 @@ public class ResourceLink extends AbstractArtifact implements Artifact{
 		this.title = title;
 	}
 
-	public static ResourceLink of(IArtifact a) {
+	public static ResourceLink of(IJiraArtifact a) {
 		return new ResourceLink(a.getSummary(), a.getBrowserLink().toString(), "self", a.getIssueType().getName(), "html", a.getId());
 	}
 

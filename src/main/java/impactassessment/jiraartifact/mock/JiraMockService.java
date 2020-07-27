@@ -1,8 +1,8 @@
-package impactassessment.artifact.mock;
+package impactassessment.jiraartifact.mock;
 
-import impactassessment.artifact.base.IArtifact;
+import impactassessment.jiraartifact.IJiraArtifact;
 
-public class MockService {
+public class JiraMockService {
 
     // Default values
     public static final String DEFAULT_STATUS = "Resolved";
@@ -10,24 +10,24 @@ public class MockService {
     public static final String DEFAULT_PRIORITY = "high";
     public static final String DEFAULT_SUMMARY = "This summarizes the artifact!";
 
-    public static IArtifact mockArtifact(String id) {
+    public static IJiraArtifact mockArtifact(String id) {
         return mockArtifact(id, DEFAULT_STATUS);
     }
 
-    public static IArtifact mockArtifact(String id, String status) {
+    public static IJiraArtifact mockArtifact(String id, String status) {
         return mockArtifact(id, status, DEFAULT_ISSUETYPE);
     }
 
-    public static IArtifact mockArtifact(String id, String status, String issuetype) {
+    public static IJiraArtifact mockArtifact(String id, String status, String issuetype) {
         return mockArtifact(id, status, issuetype, DEFAULT_PRIORITY);
     }
 
-    public static IArtifact mockArtifact(String id, String status, String issuetype, String priority) {
+    public static IJiraArtifact mockArtifact(String id, String status, String issuetype, String priority) {
         return mockArtifact(id, status, issuetype, priority, DEFAULT_SUMMARY);
     }
 
-    public static IArtifact mockArtifact(String id, String status, String issuetype, String priority, String summary) {
-        MockArtifact a = new MockArtifact();
+    public static IJiraArtifact mockArtifact(String id, String status, String issuetype, String priority, String summary) {
+        JiraMockArtifact a = new JiraMockArtifact();
         a.setId(id);
         a.setStatus(status);
         a.setIssueType(issuetype);

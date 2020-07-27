@@ -1,9 +1,9 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 
-public interface IBasicProject {
+public interface IJiraBasicProject {
 
     URI getSelf();
 

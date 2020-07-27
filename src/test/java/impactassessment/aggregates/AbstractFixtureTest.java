@@ -1,7 +1,7 @@
 package impactassessment.aggregates;
 
 import impactassessment.command.WorkflowAggregate;
-import impactassessment.rulebase.KieSessionService;
+import impactassessment.kiesession.KieSessionService;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;

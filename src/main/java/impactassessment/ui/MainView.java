@@ -15,8 +15,8 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.mock.MockService;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.snapshot.Snapshotter;
 import impactassessment.utils.Replayer;
@@ -244,21 +244,21 @@ public class MainView extends VerticalLayout {
         id.setValue("A3");
 
         TextField status = new TextField("Status");
-        status.setValue(MockService.DEFAULT_STATUS);
+        status.setValue(JiraMockService.DEFAULT_STATUS);
 
         TextField issuetype = new TextField("Issue-Type");
-        issuetype.setValue(MockService.DEFAULT_ISSUETYPE);
+        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
 
         TextField priority = new TextField("Priority");
-        priority.setValue(MockService.DEFAULT_PRIORITY);
+        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
 
         TextField summary = new TextField("Summary");
-        summary.setValue(MockService.DEFAULT_SUMMARY);
+        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
         summary.setWidthFull();
 
         Button add = new Button("Add Artifact");
         add.addClickListener(evt -> {
-            IArtifact a = MockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
+            IJiraArtifact a = JiraMockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
             commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
             Notification.show("Success");
         });

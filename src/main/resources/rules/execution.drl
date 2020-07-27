@@ -19,8 +19,8 @@ import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
 import impactassessment.api.ActivateOutBranchCmd
 
-import impactassessment.artifact.base.IArtifact
-import impactassessment.artifact.base.IStatus
+import impactassessment.jiraartifact.base.IArtifact
+import impactassessment.jiraartifact.base.IStatus
 
 import java.util.List
 import java.util.Set

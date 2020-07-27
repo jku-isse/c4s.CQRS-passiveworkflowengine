@@ -1,6 +1,6 @@
-package impactassessment.rulebase;
+package impactassessment.kiesession;
 
-import impactassessment.artifact.base.IArtifactService;
+import impactassessment.jiraartifact.IJiraArtifactService;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
@@ -12,10 +12,10 @@ import java.util.Map;
 public class KieSessionService {
 
     private final CommandGateway commandGateway;
-    private final IArtifactService artifactService;
+    private final IJiraArtifactService artifactService;
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public KieSessionService(CommandGateway commandGateway, IArtifactService artifactService) {
+    public KieSessionService(CommandGateway commandGateway, IJiraArtifactService artifactService) {
         this.commandGateway = commandGateway;
         this.artifactService = artifactService;
         kieSessions = new HashMap<>();

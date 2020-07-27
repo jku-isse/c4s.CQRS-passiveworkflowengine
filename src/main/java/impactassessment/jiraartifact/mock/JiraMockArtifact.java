@@ -1,13 +1,13 @@
-package impactassessment.artifact.mock;
+package impactassessment.jiraartifact.mock;
 
-import impactassessment.artifact.base.*;
+import impactassessment.jiraartifact.*;
 import org.joda.time.DateTime;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 
-public class MockArtifact implements IArtifact {
+public class JiraMockArtifact implements IJiraArtifact {
 
     private String id;
     private String status;
@@ -66,8 +66,8 @@ public class MockArtifact implements IArtifact {
     }
 
     @Override
-    public IStatus getStatus() {
-        return new IStatus() {
+    public IJiraStatus getStatus() {
+        return new IJiraStatus() {
             @Override
             public URI getSelf() {
                 return null;
@@ -89,19 +89,19 @@ public class MockArtifact implements IArtifact {
             }
 
             @Override
-            public IStatusCategory getStatusCategory() {
+            public IJiraStatusCategory getStatusCategory() {
                 return null;
             }
         };
     }
 
     @Override
-    public IUser getReporter() {
+    public IJiraUser getReporter() {
         return null;
     }
 
     @Override
-    public IUser getAssignee() {
+    public IJiraUser getAssignee() {
         return null;
     }
 
@@ -111,8 +111,8 @@ public class MockArtifact implements IArtifact {
     }
 
     @Override
-    public IBasicPriority getPriority() {
-        return new IBasicPriority() {
+    public IJiraBasicPriority getPriority() {
+        return new IJiraBasicPriority() {
             @Override
             public URI getSelf() {
                 return null;
@@ -131,33 +131,33 @@ public class MockArtifact implements IArtifact {
     }
 
     @Override
-    public Iterable<IIssueLink> getIssueLinks() {
+    public Iterable<IJiraIssueLink> getIssueLinks() {
         return Collections.emptyList();
     }
 
     @Override
-    public Iterable<ISubtask> getSubtasks() {
+    public Iterable<IJiraSubtask> getSubtasks() {
         return null;
     }
 
     @Override
-    public Iterable<IIssueField> getFields() {
+    public Iterable<IJiraIssueField> getFields() {
         return Collections.emptyList();
     }
 
     @Override
-    public IIssueField getField(String id) {
+    public IJiraIssueField getField(String id) {
         return null;
     }
 
     @Override
-    public IIssueField getFieldByName(String name) {
+    public IJiraIssueField getFieldByName(String name) {
         return null;
     }
 
     @Override
-    public IIssueType getIssueType() {
-        return new IIssueType() {
+    public IJiraIssueType getIssueType() {
+        return new IJiraIssueType() {
             @Override
             public Long getId() {
                 return null;
@@ -186,17 +186,17 @@ public class MockArtifact implements IArtifact {
     }
 
     @Override
-    public IBasicProject getProject() {
+    public IJiraBasicProject getProject() {
         return null;
     }
 
     @Override
-    public IBasicVotes getVotes() {
+    public IJiraBasicVotes getVotes() {
         return null;
     }
 
     @Override
-    public Iterable<IVersion> getFixVersions() {
+    public Iterable<IJiraVersion> getFixVersions() {
         return null;
     }
 

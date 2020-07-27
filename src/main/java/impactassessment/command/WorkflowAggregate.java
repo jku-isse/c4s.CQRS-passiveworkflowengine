@@ -2,13 +2,13 @@ package impactassessment.command;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.base.IArtifactService;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.rulebase.KieSessionService;
+import impactassessment.kiesession.KieSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -29,7 +29,7 @@ public class WorkflowAggregate {
     @AggregateIdentifier
     private String id;
     private WorkflowInstanceWrapper model;
-    private IArtifact artifact;
+    private IJiraArtifact artifact;
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor invoked");
@@ -47,9 +47,9 @@ public class WorkflowAggregate {
     @CommandHandler
     public WorkflowAggregate(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getArtifact()))
+        apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getJiraArtifact()))
             .andThen(() -> {
-                kieSessionService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
+                kieSessionService.insertOrUpdate(cmd.getId(), cmd.getJiraArtifact());
                 kieSessionService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                         .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
@@ -61,10 +61,10 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public WorkflowAggregate(AddArtifactCmd cmd, KieSessionService kieSessionService, IArtifactService artifactService) {
+    public WorkflowAggregate(AddArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = artifactService.get(cmd.getId());
+            IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 apply(new AddedArtifactEvt(cmd.getId(), a))
                         .andThen(() -> {
@@ -85,11 +85,11 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(UpdateArtifactCmd cmd, KieSessionService kieSessionService, IArtifactService artifactService) {
+    public void handle(UpdateArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         ensureInitializedKB(cmd.getId(), kieSessionService);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            IArtifact a = artifactService.get(cmd.getId());
+            IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 kieSessionService.insertOrUpdate(cmd.getId(), a);
                 kieSessionService.fire(cmd.getId());
@@ -228,7 +228,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
         model = new WorkflowInstanceWrapper();
-        artifact = evt.getArtifact();
+        artifact = evt.getJiraArtifact();
         model.handle(evt);
     }
 
@@ -237,7 +237,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
         model = new WorkflowInstanceWrapper();
-        artifact = evt.getArtifact();
+        artifact = evt.getJiraArtifact();
         model.handle(evt);
     }
 

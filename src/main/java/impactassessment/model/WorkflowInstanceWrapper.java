@@ -2,7 +2,7 @@ package impactassessment.model;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
+import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -22,7 +22,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private void handle(AddedMockArtifactEvt evt) {
-        IArtifact artifact = evt.getArtifact();
+        IJiraArtifact artifact = evt.getJiraArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
@@ -36,7 +36,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private void handle(AddedArtifactEvt evt) {
-        IArtifact artifact = evt.getArtifact();
+        IJiraArtifact artifact = evt.getJiraArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
