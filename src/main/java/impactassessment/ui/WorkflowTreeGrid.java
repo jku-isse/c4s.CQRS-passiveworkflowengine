@@ -29,11 +29,15 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
     public void initTreeGrid() {
 
         this.addHierarchyColumn(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
+            if (o instanceof WorkflowInstance) {
+                WorkflowInstance wfi = (WorkflowInstance) o;
+                return wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) + ": " + wfi.getId();
+            }
+            else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
                 return rebc.getConstraintType();
             } else {
-                return o.getClass().getSimpleName() + " - " + o.getId();
+                return o.getClass().getSimpleName() + ": " + o.getId();
             }
         }).setHeader("Workflow Instance").setWidth("40%");
 

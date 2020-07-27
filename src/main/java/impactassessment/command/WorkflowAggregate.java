@@ -47,9 +47,9 @@ public class WorkflowAggregate {
     @CommandHandler
     public WorkflowAggregate(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getJiraArtifact()))
+        apply(new AddedMockArtifactEvt(cmd.getId(), cmd.getArtifact()))
             .andThen(() -> {
-                kieSessionService.insertOrUpdate(cmd.getId(), cmd.getJiraArtifact());
+                kieSessionService.insertOrUpdate(cmd.getId(), cmd.getArtifact());
                 kieSessionService.insertOrUpdate(cmd.getId(), model.getWorkflowInstance());
                 model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                         .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
@@ -228,7 +228,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
         model = new WorkflowInstanceWrapper();
-        artifact = evt.getJiraArtifact();
+        artifact = evt.getArtifact();
         model.handle(evt);
     }
 
@@ -237,7 +237,7 @@ public class WorkflowAggregate {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
         model = new WorkflowInstanceWrapper();
-        artifact = evt.getJiraArtifact();
+        artifact = evt.getArtifact();
         model.handle(evt);
     }
 

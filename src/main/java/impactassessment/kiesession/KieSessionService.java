@@ -30,8 +30,10 @@ public class KieSessionService {
     }
 
     public void dispose(String id) {
-        kieSessions.get(id).dispose();
-        kieSessions.remove(id);
+        if (kieSessions.containsKey(id)) {
+            kieSessions.get(id).dispose();
+            kieSessions.remove(id);
+        }
     }
 
     public boolean isInitialized(String id) {

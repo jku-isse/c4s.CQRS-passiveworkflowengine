@@ -137,7 +137,7 @@ public class JiraMockArtifact implements IJiraArtifact {
 
     @Override
     public Iterable<IJiraSubtask> getSubtasks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -197,7 +197,7 @@ public class JiraMockArtifact implements IJiraArtifact {
 
     @Override
     public Iterable<IJiraVersion> getFixVersions() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

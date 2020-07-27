@@ -18,14 +18,12 @@ import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
 
-import impactassessment.jiraartifact.base.IArtifact
-import impactassessment.jiraartifact.base.IIssueLink
-import impactassessment.jiraartifact.base.IArtifactService
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.jiraartifact.IJiraIssueLink
+import impactassessment.jiraartifact.IJiraArtifactService
 
 global CommandGateway commandGateway;
-global IArtifactService artifactService;
+global IJiraArtifactService artifactService;
 
 //constraints for state open
 rule "InsertQAConstraintsStateOpen"

@@ -8,7 +8,7 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
 // COMMANDS
-data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val jiraArtifact: IJiraArtifact)
+data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: IJiraArtifact)
 data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class UpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
@@ -24,8 +24,8 @@ data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
-data class AddedMockArtifactEvt(override val id: String, val jiraArtifact: IJiraArtifact) : IdentifiableEvt
-data class AddedArtifactEvt(override val id: String, val jiraArtifact: IJiraArtifact) : IdentifiableEvt
+data class AddedMockArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
+data class AddedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt

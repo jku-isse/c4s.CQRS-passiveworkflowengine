@@ -1,5 +1,6 @@
 package impactassessment.query;
 
+import impactassessment.api.DeletedEvt;
 import impactassessment.api.IdentifiableEvt;
 import impactassessment.model.WorkflowInstanceWrapper;
 import lombok.Getter;
@@ -37,6 +38,10 @@ public class MockDatabase {
     public void handle(EventMessage<?> message) {
         try {
             IdentifiableEvt evt = (IdentifiableEvt) message.getPayload();
+            if (evt instanceof DeletedEvt) {
+                this.delete(evt.getId());
+                return;
+            }
             if (getWorkflowModel(evt.getId()) == null) {
                 createAndPutWorkflowModel(evt.getId());
             }
