@@ -18,6 +18,7 @@ import impactassessment.model.workflowmodel.ResourceLink
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
 import impactassessment.api.ActivateOutBranchCmd
+import impactassessment.api.ActivateInOutBranchCmd
 
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.jiraartifact.IJiraStatus
@@ -54,8 +55,7 @@ rule "Open2InProgress-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "inProgressIn"));
 end
 
 rule "InProgress2Resolved-InBranchConditions"
@@ -70,8 +70,7 @@ rule "InProgress2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end
 
 rule "Open2Resolved-InBranchConditions"
@@ -86,7 +85,5 @@ rule "Open2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        //commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end

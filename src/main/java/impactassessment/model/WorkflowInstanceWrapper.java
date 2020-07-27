@@ -87,6 +87,17 @@ public class WorkflowInstanceWrapper {
         optDni.ifPresent(dni -> dni.activateOutBranch(evt.getBranchId()));
     }
 
+    private void handle(ActivatedInOutBranchEvt evt) {
+        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
+        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
+        if (optDni.isPresent() && optWft.isPresent()) {
+            DecisionNodeInstance dni = optDni.get();
+            WorkflowTask wft = optWft.get();
+            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateOutBranch(evt.getBranchId());
+        }
+    }
+
     private void handle(AddedQAConstraintEvt evt) {
         Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
         if (optWft.isPresent()) {
@@ -147,6 +158,8 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedInBranchEvt) evt);
         } else if (evt instanceof ActivatedOutBranchEvt) {
             handle((ActivatedOutBranchEvt) evt);
+        } else if (evt instanceof ActivatedInOutBranchEvt) {
+            handle((ActivatedInOutBranchEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedResourceToConstraintEvt) {
