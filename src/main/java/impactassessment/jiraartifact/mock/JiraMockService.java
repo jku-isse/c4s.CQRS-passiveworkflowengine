@@ -1,12 +1,13 @@
 package impactassessment.jiraartifact.mock;
 
 import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.IJiraArtifactService;
 
 public class JiraMockService {
 
     // Default values
     public static final String DEFAULT_STATUS = "Resolved";
-    public static final String DEFAULT_ISSUETYPE = "Hazard";
+    public static final String DEFAULT_ISSUETYPE = "Task";
     public static final String DEFAULT_PRIORITY = "high";
     public static final String DEFAULT_SUMMARY = "This summarizes the artifact!";
 

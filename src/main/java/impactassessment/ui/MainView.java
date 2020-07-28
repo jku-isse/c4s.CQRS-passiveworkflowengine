@@ -4,13 +4,17 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -36,6 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Route
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
+@CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
 
     @Autowired
@@ -56,12 +61,15 @@ public class MainView extends VerticalLayout {
         setPadding(false);
 
         HorizontalLayout header = new HorizontalLayout();
+        header.setClassName("header-theme");
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new H1("CQRS-based Quality Assurance Application - User Interface"));
+        header.add(new Icon(VaadinIcon.AUTOMATION), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
 
         HorizontalLayout footer = new HorizontalLayout();
+        footer.setClassName("footer-theme");
+        footer.setMargin(false);
         footer.setSizeFull();
         footer.add(new Text("JKU ISSE - Stefan Bichler"));
         footer.setJustifyContentMode(JustifyContentMode.END);
@@ -75,14 +83,10 @@ public class MainView extends VerticalLayout {
 
     private Component main() {
         HorizontalLayout main = new HorizontalLayout();
-        main.setSizeFull();
-        main.setPadding(false);
-        main.setMargin(false);
+        main.setClassName("layout-style");
 
         VerticalLayout content = new VerticalLayout();
-        content.setSizeFull();
-        content.setPadding(false);
-        content.setMargin(false);
+        content.setClassName("layout-style");
         content.add(statePanel(), snapshotPanel());
 
         main.add(menu(), content);
@@ -92,28 +96,32 @@ public class MainView extends VerticalLayout {
 
     private Component menu() {
         VerticalLayout menu = new VerticalLayout();
+        menu.addClassName("light-theme");
         menu.setPadding(true);
         menu.setMargin(false);
         menu.setWidth("40%");
         menu.setFlexGrow(0);
 
-        menu.add(
-                new H3("Controls"),
-                controlButtons(),
-                snapshot(),
-                accordion()
-        );
+        Accordion accordion = new Accordion();
+        accordion.add("Import Artifact", importArtifact());
+        accordion.add("Remove Artifact", remove());
+        accordion.add("Evaluate Constraint", evaluate());
+        accordion.add("Developer Commands", backend());
+        accordion.close();
+        accordion.setWidthFull();
+
+        menu.add(new H2("Controls"), accordion);
 
         return menu;
     }
 
-    private Component controlButtons() {
+    private Component currentStateControls() {
         HorizontalLayout controlButtonLayout = new HorizontalLayout();
         controlButtonLayout.setMargin(false);
         controlButtonLayout.setPadding(false);
         controlButtonLayout.setWidthFull();
 
-        Button getState = new Button("Update State");
+        Button getState = new Button("Get State");
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
@@ -123,7 +131,7 @@ public class MainView extends VerticalLayout {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
-        Button replay = new Button("Replay Events");
+        Button replay = new Button("Replay All Events");
         replay.addClickListener(evt -> {
             replayer.replay("projection");
             Notification.show("Replaying..");
@@ -133,21 +141,18 @@ public class MainView extends VerticalLayout {
         return controlButtonLayout;
     }
 
-    private Component snapshot() {
-        VerticalLayout layout = new VerticalLayout();
+    private Component snapshotStateControls() {
+        HorizontalLayout layout = new HorizontalLayout();
         layout.setWidthFull();
         layout.setMargin(false);
         layout.setPadding(false);
+        layout.setAlignItems(Alignment.BASELINE);
         // Date Picker
         DatePicker valueDatePicker = new DatePicker();
         LocalDate now = LocalDate.now();
         valueDatePicker.setValue(now);
         valueDatePicker.setLabel("Date");
         // Time Picker
-        HorizontalLayout timePicker = new HorizontalLayout();
-        timePicker.setWidthFull();
-        timePicker.setMargin(false);
-        timePicker.setPadding(false);
         Instant time = Instant.now();
         NumberField hour = new NumberField();
         hour.setValue((double) time.atZone(ZoneId.systemDefault()).getHour());
@@ -167,10 +172,10 @@ public class MainView extends VerticalLayout {
         sec.setMin(0);
         sec.setMax(59);
         sec.setLabel("Second");
-        timePicker.add(hour, min, sec);
+        layout.add(valueDatePicker);
+        layout.add(hour, min, sec);
         // Snapshot Button
-        Button snapshotButton = new Button("Snapshot");
-        snapshotButton.addClickListener(evt -> {
+        Button snapshotButton = new Button("Make Snapshot", evt -> {
             LocalDateTime snapshotTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
                     valueDatePicker.getValue().getMonth().getValue(),
                     valueDatePicker.getValue().getDayOfMonth(),
@@ -185,82 +190,55 @@ public class MainView extends VerticalLayout {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
+        // Step Button
+        Button step = new Button("Apply next Event", e -> {
+            // TODO
+        });
 
-        layout.add(valueDatePicker, timePicker, snapshotButton);
+        layout.add(valueDatePicker, snapshotButton, step);
 
         return layout;
     }
 
-    private Component accordion() {
-        Accordion accordion = new Accordion();
-        accordion.add("Import Artifact", importArtifact());
-        accordion.add("Import Mock-Artifact", importMockArtifact());
-        accordion.add("Evaluate Constraint", evaluate());
-        accordion.add("Backend commands", backend());
-        accordion.close();
-        accordion.setWidthFull();
-        return accordion;
-    }
-
     private Component importArtifact() {
-        ComboBox<String> valueComboBox = new ComboBox<>();
-        valueComboBox.setItems(Sources.JIRA.toString(), "more coming soon..");
-        valueComboBox.setValue(Sources.JIRA.toString());
-        valueComboBox.setAllowCustomValue(false);
-        valueComboBox.setLabel("Source");
+        RadioButtonGroup<String> source = new RadioButtonGroup<>();
+        source.setLabel("Source");
+        source.setItems(Sources.JIRA.toString(), Sources.MOCK.toString());
+        source.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        source.setValue(Sources.JIRA.toString());
 
-        TextField id = new TextField("Key");
-        id.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
+        TextField key = new TextField("Key");
+        key.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
 
-        Button add = new Button("Import Artifact");
-        add.addClickListener(evt -> {
-            commandGateway.send(new AddArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
-        });
-
-        Button update = new Button("Update Artifact");
-        update.addClickListener(evt -> {
-            commandGateway.send(new UpdateArtifactCmd(id.getValue(), Sources.valueOf(valueComboBox.getValue())));
-        });
-
-        HorizontalLayout layout1 = new HorizontalLayout();
-        layout1.setMargin(false);
-        layout1.setPadding(false);
-        layout1.setWidthFull();
-        layout1.add(valueComboBox, id);
-        layout1.setAlignItems(Alignment.END);
-
-        HorizontalLayout layout2 = new HorizontalLayout();
-        layout2.setMargin(false);
-        layout2.setPadding(false);
-        layout2.setWidthFull();
-        layout2.add(add, update);
-        layout2.setAlignItems(Alignment.END);
-
-        return new VerticalLayout(layout1, layout2);
-    }
-
-    private Component importMockArtifact() {
+        // MOCK fields
         TextField id = new TextField("ID");
         id.setValue("A3");
-
+        id.setWidthFull();
         TextField status = new TextField("Status");
         status.setValue(JiraMockService.DEFAULT_STATUS);
-
+        status.setWidthFull();
         TextField issuetype = new TextField("Issue-Type");
         issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
-
+        issuetype.setWidthFull();
         TextField priority = new TextField("Priority");
         priority.setValue(JiraMockService.DEFAULT_PRIORITY);
-
+        priority.setWidthFull();
         TextField summary = new TextField("Summary");
         summary.setValue(JiraMockService.DEFAULT_SUMMARY);
         summary.setWidthFull();
 
-        Button add = new Button("Add Artifact");
-        add.addClickListener(evt -> {
-            IJiraArtifact a = JiraMockService.mockArtifact(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue());
-            commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), a));
-            Notification.show("Success");
+        enable(false, id, status, issuetype, priority, summary);
+
+        Button add = new Button("Import or Update Artifact", evt -> {
+            if (source.getValue().equals(Sources.JIRA.toString())) {
+                commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
+                Notification.show("Success");
+            } else if (source.getValue().equals(Sources.MOCK.toString())) {
+                commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                Notification.show("Success");
+            } else {
+                Notification.show("Invalid Source");
+            }
         });
 
         VerticalLayout column1 = new VerticalLayout();
@@ -268,31 +246,52 @@ public class MainView extends VerticalLayout {
         column1.setPadding(false);
         column1.add(id, status);
         column1.setWidth("50%");
-
         VerticalLayout column2 = new VerticalLayout();
         column2.setMargin(false);
         column2.setPadding(false);
         column2.add(issuetype, priority);
         column2.setWidth("50%");
-
         HorizontalLayout row1 = new HorizontalLayout(column1, column2);
+        row1.setWidthFull();
         row1.setMargin(false);
         row1.setPadding(false);
-
         VerticalLayout row2 = new VerticalLayout();
         row2.setMargin(false);
         row2.setPadding(false);
         row2.add(summary, add);
 
-        return new VerticalLayout(row1, row2);
+        source.addValueChangeListener(evt -> {
+            if (evt.getValue().equals(Sources.MOCK.toString())) {
+                enable(true, id, status, issuetype, priority, summary);
+                key.setEnabled(false);
+            } else {
+                enable(false, id, status, issuetype, priority, summary);
+                key.setEnabled(true);
+            }
+        });
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(false);
+        layout.setPadding(false);
+        layout.setWidthFull();
+        layout.add(source, key, row1, row2);
+
+        return layout;
+    }
+
+    private void enable(boolean enable, TextField... fields) {
+        for (TextField field : fields) {
+            field.setEnabled(enable);
+        }
     }
 
     private Component evaluate() {
-        TextField id = new TextField("ID");
+        TextField id = new TextField("Artifact ID");
         id.setValue("A3");
 
-        TextField corr = new TextField("Corr");
-        corr.setValue("4_open_A3");
+        TextField corr = new TextField("Constraint ID");
+        corr.setValue("CheckAllRelatedBugsClosed_Resolved_A3");
+        corr.setWidthFull();
 
         Button check = new Button("Check");
         check.addClickListener(evt -> {
@@ -300,24 +299,19 @@ public class MainView extends VerticalLayout {
             Notification.show("Success");
         });
 
-        HorizontalLayout row = new HorizontalLayout();
-        row.setMargin(false);
-        row.setPadding(false);
-        row.setWidthFull();
-        row.add(id, corr);
-        row.setAlignItems(Alignment.END);
+        VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(false);
+        layout.setPadding(false);
+        layout.setWidthFull();
+        layout.add(id, corr, check);
 
-        return new VerticalLayout(row, check);
+        return layout;
     }
 
     private Component backend() {
+        Text description = new Text("Commands that get processed by the backend. Effects can only be observed on the server log.");
         TextField id = new TextField("ID");
         id.setValue("A3");
-
-        Button delete = new Button("send DeleteCmd");
-        delete.addClickListener(evt -> {
-            commandGateway.send(new DeleteCmd(id.getValue()));
-        });
 
         Button print = new Button("send PrintKBCmd");
         print.addClickListener(evt -> {
@@ -335,24 +329,54 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        return new VerticalLayout(id, delete, print, query);
+        return new VerticalLayout(description, id, print, query);
+    }
+
+    private Component remove() {
+        TextField id = new TextField("ID");
+        id.setValue("A3");
+
+        Button delete = new Button("Remove Artifact");
+        delete.addClickListener(evt -> {
+            commandGateway.send(new DeleteCmd(id.getValue()));
+        });
+
+        return new VerticalLayout(id, delete);
     }
 
     private VerticalLayout snapshotPanel() {
         snapshotGrid = new WorkflowTreeGrid();
         snapshotGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
+        layout.setClassName("big-text");
         layout.setMargin(false);
-        layout.add(new H2("Snapshot State"), snapshotGrid);
+        layout.setHeight("50%");
+        layout.add(
+                new Text("Snapshot State"),
+                progress(),
+                snapshotGrid,
+                snapshotStateControls()
+        );
         return layout;
     }
 
+    private Component progress() {
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setValue(0.345);
+        return progressBar;
+    }
     private VerticalLayout statePanel() {
         stateGrid = new WorkflowTreeGrid();
         stateGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
+        layout.setClassName("big-text");
         layout.setMargin(false);
-        layout.add(new H2("Current State"), stateGrid);
+        layout.setHeight("50%");
+        layout.add(
+                new Text("Current State"),
+                stateGrid,
+                currentStateControls()
+        );
         return layout;
     }
 

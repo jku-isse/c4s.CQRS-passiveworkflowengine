@@ -25,21 +25,7 @@ public class WorkflowInstanceWrapper {
     public static final String PROP_ISSUE_TYPE = "Issue Type";
     public static final String PROP_PRIORITY = "Priority";
 
-    private void handle(AddedMockArtifactEvt evt) {
-        IJiraArtifact artifact = evt.getArtifact();
-        DronologyWorkflow wfd = new DronologyWorkflow();
-        wfd.initWorkflowSpecification();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId());
-        wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
-        wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        if (!artifact.getIssueType().getName().equals("Hazard")) {
-            wfi.addOrReplaceProperty(PROP_PRIORITY, "" + artifact.getPriority().getName());
-        }
-        wfi.enableWorkflowTasksAndDecisionNodes();
-    }
-
-    private void handle(AddedArtifactEvt evt) {
+    private void handle(ImportedOrUpdatedArtifactEvt evt) {
         IJiraArtifact artifact = evt.getArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
@@ -148,10 +134,8 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof AddedMockArtifactEvt) {
-            handle((AddedMockArtifactEvt) evt);
-        } else if (evt instanceof AddedArtifactEvt) {
-            handle((AddedArtifactEvt) evt);
+        if (evt instanceof ImportedOrUpdatedArtifactEvt) {
+            handle((ImportedOrUpdatedArtifactEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {
