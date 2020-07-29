@@ -4,9 +4,11 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -19,23 +21,23 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
-import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.query.snapshot.Snapshotter;
+import impactassessment.query.Snapshotter;
 import impactassessment.utils.Replayer;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Route
@@ -174,28 +176,68 @@ public class MainView extends VerticalLayout {
         sec.setLabel("Second");
         layout.add(valueDatePicker);
         layout.add(hour, min, sec);
+
+        // Buttons
+        Button step = new Button("Apply next Event");
+        Button jump = new Button("Apply Events until");
+        Button stop = new Button("Stop current Replay");
+
+        step.addClickListener(e -> {
+            snapshotter.step();
+            snapshotGrid.updateTreeGrid(snapshotter.getState());
+            if (snapshotter.getProgress() == 1) { // TODO a bit ugly
+                step.setEnabled(false);
+                jump.setEnabled(false);
+            }
+            progressBar.setValue(snapshotter.getProgress());
+        });
+        step.setEnabled(false);
+
+        jump.addClickListener(e -> {
+            LocalDateTime jumpTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
+                    valueDatePicker.getValue().getMonth().getValue(),
+                    valueDatePicker.getValue().getDayOfMonth(),
+                    hour.getValue().intValue(),
+                    min.getValue().intValue(),
+                    sec.getValue().intValue());
+            snapshotter.jump(jumpTime.atZone(ZoneId.systemDefault()).toInstant());
+            snapshotGrid.updateTreeGrid(snapshotter.getState());
+            if (snapshotter.getProgress() == 1) { // TODO a bit ugly
+                step.setEnabled(false);
+                jump.setEnabled(false);
+            }
+            progressBar.setValue(snapshotter.getProgress());
+        });
+        jump.setEnabled(false);
+
+        stop.addClickListener(e -> {
+            snapshotter.quit();
+            progressBar.setValue(0);
+            snapshotGrid.updateTreeGrid(Collections.emptyList());
+            step.setEnabled(false);
+            jump.setEnabled(false);
+            stop.setEnabled(false);
+        });
+        stop.setEnabled(false);
+        stop.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
         // Snapshot Button
-        Button snapshotButton = new Button("Make Snapshot", evt -> {
+        Button snapshotButton = new Button("Start new Replay", evt -> {
             LocalDateTime snapshotTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
                     valueDatePicker.getValue().getMonth().getValue(),
                     valueDatePicker.getValue().getDayOfMonth(),
                     hour.getValue().intValue(),
                     min.getValue().intValue(),
                     sec.getValue().intValue());
-            Future<Map<String, WorkflowInstanceWrapper>> future = snapshotter.replayEventsUntil(snapshotTime.atZone(ZoneId.systemDefault()).toInstant());
-            try {
-                List<WorkflowInstanceWrapper> response = future.get().entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
-                snapshotGrid.updateTreeGrid(response);
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
-            }
-        });
-        // Step Button
-        Button step = new Button("Apply next Event", e -> {
-            // TODO
+            snapshotter.start(snapshotTime.atZone(ZoneId.systemDefault()).toInstant());
+            snapshotGrid.updateTreeGrid(snapshotter.getState());
+            progressBar.setValue(snapshotter.getProgress());
+            step.setEnabled(true);
+            jump.setEnabled(true);
+            stop.setEnabled(true);
         });
 
-        layout.add(valueDatePicker, snapshotButton, step);
+        layout.add(valueDatePicker, snapshotButton, step, jump, stop);
 
         return layout;
     }
@@ -360,9 +402,10 @@ public class MainView extends VerticalLayout {
         return layout;
     }
 
+    private ProgressBar progressBar;
     private Component progress() {
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setValue(0.345);
+        progressBar = new ProgressBar();
+        progressBar.setValue(0);
         return progressBar;
     }
     private VerticalLayout statePanel() {
