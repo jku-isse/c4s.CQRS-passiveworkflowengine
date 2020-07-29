@@ -1,5 +1,5 @@
 package impactassessment.api;
 
 public enum Sources {
-    JIRA
+    JIRA, MOCK
 }

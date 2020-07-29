@@ -1,7 +1,6 @@
-package impactassessment.rulebase;
+package impactassessment.kiesession;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
 import org.kie.api.event.rule.*;

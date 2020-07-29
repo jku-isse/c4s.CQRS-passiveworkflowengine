@@ -18,12 +18,12 @@ import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
 
-import impactassessment.artifact.base.IArtifact
-import impactassessment.artifact.base.IIssueLink
-import impactassessment.artifact.base.IArtifactService
+import impactassessment.jiraartifact.IJiraArtifact
+import impactassessment.jiraartifact.IJiraIssueLink
+import impactassessment.jiraartifact.IJiraArtifactService
 
 global CommandGateway commandGateway;
-global IArtifactService artifactService;
+global IJiraArtifactService artifactService;
 
 //constraints for state open
 rule "InsertQAConstraintsStateOpen"
@@ -106,7 +106,7 @@ end
 rule "CheckJiraIssueBase"
 	no-loop
 	when
-		$a : IArtifact ( )
+		$a : IJiraArtifact ( )
 		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getId()) )
 	then
 end
@@ -131,8 +131,8 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
-		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
-			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
+		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				n++;
                 commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
@@ -153,8 +153,8 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
-		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getDestination();
+		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getDestination();
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("realizes")){
@@ -189,8 +189,8 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		int n = 0;
-		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
+		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
 			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
                 commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
 				n++;
@@ -209,8 +209,8 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean relatedBug = false;
-		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
+		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
 				if (p.getStatus().getName().equals("closed")) {
                     commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
@@ -233,8 +233,8 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean isMitigated = false;
-		for (IIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
-			IArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
+		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;

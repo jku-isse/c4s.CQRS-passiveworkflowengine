@@ -1,6 +1,6 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
-public interface IIssueField {
+public interface IJiraIssueField {
 
     String getId();
 

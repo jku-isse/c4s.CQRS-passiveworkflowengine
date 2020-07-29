@@ -1,0 +1,27 @@
+.header-theme {
+    background-color: #1565C0;
+    color: aliceblue;
+    font-size: x-large;
+    padding-left: 50px;
+    align-items: center;
+}
+.footer-theme {
+    background-color: #1565C0;
+    color: aliceblue;
+    padding-right: 20px;
+    margin: 0;
+}
+.light-theme {
+    background-color: #E3F2FD;
+}
+.layout-style {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+.big-text {
+    font-size: x-large;
+    margin: 0;
+}

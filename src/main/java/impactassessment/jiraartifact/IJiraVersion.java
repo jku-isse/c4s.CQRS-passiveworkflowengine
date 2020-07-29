@@ -1,11 +1,11 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
 import org.joda.time.DateTime;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 
-public interface IVersion {
+public interface IJiraVersion {
 
     URI getSelf();
 

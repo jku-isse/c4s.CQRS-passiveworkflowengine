@@ -1,9 +1,8 @@
-package impactassessment.artifact.jira;
+package impactassessment.jiraartifact.atlassian;
 
 import com.atlassian.jira.rest.client.api.StatusCategory;
 import com.atlassian.jira.rest.client.api.domain.*;
-import impactassessment.artifact.base.*;
-import impactassessment.model.workflowmodel.ResourceLink;
+import impactassessment.jiraartifact.*;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 
@@ -13,7 +12,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JiraArtifact implements IArtifact {
+public class JiraArtifact implements IJiraArtifact {
 
     private Issue issue;
 
@@ -50,13 +49,13 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IStatus getStatus() {
+    public IJiraStatus getStatus() {
         return getiStatus(issue.getStatus());
     }
 
     @NotNull
-    private IStatus getiStatus(Status status) {
-        return new IStatus() {
+    private IJiraStatus getiStatus(Status status) {
+        return new IJiraStatus() {
             @Override
             public URI getSelf() {
                 return status.getSelf();
@@ -78,9 +77,9 @@ public class JiraArtifact implements IArtifact {
             }
 
             @Override
-            public IStatusCategory getStatusCategory() {
+            public IJiraStatusCategory getStatusCategory() {
                 StatusCategory statusCategory = status.getStatusCategory();
-                return new IStatusCategory() {
+                return new IJiraStatusCategory() {
                     @Override
                     public Long getId() {
                         return statusCategory.getId();
@@ -106,14 +105,14 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IUser getReporter() {
+    public IJiraUser getReporter() {
         User user = issue.getReporter();
         return getiUser(user);
     }
 
     @NotNull
-    private IUser getiUser(User user) {
-        return new IUser() {
+    private IJiraUser getiUser(User user) {
+        return new IJiraUser() {
             @Override
             public URI getSelf() {
                 return user.getSelf();
@@ -147,7 +146,7 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IUser getAssignee() {
+    public IJiraUser getAssignee() {
         User user = issue.getAssignee();
         return getiUser(user);
     }
@@ -158,9 +157,9 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IBasicPriority getPriority() {
+    public IJiraBasicPriority getPriority() {
         BasicPriority prio = issue.getPriority();
-        return new IBasicPriority() {
+        return new IJiraBasicPriority() {
             @Override
             public URI getSelf() {
                 return prio.getSelf();
@@ -179,10 +178,10 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public Iterable<IIssueLink> getIssueLinks() {
-        List<IIssueLink> iLinks = new ArrayList<>();
+    public Iterable<IJiraIssueLink> getIssueLinks() {
+        List<IJiraIssueLink> iLinks = new ArrayList<>();
         for (IssueLink link : issue.getIssueLinks()) {
-            iLinks.add(new IIssueLink() {
+            iLinks.add(new IJiraIssueLink() {
                 @Override
                 public String getTargetIssueKey() {
                     return link.getTargetIssueKey();
@@ -203,10 +202,10 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public Iterable<ISubtask> getSubtasks() {
-        List<ISubtask> iTasks = new ArrayList<>();
+    public Iterable<IJiraSubtask> getSubtasks() {
+        List<IJiraSubtask> iTasks = new ArrayList<>();
         for (Subtask task : issue.getSubtasks()) {
-            iTasks.add(new ISubtask() {
+            iTasks.add(new IJiraSubtask() {
                 @Override
                 public String getIssueKey() {
                     return task.getIssueKey();
@@ -223,12 +222,12 @@ public class JiraArtifact implements IArtifact {
                 }
 
                 @Override
-                public IIssueType getIssueType() {
+                public IJiraIssueType getIssueType() {
                     return getiIssueType(task.getIssueType());
                 }
 
                 @Override
-                public IStatus getStatus() {
+                public IJiraStatus getStatus() {
                     return getiStatus(task.getStatus());
                 }
             });
@@ -237,8 +236,8 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public Iterable<IIssueField> getFields() {
-        List<IIssueField> iIssueFields = new ArrayList<>();
+    public Iterable<IJiraIssueField> getFields() {
+        List<IJiraIssueField> iIssueFields = new ArrayList<>();
         for (IssueField issueField : issue.getFields()) {
             iIssueFields.add(getiIssueField(issueField));
         }
@@ -246,14 +245,14 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IIssueField getField(String id) {
+    public IJiraIssueField getField(String id) {
         IssueField issueField = issue.getField(id);
         return getiIssueField(issueField);
     }
 
     @NotNull
-    private IIssueField getiIssueField(IssueField issueField) {
-        return new IIssueField() {
+    private IJiraIssueField getiIssueField(IssueField issueField) {
+        return new IJiraIssueField() {
             @Override
             public String getId() {
                 return issueField.getId();
@@ -277,19 +276,19 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IIssueField getFieldByName(String name) {
+    public IJiraIssueField getFieldByName(String name) {
         IssueField issueField = issue.getFieldByName(name);
         return getiIssueField(issueField);
     }
 
     @Override
-    public IIssueType getIssueType() {
+    public IJiraIssueType getIssueType() {
         return getiIssueType(issue.getIssueType());
     }
 
     @NotNull
-    private IIssueType getiIssueType(IssueType issueType) {
-        return new IIssueType() {
+    private IJiraIssueType getiIssueType(IssueType issueType) {
+        return new IJiraIssueType() {
             @Override
             public Long getId() {
                 return issueType.getId();
@@ -318,9 +317,9 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IBasicProject getProject() {
+    public IJiraBasicProject getProject() {
         BasicProject project = issue.getProject();
-        return new IBasicProject() {
+        return new IJiraBasicProject() {
             @Override
             public URI getSelf() {
                 return project.getSelf();
@@ -346,9 +345,9 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public IBasicVotes getVotes() {
+    public IJiraBasicVotes getVotes() {
         BasicVotes votes = issue.getVotes();
-        return new IBasicVotes() {
+        return new IJiraBasicVotes() {
             @Override
             public URI getSelf() {
                 return votes.getSelf();
@@ -367,10 +366,10 @@ public class JiraArtifact implements IArtifact {
     }
 
     @Override
-    public Iterable<IVersion> getFixVersions() {
-        List<IVersion> iVersions = new ArrayList<>();
+    public Iterable<IJiraVersion> getFixVersions() {
+        List<IJiraVersion> iVersions = new ArrayList<>();
         for (Version version : issue.getFixVersions()) {
-            iVersions.add(new IVersion() {
+            iVersions.add(new IJiraVersion() {
                 @Override
                 public URI getSelf() {
                     return version.getSelf();

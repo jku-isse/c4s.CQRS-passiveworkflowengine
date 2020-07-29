@@ -1,19 +1,20 @@
 package impactassessment.api
 
 import impactassessment.analytics.CorrelationTuple
-import impactassessment.artifact.base.IArtifact
+import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.model.WorkflowInstanceWrapper
 import impactassessment.model.workflowmodel.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
 // COMMANDS
-data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val artifact: IArtifact)
-data class AddArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
+data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
+data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class UpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
+data class ActivateInOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String, val branchId: String)
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val status: String, val ruleName: String, val description: String)
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple, val time: Instant)
@@ -24,11 +25,11 @@ data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
-data class AddedMockArtifactEvt(override val id: String, val artifact: IArtifact) : IdentifiableEvt
-data class AddedArtifactEvt(override val id: String, val artifact: IArtifact) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
+data class ActivatedInOutBranchEvt(override val id: String, val dniId: String, val wftId: String, val branchId: String) : IdentifiableEvt
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val status: String, val ruleName: String, val description: String) : IdentifiableEvt
 data class AddedResourceToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt

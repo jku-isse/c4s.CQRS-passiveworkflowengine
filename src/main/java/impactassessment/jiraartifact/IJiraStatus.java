@@ -1,8 +1,8 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
 import java.net.URI;
 
-public interface IStatus {
+public interface IJiraStatus {
 
     URI getSelf();
 
@@ -12,6 +12,6 @@ public interface IStatus {
 
     String getDescription();
 
-    IStatusCategory getStatusCategory();
+    IJiraStatusCategory getStatusCategory();
 
 }

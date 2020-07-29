@@ -1,4 +1,4 @@
-package impactassessment.rulebase;
+package impactassessment.kiesession;
 
 public class KieSessionUtils {
     public static boolean compareWorkflows(String ct, String qa) {

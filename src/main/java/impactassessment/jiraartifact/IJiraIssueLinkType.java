@@ -1,6 +1,6 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
-public interface IIssueLinkType {
+public interface IJiraIssueLinkType {
 
     enum Direction {
         OUTBOUND,

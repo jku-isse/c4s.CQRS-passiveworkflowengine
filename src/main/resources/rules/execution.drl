@@ -18,9 +18,10 @@ import impactassessment.model.workflowmodel.ResourceLink
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
 import impactassessment.api.ActivateOutBranchCmd
+import impactassessment.api.ActivateInOutBranchCmd
 
-import impactassessment.artifact.base.IArtifact
-import impactassessment.artifact.base.IStatus
+import impactassessment.jiraartifact.IJiraArtifact
+import impactassessment.jiraartifact.IJiraStatus
 
 import java.util.List
 import java.util.Set
@@ -30,7 +31,7 @@ global CommandGateway commandGateway;
 
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
-    	$a : IArtifact(  )
+    	$a : IJiraArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getId().toString()) &&
         							 getWorkflow().getWorkflowDefinition().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
 									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS &&
@@ -44,7 +45,7 @@ end
 
 rule "Open2InProgress-InBranchConditions"
     when
-    	$a : IArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) )
+    	$a : IJiraArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) )
         $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId().toString()) &&
@@ -54,13 +55,12 @@ rule "Open2InProgress-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "inProgressIn"));
 end
 
 rule "InProgress2Resolved-InBranchConditions"
     when
-    	$a : IArtifact( getStatus().getName().equals("Resolved") )
+    	$a : IJiraArtifact( getStatus().getName().equals("Resolved") )
         $task : WorkflowTask( getTaskType().getId().equals("In Progress"))
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId().toString()) &&
@@ -70,13 +70,12 @@ rule "InProgress2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end
 
 rule "Open2Resolved-InBranchConditions"
     when
-    	$a : IArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Closed") )
+    	$a : IJiraArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Closed") )
         $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getId().toString()) &&
@@ -86,7 +85,5 @@ rule "Open2Resolved-InBranchConditions"
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
     then
-        commandGateway.send(new ActivateInBranchCmd($wfi.getId(), $dn.getId(), $task.getId()));
-        //commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "inProgressIn"));
-        commandGateway.send(new ActivateOutBranchCmd($wfi.getId(), $dn.getId(), "resolvedIn"));
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end

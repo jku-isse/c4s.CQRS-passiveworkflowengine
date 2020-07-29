@@ -1,8 +1,8 @@
-package impactassessment.artifact.base;
+package impactassessment.jiraartifact;
 
 import java.net.URI;
 
-public interface IIssueType {
+public interface IJiraIssueType {
 
     Long getId();
 

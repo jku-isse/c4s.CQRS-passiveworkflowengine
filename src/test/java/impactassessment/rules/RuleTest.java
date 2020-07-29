@@ -2,12 +2,12 @@ package impactassessment.rules;
 
 import impactassessment.api.AddedMockArtifactEvt;
 import impactassessment.api.CompletedDataflowEvt;
-import impactassessment.artifact.base.IArtifact;
-import impactassessment.artifact.mock.MockService;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.workflowmodel.ResourceLink;
-import impactassessment.rulebase.KieSessionFactory;
+import impactassessment.kiesession.KieSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -38,7 +38,7 @@ public class RuleTest {
     @Test
     public void testOpenIssueAdd() {
         String id = "A1";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_OPEN);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_OPEN);
         addArtifact(a);
         int fired = insertAndFire(a);
 
@@ -48,7 +48,7 @@ public class RuleTest {
     @Test
     public void testOpenIssueAddComplete() {
         String id = "A1";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_OPEN);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_OPEN);
         addArtifact(a);
         int fired = insertAndFire(a);
         completeDataflow(a);
@@ -60,7 +60,7 @@ public class RuleTest {
     @Test
     public void testInProgressIssueAdd() {
         String id = "A2";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_IN_PROGRESS);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_IN_PROGRESS);
         addArtifact(a);
         int fired = insertAndFire(a);
 
@@ -70,7 +70,7 @@ public class RuleTest {
     @Test
     public void testInProgressIssueAddComplete() {
         String id = "A2";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_IN_PROGRESS);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_IN_PROGRESS);
         addArtifact(a);
         int fired = insertAndFire(a);
         completeDataflow(a);
@@ -82,7 +82,7 @@ public class RuleTest {
     @Test
     public void testResolvedIssueAdd() {
         String id = "A3";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_RESOLVED);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_RESOLVED);
         addArtifact(a);
         int fired = insertAndFire(a);
 
@@ -92,7 +92,7 @@ public class RuleTest {
     @Test
     public void testResolvedIssueAddComplete() {
         String id = "A3";
-        IArtifact a = MockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_RESOLVED);
+        IJiraArtifact a = JiraMockService.mockArtifact(id, DronologyWorkflow.TASK_STATE_RESOLVED);
         addArtifact(a);
         int fired = insertAndFire(a);
         completeDataflow(a);
@@ -107,16 +107,16 @@ public class RuleTest {
         model = null;
     }
 
-    private void addArtifact(IArtifact a) {
+    private void addArtifact(IJiraArtifact a) {
         model.handle(new AddedMockArtifactEvt(a.getId().toString(), a));
     }
 
-    private void completeDataflow(IArtifact a) {
+    private void completeDataflow(IJiraArtifact a) {
         String id = a.getId().toString();
         model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, ResourceLink.of(a)));
     }
 
-    private int insertAndFire(IArtifact a) {
+    private int insertAndFire(IJiraArtifact a) {
         kieSession.insert(a);
         kieSession.insert(model.getWorkflowInstance());
         model.getWorkflowInstance().getWorkflowTasksReadonly().stream()

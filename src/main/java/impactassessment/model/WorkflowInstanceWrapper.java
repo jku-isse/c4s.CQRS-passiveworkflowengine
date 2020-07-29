@@ -2,7 +2,7 @@ package impactassessment.model;
 
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
-import impactassessment.artifact.base.IArtifact;
+import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -21,22 +21,12 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    private void handle(AddedMockArtifactEvt evt) {
-        IArtifact artifact = evt.getArtifact();
-        DronologyWorkflow wfd = new DronologyWorkflow();
-        wfd.initWorkflowSpecification();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId());
-        wfi.addOrReplaceProperty("ID", artifact.getId());
-        wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
-        if (!artifact.getIssueType().getName().equals("Hazard")) {
-            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
-        }
-        wfi.enableWorkflowTasksAndDecisionNodes();
-    }
+    public static final String PROP_ID = "ID";
+    public static final String PROP_ISSUE_TYPE = "Issue Type";
+    public static final String PROP_PRIORITY = "Priority";
 
-    private void handle(AddedArtifactEvt evt) {
-        IArtifact artifact = evt.getArtifact();
+    private void handle(ImportedOrUpdatedArtifactEvt evt) {
+        IJiraArtifact artifact = evt.getArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
@@ -81,6 +71,17 @@ public class WorkflowInstanceWrapper {
     private void handle(ActivatedOutBranchEvt evt) {
         Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
         optDni.ifPresent(dni -> dni.activateOutBranch(evt.getBranchId()));
+    }
+
+    private void handle(ActivatedInOutBranchEvt evt) {
+        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
+        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
+        if (optDni.isPresent() && optWft.isPresent()) {
+            DecisionNodeInstance dni = optDni.get();
+            WorkflowTask wft = optWft.get();
+            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateOutBranch(evt.getBranchId());
+        }
     }
 
     private void handle(AddedQAConstraintEvt evt) {
@@ -133,16 +134,16 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof AddedMockArtifactEvt) {
-            handle((AddedMockArtifactEvt) evt);
-        } else if (evt instanceof AddedArtifactEvt) {
-            handle((AddedArtifactEvt) evt);
+        if (evt instanceof ImportedOrUpdatedArtifactEvt) {
+            handle((ImportedOrUpdatedArtifactEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {
             handle((ActivatedInBranchEvt) evt);
         } else if (evt instanceof ActivatedOutBranchEvt) {
             handle((ActivatedOutBranchEvt) evt);
+        } else if (evt instanceof ActivatedInOutBranchEvt) {
+            handle((ActivatedInOutBranchEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedResourceToConstraintEvt) {
