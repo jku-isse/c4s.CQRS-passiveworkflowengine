@@ -110,6 +110,7 @@ public class MainView extends VerticalLayout {
         accordion.add("Evaluate Constraint", evaluate());
         accordion.add("Developer Commands", backend());
         accordion.close();
+        accordion.open(0);
         accordion.setWidthFull();
 
         menu.add(new H2("Controls"), accordion);
