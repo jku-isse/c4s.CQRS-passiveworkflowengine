@@ -105,16 +105,18 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(evt.getRes())) {
-            rebc.addAs(evt.getFulfilled(), evt.getRes());
-            rebc.setLastChanged(evt.getTime());
+        if (rebc != null) {
+            if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(evt.getRes())) {
+                rebc.addAs(evt.getFulfilled(), evt.getRes());
+                rebc.setLastChanged(evt.getTime());
+            }
+            if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(evt.getRes())) {
+                rebc.addAs(evt.getFulfilled(), evt.getRes());
+                rebc.setLastChanged(evt.getTime());
+            }
+            rebc.setLastEvaluated(evt.getTime());
+            rebc.setEvaluated(evt.getCorr());
         }
-        if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(evt.getRes())) {
-            rebc.addAs(evt.getFulfilled(), evt.getRes());
-            rebc.setLastChanged(evt.getTime());
-        }
-        rebc.setLastEvaluated(evt.getTime());
-        rebc.setEvaluated(evt.getCorr());
     }
 
     private void handle(AddedResourcesToConstraintEvt evt) {

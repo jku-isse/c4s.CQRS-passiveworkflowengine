@@ -69,10 +69,12 @@ public class Snapshotter {
     }
 
     public void step() {
+        head = eventStore.createHeadToken().position().getAsLong();
         futureAction.complete(Action.STEP);
     }
 
     public void jump(Instant time) {
+        head = eventStore.createHeadToken().position().getAsLong();
         futureAction.complete(Action.JUMP);
         jumpTimestamp = time;
     }
