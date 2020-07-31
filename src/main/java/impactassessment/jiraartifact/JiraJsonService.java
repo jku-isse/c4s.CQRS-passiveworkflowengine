@@ -45,7 +45,7 @@ public class JiraJsonService implements IJiraArtifactService {
         if (jsonObj != null) {
             issue = new IssueJsonParser(new JSONObject(), new JSONObject()).parse(jsonObj);
         }
-        log.info("Parsed issue:\n" + issue);
+        // log.info("Parsed issue:\n" + issue);
         return issue;
 	}
 

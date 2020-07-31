@@ -1,6 +1,7 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -36,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -243,7 +245,13 @@ public class MainView extends VerticalLayout {
         return layout;
     }
 
+
     private Component importArtifact() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(false);
+        layout.setPadding(false);
+        layout.setWidthFull();
+
         RadioButtonGroup<String> source = new RadioButtonGroup<>();
         source.setLabel("Source");
         source.setItems(Sources.JIRA.toString(), Sources.MOCK.toString());
@@ -272,7 +280,7 @@ public class MainView extends VerticalLayout {
 
         enable(false, id, status, issuetype, priority, summary);
 
-        Button add = new Button("Import or Update Artifact", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
             if (source.getValue().equals(Sources.JIRA.toString())) {
                 commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
                 Notification.show("Success");
@@ -283,6 +291,7 @@ public class MainView extends VerticalLayout {
                 Notification.show("Invalid Source");
             }
         });
+        importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
         VerticalLayout column1 = new VerticalLayout();
         column1.setMargin(false);
@@ -301,7 +310,7 @@ public class MainView extends VerticalLayout {
         VerticalLayout row2 = new VerticalLayout();
         row2.setMargin(false);
         row2.setPadding(false);
-        row2.add(summary, add);
+        row2.add(summary, importOrUpdateArtifactButton);
 
         source.addValueChangeListener(evt -> {
             if (evt.getValue().equals(Sources.MOCK.toString())) {
@@ -313,12 +322,7 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        VerticalLayout layout = new VerticalLayout();
-        layout.setMargin(false);
-        layout.setPadding(false);
-        layout.setWidthFull();
         layout.add(source, key, row1, row2);
-
         return layout;
     }
 
@@ -376,15 +380,18 @@ public class MainView extends VerticalLayout {
     }
 
     private Component remove() {
+        VerticalLayout layout = new VerticalLayout();
         TextField id = new TextField("ID");
         id.setValue("A3");
 
-        Button delete = new Button("Remove Artifact");
-        delete.addClickListener(evt -> {
+        Button removeArtifactButton = new Button("Remove Artifact");
+        removeArtifactButton.addClickListener(evt -> {
             commandGateway.send(new DeleteCmd(id.getValue()));
         });
+        removeArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
-        return new VerticalLayout(id, delete);
+        layout.add(id, removeArtifactButton);
+        return layout;
     }
 
     private VerticalLayout snapshotPanel() {
