@@ -281,15 +281,12 @@ public class MainView extends VerticalLayout {
         enable(false, id, status, issuetype, priority, summary);
 
         Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
-            if (source.getValue().equals(Sources.JIRA.toString())) {
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
-                Notification.show("Success");
-            } else if (source.getValue().equals(Sources.MOCK.toString())) {
+            if (source.getValue().equals(Sources.MOCK.toString())) {
                 commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
-                Notification.show("Success");
             } else {
-                Notification.show("Invalid Source");
+                commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
             }
+            Notification.show("Success");
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
