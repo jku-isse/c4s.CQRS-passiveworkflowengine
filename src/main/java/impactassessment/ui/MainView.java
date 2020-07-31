@@ -186,13 +186,14 @@ public class MainView extends VerticalLayout {
         Button stop = new Button("Stop current Replay");
 
         step.addClickListener(e -> {
-            snapshotter.step();
-            snapshotGrid.updateTreeGrid(snapshotter.getState());
-            if (snapshotter.getProgress() == 1) { // TODO a bit ugly
+            if (snapshotter.step()) {
+                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                progressBar.setValue(snapshotter.getProgress());
+            } else {
                 step.setEnabled(false);
                 jump.setEnabled(false);
+                Notification.show("Last event reached!");
             }
-            progressBar.setValue(snapshotter.getProgress());
         });
         step.setEnabled(false);
 
@@ -203,13 +204,12 @@ public class MainView extends VerticalLayout {
                     hour.getValue().intValue(),
                     min.getValue().intValue(),
                     sec.getValue().intValue());
-            snapshotter.jump(jumpTime.atZone(ZoneId.systemDefault()).toInstant());
-            snapshotGrid.updateTreeGrid(snapshotter.getState());
-            if (snapshotter.getProgress() == 1) { // TODO a bit ugly
-                step.setEnabled(false);
-                jump.setEnabled(false);
+            if (snapshotter.jump(jumpTime.atZone(ZoneId.systemDefault()).toInstant())) {
+                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                progressBar.setValue(snapshotter.getProgress());
+            } else {
+                Notification.show("Specified time is after the last or before the first event!");
             }
-            progressBar.setValue(snapshotter.getProgress());
         });
         jump.setEnabled(false);
 
@@ -232,12 +232,15 @@ public class MainView extends VerticalLayout {
                     hour.getValue().intValue(),
                     min.getValue().intValue(),
                     sec.getValue().intValue());
-            snapshotter.start(snapshotTime.atZone(ZoneId.systemDefault()).toInstant());
-            snapshotGrid.updateTreeGrid(snapshotter.getState());
-            progressBar.setValue(snapshotter.getProgress());
-            step.setEnabled(true);
-            jump.setEnabled(true);
-            stop.setEnabled(true);
+            if (snapshotter.start(snapshotTime.atZone(ZoneId.systemDefault()).toInstant())) {
+                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                progressBar.setValue(snapshotter.getProgress());
+                step.setEnabled(true);
+                jump.setEnabled(true);
+                stop.setEnabled(true);
+            } else {
+                Notification.show("Specified time is after the last or before the first event!");
+            }
         });
 
         layout.add(valueDatePicker, snapshotButton, step, jump, stop);
