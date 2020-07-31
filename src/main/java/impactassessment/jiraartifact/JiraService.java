@@ -1,11 +1,8 @@
-package impactassessment.jiraartifact.atlassian;
+package impactassessment.jiraartifact;
 
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.*;
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.IJiraArtifactService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileReader;
@@ -14,7 +11,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 @Slf4j
-@Component
 public class JiraService implements IJiraArtifactService {
 
     private JiraInstance jira;

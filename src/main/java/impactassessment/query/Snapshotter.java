@@ -6,12 +6,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.GenericTrackedDomainEventMessage;
+import org.axonframework.eventhandling.TrackingToken;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,7 +34,8 @@ public class Snapshotter {
     private double head;
     private double cur;
 
-    public void start(Instant timestamp) {
+    public boolean start(Instant timestamp) {
+        if (isNotValidTimestamp(timestamp)) return false;
         stop(); // stop last thread if still running
 
         futureDB = new CompletableFuture<>();
@@ -40,17 +43,16 @@ public class Snapshotter {
         futureAction.complete(Action.STEP);
         mockDB = new MockDatabase();
 
-        head = eventStore.createHeadToken().position().getAsLong();
-
         worker = new ReplayRunnable(eventStore, timestamp);
         worker.start();
+        return true;
     }
 
     private void stop() {
         if (worker != null) {
             futureAction.complete(Action.QUIT);
             try {
-                worker.join();
+                worker.join(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -68,13 +70,34 @@ public class Snapshotter {
         return data.entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
     }
 
-    public void step() {
+    public boolean step() {
+        head = eventStore.createHeadToken().position().getAsLong();
+        if (cur >= head) {
+            quit();
+            return false;
+        }
         futureAction.complete(Action.STEP);
+        return true;
     }
 
-    public void jump(Instant time) {
+    public boolean jump(Instant time) {
+        if (isNotValidTimestamp(time)) return false;
         futureAction.complete(Action.JUMP);
         jumpTimestamp = time;
+        return true;
+    }
+
+    private boolean isNotValidTimestamp(Instant time) {
+        head = eventStore.createHeadToken().position().getAsLong();
+        TrackingToken t = eventStore.createTokenAt(time);
+        if (t == null) {
+            return true;
+        }
+        OptionalLong curPos = t.position();
+        if (curPos.isEmpty() || curPos.getAsLong() >= (head-2)) { // not sure why -2 is needed
+            return true;
+        }
+        return false;
     }
 
     public void quit() {
@@ -83,6 +106,10 @@ public class Snapshotter {
 
     public double getProgress() {
         return cur / head;
+    }
+
+    public int eventsMissing() {
+        return (int)(head - cur);
     }
 
     private Action getAction() {
@@ -102,23 +129,15 @@ public class Snapshotter {
 
         private Stream<? extends EventMessage<?>> eventStream;
         private Instant timestamp;
-        private boolean stop;
 
         public ReplayRunnable(EventStore eventStore, Instant timestamp) {
             this.timestamp = timestamp;
             this.eventStream = eventStore.openStream(null).asStream();
-            this.stop = false;
-        }
-
-        private void endReached(double d) {
-            if (d == head) {
-                stop = true;
-            }
         }
 
         @Override
         public void run() {
-            eventStream.takeWhile(x -> !stop).forEach(e -> {
+            eventStream.forEach(e -> {
                 if (e.getTimestamp().isBefore(timestamp)) {
                     mockDB.handle(e);
                 } else {
@@ -139,8 +158,8 @@ public class Snapshotter {
                             }
                             break;
                         case QUIT:
-                            stop = true;
-                            break;
+                            log.info("Snapshotter stops");
+                            return;
                         default:
                             log.error("Snapshotter: Invalid action!");
                     }

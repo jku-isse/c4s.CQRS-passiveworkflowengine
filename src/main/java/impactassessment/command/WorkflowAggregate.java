@@ -5,11 +5,11 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.kiesession.KieSessionService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.ConstraintTrigger;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.kiesession.KieSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -81,21 +81,6 @@ public class WorkflowAggregate {
                     kieSessionService.setInitialized(id);
                     kieSessionService.fire(id);
                 });
-    }
-
-    @CommandHandler
-    public void handle(UpdateArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
-        log.info("[AGG] handling {}", cmd);
-        ensureInitializedKB(cmd.getId(), kieSessionService);
-        if (cmd.getSource().equals(Sources.JIRA)) {
-            IJiraArtifact a = artifactService.get(cmd.getId());
-            if (a != null) {
-                kieSessionService.insertOrUpdate(cmd.getId(), a);
-                kieSessionService.fire(cmd.getId());
-            }
-        } else {
-            log.error("Unsupported Artifact source: "+cmd.getSource());
-        }
     }
 
     @CommandHandler
