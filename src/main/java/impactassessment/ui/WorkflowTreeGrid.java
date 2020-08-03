@@ -19,6 +19,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -32,14 +33,16 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 return wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) + ": " + wfi.getId();
-            }
-            else if (o instanceof RuleEngineBasedConstraint) {
+            } else if (o instanceof WorkflowTask) {
+                WorkflowTask wft = (WorkflowTask) o;
+                return wft.getTaskType().getId();
+            } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
                 return rebc.getConstraintType();
             } else {
                 return o.getClass().getSimpleName() + ": " + o.getId();
             }
-        }).setHeader("Workflow Instance").setWidth("40%");
+        }).setHeader("Workflow Instance").setWidth("30%");
 
 
         this.addColumn(o -> {
@@ -124,11 +127,20 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                     return wfi.getWorkflowTasksReadonly().stream().map(wft -> (IdentifiableObject) wft);
                 } else if (o instanceof WorkflowTask) {
                     WorkflowTask wft = (WorkflowTask) o;
-                    return wft.getOutput().stream().filter(ao -> ao.getArtifact() instanceof QACheckDocument).map(x -> (IdentifiableObject) x.getArtifact());
-                } else if (o instanceof QACheckDocument) {
+                    Optional<QACheckDocument> qacd =  wft.getOutput().stream()
+                            .map(ao -> ao.getArtifact())
+                            .filter(io -> io instanceof QACheckDocument)
+                            .map(io -> (QACheckDocument) io)
+                            .findFirst();
+                    if (qacd.isPresent()) {
+                        return qacd.get().getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
+                    } else {
+                        return Stream.empty();
+                    }
+                }/* else if (o instanceof QACheckDocument) {
                     QACheckDocument qacd = (QACheckDocument) o;
                     return qacd.getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
-                } else if (o instanceof RuleEngineBasedConstraint) {
+                }*/ else if (o instanceof RuleEngineBasedConstraint) {
                     return Stream.empty();
                 } else {
                     log.error("TreeGridPanel got unknown artifact: " + o.getClass().getSimpleName());
