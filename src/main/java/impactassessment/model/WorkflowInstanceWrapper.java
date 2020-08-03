@@ -30,11 +30,11 @@ public class WorkflowInstanceWrapper {
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
-        wfi = wfd.createInstance(artifact.getId());
-        wfi.addOrReplaceProperty("ID", artifact.getId());
-        wfi.addOrReplaceProperty("Issue Type", artifact.getIssueType().getName());
+        wfi = wfd.createInstance(artifact.getKey()); // TODO internal ID
+        wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
+        wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
         if (!artifact.getIssueType().getName().equals("Hazard")) {
-            wfi.addOrReplaceProperty("Priority", "" + artifact.getPriority().getName());
+            wfi.addOrReplaceProperty(PROP_PRIORITY, "" + artifact.getPriority().getName());
         }
         wfi.enableWorkflowTasksAndDecisionNodes();
     }

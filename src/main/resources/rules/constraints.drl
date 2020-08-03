@@ -108,14 +108,14 @@ rule "CheckJiraIssueBase"
 	no-loop
 	when
 		$a : IJiraArtifact ( )
-		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getId()) )
+		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getKey()) )
 	then
 end
 
 rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
 											&& isAffectedBy($ct) )
 	then
@@ -126,7 +126,7 @@ end
 rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
 											&& isAffectedBy($ct) )
 	then
@@ -148,7 +148,7 @@ end
 rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
 											&& isAffectedBy($ct) )
 	then
@@ -174,7 +174,7 @@ end
 rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasAssignee" )
 											&& isAffectedBy($ct) )
 	then
@@ -185,7 +185,7 @@ end
 rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
 											&& isAffectedBy($ct) )
 	then
@@ -205,7 +205,7 @@ end
 rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckAllRelatedBugsClosed" )
 											&& isAffectedBy($ct) )
 	then
@@ -229,7 +229,7 @@ end
 rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckHazardIsMitigated" )
 											&& isAffectedBy($ct) )
 	then
