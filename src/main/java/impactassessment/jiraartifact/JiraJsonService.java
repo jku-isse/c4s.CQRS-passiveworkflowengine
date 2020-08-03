@@ -22,7 +22,10 @@ public class JiraJsonService implements IJiraArtifactService {
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-        JiraArtifact artifact = new JiraArtifact(issue);
+        JiraArtifact artifact = null;
+        if (issue != null) {
+            artifact = new JiraArtifact(issue);
+        }
         return artifact;
     }
 
@@ -34,7 +37,7 @@ public class JiraJsonService implements IJiraArtifactService {
         JSONObject jsonObj = null;
         for (int i = 0; i < issues.length(); i++) {
             JSONObject curIssue = issues.getJSONObject(i);
-            if (curIssue.getString("id").equals(key)) {
+            if (curIssue.getString("key").equals(key)) {
                 jsonObj = curIssue;
                 break;
             }

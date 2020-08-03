@@ -60,7 +60,7 @@ public class Snapshotter {
     }
 
     public List<WorkflowInstanceWrapper> getState() {
-        Map<String, WorkflowInstanceWrapper> data = null;
+        ConcurrentMap<String, WorkflowInstanceWrapper> data = null;
         try {
             data = futureDB.get().getDb();
             futureDB = new CompletableFuture<>();

@@ -9,17 +9,19 @@ import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 
 @Component
 @Slf4j
 public class MockDatabase {
 
-    private @Getter Map<String, WorkflowInstanceWrapper> db;
+    private @Getter
+    ConcurrentMap<String, WorkflowInstanceWrapper> db;
 
     public MockDatabase() {
-        db = new HashMap<>();
+        db = new ConcurrentHashMap<>();
     }
 
     public WorkflowInstanceWrapper getWorkflowModel(String id) {
@@ -52,11 +54,11 @@ public class MockDatabase {
     }
 
     public void reset() {
-        db = new HashMap<>();
+        db = new ConcurrentHashMap<>();
     }
 
     public void print() {
-        for (Map.Entry<String, WorkflowInstanceWrapper> entry : db.entrySet()) {
+        for (ConcurrentMap.Entry<String, WorkflowInstanceWrapper> entry : db.entrySet()) {
             System.out.println(entry.getKey()+": "+entry.getValue());
         }
     }

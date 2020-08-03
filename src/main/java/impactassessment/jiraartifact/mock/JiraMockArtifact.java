@@ -57,7 +57,7 @@ public class JiraMockArtifact implements IJiraArtifact {
 
     @Override
     public String getKey() {
-        return "key";
+        return id;
     }
 
     @Override

@@ -262,7 +262,11 @@ public class MainView extends VerticalLayout {
         source.setValue(Sources.JIRA.toString());
 
         TextField key = new TextField("Key");
-        key.setValue("11320"); //similar issue: "11321", Hazard with links: "11661"
+        // Task: UAV-203
+        // Sub-task: UAV-207
+        // DD: UAV-277
+        // Bug: UAV-150
+        key.setValue("UAV-177");
 
         // MOCK fields
         TextField id = new TextField("ID");

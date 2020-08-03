@@ -21,6 +21,7 @@ import java.util.ArrayList
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.jiraartifact.IJiraIssueLink
 import impactassessment.jiraartifact.IJiraArtifactService
+import impactassessment.kiesession.KieSessionUtils
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;
@@ -107,14 +108,14 @@ rule "CheckJiraIssueBase"
 	no-loop
 	when
 		$a : IJiraArtifact ( )
-		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getId()) )
+		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getKey()) )
 	then
 end
 
 rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
 											&& isAffectedBy($ct) )
 	then
@@ -125,7 +126,7 @@ end
 rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
 											&& isAffectedBy($ct) )
 	then
@@ -147,7 +148,7 @@ end
 rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
 											&& isAffectedBy($ct) )
 	then
@@ -157,7 +158,7 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getDestination();
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
-				if (link.getIssueLinkType().getName().equals("realizes")){
+				if (link.getIssueLinkType().getName().equals("Realizes")){
                     commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
 					isRelatedToOne = false;
 				} else {
@@ -173,7 +174,7 @@ end
 rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasAssignee" )
 											&& isAffectedBy($ct) )
 	then
@@ -184,7 +185,7 @@ end
 rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
 											&& isAffectedBy($ct) )
 	then
@@ -204,7 +205,7 @@ end
 rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckAllRelatedBugsClosed" )
 											&& isAffectedBy($ct) )
 	then
@@ -212,7 +213,7 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
 			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
-				if (p.getStatus().getName().equals("closed")) {
+				if (p.getStatus().getName().equals("Closed")) {
                     commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
 				} else {
                     commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
@@ -228,7 +229,7 @@ end
 rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getId())
+		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
 											&& getConstraintType().equals( "CheckHazardIsMitigated" )
 											&& isAffectedBy($ct) )
 	then
