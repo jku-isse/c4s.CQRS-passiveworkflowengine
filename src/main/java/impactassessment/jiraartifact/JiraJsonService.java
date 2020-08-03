@@ -22,7 +22,10 @@ public class JiraJsonService implements IJiraArtifactService {
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-        JiraArtifact artifact = new JiraArtifact(issue);
+        JiraArtifact artifact = null;
+        if (issue != null) {
+            artifact = new JiraArtifact(issue);
+        }
         return artifact;
     }
 
