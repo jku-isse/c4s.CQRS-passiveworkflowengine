@@ -10,4 +10,6 @@ public interface WorkflowDefinition {
     public TaskDefinition getTDbyID(String tdID);
     public String getId();
     public WorkflowInstance createInstance(String withOptionalId);//, KieSession intoOptionalKSession);
+
+
 }

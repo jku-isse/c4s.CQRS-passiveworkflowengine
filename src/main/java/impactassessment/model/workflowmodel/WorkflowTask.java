@@ -469,6 +469,13 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		public ArtifactOutput(Artifact artifact) {
 			super(artifact);
 		}
+
+		public ArtifactOutput(ArtifactInput ai) {
+			id = ai.id;
+			role = ai.role;
+			container = ai.container;
+			artifact = ai.artifact;
+		}
 		
 		@Deprecated
 		public ArtifactOutput() {
@@ -491,6 +498,13 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 
 		public ArtifactInput(Artifact artifact) {
 			super(artifact);
+		}
+
+		public ArtifactInput(ArtifactOutput ao) {
+			id = ao.id;
+			role = ao.role;
+			container = ao.container;
+			artifact = ao.artifact;
 		}
 		
 		@Deprecated

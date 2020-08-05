@@ -438,6 +438,53 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 
+	public boolean mapOutputsToExpectedInputsSameRole() {
+		List<WorkflowTask.ArtifactOutput> outputs = getAllOutputs(); // all outputs from every incoming WFT merged
+		if (outputs.isEmpty()) return false;
+		List<WorkflowTask> subsequentTasks = getAllSubsequentTasks();
+		if (subsequentTasks.isEmpty()) return false;
+
+		boolean success = false;
+		for (WorkflowTask.ArtifactOutput ao : outputs) {
+			for (WorkflowTask wft : subsequentTasks) {
+				if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) {
+					wft.addInput(new WorkflowTask.ArtifactInput(ao));
+					success = true;
+				}
+			}
+		}
+		return success;
+	}
+	
+	public boolean mapOutputsToExpectedInputsSameType() {
+		throw new RuntimeException("not implemented");
+	}
+
+	public boolean mapOutputsToExpectedInputsSameRoleSameType() {
+		throw new RuntimeException("not implemented");
+	}
+
+	private List<WorkflowTask.ArtifactOutput> getAllOutputs() {
+		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
+		for (IBranchInstance b : getInBranches()) {
+			if (b.getState().equals(IBranchInstance.BranchState.TransitionEnabled)) {
+				artifactOut.addAll(b.getTask().getOutput());
+			}
+		}
+		return artifactOut;
+	}
+
+	private List<WorkflowTask> getAllSubsequentTasks() {
+		List<WorkflowTask> followingTasks = new ArrayList<>();
+		for (IBranchInstance b : getOutBranches()) {
+			if (b.getState().equals(IBranchInstance.BranchState.TransitionEnabled)) {
+				followingTasks.add(b.getTask());
+			}
+		}
+		return followingTasks;
+	}
+
+
 	@Override
 	public String toString() {
 		return "DNI [" + ofType + ", " /*+ "("+getState()+")"*/ + workflow + ", "	//TODO

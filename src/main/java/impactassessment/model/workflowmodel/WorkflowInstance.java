@@ -265,6 +265,21 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return Collections.unmodifiableSet(wfProps.entrySet());
     }
 
+
+
+    /**
+     * Try to map WorkflowTask ArtifactOutput to following WorkflowTasks ArtifactInput
+     *
+     * @return if anything was mapped
+     */
+    public boolean mapOutputsToExpectedInputsSameRole() {
+        boolean success = false;
+        for (DecisionNodeInstance dni : getDecisionNodeInstancesReadonly()) {
+            success = dni.mapOutputsToExpectedInputsSameRole();
+        }
+        return success;
+    }
+
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY
 
 //	public void signalNewWorkflowTask(WorkflowTask wti) {
