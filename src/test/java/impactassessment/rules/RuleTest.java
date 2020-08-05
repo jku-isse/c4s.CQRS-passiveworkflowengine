@@ -1,14 +1,14 @@
 package impactassessment.rules;
 
-import impactassessment.api.AddedMockArtifactEvt;
+import impactassessment.aggregates.AggregateTestConfig;
 import impactassessment.api.CompletedDataflowEvt;
+import impactassessment.api.ImportedOrUpdatedArtifactEvt;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.workflowmodel.ResourceLink;
 import impactassessment.kiesession.KieSessionFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
 import org.junit.Before;
@@ -16,10 +16,11 @@ import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.Assert.assertEquals;
 
-@Slf4j
+@SpringBootTest(classes = RuleTestConfig.class)
 public class RuleTest {
 
     private KieSession kieSession;
@@ -54,7 +55,7 @@ public class RuleTest {
         completeDataflow(a);
         fired += insertAndFire(a);
 
-        assertEquals(1, fired);
+        assertEquals(2, fired);
     }
 
     @Test
@@ -76,7 +77,7 @@ public class RuleTest {
         completeDataflow(a);
         fired += insertAndFire(a);
 
-        assertEquals(2, fired);
+        assertEquals(3, fired);
     }
 
     @Test
@@ -98,7 +99,7 @@ public class RuleTest {
         completeDataflow(a);
         fired += insertAndFire(a);
 
-        assertEquals(2, fired);
+        assertEquals(3, fired);
     }
 
     @After
@@ -108,11 +109,11 @@ public class RuleTest {
     }
 
     private void addArtifact(IJiraArtifact a) {
-        model.handle(new AddedMockArtifactEvt(a.getId().toString(), a));
+        model.handle(new ImportedOrUpdatedArtifactEvt(a.getKey(), a));
     }
 
     private void completeDataflow(IJiraArtifact a) {
-        String id = a.getId().toString();
+        String id = a.getKey();
         model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, ResourceLink.of(a)));
     }
 
