@@ -1,8 +1,6 @@
 package impactassessment.model.workflowmodel;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.neo4j.ogm.annotation.Relationship;
@@ -32,6 +30,9 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 	
 	private BranchingType inBranchingType = BranchingType.AND;
 	private BranchingType outBranchingType = BranchingType.AND;
+
+	private List<Mapping> mappings = new ArrayList<>();
+	public List<Mapping> getMappings() {return mappings;}
 	
 	@Deprecated
 	public DecisionNodeDefinition() {
@@ -112,6 +113,90 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 			.findFirst();
 		return optoutB.isPresent();			
 	}
+
+	public void addMapping(String from, String to) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(String from, String to, MappingType mappingType) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(List<String> from, String to) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(List<String> from, String to, MappingType mappingType) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(String from, List<String> to) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(String from, List<String> to, MappingType mappingType) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(List<String> from, List<String> to) {
+		mappings.add(new Mapping(from, to));
+	}
+	public void addMapping(List<String> from, List<String> to, MappingType mappingType) {
+		mappings.add(new Mapping(from, to));
+	}
+	public static enum MappingType {ALL, ANY}
+
+	/**
+	 * A Mapping is defined by a TaskDefinition ID "from", a TaskDefinition ID "to" and the "mappingType"
+	 * A DecisionNodeDefinition can have 0 to * Mappings
+	 * If a Mapping is defined the DecisionNodeInstance of this will map the ArtifactOutputs from the
+	 * WorkflowTask corresponding to "from" to the ArtifactInputs from the WorkflowTask corresponding to "to".
+	 */
+	public static class Mapping {
+		private List<String> from = new ArrayList<>();
+		private List<String> to = new ArrayList<>();
+		private MappingType mappingType;
+		public Mapping(String from, String to, MappingType mappingType) {
+			this.from.add(from);
+			this.to.add(to);
+			this.mappingType = mappingType;
+		}
+		public Mapping(String from, String to) {
+			this(from, to, MappingType.ANY);
+		}
+		public Mapping(List<String> from, String to, MappingType mappingType) {
+			this.from = from;
+			this.to.add(to);
+			this.mappingType = mappingType;
+		}
+		public Mapping(List<String> from, String to) {
+			this(from, to, MappingType.ANY);
+		}
+		public Mapping(String from, List<String> to, MappingType mappingType) {
+			this.from.add(from);
+			this.to = to;
+			this.mappingType = mappingType;
+		}
+		public Mapping(String from, List<String> to) {
+			this(from, to, MappingType.ANY);
+		}
+		public Mapping(List<String> from, List<String> to, MappingType mappingType) {
+			this.from = from;
+			this.to = to;
+			this.mappingType = mappingType;
+		}
+		public Mapping(List<String> from, List<String> to) {
+			this(from, to, MappingType.ANY);
+		}
+
+		public List<String> getFrom() {
+			return from;
+		}
+
+		public List<String> getTo() {
+			return to;
+		}
+
+		public MappingType getMappingType() {
+			return mappingType;
+		}
+	}
+
+
 	
 	public DecisionNodeInstance createInstance(WorkflowInstance wfi) {
 		DecisionNodeInstance dni = new DecisionNodeInstance(this, wfi, getStateMachine());

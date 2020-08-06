@@ -49,9 +49,18 @@ public class TaskDefinition extends AbstractWorkflowDefinitionObject implements 
 	public Map<String,ArtifactType> getExpectedInput() {
 		return expectedInput;
 	}
+
+	public ArtifactType putExpectedInput(String key, ArtifactType value) {
+		return expectedInput.put(key, value);
+	}
+
 	public Map<String,ArtifactType> getExpectedOutput() {
 		return expectedOutput;
-	}	
+	}
+
+	public ArtifactType putExpectedOutput(String key, ArtifactType value) {
+		return expectedOutput.put(key, value);
+	}
 
 	public void setResponsibleRole(Role responsibleRole) {
 		this.responsibleRole = responsibleRole;

@@ -272,11 +272,11 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
      *
      * @return if anything was mapped
      */
-    public boolean mapOutputsToExpectedInputsSameRole() {
+    public boolean executeAllMappings() {
         boolean success = false;
         for (DecisionNodeInstance dni : getDecisionNodeInstancesReadonly()) {
-            boolean b = dni.mapOutputsToExpectedInputsSameRole();
-            if (b) success = b;
+            boolean b = dni.executeMapping();
+            if (b) success = true;
         }
         return success;
     }

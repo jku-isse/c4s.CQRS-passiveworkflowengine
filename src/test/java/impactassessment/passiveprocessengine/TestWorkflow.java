@@ -43,7 +43,7 @@ public class TestWorkflow extends AbstractWorkflowDefinition implements Workflow
 
     private TaskDefinition getStateClosedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_CLOSED, this);
-        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
 
@@ -59,9 +59,15 @@ public class TestWorkflow extends AbstractWorkflowDefinition implements Workflow
     }
 
     private DecisionNodeDefinition getOpen2Closed(TaskDefinition tdOpen, TaskDefinition tdClosed) {
-        DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2closed", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition(
+                "open2closed",
+                this,
+                DecisionNodeDefinition.HAVING_EXTERNAL_RULE,
+                DecisionNodeDefinition.NO_EXTERNAL_RULE,
+                DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, true, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("closedIn", tdClosed, false, true, dnd));
+        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_CLOSED);
         return dnd;
     }
 }

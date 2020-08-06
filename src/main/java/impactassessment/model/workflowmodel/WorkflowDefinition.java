@@ -11,5 +11,4 @@ public interface WorkflowDefinition {
     public String getId();
     public WorkflowInstance createInstance(String withOptionalId);//, KieSession intoOptionalKSession);
 
-
 }

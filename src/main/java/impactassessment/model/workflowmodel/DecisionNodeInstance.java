@@ -438,16 +438,21 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 
-	public boolean mapOutputsToExpectedInputsSameRole() {
-		List<WorkflowTask.ArtifactOutput> outputs = getAllOutputs(); // all outputs from every incoming WFT merged
-		if (outputs.isEmpty()) return false;
-		List<WorkflowTask> subsequentTasks = getAllSubsequentTasks();
-		if (subsequentTasks.isEmpty()) return false;
+	public boolean executeMapping() {
+		List<DecisionNodeDefinition.Mapping> mappings = getDefinition().getMappings();
+
+		List<WorkflowTask.ArtifactOutput> outputs = new ArrayList<>();
+		List<WorkflowTask> subsequentTasks = new ArrayList<>();
+		for (DecisionNodeDefinition.Mapping m : mappings) {
+			outputs.addAll(getAllOutputs(m.getFrom()));
+			subsequentTasks.addAll(getAllSubsequentTasks(m.getTo()));
+		}
+		if (outputs.isEmpty() || subsequentTasks.isEmpty()) return false;
 
 		boolean success = false;
 		for (WorkflowTask.ArtifactOutput ao : outputs) {
 			for (WorkflowTask wft : subsequentTasks) {
-				if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) {
+				if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) { // TODO match on ArtifactType not Role!!!
 					wft.addInput(new WorkflowTask.ArtifactInput(ao));
 					success = true;
 				}
@@ -455,30 +460,28 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		}
 		return success;
 	}
-	
-	public boolean mapOutputsToExpectedInputsSameType() {
-		throw new RuntimeException("not implemented");
-	}
 
-	public boolean mapOutputsToExpectedInputsSameRoleSameType() {
-		throw new RuntimeException("not implemented");
-	}
-
-	private List<WorkflowTask.ArtifactOutput> getAllOutputs() {
+	private List<WorkflowTask.ArtifactOutput> getAllOutputs(List<String> tdIds) {
 		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
 		for (IBranchInstance b : getInBranches()) {
 			if (b.getState().equals(BranchState.TransitionPassed)) {
-				artifactOut.addAll(b.getTask().getOutput());
+				WorkflowTask wft = b.getTask();
+				if (tdIds.contains(wft.getTaskType().getId())) {
+					artifactOut.addAll(wft.getOutput());
+				}
 			}
 		}
 		return artifactOut;
 	}
 
-	private List<WorkflowTask> getAllSubsequentTasks() {
+	private List<WorkflowTask> getAllSubsequentTasks(List<String> tdIds) {
 		List<WorkflowTask> followingTasks = new ArrayList<>();
 		for (IBranchInstance b : getOutBranches()) {
 			if (b.getState().equals(BranchState.TransitionPassed)) {
-				followingTasks.add(b.getTask());
+				WorkflowTask wft = b.getTask();
+				if (tdIds.contains(wft.getTaskType().getId())) {
+					followingTasks.add(wft);
+				}
 			}
 		}
 		return followingTasks;

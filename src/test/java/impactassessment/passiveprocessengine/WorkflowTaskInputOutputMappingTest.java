@@ -81,7 +81,7 @@ public class WorkflowTaskInputOutputMappingTest {
         // before the mapping workflow task "Closed" shouldn't have inputs
         assertEquals(0, wftClosed.getInput().size());
 
-        boolean success = dniOpen2Closed.mapOutputsToExpectedInputsSameRole();
+        boolean success = dniOpen2Closed.executeMapping();
 //        boolean success = wfi.mapOutputsToExpectedInputsSameRole(); // trigger mapping for all DNIs
 
         // after the mapping workflow task "Closed" has one input
