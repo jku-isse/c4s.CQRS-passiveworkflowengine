@@ -275,7 +275,8 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     public boolean mapOutputsToExpectedInputsSameRole() {
         boolean success = false;
         for (DecisionNodeInstance dni : getDecisionNodeInstancesReadonly()) {
-            success = dni.mapOutputsToExpectedInputsSameRole();
+            boolean b = dni.mapOutputsToExpectedInputsSameRole();
+            if (b) success = b;
         }
         return success;
     }

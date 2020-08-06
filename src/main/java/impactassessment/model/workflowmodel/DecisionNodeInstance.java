@@ -467,7 +467,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask.ArtifactOutput> getAllOutputs() {
 		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
 		for (IBranchInstance b : getInBranches()) {
-			if (b.getState().equals(IBranchInstance.BranchState.TransitionEnabled)) {
+			if (b.getState().equals(BranchState.TransitionPassed)) {
 				artifactOut.addAll(b.getTask().getOutput());
 			}
 		}
@@ -477,7 +477,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask> getAllSubsequentTasks() {
 		List<WorkflowTask> followingTasks = new ArrayList<>();
 		for (IBranchInstance b : getOutBranches()) {
-			if (b.getState().equals(IBranchInstance.BranchState.TransitionEnabled)) {
+			if (b.getState().equals(BranchState.TransitionPassed)) {
 				followingTasks.add(b.getTask());
 			}
 		}

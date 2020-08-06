@@ -29,7 +29,7 @@ public class WorkflowInstanceWrapper {
         IJiraArtifact artifact = evt.getArtifact();
         DronologyWorkflow wfd = new DronologyWorkflow();
         wfd.initWorkflowSpecification();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/});
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(artifact.getKey()); // TODO internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());

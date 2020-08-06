@@ -10,7 +10,7 @@ public class TestWorkflow extends AbstractWorkflowDefinition implements Workflow
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_CLOSED = "Closed";
 
-    public static final String INPUT_ROLE_WPTICKET = "INPUT_ROLE_WPTICKET";
+    public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
 
 
     public TestWorkflow() {
@@ -43,7 +43,7 @@ public class TestWorkflow extends AbstractWorkflowDefinition implements Workflow
 
     private TaskDefinition getStateClosedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_CLOSED, this);
-        td.getExpectedInput().put(INPUT_ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
 
