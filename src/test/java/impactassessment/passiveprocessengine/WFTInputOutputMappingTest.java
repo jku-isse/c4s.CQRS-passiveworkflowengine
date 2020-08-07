@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class WorkflowTaskInputOutputMappingTest {
+public class WFTInputOutputMappingTest {
 
     private ResourceLink rl;
     private final String ID = "test";
@@ -27,9 +27,9 @@ public class WorkflowTaskInputOutputMappingTest {
      * CLOSED expected input: ResourceLink
      */
     @Test
-    public void testMapOutputsToExpectedInputsSameRole() {
+    public void testMapOutputsToExpectedInputs() {
         // create a new workflow definition
-        TestWorkflow workflow = new TestWorkflow();
+        SimpleWorkflow workflow = new SimpleWorkflow();
         workflow.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // publisher must be set to prevent NullPointer
 
         // create an instance out of the workflow definition
@@ -48,7 +48,7 @@ public class WorkflowTaskInputOutputMappingTest {
         taskDefinitionsOpen.stream()
                 .forEach(td -> {
                     WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, TestWorkflow.ROLE_WPTICKET));
+                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET));
                     wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                     wfi.activateDecisionNodesFromTask(wft);
                     dniKickoff.consumeTaskForUnconnectedOutBranch(wft);

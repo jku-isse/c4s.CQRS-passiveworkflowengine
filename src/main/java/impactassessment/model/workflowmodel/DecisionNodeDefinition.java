@@ -138,7 +138,7 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 	public void addMapping(List<String> from, List<String> to, MappingType mappingType) {
 		mappings.add(new Mapping(from, to));
 	}
-	public static enum MappingType {ALL, ANY}
+	public enum MappingType {ALL, ANY}
 
 	/**
 	 * A Mapping is defined by a TaskDefinition ID "from", a TaskDefinition ID "to" and the "mappingType"
@@ -146,7 +146,7 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 	 * If a Mapping is defined the DecisionNodeInstance of this will map the ArtifactOutputs from the
 	 * WorkflowTask corresponding to "from" to the ArtifactInputs from the WorkflowTask corresponding to "to".
 	 */
-	public static class Mapping {
+	protected static class Mapping {
 		private List<String> from = new ArrayList<>();
 		private List<String> to = new ArrayList<>();
 		private MappingType mappingType;

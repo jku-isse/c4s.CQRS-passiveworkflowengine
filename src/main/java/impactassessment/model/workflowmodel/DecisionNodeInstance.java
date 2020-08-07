@@ -441,20 +441,21 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	public boolean executeMapping() {
 		List<DecisionNodeDefinition.Mapping> mappings = getDefinition().getMappings();
 
-		List<WorkflowTask.ArtifactOutput> outputs = new ArrayList<>();
-		List<WorkflowTask> subsequentTasks = new ArrayList<>();
-		for (DecisionNodeDefinition.Mapping m : mappings) {
-			outputs.addAll(getAllOutputs(m.getFrom()));
-			subsequentTasks.addAll(getAllSubsequentTasks(m.getTo()));
-		}
-		if (outputs.isEmpty() || subsequentTasks.isEmpty()) return false;
-
+		List<WorkflowTask.ArtifactOutput> outputs;
+		List<WorkflowTask> subsequentTasks;
 		boolean success = false;
-		for (WorkflowTask.ArtifactOutput ao : outputs) {
-			for (WorkflowTask wft : subsequentTasks) {
-				if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) { // TODO match on ArtifactType not Role!!!
-					wft.addInput(new WorkflowTask.ArtifactInput(ao));
-					success = true;
+		for (DecisionNodeDefinition.Mapping m : mappings) {
+			outputs = getAllOutputs(m.getFrom());
+			subsequentTasks = getAllSubsequentTasks(m.getTo());
+			for (WorkflowTask.ArtifactOutput ao : outputs) {
+				for (WorkflowTask wft : subsequentTasks) {
+					if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) { // TODO match on ArtifactType not Role!!!
+						wft.addInput(new WorkflowTask.ArtifactInput(ao));
+						success = true;
+						if (m.getMappingType().equals(DecisionNodeDefinition.MappingType.ANY)) {
+							break;
+						}
+					}
 				}
 			}
 		}

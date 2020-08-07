@@ -53,7 +53,7 @@ public class WorkflowInstanceWrapper {
             .forEach(td -> {
                 log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.ROLE_WPTICKET)); // TODO remove hardcoded Dronology Workflow
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches

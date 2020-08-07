@@ -3,7 +3,7 @@ package impactassessment.passiveprocessengine;
 import impactassessment.model.definition.ArtifactTypes;
 import impactassessment.model.workflowmodel.*;
 
-public class TestWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class SimpleWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "TEST_WORKFLOW_TYPE";
 
@@ -13,7 +13,7 @@ public class TestWorkflow extends AbstractWorkflowDefinition implements Workflow
     public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
 
 
-    public TestWorkflow() {
+    public SimpleWorkflow() {
         super(WORKFLOW_TYPE);
     }
 
