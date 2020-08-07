@@ -31,7 +31,7 @@ public abstract class AbstractWorkflowDefinition extends AbstractWorkflowDefinit
 	}
 
 	@Override
-	public DecisionNodeDefinition getDNIbyID(String dndID) {
+	public DecisionNodeDefinition getDNDbyID(String dndID) {
 		return this.dnds.stream()
 			.filter(dnd -> dnd.getId().equals(dndID))
 			.findAny()

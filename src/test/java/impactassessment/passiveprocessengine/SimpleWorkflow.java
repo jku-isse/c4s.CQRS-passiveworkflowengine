@@ -3,6 +3,14 @@ package impactassessment.passiveprocessengine;
 import impactassessment.model.definition.ArtifactTypes;
 import impactassessment.model.workflowmodel.*;
 
+/**
+ * workflow:
+ *
+ *       DND        TD          DND             TD
+ *
+ *    kickoff ---- OPEN ---- open2closed ---- CLOSED
+ *
+ */
 public class SimpleWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "TEST_WORKFLOW_TYPE";
@@ -24,9 +32,6 @@ public class SimpleWorkflow extends AbstractWorkflowDefinition implements Workfl
     }
 
     private void initWorkflowSpecification() {
-        // simple workflow:
-        // OPEN --> CLOSED
-        
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
         TaskDefinition tdClosed = getStateClosedTaskDefinition();
