@@ -438,12 +438,12 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 
-	public boolean executeMapping() {
+	public int executeMapping() {
 		List<DecisionNodeDefinition.Mapping> mappings = getDefinition().getMappings();
 
 		List<WorkflowTask.ArtifactOutput> outputs;
 		List<WorkflowTask> subsequentTasks;
-		boolean success = false;
+		int numMappings = 0;
 		for (DecisionNodeDefinition.Mapping m : mappings) {
 			outputs = getAllOutputs(m.getFrom());
 			subsequentTasks = getAllSubsequentTasks(m.getTo());
@@ -451,7 +451,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				for (WorkflowTask wft : subsequentTasks) {
 					if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) { // TODO match on ArtifactType not Role!!!
 						wft.addInput(new WorkflowTask.ArtifactInput(ao));
-						success = true;
+						numMappings++;
 						if (m.getMappingType().equals(DecisionNodeDefinition.MappingType.ANY)) {
 							break;
 						}
@@ -459,7 +459,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				}
 			}
 		}
-		return success;
+		return numMappings;
 	}
 
 	private List<WorkflowTask.ArtifactOutput> getAllOutputs(List<String> tdIds) {

@@ -270,15 +270,14 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     /**
      * Try to map WorkflowTask ArtifactOutput to following WorkflowTasks ArtifactInput
      *
-     * @return if anything was mapped
+     * @return the number of mapped artifacts
      */
-    public boolean executeAllMappings() {
-        boolean success = false;
+    public int executeAllMappings() {
+        int numMappings = 0;
         for (DecisionNodeInstance dni : getDecisionNodeInstancesReadonly()) {
-            boolean b = dni.executeMapping();
-            if (b) success = true;
+            numMappings += dni.executeMapping();
         }
-        return success;
+        return numMappings;
     }
 
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY

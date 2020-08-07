@@ -81,11 +81,11 @@ public class WFTInputOutputMappingTest {
         // before the mapping workflow task "Closed" shouldn't have inputs
         assertEquals(0, wftClosed.getInput().size());
 
-        boolean success = dniOpen2Closed.executeMapping();
+        int numMappings = dniOpen2Closed.executeMapping();
 //        boolean success = wfi.executeAllMappings(); // trigger mapping for all DNIs
 
         // after the mapping workflow task "Closed" has one input
-        assertEquals(true, success);
+        assertEquals(1, numMappings);
         assertEquals(1, wftClosed.getInput().size());
     }
 }
