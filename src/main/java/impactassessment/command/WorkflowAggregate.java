@@ -52,7 +52,8 @@ public class WorkflowAggregate {
     public void handle(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        applyImportOrUpdate(cmd.getId(), kieSessionService, a);
+        apply(new ImportedOrUpdatedArtifactEvt(id, a))
+                .andThen(() -> insertEverything(id, kieSessionService, a));
     }
 
     @CommandHandler
@@ -62,25 +63,27 @@ public class WorkflowAggregate {
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                applyImportOrUpdate(cmd.getId(), kieSessionService, a);
+                apply(new ImportedOrUpdatedArtifactEvt(id, a))
+                        .andThen(() -> insertEverything(id, kieSessionService, a));
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
         }
     }
 
-    private void applyImportOrUpdate(String id, KieSessionService kieSessionService, IJiraArtifact a) {
-        apply(new ImportedOrUpdatedArtifactEvt(id, a))
-                .andThen(() -> {
-                    kieSessionService.insertOrUpdate(id, a);
-                    kieSessionService.insertOrUpdate(id, model.getWorkflowInstance());
-                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                            .forEach(wft -> kieSessionService.insertOrUpdate(id, wft));
-                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                            .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
-                    kieSessionService.setInitialized(id);
-                    kieSessionService.fire(id);
-                });
+    @CommandHandler
+    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
+        log.info("[AGG] handling {}", cmd);
+        if (cmd.getSource().equals(Sources.JIRA)) {
+            IJiraArtifact a = artifactService.get(cmd.getId());
+            if (a != null) {
+                apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(id, a, cmd.getWfd()))
+                        .andThen(() -> insertEverything(id, kieSessionService, a));
+            }
+        } else {
+            log.error("Unsupported Artifact source: "+cmd.getSource());
+        }
     }
 
     @CommandHandler
@@ -273,5 +276,16 @@ public class WorkflowAggregate {
                     .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
             kieSessionService.setInitialized(id);
         }
+    }
+
+    private void insertEverything(String id, KieSessionService kieSessionService, IJiraArtifact a) {
+        kieSessionService.insertOrUpdate(id, a);
+        kieSessionService.insertOrUpdate(id, model.getWorkflowInstance());
+        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                .forEach(wft -> kieSessionService.insertOrUpdate(id, wft));
+        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
+        kieSessionService.setInitialized(id);
+        kieSessionService.fire(id);
     }
 }

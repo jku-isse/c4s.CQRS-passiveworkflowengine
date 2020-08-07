@@ -26,9 +26,14 @@ public class WorkflowInstanceWrapper {
     public static final String PROP_PRIORITY = "Priority";
 
     private void handle(ImportedOrUpdatedArtifactEvt evt) {
-        IJiraArtifact artifact = evt.getArtifact();
-        DronologyWorkflow wfd = new DronologyWorkflow();
-        wfd.initWorkflowSpecification();
+        initWfi(new DronologyWorkflow(), evt.getArtifact());
+    }
+
+    private void handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
+        initWfi(evt.getWfd(), evt.getArtifact());
+    }
+
+    private void initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(artifact.getKey()); // TODO internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
@@ -138,6 +143,8 @@ public class WorkflowInstanceWrapper {
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof ImportedOrUpdatedArtifactEvt) {
             handle((ImportedOrUpdatedArtifactEvt) evt);
+        } else if (evt instanceof ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) {
+            handle((ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {

@@ -3,13 +3,16 @@ package impactassessment.api
 import impactassessment.analytics.CorrelationTuple
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.model.WorkflowInstanceWrapper
+import impactassessment.model.workflowmodel.AbstractWorkflowDefinition
 import impactassessment.model.workflowmodel.ResourceLink
+import impactassessment.model.workflowmodel.WorkflowDefinition
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
 // COMMANDS
 data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
 data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
+data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val source: Sources, val wfd: AbstractWorkflowDefinition)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
@@ -25,6 +28,7 @@ data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 interface IdentifiableEvt{val id: String}
 
 data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val wfd: AbstractWorkflowDefinition) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
