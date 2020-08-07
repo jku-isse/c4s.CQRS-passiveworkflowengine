@@ -93,6 +93,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
     private TaskDefinition getStateReqWorkingTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TD_REQ_WORKING, this);
         // TODO define expected Inputs:
+        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
 

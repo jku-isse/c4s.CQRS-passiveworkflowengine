@@ -84,19 +84,18 @@ public class WFTInputOutputMappingWithWrapperTest {
     }
 
     @Test
-    public void testMapOutputsToExpectedInputsComplexWorkflow2() {
+    public void testMapOutputsToExpectedInputsComplexWorkflowAdditionalMappings() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
         wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ComplexWorkflow()));
-
-        // add additional mappings
-        DecisionNodeDefinition dndOpen2Closed = wfiWrapper.getWorkflowInstance().getWorkflowDefinition().getDNDbyID(ComplexWorkflow.DND_OPEN2CLOSED);
-//        dndOpen2Closed.addMapping();
-
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_TASK_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_DD_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_REQ_OPEN+"#"+ID));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+
+        // add additional mappings
+        DecisionNodeDefinition dndOpen2Closed = wfiWrapper.getWorkflowInstance().getWorkflowDefinition().getDNDbyID(ComplexWorkflow.DND_OPEN2CLOSED);
+        dndOpen2Closed.addMapping(ComplexWorkflow.TD_REQ_OPEN, ComplexWorkflow.TD_REQ_WORKING);
 
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
 
@@ -107,7 +106,7 @@ public class WFTInputOutputMappingWithWrapperTest {
 
         assertEquals(0, wftClosed.getInput().size());
         int numMappings = wfi.executeAllMappings();
-        assertEquals(1, numMappings);
+        assertEquals(2, numMappings);
         assertEquals(1, wftClosed.getInput().size());
     }
 }

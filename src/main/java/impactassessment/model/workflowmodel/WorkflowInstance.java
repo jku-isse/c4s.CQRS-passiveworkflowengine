@@ -272,6 +272,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
      *
      * @return the number of mapped artifacts
      */
+    @Deprecated
     public int executeAllMappings() {
         int numMappings = 0;
         for (DecisionNodeInstance dni : getDecisionNodeInstancesReadonly()) {

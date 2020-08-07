@@ -3,6 +3,7 @@ package impactassessment.model.workflowmodel;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
@@ -14,6 +15,7 @@ import impactassessment.model.workflowmodel.DecisionNodeDefinition.Events;
 import impactassessment.model.workflowmodel.DecisionNodeDefinition.States;
 import impactassessment.model.workflowmodel.IBranchInstance.BranchState;
 
+@Slf4j
 public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 
 	@Relationship(type="SPECIFIED_BY")
@@ -465,7 +467,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask.ArtifactOutput> getAllOutputs(List<String> tdIds) {
 		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
 		for (IBranchInstance b : getInBranches()) {
-			if (b.getState().equals(BranchState.TransitionPassed)) {
+			if (b.getState().equals(BranchState.TransitionPassed) || b.getState().equals(BranchState.TransitionEnabled)) { // TODO: passed and enabled is right?
 				WorkflowTask wft = b.getTask();
 				if (tdIds.contains(wft.getTaskType().getId())) {
 					artifactOut.addAll(wft.getOutput());
@@ -478,7 +480,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask> getAllSubsequentTasks(List<String> tdIds) {
 		List<WorkflowTask> followingTasks = new ArrayList<>();
 		for (IBranchInstance b : getOutBranches()) {
-			if (b.getState().equals(BranchState.TransitionPassed)) {
+			if (b.getState().equals(BranchState.TransitionPassed) || b.getState().equals(BranchState.TransitionEnabled)) { // TODO: passed and enabled is right?
 				WorkflowTask wft = b.getTask();
 				if (tdIds.contains(wft.getTaskType().getId())) {
 					followingTasks.add(wft);
