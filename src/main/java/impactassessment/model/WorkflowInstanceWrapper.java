@@ -3,6 +3,7 @@ package impactassessment.model;
 import impactassessment.analytics.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.model.definition.ArtifactTypes;
 import impactassessment.model.definition.DronologyWorkflow;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -53,12 +54,13 @@ public class WorkflowInstanceWrapper {
             .forEach(td -> {
                 log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.ROLE_WPTICKET)); // TODO remove hardcoded Dronology Workflow
+                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT))); // TODO remove hardcoded Dronology Workflow
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 newDNIs.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
                 log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
             });
+        dni.executeMapping();
         List<String> newDNIIds = newDNIs.stream().map(d -> d.getId()).collect(Collectors.toList());
         return newDNIIds;
     }
@@ -94,7 +96,7 @@ public class WorkflowInstanceWrapper {
             if (qa == null) {
                 //create and append new QACheckDocument to WFT
                 qa = new QACheckDocument("QA-"+evt.getStatus()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK");
+                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
                 wft.addOutput(ao);
                 CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
                 qa.setLastChangeDueTo(corr);
@@ -164,7 +166,7 @@ public class WorkflowInstanceWrapper {
     public void reset() {
         wfi = null;
     }
-    
+
     public QACheckDocument getQACDocOfWft(String wftId) {
         WorkflowTask wft = wfi.getWorkflowTask(wftId);
         Optional<QACheckDocument> optQACD = Optional.empty();

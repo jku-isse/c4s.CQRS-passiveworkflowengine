@@ -405,6 +405,16 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		String role;
 		@StartNode
 		WorkflowTask container;
+
+		public ArtifactType getArtifactType() {
+			return artifactType;
+		}
+
+		public void setArtifactType(ArtifactType artifactType) {
+			this.artifactType = artifactType;
+		}
+
+		ArtifactType artifactType;
 		
 		protected void setContainer(WorkflowTask wt) {
 			this.container = wt;
@@ -442,6 +452,14 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			this.artifact = artifact;
 			this.role = role;
 		}
+
+		public ArtifactIO(Artifact artifact, String role, ArtifactType artifactType) {
+			super();
+			this.id = role+"#"+artifact.getId();
+			this.artifact = artifact;
+			this.role = role;
+			this.artifactType = artifactType;
+		}
 		
 
 		@Override
@@ -476,6 +494,10 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			container = ai.container;
 			artifact = ai.artifact;
 		}
+
+		public ArtifactOutput(Artifact artifact, String role, ArtifactType artifactType) {
+			super(artifact, role, artifactType);
+		}
 		
 		@Deprecated
 		public ArtifactOutput() {
@@ -505,6 +527,10 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			role = ao.role;
 			container = ao.container;
 			artifact = ao.artifact;
+		}
+
+		public ArtifactInput(Artifact artifact, String role, ArtifactType artifactType) {
+			super(artifact, role, artifactType);
 		}
 		
 		@Deprecated

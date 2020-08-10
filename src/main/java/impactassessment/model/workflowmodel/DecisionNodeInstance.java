@@ -111,10 +111,10 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			if (inBranches.stream()
 					.filter(b -> b.getState()!=BranchState.Disabled) // we ignore those
 					.allMatch(b -> b.getState()==BranchState.TransitionEnabled)) {
-					inBranches.stream()
-						.filter(b -> b.getState()!=BranchState.Disabled) // we ignore those
-						.forEach(b -> b.setBranchUsedForProgress()); // not sure if we should set progress already here (wait for outbranch activiation)
-					return this.setTaskCompletionConditionsFullfilled();
+				inBranches.stream()
+					.filter(b -> b.getState()!=BranchState.Disabled) // we ignore those
+					.forEach(b -> b.setBranchUsedForProgress()); // not sure if we should set progress already here (wait for outbranch activiation)
+				return this.setTaskCompletionConditionsFullfilled();
 			}
 			break;
 		case XOR:
@@ -124,7 +124,10 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 					Optional<IBranchInstance> selectedB = inBranches.stream()
 						.filter(b -> b.getState()!=BranchState.TransitionEnabled)
 						.findAny() 
-						.map(b -> { b.setBranchUsedForProgress(); return b; }); 
+						.map(b -> {
+							b.setBranchUsedForProgress();
+							return b;
+						});
 					if (selectedB.isPresent()) {
 						// we need to mark other branch tasks as: disabled (if they are available or active), or canceled otherwise 
 						inBranches.stream()
@@ -270,7 +273,6 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return tryOutConditionsFullfilled();
 	}
 	
-	//TODO; this method is not called by anyone yet
 	public Set<AbstractWorkflowInstanceObject> activateInBranch(String branchId) {
 		//inBranches.getOrDefault(branchId, dummy).setConditionsFulfilled();
 		inBranches.stream()
@@ -451,12 +453,17 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			subsequentTasks = getAllSubsequentTasks(m.getTo());
 			for (WorkflowTask.ArtifactOutput ao : outputs) {
 				for (WorkflowTask wft : subsequentTasks) {
-					if (wft.getTaskType().getExpectedInput().containsKey(ao.getRole())) { // TODO match on ArtifactType not Role!!!
-						wft.addInput(new WorkflowTask.ArtifactInput(ao));
-						numMappings++;
-						if (m.getMappingType().equals(DecisionNodeDefinition.MappingType.ANY)) {
+					boolean mapping = false;
+					for (ArtifactType artT : wft.getTaskType().getExpectedInput().values()) {
+						if (ao.getArtifactType() != null && artT.getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
+							wft.addInput(new WorkflowTask.ArtifactInput(ao));
+							numMappings++;
+							mapping = true;
 							break;
 						}
+					}
+					if (m.getMappingType().equals(DecisionNodeDefinition.MappingType.ANY) && mapping) {
+						break;
 					}
 				}
 			}
@@ -467,12 +474,11 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask.ArtifactOutput> getAllOutputs(List<String> tdIds) {
 		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
 		for (IBranchInstance b : getInBranches()) {
-			if (b.getState().equals(BranchState.TransitionPassed) || b.getState().equals(BranchState.TransitionEnabled)) { // TODO: passed and enabled is right?
-				WorkflowTask wft = b.getTask();
-				if (tdIds.contains(wft.getTaskType().getId())) {
-					artifactOut.addAll(wft.getOutput());
-				}
+			WorkflowTask wft = b.getTask();
+			if (tdIds.contains(wft.getTaskType().getId())) {
+				artifactOut.addAll(wft.getOutput());
 			}
+
 		}
 		return artifactOut;
 	}
@@ -480,11 +486,9 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private List<WorkflowTask> getAllSubsequentTasks(List<String> tdIds) {
 		List<WorkflowTask> followingTasks = new ArrayList<>();
 		for (IBranchInstance b : getOutBranches()) {
-			if (b.getState().equals(BranchState.TransitionPassed) || b.getState().equals(BranchState.TransitionEnabled)) { // TODO: passed and enabled is right?
-				WorkflowTask wft = b.getTask();
-				if (tdIds.contains(wft.getTaskType().getId())) {
-					followingTasks.add(wft);
-				}
+			WorkflowTask wft = b.getTask();
+			if (wft != null && tdIds.contains(wft.getTaskType().getId())) {
+				followingTasks.add(wft);
 			}
 		}
 		return followingTasks;
@@ -493,7 +497,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 
 	@Override
 	public String toString() {
-		return "DNI [" + ofType + ", " /*+ "("+getState()+")"*/ + workflow + ", "	//TODO
+		return "DNI [" + ofType + ", " /*+ "("+getState()+")"*/ + workflow + ", "
 				+ ", taskCompletionConditionsFullfilled=" + taskCompletionConditionsFullfilled + ", contextConditionsFullfilled=" + contextConditionsFullfilled 
 				+ ", taskActivationConditionsFullfilled=" + taskActivationConditionsFullfilled + ", activationPropagationCompleted=" + activationPropagationCompleted
 				+ " inBranches=" + inBranches + ", outBranches=" + outBranches  				

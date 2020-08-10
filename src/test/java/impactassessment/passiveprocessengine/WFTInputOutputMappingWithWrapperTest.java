@@ -4,10 +4,7 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.workflowmodel.DecisionNodeDefinition;
-import impactassessment.model.workflowmodel.ResourceLink;
-import impactassessment.model.workflowmodel.WorkflowInstance;
-import impactassessment.model.workflowmodel.WorkflowTask;
+import impactassessment.model.workflowmodel.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,13 +44,7 @@ public class WFTInputOutputMappingWithWrapperTest {
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "open2closed#"+ID, "Open#test"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2closed#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
-        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
-
-        WorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);
-
-        assertEquals(0, wftClosed.getInput().size());
-        int numMappings = wfi.executeAllMappings();
-        assertEquals(1, numMappings);
+        WorkflowTask wftClosed = wfiWrapper.getWorkflowInstance().getWorkflowTask("Closed#"+ID);
         assertEquals(1, wftClosed.getInput().size());
     }
 
@@ -67,37 +58,32 @@ public class WFTInputOutputMappingWithWrapperTest {
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_REQ_OPEN+"#"+ID));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
-        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
-
-        WorkflowTask wftClosed = wfi.getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
-
-        assertEquals(0, wftClosed.getInput().size());
-        int numMappings = wfi.executeAllMappings();
-        assertEquals(1, numMappings);
+        WorkflowTask wftClosed = wfiWrapper.getWorkflowInstance().getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
+        WorkflowTask wftWorking = wfiWrapper.getWorkflowInstance().getWorkflowTask(ComplexWorkflow.TD_REQ_WORKING+"#"+ID);
         assertEquals(1, wftClosed.getInput().size());
+        assertEquals(0, wftWorking.getInput().size());
     }
 
     @Test
     public void testMapOutputsToExpectedInputsComplexWorkflowAdditionalMappings() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
+
         wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ComplexWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+
+        // add additional mappings
+        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID);
+        dni.getDefinition().addMapping(ComplexWorkflow.TD_REQ_OPEN, ComplexWorkflow.TD_REQ_WORKING);
+
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_TASK_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_DD_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_REQ_OPEN+"#"+ID));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
-        // add additional mappings
-        DecisionNodeDefinition dndOpen2Closed = wfiWrapper.getWorkflowInstance().getWorkflowDefinition().getDNDbyID(ComplexWorkflow.DND_OPEN2CLOSED);
-        dndOpen2Closed.addMapping(ComplexWorkflow.TD_REQ_OPEN, ComplexWorkflow.TD_REQ_WORKING);
-
-        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
-
         WorkflowTask wftClosed = wfi.getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
-
-        assertEquals(0, wftClosed.getInput().size());
-        int numMappings = wfi.executeAllMappings();
-        assertEquals(2, numMappings);
+        WorkflowTask wftWorking = wfi.getWorkflowTask(ComplexWorkflow.TD_REQ_WORKING+"#"+ID);
         assertEquals(1, wftClosed.getInput().size());
+        assertEquals(1, wftWorking.getInput().size());
     }
 }

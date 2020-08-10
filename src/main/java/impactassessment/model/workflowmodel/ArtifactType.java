@@ -20,15 +20,6 @@ public class ArtifactType extends IdentifiableObject{
 		//this.artifactType = artifactType;
 	}
 
-	private Class<?> clazz;
-	public ArtifactType(Class<?> clazz) {
-		super(clazz.getSimpleName());
-		this.clazz = clazz;
-	}
-	public Class<?> getClazz() {
-		return clazz;
-	}
-
 	public String getArtifactType() {
 		return super.getId();
 		//return artifactType;

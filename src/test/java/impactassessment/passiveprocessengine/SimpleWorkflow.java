@@ -48,7 +48,7 @@ public class SimpleWorkflow extends AbstractWorkflowDefinition implements Workfl
 
     private TaskDefinition getStateClosedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_CLOSED, this);
-        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
     }
 

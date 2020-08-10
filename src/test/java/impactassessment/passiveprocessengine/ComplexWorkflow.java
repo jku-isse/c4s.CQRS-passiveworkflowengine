@@ -1,6 +1,7 @@
 package impactassessment.passiveprocessengine;
 
 import impactassessment.model.definition.ArtifactTypes;
+import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.workflowmodel.*;
 
 /**
@@ -85,15 +86,15 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
 
     private TaskDefinition getStateTaskClosedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TD_TASK_CLOSED, this);
-        // TODO define expected Inputs:
-        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        // define expected Inputs:
+        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
     }
 
     private TaskDefinition getStateReqWorkingTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TD_REQ_WORKING, this);
-        // TODO define expected Inputs:
-        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        // define expected Inputs:
+        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
     }
 
@@ -125,7 +126,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_TASK_CLOSED_IN, tdTaskClosed, false, true, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_REQ_WORKING_IN, tdReqWorking, false, true, dnd));
         // mappings
-        dnd.addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
+        dnd.addMapping(TD_TASK_OPEN, TD_TASK_CLOSED); // TODO: Ask Christoph
         return dnd;
     }
 }

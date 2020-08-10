@@ -2,6 +2,7 @@ package impactassessment.passiveprocessengine;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.model.definition.ArtifactTypes;
 import impactassessment.model.workflowmodel.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class WFTInputOutputMappingTest {
         taskDefinitionsOpen.stream()
                 .forEach(td -> {
                     WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET));
+                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
                     wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                     wfi.activateDecisionNodesFromTask(wft);
                     dniKickoff.consumeTaskForUnconnectedOutBranch(wft);
