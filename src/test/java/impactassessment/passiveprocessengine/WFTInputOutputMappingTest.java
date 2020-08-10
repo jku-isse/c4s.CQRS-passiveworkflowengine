@@ -37,10 +37,7 @@ public class WFTInputOutputMappingTest {
         wfi.enableWorkflowTasksAndDecisionNodes();
 
         // get first decision node (kickoff)
-        DecisionNodeInstance dniKickoff = wfi.getDecisionNodeInstancesReadonly().stream()
-                .filter(x -> x.getId().equals("workflowKickOff#"+ID))
-                .findFirst()
-                .get();
+        DecisionNodeInstance dniKickoff = wfi.getDecisionNodeInstance("workflowKickOff#"+ID);
         dniKickoff.completedDataflowInvolvingActivationPropagation();
 
         // get tasks from first decision node and complete dataflow
@@ -55,10 +52,7 @@ public class WFTInputOutputMappingTest {
                 });
 
         // get second (and last) decision node (open2closed)
-        DecisionNodeInstance dniOpen2Closed = wfi.getDecisionNodeInstancesReadonly().stream()
-                .filter(x -> x.getId().equals("open2closed#"+ID))
-                .findFirst()
-                .get();
+        DecisionNodeInstance dniOpen2Closed = wfi.getDecisionNodeInstance("open2closed#"+ID);
         dniOpen2Closed.activateInBranch("openOut");
         dniOpen2Closed.completedDataflowInvolvingActivationPropagation();
 
@@ -73,10 +67,7 @@ public class WFTInputOutputMappingTest {
                     dniOpen2Closed.consumeTaskForUnconnectedOutBranch(wft);
                 });
 
-        WorkflowTask wftClosed = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().equals("Closed#"+ID))
-                .findFirst()
-                .get();
+        WorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);
 
         // before the mapping workflow task "Closed" shouldn't have inputs
         assertEquals(0, wftClosed.getInput().size());

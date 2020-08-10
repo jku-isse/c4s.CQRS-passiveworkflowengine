@@ -49,10 +49,7 @@ public class WFTInputOutputMappingWithWrapperTest {
 
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
 
-        WorkflowTask wftClosed = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().equals("Closed#"+ID))
-                .findFirst()
-                .get();
+        WorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);
 
         assertEquals(0, wftClosed.getInput().size());
         int numMappings = wfi.executeAllMappings();
@@ -72,10 +69,7 @@ public class WFTInputOutputMappingWithWrapperTest {
 
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
 
-        WorkflowTask wftClosed = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().equals(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID))
-                .findFirst()
-                .get();
+        WorkflowTask wftClosed = wfi.getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
 
         assertEquals(0, wftClosed.getInput().size());
         int numMappings = wfi.executeAllMappings();
@@ -99,10 +93,7 @@ public class WFTInputOutputMappingWithWrapperTest {
 
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
 
-        WorkflowTask wftClosed = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().equals(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID))
-                .findFirst()
-                .get();
+        WorkflowTask wftClosed = wfi.getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
 
         assertEquals(0, wftClosed.getInput().size());
         int numMappings = wfi.executeAllMappings();

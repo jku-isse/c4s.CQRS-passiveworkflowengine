@@ -122,8 +122,22 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return Collections.unmodifiableSet(this.taskInst);
     }
 
+    public WorkflowTask getWorkflowTask(String id) {
+        return this.taskInst.stream()
+                .filter(x -> x.getId().equals(id))
+                .findFirst()
+                .get();
+    }
+
     public Set<DecisionNodeInstance> getDecisionNodeInstancesReadonly() {
         return Collections.unmodifiableSet(this.dnInst);
+    }
+
+    public DecisionNodeInstance getDecisionNodeInstance(String id) {
+        return this.dnInst.stream()
+                .filter(x -> x.getId().equals(id))
+                .findFirst()
+                .get();
     }
 //	public void setWorkflowDefinitionId(WorkflowDefinition workflowDefinition) {
 //		this.workflowDefinition = workflowDefinition;

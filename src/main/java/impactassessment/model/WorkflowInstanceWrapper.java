@@ -45,7 +45,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private List<String> handle(CompletedDataflowEvt evt) {
-        DecisionNodeInstance dni = getDecisionNodeInstance(evt.getDniId()).get();
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
         List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         var newDNIs = new ArrayList<AbstractWorkflowInstanceObject>();
@@ -64,35 +64,32 @@ public class WorkflowInstanceWrapper {
     }
 
     private void handle(ActivatedInBranchEvt evt) {
-        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
-        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
-        if (optDni.isPresent() && optWft.isPresent()) {
-            DecisionNodeInstance dni = optDni.get();
-            WorkflowTask wft = optWft.get();
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (dni != null && wft != null) {
             dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
         }
     }
 
     private void handle(ActivatedOutBranchEvt evt) {
-        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
-        optDni.ifPresent(dni -> dni.activateOutBranch(evt.getBranchId()));
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        if (dni != null) {
+            dni.activateOutBranch(evt.getBranchId());
+        }
     }
 
     private void handle(ActivatedInOutBranchEvt evt) {
-        Optional<DecisionNodeInstance> optDni = getDecisionNodeInstance(evt.getDniId());
-        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
-        if (optDni.isPresent() && optWft.isPresent()) {
-            DecisionNodeInstance dni = optDni.get();
-            WorkflowTask wft = optWft.get();
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (dni != null && wft != null) {
             dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
             dni.activateOutBranch(evt.getBranchId());
         }
     }
 
     private void handle(AddedQAConstraintEvt evt) {
-        Optional<WorkflowTask> optWft = getWorkflowTask(evt.getWftId());
-        if (optWft.isPresent()) {
-            WorkflowTask wft = optWft.get();
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft != null) {
             QACheckDocument qa = getQACDocOfWft(evt.getWftId());
             if (qa == null) {
                 //create and append new QACheckDocument to WFT
@@ -167,20 +164,12 @@ public class WorkflowInstanceWrapper {
     public void reset() {
         wfi = null;
     }
-
-    private Optional<DecisionNodeInstance> getDecisionNodeInstance(String id) {
-        return wfi.getDecisionNodeInstancesReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
-    }
-
-    private Optional<WorkflowTask> getWorkflowTask(String id) {
-        return wfi.getWorkflowTasksReadonly().stream().filter(x -> x.getId().equals(id)).findFirst();
-    }
-
+    
     public QACheckDocument getQACDocOfWft(String wftId) {
-        Optional<WorkflowTask> optWft = getWorkflowTask(wftId);
+        WorkflowTask wft = wfi.getWorkflowTask(wftId);
         Optional<QACheckDocument> optQACD = Optional.empty();
-        if (optWft.isPresent()){
-            optQACD = optWft.get().getOutput().stream()
+        if (wft != null){
+            optQACD = wft.getOutput().stream()
                     .map(ao -> ao.getArtifact())
                     .filter(ao -> ao instanceof QACheckDocument)
                     .map(a -> (QACheckDocument) a)
