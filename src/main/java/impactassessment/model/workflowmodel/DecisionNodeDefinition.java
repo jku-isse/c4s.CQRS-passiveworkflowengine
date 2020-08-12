@@ -31,8 +31,8 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 	private BranchingType inBranchingType = BranchingType.AND;
 	private BranchingType outBranchingType = BranchingType.AND;
 
-	private List<Mapping> mappings = new ArrayList<>();
-	public List<Mapping> getMappings() {return mappings;}
+	private List<MappingDefinition> mappings = new ArrayList<>();
+	public List<MappingDefinition> getMappings() {return mappings;}
 	
 	@Deprecated
 	public DecisionNodeDefinition() {
@@ -115,89 +115,28 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 	}
 
 	public void addMapping(String from, String to) {
-		mappings.add(new Mapping(from, to));
-	}
-	public void addMapping(String from, String to, MappingType mappingType) {
-		mappings.add(new Mapping(from, to));
+		mappings.add(new MappingDefinition(from, to));
 	}
 	public void addMapping(List<String> from, String to) {
-		mappings.add(new Mapping(from, to));
+		mappings.add(new MappingDefinition(from, to));
 	}
-	public void addMapping(List<String> from, String to, MappingType mappingType) {
-		mappings.add(new Mapping(from, to));
+	public void addMapping(List<String> from, String to, MappingDefinition.MappingType mappingType) {
+		mappings.add(new MappingDefinition(from, to));
 	}
 	public void addMapping(String from, List<String> to) {
-		mappings.add(new Mapping(from, to));
+		mappings.add(new MappingDefinition(from, to));
 	}
-	public void addMapping(String from, List<String> to, MappingType mappingType) {
-		mappings.add(new Mapping(from, to));
+	public void addMapping(String from, List<String> to, MappingDefinition.MappingType mappingType) {
+		mappings.add(new MappingDefinition(from, to));
 	}
 	public void addMapping(List<String> from, List<String> to) {
-		mappings.add(new Mapping(from, to));
+		mappings.add(new MappingDefinition(from, to));
 	}
-	public void addMapping(List<String> from, List<String> to, MappingType mappingType) {
-		mappings.add(new Mapping(from, to));
-	}
-	public enum MappingType {ALL, ANY}
-
-	/**
-	 * A Mapping is defined by a TaskDefinition ID "from", a TaskDefinition ID "to" and the "mappingType"
-	 * A DecisionNodeDefinition can have 0 to * Mappings
-	 * If a Mapping is defined the DecisionNodeInstance of this will map the ArtifactOutputs from the
-	 * WorkflowTask corresponding to "from" to the ArtifactInputs from the WorkflowTask corresponding to "to".
-	 */
-	protected static class Mapping {
-		private List<String> from = new ArrayList<>();
-		private List<String> to = new ArrayList<>();
-		private MappingType mappingType;
-		public Mapping(String from, String to, MappingType mappingType) {
-			this.from.add(from);
-			this.to.add(to);
-			this.mappingType = mappingType;
-		}
-		public Mapping(String from, String to) {
-			this(from, to, MappingType.ANY);
-		}
-		public Mapping(List<String> from, String to, MappingType mappingType) {
-			this.from = from;
-			this.to.add(to);
-			this.mappingType = mappingType;
-		}
-		public Mapping(List<String> from, String to) {
-			this(from, to, MappingType.ANY);
-		}
-		public Mapping(String from, List<String> to, MappingType mappingType) {
-			this.from.add(from);
-			this.to = to;
-			this.mappingType = mappingType;
-		}
-		public Mapping(String from, List<String> to) {
-			this(from, to, MappingType.ANY);
-		}
-		public Mapping(List<String> from, List<String> to, MappingType mappingType) {
-			this.from = from;
-			this.to = to;
-			this.mappingType = mappingType;
-		}
-		public Mapping(List<String> from, List<String> to) {
-			this(from, to, MappingType.ANY);
-		}
-
-		public List<String> getFrom() {
-			return from;
-		}
-
-		public List<String> getTo() {
-			return to;
-		}
-
-		public MappingType getMappingType() {
-			return mappingType;
-		}
+	public void addMapping(List<String> from, List<String> to, MappingDefinition.MappingType mappingType) {
+		mappings.add(new MappingDefinition(from, to));
 	}
 
 
-	
 	public DecisionNodeInstance createInstance(WorkflowInstance wfi) {
 		DecisionNodeInstance dni = new DecisionNodeInstance(this, wfi, getStateMachine());
 		dni.addInBranches(

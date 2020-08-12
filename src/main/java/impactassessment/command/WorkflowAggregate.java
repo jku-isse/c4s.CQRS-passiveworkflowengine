@@ -52,8 +52,8 @@ public class WorkflowAggregate {
     public void handle(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        apply(new ImportedOrUpdatedArtifactEvt(id, a))
-                .andThen(() -> insertEverything(id, kieSessionService, a));
+        apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a))
+                .andThen(() -> insertEverything(cmd.getId(), kieSessionService, a));
     }
 
     @CommandHandler
@@ -63,8 +63,8 @@ public class WorkflowAggregate {
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                apply(new ImportedOrUpdatedArtifactEvt(id, a))
-                        .andThen(() -> insertEverything(id, kieSessionService, a));
+                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a))
+                        .andThen(() -> insertEverything(cmd.getId(), kieSessionService, a));
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());

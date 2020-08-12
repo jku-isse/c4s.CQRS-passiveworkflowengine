@@ -80,6 +80,9 @@ public class WFTInputOutputMappingWithWrapperTest {
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_DD_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, ComplexWorkflow.TD_REQ_OPEN+"#"+ID));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, ComplexWorkflow.DND_OPEN2CLOSED+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+        wfiWrapper.handle(new AddedQAConstraintEvt(ID, ComplexWorkflow.TD_TASK_OPEN+"#"+ID, "Status", "RuleName", "Description"));
+        wfiWrapper.handle(new AddedQAConstraintEvt(ID, ComplexWorkflow.TD_REQ_OPEN+"#"+ID, "Status", "RuleName", "Description"));
+
 
         WorkflowTask wftClosed = wfi.getWorkflowTask(ComplexWorkflow.TD_TASK_CLOSED+"#"+ID);
         WorkflowTask wftWorking = wfi.getWorkflowTask(ComplexWorkflow.TD_REQ_WORKING+"#"+ID);

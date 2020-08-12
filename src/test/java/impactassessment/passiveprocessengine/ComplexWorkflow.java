@@ -126,7 +126,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_TASK_CLOSED_IN, tdTaskClosed, false, true, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_REQ_WORKING_IN, tdReqWorking, false, true, dnd));
         // mappings
-        dnd.addMapping(TD_TASK_OPEN, TD_TASK_CLOSED); // TODO: Ask Christoph
+        dnd.addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
         return dnd;
     }
 }

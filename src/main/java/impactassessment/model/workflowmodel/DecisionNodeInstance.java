@@ -40,7 +40,9 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	boolean activationPropagationCompleted = false;
 	@Convert(DNIStatemachineConverter.class)
 	private StateMachine<DecisionNodeDefinition.States, DecisionNodeDefinition.Events> sm;
-	
+
+	private List<MappingReport> mappingReports = new ArrayList<>();
+
 	@Deprecated
 	public DecisionNodeInstance() {
 		super();
@@ -330,6 +332,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		// not necessary for outbranches as we set them via task assignment --> no we dont
 		activationPropagationCompleted = true;
 		sm.fire(Events.PROGRESS_TRIGGERED);
+
 //		inBranches.values().stream()
 //			.filter(b -> b.getState() != BranchState.Disabled)
 //			.forEach(b -> b.setBranchUsedForProgress());
@@ -442,45 +445,70 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 
-	public int executeMapping() {
-		List<DecisionNodeDefinition.Mapping> mappings = getDefinition().getMappings();
+//	public void executeMapping() {
+//		List<MappingDefinition> mappings = getDefinition().getMappings();
+//
+//		List<WorkflowTask.ArtifactOutput> outputs;
+//		List<WorkflowTask> subsequentTasks;
+//		for (MappingDefinition m : mappings) {
+//			outputs = getAllOutputs(m.getFrom());
+//			subsequentTasks = getAllSubsequentTasks(m.getTo());
+//			for (WorkflowTask.ArtifactOutput ao : outputs) {
+//				for (WorkflowTask wft : subsequentTasks) {
+//					boolean mapping = false;
+//					for (ArtifactType artT : wft.getTaskType().getExpectedInput().values()) {
+//						if (ao.getArtifactType() != null && artT.getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
+//							wft.addInput(new WorkflowTask.ArtifactInput(ao));
+//							mapping = true;
+//							break;
+//						}
+//					}
+//					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY) && mapping) {
+//						break;
+//					}
+//				}
+//			}
+//		}
+//	}
 
-		List<WorkflowTask.ArtifactOutput> outputs;
+	public void executeMapping() {
+		List<MappingDefinition> mappings = getDefinition().getMappings();
+
+		List<WorkflowTask> precidingTasks;
 		List<WorkflowTask> subsequentTasks;
-		int numMappings = 0;
-		for (DecisionNodeDefinition.Mapping m : mappings) {
-			outputs = getAllOutputs(m.getFrom());
+		for (MappingDefinition m : mappings) {
+			precidingTasks = getAllPrecedingTasks(m.getFrom());
 			subsequentTasks = getAllSubsequentTasks(m.getTo());
-			for (WorkflowTask.ArtifactOutput ao : outputs) {
-				for (WorkflowTask wft : subsequentTasks) {
-					boolean mapping = false;
-					for (ArtifactType artT : wft.getTaskType().getExpectedInput().values()) {
-						if (ao.getArtifactType() != null && artT.getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
-							wft.addInput(new WorkflowTask.ArtifactInput(ao));
-							numMappings++;
-							mapping = true;
-							break;
+			if (subsequentTasks.size() == 0) break;
+			for (WorkflowTask preWft : precidingTasks) {
+				for (WorkflowTask.ArtifactOutput ao : preWft.getOutput()) {
+					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY)) {
+						WorkflowTask subWft = findBestFit(ao, subsequentTasks);
+						subWft.addInput(new WorkflowTask.ArtifactInput(ao));
+						mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
+					} else if (m.getMappingType().equals(MappingDefinition.MappingType.ALL)) {
+						for (WorkflowTask subWft : subsequentTasks) {
+							subWft.addInput(new WorkflowTask.ArtifactInput(ao));
+							mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
 						}
-					}
-					if (m.getMappingType().equals(DecisionNodeDefinition.MappingType.ANY) && mapping) {
-						break;
+					} else {
+						log.error("Undefined Mapping Type: " + m.getMappingType());
 					}
 				}
 			}
 		}
-		return numMappings;
 	}
 
-	private List<WorkflowTask.ArtifactOutput> getAllOutputs(List<String> tdIds) {
-		List<WorkflowTask.ArtifactOutput> artifactOut = new ArrayList<>();
+	private List<WorkflowTask> getAllPrecedingTasks(List<String> tdIds) {
+		List<WorkflowTask> precedingTasks = new ArrayList<>();
 		for (IBranchInstance b : getInBranches()) {
 			WorkflowTask wft = b.getTask();
-			if (tdIds.contains(wft.getTaskType().getId())) {
-				artifactOut.addAll(wft.getOutput());
+			if (wft != null && tdIds.contains(wft.getTaskType().getId())) {
+				precedingTasks.add(wft);
 			}
 
 		}
-		return artifactOut;
+		return precedingTasks;
 	}
 
 	private List<WorkflowTask> getAllSubsequentTasks(List<String> tdIds) {
@@ -494,6 +522,33 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return followingTasks;
 	}
 
+	private WorkflowTask findBestFit(WorkflowTask.ArtifactOutput ao, List<WorkflowTask> subsequentTasks) {
+		WorkflowTask onlyTypeMatched = null;
+		for (WorkflowTask wft : subsequentTasks) {
+			for (Map.Entry<String, ArtifactType> entry : wft.getTaskType().getExpectedInput().entrySet()) {
+				if (ao.getArtifactType() != null && entry.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
+					if (entry.getKey().equals(ao.getRole())) {
+						return wft;
+					}
+					onlyTypeMatched = wft;
+				}
+			}
+		}
+		if (onlyTypeMatched == null) {
+			return subsequentTasks.get(0);
+		} else {
+			return onlyTypeMatched;
+		}
+	}
+
+	public boolean isConnected(String workflowTaskID) {
+		return inBranches.stream()
+			.anyMatch(b -> b.getTask().getId().equals(workflowTaskID))
+				||
+				outBranches.stream()
+				.anyMatch(b -> b.getTask().getId().equals(workflowTaskID));
+
+	}
 
 	@Override
 	public String toString() {
