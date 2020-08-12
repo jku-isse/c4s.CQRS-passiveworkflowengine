@@ -445,42 +445,16 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 
-//	public void executeMapping() {
-//		List<MappingDefinition> mappings = getDefinition().getMappings();
-//
-//		List<WorkflowTask.ArtifactOutput> outputs;
-//		List<WorkflowTask> subsequentTasks;
-//		for (MappingDefinition m : mappings) {
-//			outputs = getAllOutputs(m.getFrom());
-//			subsequentTasks = getAllSubsequentTasks(m.getTo());
-//			for (WorkflowTask.ArtifactOutput ao : outputs) {
-//				for (WorkflowTask wft : subsequentTasks) {
-//					boolean mapping = false;
-//					for (ArtifactType artT : wft.getTaskType().getExpectedInput().values()) {
-//						if (ao.getArtifactType() != null && artT.getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
-//							wft.addInput(new WorkflowTask.ArtifactInput(ao));
-//							mapping = true;
-//							break;
-//						}
-//					}
-//					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY) && mapping) {
-//						break;
-//					}
-//				}
-//			}
-//		}
-//	}
-
 	public void executeMapping() {
 		List<MappingDefinition> mappings = getDefinition().getMappings();
 
-		List<WorkflowTask> precidingTasks;
+		List<WorkflowTask> precedingTasks;
 		List<WorkflowTask> subsequentTasks;
 		for (MappingDefinition m : mappings) {
-			precidingTasks = getAllPrecedingTasks(m.getFrom());
+			precedingTasks = getAllPrecedingTasks(m.getFrom());
 			subsequentTasks = getAllSubsequentTasks(m.getTo());
 			if (subsequentTasks.size() == 0) break;
-			for (WorkflowTask preWft : precidingTasks) {
+			for (WorkflowTask preWft : precedingTasks) {
 				for (WorkflowTask.ArtifactOutput ao : preWft.getOutput()) {
 					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY)) {
 						WorkflowTask subWft = findBestFit(ao, subsequentTasks);
