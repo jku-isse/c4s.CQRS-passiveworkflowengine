@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +32,7 @@ public class RuleTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        kieSession = new KieSessionFactory().getKieSession();
+        kieSession = new KieSessionFactory().getKieSession("execution.drl", "constraints.drl");
         kieSession.setGlobal("commandGateway", gateway);
         model = new WorkflowInstanceWrapper();
     }

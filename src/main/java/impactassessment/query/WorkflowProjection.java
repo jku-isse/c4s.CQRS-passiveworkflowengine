@@ -24,13 +24,6 @@ public class WorkflowProjection {
     // Event Handlers
 
     @EventHandler
-    public void on(AddedMockArtifactEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
-        WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
-        m.handle(evt);
-    }
-
-    @EventHandler
     public void on(ImportedOrUpdatedArtifactEvt evt) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());

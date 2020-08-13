@@ -13,8 +13,6 @@ import org.kie.internal.io.ResourceFactory;
 public class KieSessionFactory {
 
     private static final String RULES_PATH = "rules/";
-    private static final String EXECUTION_RULES_FILE = "execution.drl";
-    private static final String CONSTRAINTS_RULES_FILE = "constraints.drl";
 
     private KieServices kieServices = KieServices.Factory.get();
 
@@ -23,11 +21,12 @@ public class KieSessionFactory {
         kieRepository.addKieModule(() -> kieRepository.getDefaultReleaseId());
     }
 
-    public KieSession getKieSession() {
+    public KieSession getKieSession(String... rulefiles){
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
-        kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+EXECUTION_RULES_FILE));
-        kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+CONSTRAINTS_RULES_FILE));
+        for (String rulefile : rulefiles) {
+            kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+rulefile));
+        }
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();
         KieModule kieModule = kb.getKieModule();
