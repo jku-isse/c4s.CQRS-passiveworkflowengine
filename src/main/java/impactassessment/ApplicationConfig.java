@@ -16,13 +16,16 @@ public class ApplicationConfig {
 
     @Bean
     public IJiraArtifactService getJiraArtifactService() {
+        // connects directly to a Jira server. URI, username and password are defined in application.properties
 //        return new JiraService();
-        return new JiraJsonService();
+        // uses JSON image of Jira data in resource folder
+        return new JiraJsonService("dronology_jira.json");
     }
 
     @Bean
     @Scope("prototype")
     public KieSessionWrapper getKieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
+        // define which rule files (have to be located in "/resources/rules/") should be taken to build up kieSessions
         KieSession kieSession = new KieSessionFactory().getKieSession("execution_qac.drl", "constraints.drl");
         return new KieSessionWrapper(commandGateway, artifactService, kieSession);
     }
