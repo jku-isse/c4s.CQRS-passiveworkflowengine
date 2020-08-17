@@ -321,6 +321,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				.collect(Collectors.toSet());
 			if (!awfos.isEmpty()) {
 				sm.fire(Events.PROGRESS_TRIGGERED);
+				return awfos;
 			}
 		}
 		return Collections.emptySet();	
