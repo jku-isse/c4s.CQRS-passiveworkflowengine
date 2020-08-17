@@ -1,7 +1,5 @@
 package impactassessment.kiesession;
 
-import impactassessment.jiraartifact.IJiraArtifactService;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -12,15 +10,11 @@ import java.util.Map;
 @Service
 public class KieSessionService {
 
-    private final CommandGateway commandGateway;
-    private final IJiraArtifactService artifactService;
     private final ApplicationContext appContext;
 
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public KieSessionService(CommandGateway commandGateway, IJiraArtifactService artifactService, ApplicationContext appContext) {
-        this.commandGateway = commandGateway;
-        this.artifactService = artifactService;
+    public KieSessionService(ApplicationContext appContext) {
         this.appContext = appContext;
         kieSessions = new HashMap<>();
     }

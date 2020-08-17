@@ -64,6 +64,11 @@ public class QACheckDocument extends AbstractArtifact {
 	public List<QAConstraint> getConstraintsReadonly() {
 		return Collections.unmodifiableList(constraints);
 	}
+
+	public boolean areConstraintsFulfilled() {
+		return constraints.stream()
+				.anyMatch(c -> c.unsatisfiedFor.size() > 0);
+	}
 	
 	@NodeEntity("QAConstraint")
 	public abstract static class QAConstraint extends AbstractArtifact {

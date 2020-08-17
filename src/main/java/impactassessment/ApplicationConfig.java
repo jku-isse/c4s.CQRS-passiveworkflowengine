@@ -18,7 +18,7 @@ public class ApplicationConfig {
     public IJiraArtifactService getJiraArtifactService() {
         // connects directly to a Jira server. URI, username and password are defined in application.properties
 //        return new JiraService();
-        // uses JSON image of Jira data in resource folder
+        // uses JSON image of Jira data with the stated filename in resources folder
         return new JiraJsonService("dronology_jira.json");
     }
 

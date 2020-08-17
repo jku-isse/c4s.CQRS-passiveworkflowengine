@@ -14,6 +14,7 @@ import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject
 import impactassessment.model.workflowmodel.WorkflowDefinition
 import impactassessment.model.definition.DronologyWorkflow
 import impactassessment.model.workflowmodel.ResourceLink
+import impactassessment.model.definition.QACheckDocument
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
