@@ -4,8 +4,12 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import impactassessment.api.CheckAllConstraintsCmd;
+import impactassessment.api.CheckConstraintCmd;
 import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.model.definition.QACheckDocument;
 import impactassessment.model.definition.RuleEngineBasedConstraint;
@@ -20,12 +24,21 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Slf4j
 public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
+    private Function<Object, Object> f;
+    private boolean evalMode;
+
+
+    public WorkflowTreeGrid(Function<Object, Object> f, boolean evalMode) {
+        this.f = f;
+        this.evalMode = evalMode;
+    }
 
     public void initTreeGrid() {
 
@@ -44,6 +57,25 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             }
         }).setHeader("Workflow Instance").setWidth("30%");
 
+        if (evalMode) {
+            this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
+                if (o instanceof WorkflowInstance) {
+                    WorkflowInstance wfi = (WorkflowInstance) o;
+                    Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+                    icon.getStyle().set("cursor", "pointer");
+                    icon.addClickListener(e -> f.apply(new CheckAllConstraintsCmd(wfi.getId())));
+                    return icon;
+                } else if (o instanceof RuleEngineBasedConstraint) {
+                    RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
+                    Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE_O);
+                    icon.getStyle().set("cursor", "pointer");
+                    icon.addClickListener(e -> f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId())));
+                    return icon;
+                } else {
+                    return new Label("");
+                }
+            })).setWidth("5%");
+        }
 
         this.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {

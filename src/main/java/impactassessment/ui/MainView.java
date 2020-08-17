@@ -29,17 +29,19 @@ import impactassessment.utils.Replayer;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
+import javax.inject.Inject;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @Slf4j
 @Route
@@ -47,14 +49,10 @@ import java.util.concurrent.ExecutionException;
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
 
-    @Autowired
-    private CommandGateway commandGateway;
-    @Autowired
-    private QueryGateway queryGateway;
-    @Autowired
-    private Snapshotter snapshotter;
-    @Autowired
-    private Replayer replayer;
+    @Inject private CommandGateway commandGateway;
+    @Inject private QueryGateway queryGateway;
+    @Inject private Snapshotter snapshotter;
+    @Inject private Replayer replayer;
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
@@ -399,7 +397,7 @@ public class MainView extends VerticalLayout {
     }
 
     private VerticalLayout snapshotPanel() {
-        snapshotGrid = new WorkflowTreeGrid();
+        snapshotGrid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
         snapshotGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");
@@ -421,7 +419,7 @@ public class MainView extends VerticalLayout {
         return progressBar;
     }
     private VerticalLayout statePanel() {
-        stateGrid = new WorkflowTreeGrid();
+        stateGrid = new WorkflowTreeGrid(x -> commandGateway.send(x), true);
         stateGrid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");

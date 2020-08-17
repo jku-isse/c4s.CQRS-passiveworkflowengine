@@ -60,7 +60,9 @@ public class WorkflowAggregate {
     public void handle(ImportOrUpdateArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
+            log.info("#1");
             IJiraArtifact a = artifactService.get(cmd.getId());
+            log.info("#2");
             if (a != null) {
                 applyImportOrUpdate(cmd.getId(), kieSessionService, a);
             }
@@ -202,6 +204,16 @@ public class WorkflowAggregate {
         } else {
             log.warn("Concerned RuleEngineBasedConstraint wasn't found");
         }
+    }
+
+    @CommandHandler
+    public void handle(CheckAllConstraintsCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
+        ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getId(), "CheckAllConstraintsCmd"));
+        ct.addConstraint("*");
+        kieSessionService.insertOrUpdate(cmd.getId(), ct);
+        kieSessionService.fire(cmd.getId());
     }
 
     @CommandHandler

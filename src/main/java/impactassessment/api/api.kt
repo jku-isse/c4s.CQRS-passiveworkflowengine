@@ -19,6 +19,7 @@ data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wft
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple, val time: Instant)
 data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple, val time: Instant)
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
+data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
 data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 
 // EVENTS
