@@ -15,6 +15,7 @@ import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
+import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
@@ -77,6 +78,7 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
@@ -267,7 +269,7 @@ public class WorkflowAggregate {
      * @param kieSessionService
      */
     private void ensureInitializedKB(String id, KieSessionService kieSessionService) {
-        if (!kieSessionService.isInitialized(id)) {
+        if (!kieSessionService.isInitialized(id) && artifact != null && model != null) {
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
             kieSessionService.insertOrUpdate(id, artifact);

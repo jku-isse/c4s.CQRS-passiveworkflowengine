@@ -27,6 +27,7 @@ import impactassessment.model.WorkflowInstanceWrapper;
 import impactassessment.query.Snapshotter;
 import impactassessment.utils.Replayer;
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.context.ApplicationContext;
@@ -288,10 +289,16 @@ public class MainView extends VerticalLayout {
         Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
             if (source.getValue().equals(Sources.MOCK.toString())) {
                 commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                Notification.show("Success");
             } else {
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
+                try {
+                    commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
+                    Notification.show("Success");
+                } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                    log.error("CommandExecutionException: "+e.getMessage());
+                    Notification.show("Import failed!");
+                }
             }
-            Notification.show("Success");
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
