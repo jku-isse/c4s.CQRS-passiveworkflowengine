@@ -208,6 +208,16 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
+    public void handle(CheckAllConstraintsCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
+        ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(cmd.getId(), "CheckAllConstraintsCmd"));
+        ct.addConstraint("*");
+        kieSessionService.insertOrUpdate(cmd.getId(), ct);
+        kieSessionService.fire(cmd.getId());
+    }
+
+    @CommandHandler
     public void handle(PrintKBCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         if (kieSessionService.getKieSession(cmd.getId()) != null) {
