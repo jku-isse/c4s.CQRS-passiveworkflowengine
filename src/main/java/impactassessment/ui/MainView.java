@@ -101,7 +101,7 @@ public class MainView extends VerticalLayout {
         menu.addClassName("light-theme");
         menu.setPadding(true);
         menu.setMargin(false);
-        menu.setWidth("40%");
+        menu.setWidth("35%");
         menu.setFlexGrow(0);
 
         Accordion accordion = new Accordion();
