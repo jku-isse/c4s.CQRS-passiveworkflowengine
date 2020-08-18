@@ -107,7 +107,7 @@ public class MainView extends VerticalLayout {
         Accordion accordion = new Accordion();
         accordion.add("Import Artifact", importArtifact());
         accordion.add("Remove Artifact", remove());
-        accordion.add("Evaluate Constraint", evaluate());
+//        accordion.add("Evaluate Constraint", evaluate()); // evaluating now over icon-buttons in current-state-grid
         accordion.add("Developer Commands", backend());
         accordion.close();
         accordion.open(0);

@@ -60,9 +60,7 @@ public class WorkflowAggregate {
     public void handle(ImportOrUpdateArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
-            log.info("#1");
             IJiraArtifact a = artifactService.get(cmd.getId());
-            log.info("#2");
             if (a != null) {
                 applyImportOrUpdate(cmd.getId(), kieSessionService, a);
             }
