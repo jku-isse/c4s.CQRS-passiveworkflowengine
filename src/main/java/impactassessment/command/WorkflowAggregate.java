@@ -51,6 +51,7 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(AddMockArtifactCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
         apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a))
                 .andThen(() -> insertEverything(cmd.getId(), kieSessionService, a));
@@ -60,6 +61,7 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(ImportOrUpdateArtifactCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {

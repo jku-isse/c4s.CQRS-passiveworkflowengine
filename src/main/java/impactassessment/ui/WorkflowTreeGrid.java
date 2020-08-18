@@ -6,6 +6,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
@@ -55,7 +56,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             } else {
                 return o.getClass().getSimpleName() + ": " + o.getId();
             }
-        }).setHeader("Workflow Instance").setWidth("30%");
+        }).setHeader("Workflow Instance").setWidth("25%");
 
         if (evalMode) {
             this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
@@ -63,18 +64,24 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                     WorkflowInstance wfi = (WorkflowInstance) o;
                     Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
                     icon.getStyle().set("cursor", "pointer");
-                    icon.addClickListener(e -> f.apply(new CheckAllConstraintsCmd(wfi.getId())));
+                    icon.addClickListener(e -> {
+                        f.apply(new CheckAllConstraintsCmd(wfi.getId()));
+                        Notification.show("Evaluation of "+wfi.getId()+" requested");
+                    });
                     return icon;
                 } else if (o instanceof RuleEngineBasedConstraint) {
                     RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
                     Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE_O);
                     icon.getStyle().set("cursor", "pointer");
-                    icon.addClickListener(e -> f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId())));
+                    icon.addClickListener(e -> {
+                        f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()));
+                        Notification.show("Evaluation of "+rebc.getId()+" requested");
+                    });
                     return icon;
                 } else {
                     return new Label("");
                 }
-            })).setWidth("5%");
+            })).setWidth("5%").setFlexGrow(0);
         }
 
         this.addColumn(o -> {

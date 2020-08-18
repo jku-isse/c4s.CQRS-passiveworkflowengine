@@ -26,14 +26,20 @@ public class WorkflowProjection {
     @EventHandler
     public void on(ImportedOrUpdatedArtifactEvt evt) {
         log.info("[PRJ] projecting {}", evt);
-        WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
-        m.handle(evt);
+        if (mockDB.getWorkflowModel(evt.getId()) == null) { // if workflow is new
+            WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
+            m.handle(evt);
+        }
     }
     @EventHandler
     public void on(IdentifiableEvt evt) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfi = mockDB.getWorkflowModel(evt.getId());
-        if (wfi != null) wfi.handle(evt);
+        if (wfi != null) {
+            wfi.handle(evt);
+        } else {
+            log.warn("[PRJ] WFI with ID: "+evt.getId()+" not found in projection");
+        }
     }
 
     @EventHandler
