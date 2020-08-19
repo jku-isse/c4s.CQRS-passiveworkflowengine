@@ -3,8 +3,7 @@ package impactassessment.passiveprocessengine;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.workflowmodel.*;
+import impactassessment.passiveprocessengine.workflowmodel.*;
 import org.junit.Before;
 import org.junit.Test;
 

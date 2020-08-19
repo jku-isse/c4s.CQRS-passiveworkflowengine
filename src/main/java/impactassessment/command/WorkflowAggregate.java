@@ -1,21 +1,20 @@
 package impactassessment.command;
 
-import impactassessment.analytics.CorrelationTuple;
+import impactassessment.passiveprocessengine.definition.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.ConstraintTrigger;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.ConstraintTrigger;
+import impactassessment.passiveprocessengine.definition.QACheckDocument;
+import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;

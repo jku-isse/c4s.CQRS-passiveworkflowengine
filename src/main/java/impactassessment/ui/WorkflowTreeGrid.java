@@ -11,12 +11,12 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.RuleEngineBasedConstraint;
-import impactassessment.model.workflowmodel.IdentifiableObject;
-import impactassessment.model.workflowmodel.WorkflowInstance;
-import impactassessment.model.workflowmodel.WorkflowTask;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.QACheckDocument;
+import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;

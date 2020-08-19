@@ -1,8 +1,7 @@
 package impactassessment.passiveprocessengine;
 
-import impactassessment.model.definition.ArtifactTypes;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.ArtifactTypes;
+import impactassessment.passiveprocessengine.workflowmodel.*;
 
 /**
  *  workflow:

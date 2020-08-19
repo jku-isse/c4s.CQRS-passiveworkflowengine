@@ -2,7 +2,7 @@ package impactassessment.kiesession;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.model.workflowmodel.IdentifiableObject;
+import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;

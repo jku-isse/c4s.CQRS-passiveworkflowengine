@@ -1,13 +1,12 @@
 package impactassessment.rules;
 
-import impactassessment.aggregates.AggregateTestConfig;
 import impactassessment.api.CompletedDataflowEvt;
 import impactassessment.api.ImportedOrUpdatedArtifactEvt;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.DronologyWorkflow;
-import impactassessment.model.workflowmodel.ResourceLink;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
+import impactassessment.passiveprocessengine.workflowmodel.ResourceLink;
 import impactassessment.kiesession.KieSessionFactory;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.Assert.assertEquals;

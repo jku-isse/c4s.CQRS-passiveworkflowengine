@@ -2,10 +2,9 @@ package impactassessment.query;
 
 import impactassessment.api.DeletedEvt;
 import impactassessment.api.IdentifiableEvt;
-import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.springframework.stereotype.Component;
 

@@ -2,15 +2,15 @@ package rules;
 
 import org.axonframework.commandhandling.gateway.CommandGateway
 
-import impactassessment.model.definition.QACheckDocument
-import impactassessment.model.workflowmodel.WorkflowTask
-import impactassessment.model.workflowmodel.ResourceLink
+import impactassessment.passiveprocessengine.definition.QACheckDocument
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask
+import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
 import java.util.Optional
-import impactassessment.model.definition.RuleEngineBasedConstraint
+import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint
 import java.time.Instant
 import impactassessment.analytics.CorrelationTuple
-import impactassessment.model.definition.ConstraintTrigger
-import impactassessment.model.definition.DronologyWorkflow
+import impactassessment.passiveprocessengine.definition.ConstraintTrigger
+import impactassessment.passiveprocessengine.definition.DronologyWorkflow
 
 import impactassessment.api.AddQAConstraintCmd
 import impactassessment.api.AddResourceToConstraintCmd

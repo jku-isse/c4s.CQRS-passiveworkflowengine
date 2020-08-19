@@ -1,6 +1,6 @@
 package impactassessment.query;
 
-import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.config.ProcessingGroup;
