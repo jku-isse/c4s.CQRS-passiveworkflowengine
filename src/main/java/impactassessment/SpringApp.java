@@ -7,11 +7,11 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 
 @Slf4j
 @SpringBootApplication
-public class Application extends SpringBootServletInitializer {
+public class SpringApp extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         signature();
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(SpringApp.class, args);
     }
 
     private static void signature() {

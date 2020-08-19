@@ -2,7 +2,6 @@ package impactassessment.jiraartifact;
 
 import com.atlassian.jira.rest.client.api.StatusCategory;
 import com.atlassian.jira.rest.client.api.domain.*;
-import impactassessment.jiraartifact.*;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 

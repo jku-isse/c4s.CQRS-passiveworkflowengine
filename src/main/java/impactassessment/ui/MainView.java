@@ -25,7 +25,7 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Snapshotter;
-import impactassessment.utils.Replayer;
+import impactassessment.query.Replayer;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -47,13 +47,30 @@ import java.util.concurrent.ExecutionException;
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
 
-    @Inject private CommandGateway commandGateway;
-    @Inject private QueryGateway queryGateway;
-    @Inject private Snapshotter snapshotter;
-    @Inject private Replayer replayer;
+    private CommandGateway commandGateway;
+    private QueryGateway queryGateway;
+    private Snapshotter snapshotter;
+    private Replayer replayer;
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
+
+    @Inject
+    public void setCommandGateway(CommandGateway commandGateway) {
+        this.commandGateway = commandGateway;
+    }
+    @Inject
+    public void setQueryGateway(QueryGateway queryGateway) {
+        this.queryGateway = queryGateway;
+    }
+    @Inject
+    public void setSnapshotter(Snapshotter snapshotter) {
+        this.snapshotter = snapshotter;
+    }
+    @Inject
+    public void setReplayer(Replayer replayer) {
+        this.replayer = replayer;
+    }
 
     public MainView() {
         setSizeFull();

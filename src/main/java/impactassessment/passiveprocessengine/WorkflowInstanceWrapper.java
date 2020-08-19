@@ -1,16 +1,15 @@
 package impactassessment.passiveprocessengine;
 
-import impactassessment.passiveprocessengine.definition.CorrelationTuple;
+import impactassessment.SpringUtil;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
-import impactassessment.passiveprocessengine.definition.QACheckDocument;
-import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class WorkflowInstanceWrapper {
@@ -26,7 +25,8 @@ public class WorkflowInstanceWrapper {
     public static final String PROP_PRIORITY = "Priority";
 
     private void handle(ImportedOrUpdatedArtifactEvt evt) {
-        initWfi(new DronologyWorkflow(), evt.getArtifact());
+        AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
+        initWfi(wfd, evt.getArtifact());
     }
 
     private void handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
@@ -35,12 +35,10 @@ public class WorkflowInstanceWrapper {
 
     private void initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
-        wfi = wfd.createInstance(artifact.getKey()); // TODO internal ID
+        wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        if (!artifact.getIssueType().getName().equals("Hazard")) {
-            wfi.addOrReplaceProperty(PROP_PRIORITY, "" + artifact.getPriority().getName());
-        }
+        wfi.addOrReplaceProperty(PROP_PRIORITY, "" + artifact.getPriority().getName());
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 

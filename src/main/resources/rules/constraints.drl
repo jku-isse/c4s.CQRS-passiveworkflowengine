@@ -8,7 +8,7 @@ import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
 import java.util.Optional
 import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint
 import java.time.Instant
-import impactassessment.analytics.CorrelationTuple
+import impactassessment.passiveprocessengine.definition.CorrelationTuple
 import impactassessment.passiveprocessengine.definition.ConstraintTrigger
 import impactassessment.passiveprocessengine.definition.DronologyWorkflow
 
