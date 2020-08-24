@@ -66,7 +66,11 @@ public class QACheckDocument extends AbstractArtifact {
 	}
 
 	public boolean areConstraintsFulfilled() {
+		if (constraints.size() == 0) {
+			return false;
+		}
 		return constraints.stream()
+				.filter(c -> c.getEvaluationStatus().equals(QAConstraint.EvaluationState.SUCCESS))
 				.anyMatch(c -> c.unsatisfiedFor.size() > 0);
 	}
 	

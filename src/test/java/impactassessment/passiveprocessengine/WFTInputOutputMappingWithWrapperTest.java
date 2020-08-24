@@ -21,19 +21,19 @@ public class WFTInputOutputMappingWithWrapperTest {
         rl = ResourceLink.of(a);
     }
 
-    @Test
-    public void testMapOutputsToExpectedInputsDronologyWorkflow() {
-        WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactEvt(ID, a));
-        wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-        wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "resolvedIn"));
-        wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-
-        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
-
-        // TODO: No data mapping defined in dronology workflow
-        // TODO: add assertions when mappings are defined
-    }
+//    @Test
+//    public void testMapOutputsToExpectedInputsDronologyWorkflow() {
+//        WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
+//        wfiWrapper.handle(new ImportedOrUpdatedArtifactEvt(ID, a));
+//        wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+//        wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "resolvedIn"));
+//        wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+//
+//        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
+//
+//        // TODO: No data mapping defined in dronology workflow
+//        // TODO: add assertions when mappings are defined
+//    }
 
     @Test
     public void testMapOutputsToExpectedInputsSimpleWorkflow() {

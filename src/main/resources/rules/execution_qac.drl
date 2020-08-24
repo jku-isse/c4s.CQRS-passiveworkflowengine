@@ -55,6 +55,8 @@ rule "Open2InProgress-InBranchConditions"
         							getInBranchForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "inProgressIn"));
 end
@@ -70,6 +72,8 @@ rule "InProgress2Resolved-InBranchConditions"
         							getInBranchForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end
@@ -85,6 +89,8 @@ rule "Open2Resolved-InBranchConditions"
         							getInBranchForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end

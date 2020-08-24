@@ -158,6 +158,7 @@ public class JiraArtifact implements IJiraArtifact {
     @Override
     public IJiraBasicPriority getPriority() {
         BasicPriority prio = issue.getPriority();
+        if (prio == null) return null;
         return new IJiraBasicPriority() {
             @Override
             public URI getSelf() {

@@ -38,7 +38,7 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority().getName());
+        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 

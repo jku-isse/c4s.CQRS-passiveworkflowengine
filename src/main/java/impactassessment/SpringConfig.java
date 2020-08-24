@@ -21,7 +21,7 @@ public class SpringConfig {
         // connects directly to a Jira server. URI, username and password are defined in application.properties
 //        return new JiraService();
         // uses JSON image of Jira data with the stated filename in resources folder
-        return new JiraJsonService("dronology_jira.json");
+        return new JiraJsonService("dronology_jira_big.json");
     }
 
     @Bean
