@@ -1,6 +1,6 @@
 package impactassessment.query;
 
-import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.config.ProcessingGroup;
@@ -22,13 +22,6 @@ public class WorkflowProjection {
     private final MockDatabase mockDB;
 
     // Event Handlers
-
-    @EventHandler
-    public void on(AddedMockArtifactEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
-        WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
-        m.handle(evt);
-    }
 
     @EventHandler
     public void on(ImportedOrUpdatedArtifactEvt evt) {

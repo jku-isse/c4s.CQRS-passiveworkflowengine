@@ -5,7 +5,7 @@ import impactassessment.command.WorkflowAggregate;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
-import impactassessment.model.workflowmodel.ResourceLink;
+import impactassessment.passiveprocessengine.workflowmodel.ResourceLink;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;

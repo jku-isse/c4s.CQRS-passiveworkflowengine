@@ -2,14 +2,14 @@ package impactassessment.neo4j;
 
 import java.util.List;
 
-import impactassessment.model.workflowmodel.AbstractArtifact;
-import impactassessment.model.workflowmodel.ArtifactType;
-import impactassessment.model.workflowmodel.DecisionNodeDefinition;
-import impactassessment.model.workflowmodel.DecisionNodeInstance;
-import impactassessment.model.workflowmodel.DefaultWorkflowDefinition;
-import impactassessment.model.workflowmodel.TaskDefinition;
-import impactassessment.model.workflowmodel.WorkflowInstance;
-import impactassessment.model.workflowmodel.WorkflowTask;
+import impactassessment.passiveprocessengine.workflowmodel.AbstractArtifact;
+import impactassessment.passiveprocessengine.workflowmodel.ArtifactType;
+import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeInstance;
+import impactassessment.passiveprocessengine.workflowmodel.DefaultWorkflowDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.TaskDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
 
 public class BasicServices {
 

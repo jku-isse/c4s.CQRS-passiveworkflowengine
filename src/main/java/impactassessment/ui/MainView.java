@@ -23,13 +23,13 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.model.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Snapshotter;
-import impactassessment.utils.Replayer;
+import impactassessment.query.Replayer;
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -40,8 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 @Slf4j
 @Route
@@ -49,13 +47,30 @@ import java.util.function.Function;
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
 
-    @Inject private CommandGateway commandGateway;
-    @Inject private QueryGateway queryGateway;
-    @Inject private Snapshotter snapshotter;
-    @Inject private Replayer replayer;
+    private CommandGateway commandGateway;
+    private QueryGateway queryGateway;
+    private Snapshotter snapshotter;
+    private Replayer replayer;
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
+
+    @Inject
+    public void setCommandGateway(CommandGateway commandGateway) {
+        this.commandGateway = commandGateway;
+    }
+    @Inject
+    public void setQueryGateway(QueryGateway queryGateway) {
+        this.queryGateway = queryGateway;
+    }
+    @Inject
+    public void setSnapshotter(Snapshotter snapshotter) {
+        this.snapshotter = snapshotter;
+    }
+    @Inject
+    public void setReplayer(Replayer replayer) {
+        this.replayer = replayer;
+    }
 
     public MainView() {
         setSizeFull();
@@ -288,10 +303,16 @@ public class MainView extends VerticalLayout {
         Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
             if (source.getValue().equals(Sources.MOCK.toString())) {
                 commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                Notification.show("Success");
             } else {
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
+                try {
+                    commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
+                    Notification.show("Success");
+                } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                    log.error("CommandExecutionException: "+e.getMessage());
+                    Notification.show("Import failed!");
+                }
             }
-            Notification.show("Success");
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 

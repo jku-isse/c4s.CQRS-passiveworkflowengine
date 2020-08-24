@@ -1,7 +1,6 @@
 package impactassessment.query;
 
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.query.MockDatabase;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventMessage;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalLong;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;

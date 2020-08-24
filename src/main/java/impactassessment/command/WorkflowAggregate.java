@@ -1,15 +1,15 @@
 package impactassessment.command;
 
-import impactassessment.analytics.CorrelationTuple;
+import impactassessment.passiveprocessengine.definition.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.ConstraintTrigger;
-import impactassessment.model.definition.QACheckDocument;
-import impactassessment.model.definition.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.ConstraintTrigger;
+import impactassessment.passiveprocessengine.definition.QACheckDocument;
+import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -53,7 +53,8 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         ensureInitializedKB(cmd.getId(), kieSessionService);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        applyImportOrUpdate(cmd.getId(), kieSessionService, a);
+        apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a))
+                .andThen(() -> insertEverything(cmd.getId(), kieSessionService, a));
     }
 
     @CommandHandler
@@ -64,25 +65,28 @@ public class WorkflowAggregate {
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                applyImportOrUpdate(cmd.getId(), kieSessionService, a);
+                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a))
+                        .andThen(() -> insertEverything(cmd.getId(), kieSessionService, a));
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
         }
     }
 
-    private void applyImportOrUpdate(String id, KieSessionService kieSessionService, IJiraArtifact a) {
-        apply(new ImportedOrUpdatedArtifactEvt(id, a))
-                .andThen(() -> {
-                    kieSessionService.insertOrUpdate(id, a);
-                    kieSessionService.insertOrUpdate(id, model.getWorkflowInstance());
-                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-                            .forEach(wft -> kieSessionService.insertOrUpdate(id, wft));
-                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
-                            .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
-                    kieSessionService.setInitialized(id);
-                    kieSessionService.fire(id);
-                });
+    @CommandHandler
+    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, KieSessionService kieSessionService, IJiraArtifactService artifactService) {
+        log.info("[AGG] handling {}", cmd);
+        ensureInitializedKB(cmd.getId(), kieSessionService);
+        if (cmd.getSource().equals(Sources.JIRA)) {
+            IJiraArtifact a = artifactService.get(cmd.getId());
+            if (a != null) {
+                apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(id, a, cmd.getWfd()))
+                        .andThen(() -> insertEverything(id, kieSessionService, a));
+            }
+        } else {
+            log.error("Unsupported Artifact source: "+cmd.getSource());
+        }
     }
 
     @CommandHandler
@@ -170,6 +174,26 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
+    public void handle(AddConstraintsCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()))
+                .andThen(() -> {
+                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
+                    doc.getConstraintsReadonly().stream()
+                            .filter(q -> q instanceof RuleEngineBasedConstraint)
+                            .map(q -> (RuleEngineBasedConstraint) q)
+                            .forEach(c -> {
+                                kieSessionService.insertOrUpdate(cmd.getId(), c);
+                                // insert constraint trigger
+                                ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(c.getId(), "AddConstraintCmd"));
+                                ct.addConstraint(c.getConstraintType());
+                                kieSessionService.insertOrUpdate(cmd.getId(), ct);
+                            });
+                    kieSessionService.fire(cmd.getId());
+                });
+    }
+
+    @CommandHandler
     public void handle(AddResourceToConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
@@ -183,7 +207,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddResourcesToConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
+        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
                     kieSessionService.insertOrUpdate(cmd.getId(), qac);
@@ -264,7 +288,7 @@ public class WorkflowAggregate {
      * @param kieSessionService
      */
     private void ensureInitializedKB(String id, KieSessionService kieSessionService) {
-        if (!kieSessionService.isInitialized(id)) {
+        if (!kieSessionService.isInitialized(id) && artifact != null && model != null) {
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
             kieSessionService.insertOrUpdate(id, artifact);
@@ -285,5 +309,16 @@ public class WorkflowAggregate {
                     .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
             kieSessionService.setInitialized(id);
         }
+    }
+
+    private void insertEverything(String id, KieSessionService kieSessionService, IJiraArtifact a) {
+        kieSessionService.insertOrUpdate(id, a);
+        kieSessionService.insertOrUpdate(id, model.getWorkflowInstance());
+        model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                .forEach(wft -> kieSessionService.insertOrUpdate(id, wft));
+        model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                .forEach(dni -> kieSessionService.insertOrUpdate(id, dni));
+        kieSessionService.setInitialized(id);
+        kieSessionService.fire(id);
     }
 }

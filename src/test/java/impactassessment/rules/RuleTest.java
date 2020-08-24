@@ -1,13 +1,12 @@
 package impactassessment.rules;
 
-import impactassessment.aggregates.AggregateTestConfig;
 import impactassessment.api.CompletedDataflowEvt;
 import impactassessment.api.ImportedOrUpdatedArtifactEvt;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.model.WorkflowInstanceWrapper;
-import impactassessment.model.definition.DronologyWorkflow;
-import impactassessment.model.workflowmodel.ResourceLink;
+import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
+import impactassessment.passiveprocessengine.workflowmodel.ResourceLink;
 import impactassessment.kiesession.KieSessionFactory;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -31,7 +30,7 @@ public class RuleTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        kieSession = new KieSessionFactory().getKieSession();
+        kieSession = new KieSessionFactory().getKieSession("execution.drl", "constraints.drl");
         kieSession.setGlobal("commandGateway", gateway);
         model = new WorkflowInstanceWrapper();
     }

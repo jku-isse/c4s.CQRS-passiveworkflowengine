@@ -14,6 +14,12 @@ import java.io.InputStream;
 @Slf4j
 public class JiraJsonService implements IJiraArtifactService {
 
+    private final String FILENAME;
+
+    public JiraJsonService(String filename) {
+        this.FILENAME = filename;
+    }
+
     @Override
     public IJiraArtifact get(String key) {
         Issue issue = null;
@@ -29,8 +35,8 @@ public class JiraJsonService implements IJiraArtifactService {
         return artifact;
     }
 
-    public static Issue loadIssue(String key) throws JSONException, IOException {
-		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream("dronology_jira.json");
+    private Issue loadIssue(String key) throws JSONException, IOException {
+		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
         String body = IOUtils.toString(is, "UTF-8");
         JSONObject issueAsJson = new JSONObject(body);
         JSONArray issues = issueAsJson.getJSONArray("issues");

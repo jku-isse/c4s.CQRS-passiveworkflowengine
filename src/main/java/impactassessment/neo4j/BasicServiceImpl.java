@@ -15,17 +15,17 @@ import impactassessment.neo4j.BasicServices.TaskDefinitionService;
 import impactassessment.neo4j.BasicServices.WorkflowDefinitionService;
 import impactassessment.neo4j.BasicServices.WorkflowInstanceService;
 import impactassessment.neo4j.BasicServices.WorkflowTaskService;
-import impactassessment.model.workflowmodel.AbstractArtifact;
-import impactassessment.model.workflowmodel.AbstractWorkflowInstanceObject;
-import impactassessment.model.workflowmodel.ArtifactType;
-import impactassessment.model.workflowmodel.DecisionNodeDefinition;
-import impactassessment.model.workflowmodel.DecisionNodeInstance;
-import impactassessment.model.workflowmodel.DefaultWorkflowDefinition;
-import impactassessment.model.workflowmodel.TaskDefinition;
-import impactassessment.model.workflowmodel.TaskStateTransitionEventPublisher;
-import impactassessment.model.workflowmodel.WorkflowDefinition;
-import impactassessment.model.workflowmodel.WorkflowInstance;
-import impactassessment.model.workflowmodel.WorkflowTask;
+import impactassessment.passiveprocessengine.workflowmodel.AbstractArtifact;
+import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowInstanceObject;
+import impactassessment.passiveprocessengine.workflowmodel.ArtifactType;
+import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeInstance;
+import impactassessment.passiveprocessengine.workflowmodel.DefaultWorkflowDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.TaskDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.TaskStateTransitionEventPublisher;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
+import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
 
 public class BasicServiceImpl {
 
