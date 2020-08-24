@@ -3,6 +3,8 @@ package impactassessment.passiveprocessengine;
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
+import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;
+
 /**
  * workflow:
  *
@@ -17,9 +19,6 @@ public class SimpleWorkflow extends AbstractWorkflowDefinition implements Workfl
 
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_CLOSED = "Closed";
-
-    public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
-
 
     public SimpleWorkflow() {
         super(WORKFLOW_TYPE);

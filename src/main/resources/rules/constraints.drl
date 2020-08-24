@@ -14,6 +14,7 @@ import impactassessment.passiveprocessengine.definition.DronologyWorkflow
 
 import impactassessment.api.AddQAConstraintCmd
 import impactassessment.api.AddResourceToConstraintCmd
+import impactassessment.api.AddResourcesToConstraintCmd
 import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
@@ -22,6 +23,9 @@ import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.jiraartifact.IJiraIssueLink
 import impactassessment.jiraartifact.IJiraArtifactService
 import impactassessment.kiesession.KieSessionUtils
+import java.util.Map
+import java.util.HashMap
+import impactassessment.api.AddConstraintsCmd
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;
@@ -34,20 +38,23 @@ rule "InsertQAConstraintsStateOpen"
 	then
         Optional opt = $wft.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
         WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-
+        Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
         if (aOut != null && (((ResourceLink) aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink) aOut.getArtifact()).getAs().equals("Sub-task"))) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN,"CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
+            constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
+            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Design Definitions
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Design Definition")) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+            constraints.put("CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Bugs
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Bug")) {
             // add nothing
         //constraints for Hazards
         } else if (aOut != null && ((ResourceLink) aOut.getArtifact()).getAs().equals("Hazard")) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_OPEN, "CheckHazardIsMitigated", "Is the hazard mitigated by a Design Definition?"));
+            constraints.put("CheckHazardIsMitigated", "Is the hazard mitigated by a Design Definition?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         }
 end
 
@@ -59,15 +66,17 @@ rule "InsertQAConstraintsStateInProgress"
 	then
 	    Optional opt = $wft.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
         WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-
+        Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
         if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?"));
+            constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
+            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
+            constraints.put("CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Design Definitions
         } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-            commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_IN_PROGRESS, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+            constraints.put("CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Bugs
         } else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
             // add nothing
@@ -82,19 +91,22 @@ rule "InsertQAConstraintsStateResolved"
 	then
 		Optional opt = $wft.getOutput().stream().filter(i -> i.getArtifact() instanceof ResourceLink).findAny();
 		WorkflowTask.ArtifactOutput aOut = (WorkflowTask.ArtifactOutput) opt.orElse(null);
-
+        Map<String, String> constraints = new HashMap<>();
 		//constraints for Tasks and Sub-Taks
 		if (aOut != null && (((ResourceLink)aOut.getArtifact()).getAs().equals("Task") || ((ResourceLink)aOut.getArtifact()).getAs().equals("Sub-task"))) {
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueRelatedToUnitTest", "Is the Jira ticket related to at least one Unit-Test?"));
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckAllRelatedBugsClosed", "Are all related bugs closed?"));
+		    constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
+		    constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
+		    constraints.put("CheckJiraIssueRelatedToUnitTest", "Is the Jira ticket related to at least one Unit-Test?");
+		    constraints.put("CheckAllRelatedBugsClosed", "Are all related bugs closed?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 		//constraints for Design Definitions
 		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Design Definition")){
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?"));
+		    constraints.put("CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 		//constraints for Bugs
 		} else if (aOut != null && ((ResourceLink)aOut.getArtifact()).getAs().equals("Bug")){
-		    commandGateway.send(new AddQAConstraintCmd($wft.getWorkflow().getId(), $wft.getId(), DronologyWorkflow.TASK_STATE_RESOLVED, "CheckJiraIssueHasFixVersion", "Does the Bug have at least one FixVersion?"));
+		    constraints.put("CheckJiraIssueHasFixVersion", "Does the Bug have at least one FixVersion?");
+            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 		}
 end
 
@@ -132,17 +144,19 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
-		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
+		Map<ResourceLink, Boolean> resources = new HashMap<>();
+		for (IJiraIssueLink link : $a.getIssueLinks()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				n++;
-                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+				resources.put(ResourceLink.of(p), isRelatedToOne);
 				isRelatedToOne = false;
 			}
 		}
 		if (n == 0) {
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of($a), $ct.getRequestCorrelation(), Instant.now()));
+		    resources.put(ResourceLink.of($a), false);
 		}
+		commandGateway.send(new AddResourcesToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
@@ -154,21 +168,23 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
-		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getDestination();
+		Map<ResourceLink, Boolean> resources = new HashMap<>();
+		for (IJiraIssueLink link : $a.getIssueLinks()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isRelatedToOne, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+				    resources.put(ResourceLink.of(p), isRelatedToOne);
 					isRelatedToOne = false;
 				} else {
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+				    resources.put(ResourceLink.of(p), false);
 				}
 			}
 		}
 		if (n == 0) {
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of($a), $ct.getRequestCorrelation(), Instant.now()));
+		    resources.put(ResourceLink.of($a), false);
 		}
+		commandGateway.send(new AddResourcesToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
@@ -190,16 +206,18 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		int n = 0;
-		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
+		Map<ResourceLink, Boolean> resources = new HashMap<>();
+		for (IJiraIssueLink link : $a.getIssueLinks()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
-                commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+			    resources.put(ResourceLink.of(p), true);
 				n++;
 			}
 		}
 		if (n == 0) {
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of($a), $ct.getRequestCorrelation(), Instant.now()));
+		    resources.put(ResourceLink.of($a), false);
 		}
+		commandGateway.send(new AddResourcesToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
@@ -210,20 +228,22 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean relatedBug = false;
-		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsOutgoing()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = (IArtifact) r.getDestination();
+		Map<ResourceLink, Boolean> resources = new HashMap<>();
+		for (IJiraIssueLink link : $a.getIssueLinks()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
 				if (p.getStatus().getName().equals("Closed")) {
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+				    resources.put(ResourceLink.of(p), true);
 				} else {
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+				    resources.put(ResourceLink.of(p), false);
 				}
 				relatedBug = true;
 			}
 		}
 		if (!relatedBug) {
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), true, ResourceLink.of($a), $ct.getRequestCorrelation(), Instant.now()));
+		    resources.put(ResourceLink.of($a), true);
 		}
+		commandGateway.send(new AddResourcesToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
@@ -234,18 +254,20 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean isMitigated = false;
-		for (IJiraIssueLink link : $a.getIssueLinks()){ // for (MockRelation r : $a.getRelationsIncoming()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey()); // IArtifact p = r.getSource();
+		Map<ResourceLink, Boolean> resources = new HashMap<>();
+		for (IJiraIssueLink link : $a.getIssueLinks()){
+			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
-                    commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), isMitigated, ResourceLink.of(p), $ct.getRequestCorrelation(), Instant.now()));
+					resources.put(ResourceLink.of(p), isMitigated);
 				}
 			}
 		}
 		if (!isMitigated) {
-            commandGateway.send(new AddResourceToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), false, ResourceLink.of($a), $ct.getRequestCorrelation(), Instant.now()));
+		    resources.put(ResourceLink.of($a), false);
 		}
+		commandGateway.send(new AddResourcesToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "RemoveConstraintTrigger"

@@ -7,7 +7,7 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -38,19 +38,18 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        wfi.addOrReplaceProperty(PROP_PRIORITY, "" + artifact.getPriority().getName());
+        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority().getName());
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
     private void handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
-        List<TaskDefinition> tds = dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
-        tds.stream()
+        dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
             .forEach(td -> {
-                log.debug(String.format("[MOD] Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", dni.getDefinition().getId(), td.toString()));
+                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.toString());
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), DronologyWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK))); // TODO remove hardcoded Dronology Workflow
+                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
                 wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 wfi.activateDecisionNodesFromTask(wt);
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
@@ -83,6 +82,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
+    // rather use AddedConstraintsEvt instead of AddedQAConstraintEvt!
     private void handle(AddedQAConstraintEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft != null) {
@@ -101,6 +101,24 @@ public class WorkflowInstanceWrapper {
         }
     }
 
+    private void handle(AddedConstraintsEvt evt) {
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft != null) {
+            QACheckDocument qa = new QACheckDocument("QA-"+wft.getTaskType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            wft.addOutput(ao);
+            CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+            qa.setLastChangeDueTo(corr);
+            Map<String, String> rules = evt.getRules();
+            for (Map.Entry<String, String> e : rules.entrySet()) {
+                String rebcId = e.getKey()+"_"+wft.getTaskType().getId()+"_"+ wft.getWorkflow().getId();
+                RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
+                qa.addConstraint(rebc);
+            }
+        }
+    }
+
+    // rather use AddedResourcesToConstraintEvt instead of AddedResourceToConstraintEvt!
     private void handle(AddedResourceToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
         if (rebc != null) {
@@ -119,13 +137,13 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedResourcesToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        for (ResourceLink rl : evt.getRes()){
-            if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(rl)) {
-                rebc.addAs(evt.getFulfilled(), rl);
+        for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()){
+            if (!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) {
+                rebc.addAs(entry.getValue(), entry.getKey());
                 rebc.setLastChanged(evt.getTime());
             }
-            if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(rl)) {
-                rebc.addAs(evt.getFulfilled(), rl);
+            if (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey())) {
+                rebc.addAs(entry.getValue(), entry.getKey());
                 rebc.setLastChanged(evt.getTime());
             }
         }
@@ -148,6 +166,8 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedInOutBranchEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
+        } else if (evt instanceof AddedConstraintsEvt) {
+            handle((AddedConstraintsEvt) evt);
         } else if (evt instanceof AddedResourceToConstraintEvt) {
             handle((AddedResourceToConstraintEvt) evt);
         } else if (evt instanceof AddedResourcesToConstraintEvt) {
@@ -155,10 +175,6 @@ public class WorkflowInstanceWrapper {
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
-    }
-
-    public void reset() {
-        wfi = null;
     }
 
     public QACheckDocument getQACDocOfWft(String wftId) {
@@ -205,6 +221,7 @@ public class WorkflowInstanceWrapper {
         return Objects.hash(wfi);
     }
 
+    @Override
     public String toString() {
         return wfi.toString();
     }

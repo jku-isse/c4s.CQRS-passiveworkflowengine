@@ -18,8 +18,9 @@ data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val d
 data class ActivateInOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String, val branchId: String)
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val status: String, val ruleName: String, val description: String)
+data class AddConstraintsCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val rules: Map<String, String>)
 data class AddResourceToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple, val time: Instant)
-data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple, val time: Instant)
+data class AddResourcesToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant)
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
 data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
 data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
@@ -35,8 +36,9 @@ data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val
 data class ActivatedInOutBranchEvt(override val id: String, val dniId: String, val wftId: String, val branchId: String) : IdentifiableEvt
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val status: String, val ruleName: String, val description: String) : IdentifiableEvt
+data class AddedConstraintsEvt(override val id: String, val wftId: String, val rules: Map<String, String>) : IdentifiableEvt
 data class AddedResourceToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: ResourceLink, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
-data class AddedResourcesToConstraintEvt(override val id: String, val qacId: String, val fulfilled: Boolean, val res: List<ResourceLink>, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
+data class AddedResourcesToConstraintEvt(override val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
 
 // QUERIES
 data class FindQuery(val id: String)

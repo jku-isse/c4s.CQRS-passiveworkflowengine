@@ -52,11 +52,11 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 return wft.getTaskType().getId();
             } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getConstraintType();
+                return rebc.getDescription();
             } else {
                 return o.getClass().getSimpleName() + ": " + o.getId();
             }
-        }).setHeader("Workflow Instance").setWidth("25%");
+        }).setHeader("Workflow Instance").setWidth("35%");
 
         if (evalMode) {
             this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {

@@ -3,6 +3,8 @@ package impactassessment.passiveprocessengine;
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
+import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;
+
 /**
  *  workflow:
  *
@@ -38,9 +40,6 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
     // DecisionNodeDefinition IDs
     public static final String DND_KICKOFF = "workflowKickOff";
     public static final String DND_OPEN2CLOSED = "open2closed";
-
-    public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
-
 
     public ComplexWorkflow() {
         super(WORKFLOW_TYPE);
