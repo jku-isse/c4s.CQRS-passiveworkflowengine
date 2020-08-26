@@ -43,6 +43,10 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 
 	private List<MappingReport> mappingReports = new ArrayList<>();
 
+	public List<MappingReport> getMappingReports() {
+		return mappingReports;
+	}
+
 	@Deprecated
 	public DecisionNodeInstance() {
 		super();
@@ -447,6 +451,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	}
 
 	public void executeMapping() {
+		log.debug("execute mapping");
 		List<MappingDefinition> mappings = getDefinition().getMappings();
 
 		List<WorkflowTask> precedingTasks;

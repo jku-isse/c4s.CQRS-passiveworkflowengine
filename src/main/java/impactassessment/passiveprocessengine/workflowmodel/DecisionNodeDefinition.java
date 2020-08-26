@@ -133,7 +133,7 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject{
 		mappings.add(new MappingDefinition(from, to));
 	}
 	public void addMapping(List<String> from, List<String> to, MappingDefinition.MappingType mappingType) {
-		mappings.add(new MappingDefinition(from, to));
+		mappings.add(new MappingDefinition(from, to, mappingType));
 	}
 
 

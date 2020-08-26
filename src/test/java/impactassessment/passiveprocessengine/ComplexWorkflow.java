@@ -3,6 +3,7 @@ package impactassessment.passiveprocessengine;
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
+import static impactassessment.passiveprocessengine.definition.Roles.ROLE_QA_CHECK_DOC;
 import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;
 
 /**
@@ -47,11 +48,6 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
 
     @Override
     public WorkflowInstance createInstance(String id) {
-        initWorkflowSpecification();
-        return new WorkflowInstance(id, this, pub);
-    }
-
-    private void initWorkflowSpecification() {
         TaskDefinition tdTaskOpen = getStateTaskOpenTaskDefinition();
         taskDefinitions.add(tdTaskOpen);
         TaskDefinition tdDDOpen = getStateDDOpenTaskDefinition();
@@ -65,6 +61,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
 
         dnds.add(getWfKickOff(tdTaskOpen, tdDDOpen, tdReqOpen));
         dnds.add(getOpen2Closed(tdTaskOpen, tdDDOpen, tdReqOpen, tdTaskClosed, tdReqWorking));
+        return new WorkflowInstance(id, this, pub);
     }
 
     private TaskDefinition getStateTaskOpenTaskDefinition() {
@@ -85,7 +82,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
     private TaskDefinition getStateTaskClosedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TD_TASK_CLOSED, this);
         // define expected Inputs:
-        td.putExpectedInput(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+        td.putExpectedInput(ROLE_QA_CHECK_DOC, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
     }
 
@@ -123,8 +120,6 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
         // outgoing
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_TASK_CLOSED_IN, tdTaskClosed, false, true, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_REQ_WORKING_IN, tdReqWorking, false, true, dnd));
-        // mappings
-        dnd.addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
         return dnd;
     }
 }

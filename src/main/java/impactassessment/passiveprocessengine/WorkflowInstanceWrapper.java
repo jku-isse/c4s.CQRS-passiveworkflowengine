@@ -105,7 +105,7 @@ public class WorkflowInstanceWrapper {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft != null) {
             QACheckDocument qa = new QACheckDocument("QA-"+wft.getTaskType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, Roles.ROLE_QA_CHECK_DOC, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             wft.addOutput(ao);
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
             qa.setLastChangeDueTo(corr);

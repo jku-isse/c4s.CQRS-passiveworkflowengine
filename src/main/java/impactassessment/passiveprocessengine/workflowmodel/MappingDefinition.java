@@ -10,7 +10,7 @@ import java.util.List;
  * If a MappingDefinition is defined the DecisionNodeInstance of this will map the ArtifactOutputs from the
  * WorkflowTask corresponding to "from" to the ArtifactInputs from the WorkflowTask corresponding to "to".
  */
-class MappingDefinition {
+public class MappingDefinition {
     private List<String> from = new ArrayList<>();
     private List<String> to = new ArrayList<>();
     private MappingType mappingType;
