@@ -14,4 +14,8 @@ public class Report {
     protected void addWarning(Warning warning) {
         warnings.add(warning);
     }
+
+    public List<Warning> getWarnings() {
+        return warnings;
+    }
 }

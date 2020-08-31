@@ -13,6 +13,7 @@ public class Checker {
     public Report check(AbstractWorkflowDefinition workflow) {
         report = new Report();
         this.workflow = workflow;
+        this.workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
 
         // check different aspects
         checkMapping();
@@ -31,7 +32,7 @@ public class Checker {
                 .map(dnd -> dnd.getId())
                 .collect(Collectors.toList());
         for (String id : unconnectedDndIds) {
-            report.addWarning(new Warning("DecisionNodeDefinition should have at least oneout-branch!", id));
+            report.addWarning(new Warning("DecisionNodeDefinition should have at least one out-branch!", id));
         }
     }
 }
