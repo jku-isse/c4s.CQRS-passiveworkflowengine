@@ -1,5 +1,6 @@
 package impactassessment.passiveprocessengine;
 
+import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
 import impactassessment.passiveprocessengine.verification.Checker;
 import impactassessment.passiveprocessengine.verification.Report;
 import org.junit.Test;
@@ -13,6 +14,8 @@ public class CheckerTest {
         ComplexWorkflow workflow = new ComplexWorkflow();
         Checker checker = new Checker();
         Report report = checker.check(workflow);
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
         assertEquals(0, report.getWarnings().size());
     }
 
@@ -21,7 +24,54 @@ public class CheckerTest {
         UncleanWorkflow workflow = new UncleanWorkflow();
         Checker checker = new Checker();
         Report report = checker.check(workflow);
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription()));
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        assertEquals(1, report.getWarnings().size());
+    }
+
+    @Test
+    public void testCheckingOfDronologyWorkflow() {
+        DronologyWorkflow workflow = new DronologyWorkflow();
+        Checker checker = new Checker();
+        Report report = checker.check(workflow);
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        assertEquals(1, report.getWarnings().size());
+    }
+
+    @Test
+    public void testCheckingAndPatchingOfComplexWorkflow() {
+        ComplexWorkflow workflow = new ComplexWorkflow();
+        Checker checker = new Checker();
+        Report report = checker.checkAndPatch(workflow);
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        System.out.println("PATCHES:");
+        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        assertEquals(0, report.getWarnings().size());
+    }
+
+    @Test
+    public void testCheckingAndPatchingOfUncleanWorkflow() {
+        UncleanWorkflow workflow = new UncleanWorkflow();
+        Checker checker = new Checker();
+        Report report = checker.checkAndPatch(workflow);
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        System.out.println("PATCHES:");
+        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        assertEquals(1, report.getWarnings().size());
+    }
+
+    @Test
+    public void testCheckingAndPatchingOfDronologyWorkflow() {
+        DronologyWorkflow workflow = new DronologyWorkflow();
+        Checker checker = new Checker();
+        Report report = checker.checkAndPatch(workflow);
+        System.out.println("WARNINGS:");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        System.out.println("PATCHES:");
+        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
         assertEquals(1, report.getWarnings().size());
     }
 }

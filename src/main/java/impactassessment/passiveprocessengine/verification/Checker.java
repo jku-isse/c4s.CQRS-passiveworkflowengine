@@ -1,38 +1,172 @@
 package impactassessment.passiveprocessengine.verification;
 
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowDefinition;
+import impactassessment.passiveprocessengine.workflowmodel.*;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static impactassessment.passiveprocessengine.verification.Node.NodeType.DND;
+import static impactassessment.passiveprocessengine.verification.Node.NodeType.TD;
+import static impactassessment.passiveprocessengine.verification.Report.WarningType.*;
 
 public class Checker {
 
-    private Report report;
-    private AbstractWorkflowDefinition workflow;
+    private Map<String, Node> nodes = new HashMap<>();
 
     public Report check(AbstractWorkflowDefinition workflow) {
-        report = new Report();
-        this.workflow = workflow;
-        this.workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
+        return evaluate(workflow, false);
+    }
 
-        // check different aspects
-        checkMapping();
-        checkDecisionNodeOutBranch();
+    public Report checkAndPatch(AbstractWorkflowDefinition workflow) {
+        return evaluate(workflow, true);
+    }
 
+    private Report evaluate(AbstractWorkflowDefinition workflow, boolean patchingEnabled) {
+        Report report = new Report();
+        workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
+        // create graph data structure for evaluation
+        buildGraph(workflow);
+        if (patchingEnabled) {
+            // patch repairable flaws of the workflow
+            for (Report.Warning warning : checkPlaceholderNeeded()) {
+                report.addPatches(createPlaceholder(workflow, warning.getAffectedArtifact()));
+            }
+        }
+        report.addWarnings(checkKickoff());
+        report.addWarnings(checkLoops());
+        report.addWarnings(checkDecisionNodeOutBranch());
+        report.addWarnings(checkPlaceholderNeeded());
+        // TODO add more aspects to check..
         return report;
     }
 
-    private void checkMapping() {
+    // ------------------------------------- individual checks -----------------------------------------------
+
+    private Report.Warning[] checkKickoff() {
         // TODO implement
+        return null;
     }
 
-    private void checkDecisionNodeOutBranch() {
-        List<String> unconnectedDndIds = workflow.getDecisionNodeDefinitions().stream()
+    private Report.Warning[] checkLoops() {
+        // TODO implement
+        return null;
+    }
+
+    private Report.Warning[] checkDecisionNodeOutBranch() {
+        return nodes.values().stream()
+                .filter(n -> n.getType().equals(DND))
+                .filter(n -> n.getSuccessors().size() == 0)
+                .map(n -> new Report.Warning(STRUCTURE, "DecisionNodeDefinition should have at least one out-branch!", n.getId()))
+                .toArray(Report.Warning[]::new);
+
+        /* old implementation without using graph data structure
+        return workflow.getDecisionNodeDefinitions().stream()
                 .filter(dnd -> dnd.getOutBranches().size() == 0)
                 .map(dnd -> dnd.getId())
+                .map(s -> new Report.Warning(STRUCTURE, "DecisionNodeDefinition should have at least one out-branch!", s))
+                .toArray(Report.Warning[]::new);
+         */
+    }
+
+    private Report.Warning[] checkPlaceholderNeeded() {
+        return nodes.values().stream()
+                .filter(n -> n.getType().equals(TD))
+                .filter(n -> n.getPredecessors().size() > 1)
+                .map(n -> new Report.Warning(PLACEHOLDER, "TaskDefinition has two incoming connections!", n.getId()))
+                .toArray(Report.Warning[]::new);
+
+        /* old implementation without using graph data structure
+        List<String> wfts = workflow.getDecisionNodeDefinitions().stream()
+                .map(dnd -> dnd.getOutBranches().stream()
+                    .map(out -> out.getTask().getId())
+                    .collect(Collectors.toList()))
+                .flatMap(List::stream)
                 .collect(Collectors.toList());
-        for (String id : unconnectedDndIds) {
-            report.addWarning(new Warning("DecisionNodeDefinition should have at least one out-branch!", id));
+
+        return wfts.stream()
+                .filter(d -> Collections.frequency(wfts, d) > 1)
+                .distinct()
+                .map(s -> new Report.Warning(PLACEHOLDER, "TaskDefinition has two incoming connections!", s))
+                .toArray(Report.Warning[]::new);
+        */
+    }
+
+    // --------------------- repair utilities --------------------------------------
+
+    private Report.Patch[] createPlaceholder(AbstractWorkflowDefinition workflow, String taskDefinitionID) {
+        Node td = nodes.get(taskDefinitionID);
+        if (td.getPredecessors().size() == 2) { // only capable of fixing two incoming branches, not more
+            Node first = td.getPredecessors().get(0);
+            Node second = td.getPredecessors().get(1);
+            boolean firstBeforeSecond = search(first, second.getId());
+            boolean secondBeforeFirst = search(second, first.getId());
+            if (firstBeforeSecond == secondBeforeFirst) { // both true is not possible, both false is not fixable
+                return null;
+            }
+            // make patch
+            DecisionNodeDefinition dnd1;
+            DecisionNodeDefinition dnd2;
+            if (firstBeforeSecond) {
+                dnd1 = workflow.getDNDbyID(first.getId());
+                dnd2 = workflow.getDNDbyID(second.getId());
+            } else {
+                dnd1 = workflow.getDNDbyID(second.getId());
+                dnd2 = workflow.getDNDbyID(first.getId());
+            }
+            IBranchDefinition invalidBranch = dnd1.getOutBranches().stream()
+                    .filter(b -> b.getTask().getId().equals(taskDefinitionID))
+                    .findAny().get();
+            dnd1.getOutBranches().remove(invalidBranch);
+            TaskDefinition placeholder = new TaskDefinition("AUTO_CREATED_PLACEHOLDER", workflow);
+            dnd1.addOutBranchDefinition(new DefaultBranchDefinition("placeholderIn", placeholder, true, true, dnd1));
+            dnd2.addInBranchDefinition(new DefaultBranchDefinition("placeholderOut", placeholder, true, true, dnd2));
+            return new Report.Patch[]{new Report.Patch("Introduced placeholder task between "+dnd1.getId()+" and "+dnd2.getId(), placeholder.getId())};
         }
+        return null;
+    }
+
+    private boolean search(Node n, String id) {
+        for (Node m : n.getSuccessors()) {
+            if (m.getId().equals(id)) {
+                return true;
+            }
+            search(m, id);
+        }
+        return false;
+    }
+
+    // --------------------- build graph data structure for easier checking --------------------------------------
+
+    private void buildGraph(AbstractWorkflowDefinition workflow) {
+        List<DecisionNodeDefinition> dnds = workflow.getDecisionNodeDefinitions();
+        DecisionNodeDefinition kickoff = dnds.stream()
+                .filter(dnd -> dnd.getInBranches().size() == 0).findAny().get();
+        Node one = new Node(kickoff.getId(), DND);
+        connectLayer(dnds, kickoff, one);
+   }
+
+    private void connectLayer(List<DecisionNodeDefinition> dnds, DecisionNodeDefinition dnd, Node one) {
+        for (IBranchDefinition branch : dnd.getOutBranches()) {
+            String tdID = branch.getTask().getId();
+            Node two = new Node(tdID, TD);
+            connectAndPut(one, two);
+            dnds.stream()
+                    .filter(d -> d.getInBranches().stream()
+                            .anyMatch(x -> x.getTask().getId().equals(tdID)))
+                    .forEach(d -> {
+                        Node three = new Node(d.getId(), DND);
+                        connectAndPut(two, three);
+                        if (nodes.values().stream().noneMatch(n -> n.getId().equals(three.getId()))) {
+                            connectLayer(dnds, d, three);
+                        }
+                    });
+        }
+    }
+
+    private void connectAndPut(Node predecessor, Node successor) {
+        predecessor.addSuccessor(successor);
+        successor.addPredecessor(predecessor);
+        nodes.put(predecessor.getId(), predecessor);
+        nodes.put(successor.getId(), successor);
     }
 }
