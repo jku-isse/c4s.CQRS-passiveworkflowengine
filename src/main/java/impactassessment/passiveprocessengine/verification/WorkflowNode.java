@@ -3,25 +3,25 @@ package impactassessment.passiveprocessengine.verification;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Node {
+public class WorkflowNode {
 
     private NodeType type;
     private String id;
-    private Map<String, Node> predecessors;
-    private Map<String, Node> successors;
+    private Map<String, WorkflowNode> predecessors;
+    private Map<String, WorkflowNode> successors;
 
-    public Node(String id, NodeType type) {
+    public WorkflowNode(String id, NodeType type) {
         this.id = id;
         this.type = type;
         predecessors = new HashMap<>();
         successors = new HashMap<>();
     }
 
-    public void addPredecessor(Node n) {
+    public void addPredecessor(WorkflowNode n) {
         predecessors.put(n.getId(), n);
     }
 
-    public void addSuccessor(Node n) {
+    public void addSuccessor(WorkflowNode n) {
         successors.put(n.getId(), n);
     }
 
@@ -33,11 +33,11 @@ public class Node {
         return id;
     }
 
-    public Map<String, Node> getPredecessors() {
+    public Map<String, WorkflowNode> getPredecessors() {
         return predecessors;
     }
 
-    public Map<String, Node> getSuccessors() {
+    public Map<String, WorkflowNode> getSuccessors() {
         return successors;
     }
 

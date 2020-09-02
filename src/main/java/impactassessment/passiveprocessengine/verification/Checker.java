@@ -6,14 +6,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static impactassessment.passiveprocessengine.verification.Node.NodeType.DND;
-import static impactassessment.passiveprocessengine.verification.Node.NodeType.TD;
+import static impactassessment.passiveprocessengine.verification.GraphDisplay.display;
+import static impactassessment.passiveprocessengine.verification.WorkflowNode.NodeType.DND;
+import static impactassessment.passiveprocessengine.verification.WorkflowNode.NodeType.TD;
 import static impactassessment.passiveprocessengine.verification.Report.WarningType.PLACEHOLDER;
 import static impactassessment.passiveprocessengine.verification.Report.WarningType.STRUCTURE;
 
 public class Checker {
 
-    private Map<String, Node> nodes;
+    private Map<String, WorkflowNode> nodes;
+
+    public Map<String, WorkflowNode> getNodes() {
+        return nodes;
+    }
 
     public Report check(AbstractWorkflowDefinition workflow) {
         return evaluate(workflow, false);
@@ -28,12 +33,14 @@ public class Checker {
         workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
         // create graph data structure for evaluation
         buildGraph(workflow);
+        display(nodes);
         if (patchingEnabled) {
             // patch repairable flaws of the workflow
             for (Report.Warning warning : checkPlaceholderNeeded()) {
                 report.addPatches(createPlaceholder(workflow, warning.getAffectedArtifact()));
             }
             buildGraph(workflow); // graph has to be rebuilt for checks after patching workflow
+            display(nodes);
         }
         report.addWarnings(checkKickoff());
         report.addWarnings(checkLoops());
@@ -97,12 +104,12 @@ public class Checker {
     // --------------------- repair utilities --------------------------------------
 
     private Report.Patch[] createPlaceholder(AbstractWorkflowDefinition workflow, String taskDefinitionID) {
-        Node td = nodes.get(taskDefinitionID);
+        WorkflowNode td = nodes.get(taskDefinitionID);
         if (td.getPredecessors().size() == 2) { // only capable of fixing two incoming branches, not more
-            Node[] nodes = new Node[2];
+            WorkflowNode[] nodes = new WorkflowNode[2];
             td.getPredecessors().values().toArray(nodes);
-            Node first = nodes[0];
-            Node second = nodes[1];
+            WorkflowNode first = nodes[0];
+            WorkflowNode second = nodes[1];
             boolean firstBeforeSecond = search(first, second.getId());
             boolean secondBeforeFirst = search(second, first.getId());
             if (firstBeforeSecond == secondBeforeFirst) { // both true is not possible, both false is not fixable
@@ -131,9 +138,9 @@ public class Checker {
         return null;
     }
 
-    private boolean search(Node n, String id) {
+    private boolean search(WorkflowNode n, String id) {
         boolean isSuccessor = false;
-        for (Node m : n.getSuccessors().values()) {
+        for (WorkflowNode m : n.getSuccessors().values()) {
             isSuccessor = search(m, id);
             if (isSuccessor || m.getId().equals(id)) {
                 return true;
@@ -149,30 +156,30 @@ public class Checker {
         List<DecisionNodeDefinition> dnds = workflow.getDecisionNodeDefinitions();
         DecisionNodeDefinition kickoff = dnds.stream()
                 .filter(dnd -> dnd.getInBranches().size() == 0).findAny().get();
-        Node one = new Node(kickoff.getId(), DND);
+        WorkflowNode one = new WorkflowNode(kickoff.getId(), DND);
         connectLayer(dnds, kickoff, one);
    }
 
-    private void connectLayer(List<DecisionNodeDefinition> dnds, DecisionNodeDefinition dnd, Node one) {
+    private void connectLayer(List<DecisionNodeDefinition> dnds, DecisionNodeDefinition dnd, WorkflowNode one) {
         for (IBranchDefinition branch : dnd.getOutBranches()) {
             String tdID = branch.getTask().getId();
-            Node two = new Node(tdID, TD);
+            WorkflowNode two = new WorkflowNode(tdID, TD);
             connectAndPut(one, two);
             dnds.stream()
                     .filter(d -> d.getInBranches().stream()
                             .anyMatch(x -> x.getTask().getId().equals(tdID)))
                     .forEach(d -> {
-                        Node three = new Node(d.getId(), DND);
+                        WorkflowNode three = new WorkflowNode(d.getId(), DND);
                         connectAndPut(two, three);
                         connectLayer(dnds, d, three);
                     });
         }
     }
 
-    private void connectAndPut(Node predecessor, Node successor) {
+    private void connectAndPut(WorkflowNode predecessor, WorkflowNode successor) {
         // use already present nodes if possible
-        Node pre = nodes.getOrDefault(predecessor.getId(), predecessor);
-        Node suc = nodes.getOrDefault(successor.getId(), successor);
+        WorkflowNode pre = nodes.getOrDefault(predecessor.getId(), predecessor);
+        WorkflowNode suc = nodes.getOrDefault(successor.getId(), successor);
         // connect nodes
         pre.addSuccessor(suc);
         suc.addPredecessor(pre);
