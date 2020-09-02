@@ -33,12 +33,10 @@ public class Report {
 
         private String affectedArtifact;
         private String description;
-        private WarningType warningType;
 
-        protected Warning(WarningType warningType, String description, String affectedArtifact) {
+        protected Warning(String description, String affectedArtifact) {
             this.description = description;
             this.affectedArtifact = affectedArtifact;
-            this.warningType = warningType;
         }
 
         public String getAffectedArtifact() {
@@ -49,13 +47,7 @@ public class Report {
             return description;
         }
 
-        public WarningType getWarningType() {
-            return warningType;
-        }
-
     }
-
-    enum WarningType {PLACEHOLDER, MAPPING, STRUCTURE}
 
     public static class Patch {
 

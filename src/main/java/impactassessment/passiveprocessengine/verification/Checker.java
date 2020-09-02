@@ -1,24 +1,20 @@
 package impactassessment.passiveprocessengine.verification;
 
 import impactassessment.passiveprocessengine.workflowmodel.*;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.SingleGraph;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static impactassessment.passiveprocessengine.verification.GraphDisplay.display;
 import static impactassessment.passiveprocessengine.verification.WorkflowNode.NodeType.DND;
 import static impactassessment.passiveprocessengine.verification.WorkflowNode.NodeType.TD;
-import static impactassessment.passiveprocessengine.verification.Report.WarningType.PLACEHOLDER;
-import static impactassessment.passiveprocessengine.verification.Report.WarningType.STRUCTURE;
 
 public class Checker {
 
     private Map<String, WorkflowNode> nodes;
-
-    public Map<String, WorkflowNode> getNodes() {
-        return nodes;
-    }
 
     public Report check(AbstractWorkflowDefinition workflow) {
         return evaluate(workflow, false);
@@ -33,14 +29,14 @@ public class Checker {
         workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
         // create graph data structure for evaluation
         buildGraph(workflow);
-        display(nodes);
+        display();
         if (patchingEnabled) {
             // patch repairable flaws of the workflow
             for (Report.Warning warning : checkPlaceholderNeeded()) {
                 report.addPatches(createPlaceholder(workflow, warning.getAffectedArtifact()));
             }
             buildGraph(workflow); // graph has to be rebuilt for checks after patching workflow
-            display(nodes);
+            display();
         }
         report.addWarnings(checkKickoff());
         report.addWarnings(checkLoops());
@@ -66,39 +62,16 @@ public class Checker {
         return nodes.values().stream()
                 .filter(n -> n.getType().equals(DND))
                 .filter(n -> n.getSuccessors().size() == 0)
-                .map(n -> new Report.Warning(STRUCTURE, "DecisionNodeDefinition should have at least one out-branch!", n.getId()))
+                .map(n -> new Report.Warning("DecisionNodeDefinition should have at least one out-branch!", n.getId()))
                 .toArray(Report.Warning[]::new);
-
-        /* old implementation without using graph data structure
-        return workflow.getDecisionNodeDefinitions().stream()
-                .filter(dnd -> dnd.getOutBranches().size() == 0)
-                .map(dnd -> dnd.getId())
-                .map(s -> new Report.Warning(STRUCTURE, "DecisionNodeDefinition should have at least one out-branch!", s))
-                .toArray(Report.Warning[]::new);
-         */
     }
 
     private Report.Warning[] checkPlaceholderNeeded() {
         return nodes.values().stream()
                 .filter(n -> n.getType().equals(TD))
                 .filter(n -> n.getPredecessors().size() > 1)
-                .map(n -> new Report.Warning(PLACEHOLDER, "TaskDefinition has two incoming connections!", n.getId()))
+                .map(n -> new Report.Warning("TaskDefinition has two incoming connections!", n.getId()))
                 .toArray(Report.Warning[]::new);
-
-        /* old implementation without using graph data structure
-        List<String> wfts = workflow.getDecisionNodeDefinitions().stream()
-                .map(dnd -> dnd.getOutBranches().stream()
-                    .map(out -> out.getTask().getId())
-                    .collect(Collectors.toList()))
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-
-        return wfts.stream()
-                .filter(d -> Collections.frequency(wfts, d) > 1)
-                .distinct()
-                .map(s -> new Report.Warning(PLACEHOLDER, "TaskDefinition has two incoming connections!", s))
-                .toArray(Report.Warning[]::new);
-        */
     }
 
     // --------------------- repair utilities --------------------------------------
@@ -139,14 +112,12 @@ public class Checker {
     }
 
     private boolean search(WorkflowNode n, String id) {
-        boolean isSuccessor = false;
         for (WorkflowNode m : n.getSuccessors().values()) {
-            isSuccessor = search(m, id);
-            if (isSuccessor || m.getId().equals(id)) {
+            if (search(m, id) || m.getId().equals(id)) {
                 return true;
             }
         }
-        return isSuccessor;
+        return false;
     }
 
     // --------------------- build graph data structure for easier checking --------------------------------------
@@ -186,5 +157,25 @@ public class Checker {
         // put nodes into map
         nodes.put(pre.getId(), pre);
         nodes.put(suc.getId(), suc);
+    }
+
+    public void display() {
+        Graph graph = new SingleGraph("Workflow");
+        // add nodes
+        for (WorkflowNode n : nodes.values()) {
+            graph.addNode(n.getId());
+        }
+        // add edges
+        for (WorkflowNode n : nodes.values()) {
+            for (WorkflowNode suc : n.getSuccessors().values()) {
+                graph.addEdge(n.getId()+"-"+suc.getId(), n.getId(), suc.getId(), true);
+            }
+        }
+        // set attribute
+        for (Node node : graph) {
+            node.addAttribute("ui.label", node.getId());
+        }
+        // display
+        graph.display();
     }
 }
