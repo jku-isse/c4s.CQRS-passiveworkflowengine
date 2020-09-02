@@ -2,12 +2,14 @@ package impactassessment.passiveprocessengine.verification;
 
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static impactassessment.passiveprocessengine.verification.Node.NodeType.DND;
 import static impactassessment.passiveprocessengine.verification.Node.NodeType.TD;
-import static impactassessment.passiveprocessengine.verification.Report.WarningType.*;
+import static impactassessment.passiveprocessengine.verification.Report.WarningType.PLACEHOLDER;
+import static impactassessment.passiveprocessengine.verification.Report.WarningType.STRUCTURE;
 
 public class Checker {
 
@@ -132,10 +134,10 @@ public class Checker {
     private boolean search(Node n, String id) {
         boolean isSuccessor = false;
         for (Node m : n.getSuccessors().values()) {
-            if (m.getId().equals(id)) {
+            isSuccessor = search(m, id);
+            if (isSuccessor || m.getId().equals(id)) {
                 return true;
             }
-            isSuccessor = search(m, id);
         }
         return isSuccessor;
     }

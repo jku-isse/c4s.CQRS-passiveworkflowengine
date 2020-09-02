@@ -93,4 +93,5 @@ public class CheckerTest {
         assertEquals(0, report.getWarnings().size());
         assertEquals(1, report.getPatches().size());
     }
+
 }
