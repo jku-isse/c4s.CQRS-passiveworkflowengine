@@ -11,7 +11,7 @@ import static impactassessment.passiveprocessengine.verification.Report.WarningT
 
 public class Checker {
 
-    private Map<String, Node> nodes = new HashMap<>();
+    private Map<String, Node> nodes;
 
     public Report check(AbstractWorkflowDefinition workflow) {
         return evaluate(workflow, false);
@@ -31,6 +31,7 @@ public class Checker {
             for (Report.Warning warning : checkPlaceholderNeeded()) {
                 report.addPatches(createPlaceholder(workflow, warning.getAffectedArtifact()));
             }
+            buildGraph(workflow); // graph has to be rebuilt for checks after patching workflow
         }
         report.addWarnings(checkKickoff());
         report.addWarnings(checkLoops());
@@ -96,8 +97,10 @@ public class Checker {
     private Report.Patch[] createPlaceholder(AbstractWorkflowDefinition workflow, String taskDefinitionID) {
         Node td = nodes.get(taskDefinitionID);
         if (td.getPredecessors().size() == 2) { // only capable of fixing two incoming branches, not more
-            Node first = td.getPredecessors().get(0);
-            Node second = td.getPredecessors().get(1);
+            Node[] nodes = new Node[2];
+            td.getPredecessors().values().toArray(nodes);
+            Node first = nodes[0];
+            Node second = nodes[1];
             boolean firstBeforeSecond = search(first, second.getId());
             boolean secondBeforeFirst = search(second, first.getId());
             if (firstBeforeSecond == secondBeforeFirst) { // both true is not possible, both false is not fixable
@@ -118,6 +121,7 @@ public class Checker {
                     .findAny().get();
             dnd1.getOutBranches().remove(invalidBranch);
             TaskDefinition placeholder = new TaskDefinition("AUTO_CREATED_PLACEHOLDER", workflow);
+            workflow.getWorkflowTaskDefinitions().add(placeholder);
             dnd1.addOutBranchDefinition(new DefaultBranchDefinition("placeholderIn", placeholder, true, true, dnd1));
             dnd2.addInBranchDefinition(new DefaultBranchDefinition("placeholderOut", placeholder, true, true, dnd2));
             return new Report.Patch[]{new Report.Patch("Introduced placeholder task between "+dnd1.getId()+" and "+dnd2.getId(), placeholder.getId())};
@@ -126,18 +130,20 @@ public class Checker {
     }
 
     private boolean search(Node n, String id) {
-        for (Node m : n.getSuccessors()) {
+        boolean isSuccessor = false;
+        for (Node m : n.getSuccessors().values()) {
             if (m.getId().equals(id)) {
                 return true;
             }
-            search(m, id);
+            isSuccessor = search(m, id);
         }
-        return false;
+        return isSuccessor;
     }
 
     // --------------------- build graph data structure for easier checking --------------------------------------
 
     private void buildGraph(AbstractWorkflowDefinition workflow) {
+        nodes = new HashMap<>();
         List<DecisionNodeDefinition> dnds = workflow.getDecisionNodeDefinitions();
         DecisionNodeDefinition kickoff = dnds.stream()
                 .filter(dnd -> dnd.getInBranches().size() == 0).findAny().get();
@@ -156,17 +162,20 @@ public class Checker {
                     .forEach(d -> {
                         Node three = new Node(d.getId(), DND);
                         connectAndPut(two, three);
-                        if (nodes.values().stream().noneMatch(n -> n.getId().equals(three.getId()))) {
-                            connectLayer(dnds, d, three);
-                        }
+                        connectLayer(dnds, d, three);
                     });
         }
     }
 
     private void connectAndPut(Node predecessor, Node successor) {
-        predecessor.addSuccessor(successor);
-        successor.addPredecessor(predecessor);
-        nodes.put(predecessor.getId(), predecessor);
-        nodes.put(successor.getId(), successor);
+        // use already present nodes if possible
+        Node pre = nodes.getOrDefault(predecessor.getId(), predecessor);
+        Node suc = nodes.getOrDefault(successor.getId(), successor);
+        // connect nodes
+        pre.addSuccessor(suc);
+        suc.addPredecessor(pre);
+        // put nodes into map
+        nodes.put(pre.getId(), pre);
+        nodes.put(suc.getId(), suc);
     }
 }

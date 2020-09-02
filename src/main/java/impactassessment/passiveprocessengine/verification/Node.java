@@ -1,28 +1,28 @@
 package impactassessment.passiveprocessengine.verification;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Node {
 
     private NodeType type;
     private String id;
-    private List<Node> predecessors;
-    private List<Node> successors;
+    private Map<String, Node> predecessors;
+    private Map<String, Node> successors;
 
     public Node(String id, NodeType type) {
         this.id = id;
         this.type = type;
-        predecessors = new ArrayList<>();
-        successors = new ArrayList<>();
+        predecessors = new HashMap<>();
+        successors = new HashMap<>();
     }
 
     public void addPredecessor(Node n) {
-        predecessors.add(n);
+        predecessors.put(n.getId(), n);
     }
 
     public void addSuccessor(Node n) {
-        successors.add(n);
+        successors.put(n.getId(), n);
     }
 
     public NodeType getType() {
@@ -33,11 +33,11 @@ public class Node {
         return id;
     }
 
-    public List<Node> getPredecessors() {
+    public Map<String, Node> getPredecessors() {
         return predecessors;
     }
 
-    public List<Node> getSuccessors() {
+    public Map<String, Node> getSuccessors() {
         return successors;
     }
 
