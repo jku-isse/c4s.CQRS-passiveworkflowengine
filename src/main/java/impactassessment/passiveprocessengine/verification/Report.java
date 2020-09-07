@@ -31,16 +31,17 @@ public class Report {
 
     public static class Warning {
 
-        private String affectedArtifact;
+        private List<String> affectedArtifacts;
         private String description;
 
-        protected Warning(String description, String affectedArtifact) {
+        protected Warning(String description, String... affectedArtifacts) {
             this.description = description;
-            this.affectedArtifact = affectedArtifact;
+            this.affectedArtifacts = new ArrayList<>();
+            this.affectedArtifacts.addAll(List.of(affectedArtifacts));
         }
 
-        public String getAffectedArtifact() {
-            return affectedArtifact;
+        public List<String> getAffectedArtifacts() {
+            return affectedArtifacts;
         }
 
         public String getDescription() {

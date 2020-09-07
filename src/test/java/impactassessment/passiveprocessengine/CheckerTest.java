@@ -16,7 +16,7 @@ public class CheckerTest {
         Report report = checker.check(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
         assertEquals(0, report.getWarnings().size());
@@ -29,10 +29,10 @@ public class CheckerTest {
         Report report = checker.check(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(1, report.getWarnings().size());
+        assertEquals(3, report.getWarnings().size());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class CheckerTest {
         Report report = checker.check(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
         assertEquals(1, report.getWarnings().size());
@@ -55,7 +55,7 @@ public class CheckerTest {
         Report report = checker.checkAndPatch(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("---------------PATCHES----------------");
         report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
         System.out.println("--------------------------------------");
@@ -70,12 +70,12 @@ public class CheckerTest {
         Report report = checker.checkAndPatch(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("---------------PATCHES----------------");
         report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(1, report.getWarnings().size());
+        assertEquals(3, report.getWarnings().size());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class CheckerTest {
         Report report = checker.checkAndPatch(workflow);
         // log result
         System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("---------------PATCHES----------------");
         report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
         System.out.println("--------------------------------------");

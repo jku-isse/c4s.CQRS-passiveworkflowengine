@@ -30,6 +30,7 @@ public class UncleanWorkflow extends AbstractWorkflowDefinition implements Workf
 
         dnds.add(getWfKickOff(tdOpen));
         dnds.add(getOpen2Closed(tdOpen, tdClosed));
+        dnds.add(getUnconnected());
     }
 
     private TaskDefinition getStateOpenTaskDefinition() {
@@ -64,6 +65,16 @@ public class UncleanWorkflow extends AbstractWorkflowDefinition implements Workf
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, true, dnd));
 //        dnd.addOutBranchDefinition(new DefaultBranchDefinition("closedIn", tdClosed, false, true, dnd));
         dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_CLOSED);
+        return dnd;
+    }
+
+    private DecisionNodeDefinition getUnconnected() {
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition(
+                "unconnected",
+                this,
+                DecisionNodeDefinition.NO_EXTERNAL_RULE,
+                DecisionNodeDefinition.NO_EXTERNAL_RULE,
+                DecisionNodeDefinition.NO_EXTERNAL_RULE);
         return dnd;
     }
 }
