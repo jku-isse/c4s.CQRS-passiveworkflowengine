@@ -1,4 +1,4 @@
-package impactassessment.passiveprocessengine;
+package impactassessment.passiveprocessengine.workflows;
 
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;

@@ -16,6 +16,7 @@ data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dn
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
 data class ActivateInOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String, val branchId: String)
+data class ActivateInOutBranchesCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String, val branchIds: Set<String>)
 data class DeleteCmd(@TargetAggregateIdentifier val id: String)
 data class AddQAConstraintCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val status: String, val ruleName: String, val description: String)
 data class AddConstraintsCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val rules: Map<String, String>)
@@ -34,6 +35,7 @@ data class CompletedDataflowEvt(override val id: String, val dniId: String, val 
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
 data class ActivatedInOutBranchEvt(override val id: String, val dniId: String, val wftId: String, val branchId: String) : IdentifiableEvt
+data class ActivatedInOutBranchesEvt(override val id: String, val dniId: String, val wftId: String, val branchIds: Set<String>) : IdentifiableEvt
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedQAConstraintEvt(override val id: String, val wftId: String, val status: String, val ruleName: String, val description: String) : IdentifiableEvt
 data class AddedConstraintsEvt(override val id: String, val wftId: String, val rules: Map<String, String>) : IdentifiableEvt

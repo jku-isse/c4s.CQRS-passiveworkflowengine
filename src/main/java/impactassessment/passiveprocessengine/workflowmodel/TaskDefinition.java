@@ -16,7 +16,7 @@ import impactassessment.passiveprocessengine.actor.ICustomRoleSelector;
 import impactassessment.passiveprocessengine.actor.Role;
 
 
-public class TaskDefinition extends AbstractWorkflowDefinitionObject implements java.io.Serializable{
+public class TaskDefinition extends AbstractWorkflowDefinitionObject implements java.io.Serializable {
 	
 	private static final long serialVersionUID = 2899700748101656836L;
 	@Convert(ArtifactTypeConverter.Input.class)

@@ -2,16 +2,11 @@ package impactassessment;
 
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraJsonService;
-import impactassessment.jiraartifact.JiraService;
-import impactassessment.kiesession.KieSessionFactory;
-import impactassessment.kiesession.KieSessionWrapper;
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
 import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowDefinition;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.kie.api.runtime.KieSession;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class SpringConfig {
@@ -28,7 +23,7 @@ public class SpringConfig {
     public AbstractWorkflowDefinition getAbstractWorkflowDefinition() {
         // careful! execution.drl has hardcoded (dronology)workflow-branch names
         // --> just injecting a new workflow here won't work
-        return new DronologyWorkflow();
+        return new DronologyWorkflowFixed();
     }
 
 }

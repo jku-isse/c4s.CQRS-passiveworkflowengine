@@ -4,12 +4,14 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.workflows.ComplexWorkflow;
+import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static impactassessment.passiveprocessengine.ComplexWorkflow.*;
+import static impactassessment.passiveprocessengine.workflows.ComplexWorkflow.*;
 import static org.junit.Assert.assertEquals;
 
 public class WFTInputOutputMappingWithWrapperTest {

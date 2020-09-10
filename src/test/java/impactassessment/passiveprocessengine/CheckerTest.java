@@ -1,8 +1,11 @@
 package impactassessment.passiveprocessengine;
 
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow;
+import impactassessment.passiveprocessengine.workflows.ComplexWorkflow;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
 import impactassessment.passiveprocessengine.verification.Checker;
 import impactassessment.passiveprocessengine.verification.Report;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
+import impactassessment.passiveprocessengine.workflows.UncleanWorkflow;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -46,6 +49,19 @@ public class CheckerTest {
         System.out.println("--------------------------------------");
         // assertions
         assertEquals(1, report.getWarnings().size());
+    }
+
+    @Test
+    public void testCheckingOfDronologyWorkflowFixed() {
+        DronologyWorkflowFixed workflow = new DronologyWorkflowFixed();
+        Checker checker = new Checker();
+        Report report = checker.check(workflow);
+        // log result
+        System.out.println("---------------WARNINGS---------------");
+        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
+        System.out.println("--------------------------------------");
+        // assertions
+        assertEquals(0, report.getWarnings().size());
     }
 
 //    @Test

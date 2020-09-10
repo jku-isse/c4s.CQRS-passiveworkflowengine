@@ -12,6 +12,7 @@ import static impactassessment.passiveprocessengine.verification.WorkflowNode.No
 public class Checker {
 
     private WorkflowGraph graph;
+    private static final boolean VISUALIZE = true;
 
     public Report check(AbstractWorkflowDefinition workflow) {
         return evaluate(workflow);
@@ -26,7 +27,7 @@ public class Checker {
         workflow.createInstance("dummy"); // instance is not used, but must be instantiated to build definition
         // create graph data structure for evaluation
         graph = new WorkflowGraph(workflow);
-        graph.display();
+        if (VISUALIZE) graph.display();
 //        if (patchingEnabled) {
 //            // patch repairable flaws of the workflow
 //            for (Report.Warning warning : checkPlaceholderNeeded()) {
@@ -39,7 +40,8 @@ public class Checker {
         report.addWarnings(checkUnconnectedTaskDefinition(workflow));
         report.addWarnings(checkKickoff());
         report.addWarnings(checkDecisionNodeOutBranch()); // TODO end DND possible
-        report.addWarnings(checkPlaceholderNeeded());
+        report.addWarnings(checkTdIncoming());
+        report.addWarnings(checkTdOutgoing());
         report.addWarnings(checkTaskDefinitionConnected());
         // TODO add more aspects to check..
         return report;
@@ -103,11 +105,19 @@ public class Checker {
                 .toArray(Report.Warning[]::new);
     }
 
-    private Report.Warning[] checkPlaceholderNeeded() {
+    private Report.Warning[] checkTdIncoming() {
         return graph.getNodes().stream()
                 .filter(n -> n.getType().equals(TD))
                 .filter(n -> n.getPredecessors().size() > 1)
                 .map(n -> new Report.Warning("TaskDefinition has two incoming connections!", n.getId()))
+                .toArray(Report.Warning[]::new);
+    }
+
+    private Report.Warning[] checkTdOutgoing() {
+        return graph.getNodes().stream()
+                .filter(n -> n.getType().equals(TD))
+                .filter(n -> n.getSuccessors().size() > 1)
+                .map(n -> new Report.Warning("TaskDefinition has two outgoing connections!", n.getId()))
                 .toArray(Report.Warning[]::new);
     }
 

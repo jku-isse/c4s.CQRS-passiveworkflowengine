@@ -4,6 +4,7 @@ import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
 

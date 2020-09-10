@@ -80,12 +80,12 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	protected void addOutBranches(Collection<IBranchInstance> outBranches) {
 		this.outBranches.addAll(outBranches);
 	}
-	
-	protected Set<IBranchInstance> getOutBranches() {
+
+	public Set<IBranchInstance> getOutBranches() {
 		return Collections.unmodifiableSet(outBranches);
 	}
-	
-	protected Set<IBranchInstance> getInBranches() {
+
+	public Set<IBranchInstance> getInBranches() {
 		return Collections.unmodifiableSet(inBranches);
 	}
 	
@@ -436,18 +436,32 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				.collect(Collectors.toList());
 	}
 	
-	public String getInBranchForWorkflowTask(WorkflowTask task) {
+	public String getInBranchIdForWorkflowTask(WorkflowTask task) {
 		Optional<IBranchInstance> branch = inBranches.stream()
 			.filter(b -> b.getTask().equals(task))
 			.findFirst();
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 	
-	public String getOutBranchForWorkflowTask(WorkflowTask task) {
+	public String getOutBranchIdForWorkflowTask(WorkflowTask task) {
 		Optional<IBranchInstance> branch = outBranches.stream()
 			.filter(b -> b.getTask().equals(task))
 			.findFirst();
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
+	}
+
+	public IBranchInstance getInBranchForWorkflowTask(WorkflowTask task) {
+		Optional<IBranchInstance> branch = inBranches.stream()
+				.filter(b -> b.getTask().equals(task))
+				.findFirst();
+		return branch.isPresent() ? branch.get() : null;
+	}
+
+	public IBranchInstance getOutBranchForWorkflowTask(WorkflowTask task) {
+		Optional<IBranchInstance> branch = outBranches.stream()
+				.filter(b -> b.getTask().equals(task))
+				.findFirst();
+		return branch.isPresent() ? branch.get() : null;
 	}
 
 	public void executeMapping() {

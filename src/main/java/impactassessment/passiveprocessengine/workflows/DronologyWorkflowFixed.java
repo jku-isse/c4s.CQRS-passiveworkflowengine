@@ -1,18 +1,26 @@
-package impactassessment.passiveprocessengine.definition;
+package impactassessment.passiveprocessengine.workflows;
 
-import java.util.UUID;
 import com.google.inject.Inject;
+import impactassessment.passiveprocessengine.definition.ArtifactTypes;
+import impactassessment.passiveprocessengine.definition.Roles;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
-public class DronologyWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+import java.util.UUID;
+
+/**
+ * Same as DronologyWorkflow but added additional NoOp TaskDefinition in order to ensure a valid structure
+ */
+public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implements WorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
 
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_IN_PROGRESS = "In Progress";
     public static final String TASK_STATE_RESOLVED = "Resolved";
+    public static final String TASK_STATE_NOOP = "NoOp";
 
-    public DronologyWorkflow(){
+
+    public DronologyWorkflowFixed(){
         super(WORKFLOW_TYPE);
         initWorkflowSpecification();
     }
@@ -25,10 +33,12 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
         taskDefinitions.add(tdInProgress);
         TaskDefinition tdResolved = getStateResolvedTaskDefinition();
         taskDefinitions.add(tdResolved);
+        TaskDefinition tdNoop = new NoOpTaskDefinition(TASK_STATE_NOOP, this);
+        taskDefinitions.add(tdNoop);
 
         dnds.add(getWfKickOff(tdOpen));
-        dnds.add(getOpen2InProgressOrResolved(tdOpen, tdInProgress, tdResolved));
-        dnds.add(getInProgress2Resolved(tdInProgress, tdResolved));
+        dnds.add(getOpen2InProgressOrResolved(tdOpen, tdInProgress, tdNoop));
+        dnds.add(getInProgress2Resolved(tdInProgress, tdResolved, tdNoop));
     }
 
     private TaskDefinition getStateOpenTaskDefinition() {
@@ -59,18 +69,20 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
         return dnd;
     }
-    private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdResolved) {
+    private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2inProgressOrResolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, true, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, true, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
         return dnd;
     }
-    private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved) {
+    private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, true, dnd));
+        dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, true, dnd));
         return dnd;
     }
 

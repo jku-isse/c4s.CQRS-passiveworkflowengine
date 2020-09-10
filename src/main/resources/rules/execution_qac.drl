@@ -12,7 +12,7 @@ import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask
 import impactassessment.passiveprocessengine.workflowmodel.TaskLifecycle.Events
 import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowInstanceObject
 import impactassessment.passiveprocessengine.workflowmodel.WorkflowDefinition
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
 import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
 import impactassessment.passiveprocessengine.definition.QACheckDocument
 
@@ -52,7 +52,7 @@ rule "Open2InProgress-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
         $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
@@ -69,7 +69,7 @@ rule "InProgress2Resolved-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("inProgressToResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
         $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
@@ -86,7 +86,7 @@ rule "Open2Resolved-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
         $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&

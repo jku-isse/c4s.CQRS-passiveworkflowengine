@@ -10,7 +10,7 @@ import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstrain
 import java.time.Instant
 import impactassessment.passiveprocessengine.definition.CorrelationTuple
 import impactassessment.passiveprocessengine.definition.ConstraintTrigger
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
 
 import impactassessment.api.AddQAConstraintCmd
 import impactassessment.api.AddResourceToConstraintCmd

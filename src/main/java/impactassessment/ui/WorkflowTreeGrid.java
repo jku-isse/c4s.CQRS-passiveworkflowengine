@@ -20,6 +20,7 @@ import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.definition.QACheckDocument;
 import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
 import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
+import impactassessment.passiveprocessengine.workflowmodel.NoOpTaskDefinition;
 import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
 import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
@@ -229,7 +230,9 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             this.setItems(content.stream().map(WorkflowInstanceWrapper::getWorkflowInstance), o -> {
                 if (o instanceof WorkflowInstance) {
                     WorkflowInstance wfi = (WorkflowInstance) o;
-                    return wfi.getWorkflowTasksReadonly().stream().map(wft -> (IdentifiableObject) wft);
+                    return wfi.getWorkflowTasksReadonly().stream()
+                            .filter(wft -> !(wft.getTaskType() instanceof NoOpTaskDefinition))
+                            .map(wft -> (IdentifiableObject) wft);
                 } else if (o instanceof WorkflowTask) {
                     WorkflowTask wft = (WorkflowTask) o;
                     Optional<QACheckDocument> qacd =  wft.getOutput().stream()

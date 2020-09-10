@@ -142,6 +142,19 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
+    public void handle(ActivateInOutBranchesCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new ActivatedInOutBranchesEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchIds()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                    kieSessionService.fire(cmd.getId());
+                });
+    }
+
+    @CommandHandler
     public void handle(DeleteCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()))

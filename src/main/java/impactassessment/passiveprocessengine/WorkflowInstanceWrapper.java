@@ -62,7 +62,7 @@ public class WorkflowInstanceWrapper {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
         }
     }
 
@@ -77,8 +77,19 @@ public class WorkflowInstanceWrapper {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
             dni.activateOutBranch(evt.getBranchId());
+        }
+    }
+
+    private void handle(ActivatedInOutBranchesEvt evt) {
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (dni != null && wft != null) {
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
+            for (String branchId : evt.getBranchIds()) {
+                dni.activateOutBranch(branchId);
+            }
         }
     }
 
@@ -164,6 +175,8 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedOutBranchEvt) evt);
         } else if (evt instanceof ActivatedInOutBranchEvt) {
             handle((ActivatedInOutBranchEvt) evt);
+        } else if (evt instanceof ActivatedInOutBranchesEvt) {
+            handle((ActivatedInOutBranchesEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedConstraintsEvt) {

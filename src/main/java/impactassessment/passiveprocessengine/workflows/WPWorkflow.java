@@ -1,8 +1,9 @@
-package impactassessment.passiveprocessengine.definition;
+package impactassessment.passiveprocessengine.workflows;
 
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.workflowmodel.*;
 
 public class WPWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {

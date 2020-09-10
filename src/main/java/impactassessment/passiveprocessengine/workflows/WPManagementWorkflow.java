@@ -1,4 +1,4 @@
-package impactassessment.passiveprocessengine.definition;
+package impactassessment.passiveprocessengine.workflows;
 
 import java.util.List;
 import java.util.UUID;
