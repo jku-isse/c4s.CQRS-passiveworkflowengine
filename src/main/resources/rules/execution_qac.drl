@@ -3,18 +3,18 @@ package rules;
 import org.slf4j.Logger
 import org.axonframework.commandhandling.gateway.CommandGateway
 
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition.States
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeInstance
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition
-import impactassessment.passiveprocessengine.workflowmodel.TaskDefinition
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask
-import impactassessment.passiveprocessengine.workflowmodel.TaskLifecycle.Events
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowInstanceObject
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowDefinition
-import impactassessment.passiveprocessengine.definition.DronologyWorkflow
-import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
-import impactassessment.passiveprocessengine.definition.QACheckDocument
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
+import impactassessment.passiveprocessengine.instance.WorkflowInstance
+import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
+import impactassessment.passiveprocessengine.definition.TaskDefinition
+import impactassessment.passiveprocessengine.instance.WorkflowTask
+import impactassessment.passiveprocessengine.definition.TaskLifecycle.Events
+import impactassessment.passiveprocessengine.instance.AbstractWorkflowInstanceObject
+import impactassessment.passiveprocessengine.definition.WorkflowDefinition
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
+import impactassessment.passiveprocessengine.instance.ResourceLink
+import impactassessment.passiveprocessengine.instance.QACheckDocument
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
@@ -26,6 +26,7 @@ import impactassessment.jiraartifact.IJiraStatus
 
 import java.util.List
 import java.util.Set
+import impactassessment.passiveprocessengine.instance.ResourceLink
 
 
 global CommandGateway commandGateway;
@@ -52,9 +53,11 @@ rule "Open2InProgress-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "inProgressIn"));
 end
@@ -67,9 +70,11 @@ rule "InProgress2Resolved-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("inProgressToResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end
@@ -82,9 +87,11 @@ rule "Open2Resolved-InBranchConditions"
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
-        							getInBranchForWorkflowTask($task) != null &&
+        							getInBranchIdForWorkflowTask($task) != null &&
         							!isTaskCompletionConditionsFullfilled()
         							, $wfi : getWorkflow() )
+        $qacd : QACheckDocument( getWorkflow().getId().equals($a.getKey()) &&
+                                   areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end

@@ -1,15 +1,15 @@
 package impactassessment.command;
 
-import impactassessment.passiveprocessengine.definition.CorrelationTuple;
+import impactassessment.passiveprocessengine.instance.CorrelationTuple;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.definition.ConstraintTrigger;
-import impactassessment.passiveprocessengine.definition.QACheckDocument;
-import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.instance.ConstraintTrigger;
+import impactassessment.passiveprocessengine.instance.QACheckDocument;
+import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -132,6 +132,19 @@ public class WorkflowAggregate {
     public void handle(ActivateInOutBranchCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()))
+                .andThen(() -> {
+                    model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+                            .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));
+                    model.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+                            .forEach(dni -> kieSessionService.insertOrUpdate(cmd.getId(), dni));
+                    kieSessionService.fire(cmd.getId());
+                });
+    }
+
+    @CommandHandler
+    public void handle(ActivateInOutBranchesCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new ActivatedInOutBranchesEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchIds()))
                 .andThen(() -> {
                     model.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                             .forEach(wft -> kieSessionService.insertOrUpdate(cmd.getId(), wft));

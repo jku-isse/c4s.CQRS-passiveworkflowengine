@@ -1,11 +1,12 @@
 package impactassessment.aggregates;
 
+import impactassessment.SpringApp;
 import impactassessment.api.*;
 import impactassessment.command.WorkflowAggregate;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
-import impactassessment.passiveprocessengine.workflowmodel.ResourceLink;
+import impactassessment.passiveprocessengine.instance.ResourceLink;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -15,8 +16,8 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@SpringBootTest(classes = AggregateTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(classes = SpringApp.class)
 public class BasicAggregateTest {
 
     /**

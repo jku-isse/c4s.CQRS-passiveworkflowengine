@@ -2,7 +2,7 @@ package impactassessment.neo4j;
 
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 public class WorkflowInstanceConverter implements AttributeConverter<WorkflowInstance, String>{
 

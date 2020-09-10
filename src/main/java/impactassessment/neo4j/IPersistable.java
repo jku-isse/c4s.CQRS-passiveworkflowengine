@@ -1,6 +1,6 @@
 package impactassessment.neo4j;
 
-import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.IdentifiableObject;
 
 public interface IPersistable<T extends IdentifiableObject> {
 

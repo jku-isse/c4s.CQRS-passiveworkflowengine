@@ -2,16 +2,22 @@ package impactassessment.kiesession;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.IdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
+@Component
+@Scope("prototype")
 public class KieSessionWrapper {
 
     private @Getter KieSession kieSession;
@@ -19,8 +25,21 @@ public class KieSessionWrapper {
     private @Getter @Setter
     boolean isInitialized;
 
-    public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService, KieSession kieSession) {
-        this.kieSession = kieSession;
+    public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
+        Properties props = new Properties();
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("application.properties").getFile());
+            FileReader reader = new FileReader(file);
+            props.load(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String ruleFiles =  props.getProperty("ruleFiles");
+        ruleFiles.replace(" ", "");
+        String[] ruleFilesArray = ruleFiles.split(",");
+
+        this.kieSession = new KieSessionFactory().getKieSession(ruleFilesArray);
         this.kieSession.setGlobal("commandGateway", commandGateway);
         this.kieSession.setGlobal("artifactService", artifactService);
         sessionHandles = new HashMap<>();

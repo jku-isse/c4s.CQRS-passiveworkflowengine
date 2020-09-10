@@ -4,7 +4,7 @@ import impactassessment.SpringUtil;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.passiveprocessengine.definition.*;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -38,7 +38,7 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority().getName());
+        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
         wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
@@ -62,7 +62,7 @@ public class WorkflowInstanceWrapper {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
         }
     }
 
@@ -77,8 +77,19 @@ public class WorkflowInstanceWrapper {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchForWorkflowTask(wft));
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
             dni.activateOutBranch(evt.getBranchId());
+        }
+    }
+
+    private void handle(ActivatedInOutBranchesEvt evt) {
+        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (dni != null && wft != null) {
+            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
+            for (String branchId : evt.getBranchIds()) {
+                dni.activateOutBranch(branchId);
+            }
         }
     }
 
@@ -105,7 +116,7 @@ public class WorkflowInstanceWrapper {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft != null) {
             QACheckDocument qa = new QACheckDocument("QA-"+wft.getTaskType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, Roles.ROLE_QA_CHECK_DOC, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             wft.addOutput(ao);
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
             qa.setLastChangeDueTo(corr);
@@ -164,6 +175,8 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedOutBranchEvt) evt);
         } else if (evt instanceof ActivatedInOutBranchEvt) {
             handle((ActivatedInOutBranchEvt) evt);
+        } else if (evt instanceof ActivatedInOutBranchesEvt) {
+            handle((ActivatedInOutBranchesEvt) evt);
         } else if (evt instanceof AddedQAConstraintEvt) {
             handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedConstraintsEvt) {
