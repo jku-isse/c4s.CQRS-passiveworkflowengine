@@ -1,7 +1,8 @@
 package impactassessment.passiveprocessengine.workflows;
 
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.*;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 import static impactassessment.passiveprocessengine.definition.Roles.ROLE_QA_CHECK_DOC;
 import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;

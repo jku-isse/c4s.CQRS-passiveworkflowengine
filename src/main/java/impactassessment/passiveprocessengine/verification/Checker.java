@@ -1,6 +1,8 @@
 package impactassessment.passiveprocessengine.verification;
 
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition;
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
 
 import java.util.ArrayList;
 import java.util.List;

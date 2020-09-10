@@ -3,8 +3,9 @@ package impactassessment.passiveprocessengine.workflows;
 import java.util.UUID;
 
 import com.google.inject.Inject;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.*;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 public class WPWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
 
@@ -44,7 +45,7 @@ public class WPWorkflow extends AbstractWorkflowDefinition implements WorkflowDe
 	
 	private DecisionNodeDefinition getWPKickOff(TaskDefinition tdWP) {
 		DecisionNodeDefinition dn = new DecisionNodeDefinition("WPKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-		dn.addOutBranchDefinition(new DefaultBranchDefinition("WPin", tdWP, false, true, dn));		
+		dn.addOutBranchDefinition(new DefaultBranchDefinition("WPin", tdWP, false, true, dn));
 		return dn;
 	}
 	

@@ -1,10 +1,10 @@
 package impactassessment.api
 
-import impactassessment.passiveprocessengine.definition.CorrelationTuple
+import impactassessment.passiveprocessengine.instance.CorrelationTuple
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowDefinition
-import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
+import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition
+import impactassessment.passiveprocessengine.instance.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 

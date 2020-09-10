@@ -2,8 +2,7 @@ package impactassessment;
 
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraJsonService;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowDefinition;
+import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition;
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

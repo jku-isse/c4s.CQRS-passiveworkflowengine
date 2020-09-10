@@ -4,7 +4,7 @@ import impactassessment.SpringUtil;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.passiveprocessengine.definition.*;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;

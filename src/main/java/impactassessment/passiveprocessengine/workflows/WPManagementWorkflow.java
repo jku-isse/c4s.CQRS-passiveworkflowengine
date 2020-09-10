@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.inject.Inject;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.*;
+import impactassessment.passiveprocessengine.instance.ResourceLink;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 public class WPManagementWorkflow extends DefaultWorkflowDefinition implements WorkflowDefinition {
 
@@ -83,7 +86,7 @@ public class WPManagementWorkflow extends DefaultWorkflowDefinition implements W
 	
 	private DecisionNodeDefinition getSSSKickOff(TaskDefinition tdSSS) {
 		DecisionNodeDefinition dn = new DecisionNodeDefinition("SSSKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-		dn.addOutBranchDefinition(new DefaultBranchDefinition("SSSin", tdSSS, false, true, dn));		
+		dn.addOutBranchDefinition(new DefaultBranchDefinition("SSSin", tdSSS, false, true, dn));
 		return dn;
 	}
 	

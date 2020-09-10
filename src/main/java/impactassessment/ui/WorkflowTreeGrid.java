@@ -17,12 +17,12 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.definition.QACheckDocument;
-import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
-import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
-import impactassessment.passiveprocessengine.workflowmodel.NoOpTaskDefinition;
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
+import impactassessment.passiveprocessengine.instance.QACheckDocument;
+import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
+import impactassessment.passiveprocessengine.instance.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;

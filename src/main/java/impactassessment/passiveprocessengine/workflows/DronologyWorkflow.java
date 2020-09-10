@@ -2,9 +2,9 @@ package impactassessment.passiveprocessengine.workflows;
 
 import java.util.UUID;
 import com.google.inject.Inject;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.definition.Roles;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.*;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 public class DronologyWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
 

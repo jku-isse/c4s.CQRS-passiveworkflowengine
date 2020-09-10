@@ -3,18 +3,18 @@ package rules;
 import org.slf4j.Logger
 import org.axonframework.commandhandling.gateway.CommandGateway
 
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition.States
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeInstance
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition
-import impactassessment.passiveprocessengine.workflowmodel.TaskDefinition
-import impactassessment.passiveprocessengine.workflowmodel.NoOpTaskDefinition
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask
-import impactassessment.passiveprocessengine.workflowmodel.TaskLifecycle.Events
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowInstanceObject
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowDefinition
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
+import impactassessment.passiveprocessengine.instance.WorkflowInstance
+import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
+import impactassessment.passiveprocessengine.definition.TaskDefinition
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition
+import impactassessment.passiveprocessengine.instance.WorkflowTask
+import impactassessment.passiveprocessengine.definition.TaskLifecycle.Events
+import impactassessment.passiveprocessengine.instance.AbstractWorkflowInstanceObject
+import impactassessment.passiveprocessengine.definition.WorkflowDefinition
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
-import impactassessment.passiveprocessengine.workflowmodel.ResourceLink
+import impactassessment.passiveprocessengine.instance.ResourceLink
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
@@ -29,6 +29,7 @@ import java.util.List
 import java.util.Set
 import java.util.ArrayList
 import java.util.stream.Collectors
+import impactassessment.passiveprocessengine.instance.ResourceLink
 
 
 global CommandGateway commandGateway;

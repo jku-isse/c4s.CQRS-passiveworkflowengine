@@ -1,8 +1,8 @@
 package impactassessment.passiveprocessengine.verification;
 
-import impactassessment.passiveprocessengine.workflowmodel.AbstractWorkflowDefinition;
-import impactassessment.passiveprocessengine.workflowmodel.DecisionNodeDefinition;
-import impactassessment.passiveprocessengine.workflowmodel.IBranchDefinition;
+import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition;
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition;
+import impactassessment.passiveprocessengine.definition.IBranchDefinition;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;

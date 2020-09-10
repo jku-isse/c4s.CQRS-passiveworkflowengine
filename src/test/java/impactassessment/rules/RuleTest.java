@@ -7,7 +7,7 @@ import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
-import impactassessment.passiveprocessengine.workflowmodel.ResourceLink;
+import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.kiesession.KieSessionFactory;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
