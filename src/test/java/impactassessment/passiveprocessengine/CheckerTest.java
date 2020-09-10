@@ -48,50 +48,50 @@ public class CheckerTest {
         assertEquals(1, report.getWarnings().size());
     }
 
-    @Test
-    public void testCheckingAndPatchingOfComplexWorkflow() {
-        ComplexWorkflow workflow = new ComplexWorkflow();
-        Checker checker = new Checker();
-        Report report = checker.checkAndPatch(workflow);
-        // log result
-        System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
-        System.out.println("---------------PATCHES----------------");
-        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
-        System.out.println("--------------------------------------");
-        // assertions
-        assertEquals(0, report.getWarnings().size());
-    }
-
-    @Test
-    public void testCheckingAndPatchingOfUncleanWorkflow() {
-        UncleanWorkflow workflow = new UncleanWorkflow();
-        Checker checker = new Checker();
-        Report report = checker.checkAndPatch(workflow);
-        // log result
-        System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
-        System.out.println("---------------PATCHES----------------");
-        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
-        System.out.println("--------------------------------------");
-        // assertions
-        assertEquals(3, report.getWarnings().size());
-    }
-
-    @Test
-    public void testCheckingAndPatchingOfDronologyWorkflow() {
-        DronologyWorkflow workflow = new DronologyWorkflow();
-        Checker checker = new Checker();
-        Report report = checker.checkAndPatch(workflow);
-        // log result
-        System.out.println("---------------WARNINGS---------------");
-        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
-        System.out.println("---------------PATCHES----------------");
-        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
-        System.out.println("--------------------------------------");
-        // assertions
-        assertEquals(0, report.getWarnings().size());
-        assertEquals(1, report.getPatches().size());
-    }
+//    @Test
+//    public void testCheckingAndPatchingOfComplexWorkflow() {
+//        ComplexWorkflow workflow = new ComplexWorkflow();
+//        Checker checker = new Checker();
+//        Report report = checker.checkAndPatch(workflow);
+//        // log result
+//        System.out.println("---------------WARNINGS---------------");
+//        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
+//        System.out.println("---------------PATCHES----------------");
+//        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+//        System.out.println("--------------------------------------");
+//        // assertions
+//        assertEquals(0, report.getWarnings().size());
+//    }
+//
+//    @Test
+//    public void testCheckingAndPatchingOfUncleanWorkflow() {
+//        UncleanWorkflow workflow = new UncleanWorkflow();
+//        Checker checker = new Checker();
+//        Report report = checker.checkAndPatch(workflow);
+//        // log result
+//        System.out.println("---------------WARNINGS---------------");
+//        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
+//        System.out.println("---------------PATCHES----------------");
+//        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+//        System.out.println("--------------------------------------");
+//        // assertions
+//        assertEquals(3, report.getWarnings().size());
+//    }
+//
+//    @Test
+//    public void testCheckingAndPatchingOfDronologyWorkflow() {
+//        DronologyWorkflow workflow = new DronologyWorkflow();
+//        Checker checker = new Checker();
+//        Report report = checker.checkAndPatch(workflow);
+//        // log result
+//        System.out.println("---------------WARNINGS---------------");
+//        report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
+//        System.out.println("---------------PATCHES----------------");
+//        report.getPatches().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifact()));
+//        System.out.println("--------------------------------------");
+//        // assertions
+//        assertEquals(0, report.getWarnings().size());
+//        assertEquals(1, report.getPatches().size());
+//    }
 
 }
