@@ -75,6 +75,7 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implement
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, true, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
+
         return dnd;
     }
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved, TaskDefinition tdNoop) {
@@ -83,6 +84,7 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implement
         dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, true, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, true, dnd));
+        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_RESOLVED);
         return dnd;
     }
 

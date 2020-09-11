@@ -82,7 +82,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    private void handle(ActivatedInOutBranchesEvt evt) {
+        private void handle(ActivatedInOutBranchesEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {

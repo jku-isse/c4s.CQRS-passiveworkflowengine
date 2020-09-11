@@ -9,6 +9,8 @@ import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 import impactassessment.passiveprocessengine.instance.WorkflowTask;
 import impactassessment.passiveprocessengine.workflows.ComplexWorkflow;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
 import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,19 +32,19 @@ public class WFTInputOutputMappingWithWrapperTest {
         rl = ResourceLink.of(a);
     }
 
-//    @Test
-//    public void testMapOutputsToExpectedInputsDronologyWorkflow() {
-//        WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-//        wfiWrapper.handle(new ImportedOrUpdatedArtifactEvt(ID, a));
-//        wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-//        wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "resolvedIn"));
-//        wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-//
-//        WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
-//
-//        // TODO: No data mapping defined in dronology workflow
-//        // TODO: add assertions when mappings are defined
-//    }
+    @Test
+    public void testMapOutputsToExpectedInputsDronologyWorkflowFixed() {
+        WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new DronologyWorkflowFixed()));
+        wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+        wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "inProgressIn"));
+        wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+        wfiWrapper.handle(new ActivatedInBranchEvt(ID, "inProgress2resolved#test", "In Progress#test"));
+//        wfiWrapper.handle(new ActivatedOutBranchEvt(ID, "inProgress2resolved#test", "resolvedIn2"));
+        wfiWrapper.handle(new CompletedDataflowEvt(ID, "inProgress2resolved#test", rl));
+
+        System.out.println("x");
+    }
 
     @Test
     public void testMapOutputsToExpectedInputsSimpleWorkflow() {
