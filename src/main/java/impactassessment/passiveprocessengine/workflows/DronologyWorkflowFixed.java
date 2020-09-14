@@ -1,0 +1,96 @@
+package impactassessment.passiveprocessengine.workflows;
+
+import com.google.inject.Inject;
+import impactassessment.passiveprocessengine.definition.*;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
+
+import java.util.UUID;
+
+/**
+ * Same as DronologyWorkflow but added additional NoOp TaskDefinition in order to ensure a valid structure
+ */
+public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implements WorkflowDefinition {
+
+    public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
+
+    public static final String TASK_STATE_OPEN = "Open";
+    public static final String TASK_STATE_IN_PROGRESS = "In Progress";
+    public static final String TASK_STATE_RESOLVED = "Resolved";
+    public static final String TASK_STATE_NOOP = "NoOp";
+
+
+    public DronologyWorkflowFixed(){
+        super(WORKFLOW_TYPE);
+        initWorkflowSpecification();
+    }
+
+    @Inject
+    public void initWorkflowSpecification() {
+        TaskDefinition tdOpen = getStateOpenTaskDefinition();
+        taskDefinitions.add(tdOpen);
+        TaskDefinition tdInProgress = getStateInProgressTaskDefinition();
+        taskDefinitions.add(tdInProgress);
+        TaskDefinition tdResolved = getStateResolvedTaskDefinition();
+        taskDefinitions.add(tdResolved);
+        TaskDefinition tdNoop = new NoOpTaskDefinition(TASK_STATE_NOOP, this);
+        taskDefinitions.add(tdNoop);
+
+        dnds.add(getWfKickOff(tdOpen));
+        dnds.add(getOpen2InProgressOrResolved(tdOpen, tdInProgress, tdNoop));
+        dnds.add(getInProgress2Resolved(tdInProgress, tdResolved, tdNoop));
+    }
+
+    private TaskDefinition getStateOpenTaskDefinition() {
+        TaskDefinition td = new TaskDefinition(TASK_STATE_OPEN, this);
+        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        return td;
+    }
+    private TaskDefinition getStateInProgressTaskDefinition() {
+        TaskDefinition td = new TaskDefinition(TASK_STATE_IN_PROGRESS, this);
+        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        return td;
+    }
+    private TaskDefinition getStateResolvedTaskDefinition() {
+        TaskDefinition td = new TaskDefinition(TASK_STATE_RESOLVED, this);
+        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedOutput().put(Roles.OUTPUT_ROLE_TEST, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        return td;
+    }
+
+    private DecisionNodeDefinition getWfKickOff(TaskDefinition tdOpen) {
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition("workflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
+        return dnd;
+    }
+    private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdNoop) {
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2inProgressOrResolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, true, dnd));
+        dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
+        return dnd;
+    }
+    private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved, TaskDefinition tdNoop) {
+        DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, true, dnd));
+        dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, true, dnd));
+        return dnd;
+    }
+
+    @Override
+    public WorkflowInstance createInstance(String withOptionalId) {
+        String wfid = withOptionalId != null ? withOptionalId : this.id+"#"+UUID.randomUUID().toString();
+        WorkflowInstance wfi = new WorkflowInstance(wfid, this, pub);
+        return wfi;
+    }
+
+}

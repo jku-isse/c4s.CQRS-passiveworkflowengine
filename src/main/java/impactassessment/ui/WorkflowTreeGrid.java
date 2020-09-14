@@ -1,22 +1,28 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.definition.QACheckDocument;
-import impactassessment.passiveprocessengine.definition.RuleEngineBasedConstraint;
-import impactassessment.passiveprocessengine.workflowmodel.IdentifiableObject;
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowInstance;
-import impactassessment.passiveprocessengine.workflowmodel.WorkflowTask;
+import impactassessment.passiveprocessengine.instance.QACheckDocument;
+import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
+import impactassessment.passiveprocessengine.instance.WorkflowInstance;
+import impactassessment.passiveprocessengine.instance.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;
@@ -25,10 +31,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Slf4j
+@CssImport(value="./styles/grid-styles.css")
 public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
@@ -113,49 +121,108 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
 
 
         this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
+            if (o instanceof WorkflowInstance) {
+                WorkflowInstance wfi = (WorkflowInstance) o;
+                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
+                icon.setColor("green");
+                boolean fulfilled = wfi.getWorkflowTasksReadonly().stream()
+                        .anyMatch(wft -> wft.getOutput().stream()
+                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .filter(a -> a instanceof QACheckDocument)
+                                .map(a -> (QACheckDocument) a)
+                                .map(QACheckDocument::getConstraintsReadonly)
+                                .anyMatch(a -> a.stream()
+                                    .anyMatch(QACheckDocument.QAConstraint::isFulfilled))
+                        );
+                return fulfilled ? icon : new Label("");
+            }
+            else if (o instanceof WorkflowTask) {
+                WorkflowTask wft = (WorkflowTask) o;
+                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
+                icon.setColor("green");
+                boolean fulfilled = wft.getOutput().stream()
+                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .filter(a -> a instanceof QACheckDocument)
+                                .map(a -> (QACheckDocument) a)
+                                .map(QACheckDocument::getConstraintsReadonly)
+                                .anyMatch(a -> a.stream()
+                                        .anyMatch(QACheckDocument.QAConstraint::isFulfilled));
+                return fulfilled ? icon : new Label("");
+            }
+            else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Div div= new Div();
+                Dialog dialog = new Dialog();
+                VerticalLayout l = new VerticalLayout();
+                l.add(new H3(rebc.getWorkflow().getId()));
+                l.add(new Label("Constraint: "+rebc.getDescription()+" was fulfilled by:"));
+                Button btn = new Button("Resource Link(s)", e -> dialog.open());
+                btn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                AtomicBoolean linkPresent = new AtomicBoolean(false);
                 rebc.getFulfilledForReadOnly().stream()
                         .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
                         .forEach(anchor -> {
                             anchor.setTarget("_blank");
-                            div.addComponentAsFirst(anchor);
-                            div.addComponentAsFirst(new Label(" "));
+                            l.add(anchor);
+                            linkPresent.set(true);
                         });
-                return div;
+
+                dialog.add(l);
+                return linkPresent.get() ? btn : new Label("");
             } else {
                 return new Label("");
             }
-        })).setHeader("Fulfilled").setClassNameGenerator(item -> {
-            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getFulfilledForReadOnly().isEmpty()) {
-                return "success";
-            }
-            return "";
-        });
+        })).setHeader("Fulfilled").setClassNameGenerator(x -> "column-center");
 
 
         this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
-            if (o instanceof RuleEngineBasedConstraint) {
+            if (o instanceof WorkflowInstance) {
+                WorkflowInstance wfi = (WorkflowInstance) o;
+                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
+                icon.setColor("red");
+                boolean unsatisfied = wfi.getWorkflowTasksReadonly().stream()
+                        .anyMatch(wft -> wft.getOutput().stream()
+                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .filter(a -> a instanceof QACheckDocument)
+                                .map(a -> (QACheckDocument) a)
+                                .map(QACheckDocument::getConstraintsReadonly)
+                                .anyMatch(a -> a.stream()
+                                        .anyMatch(c -> !c.isFulfilled()))
+                        );
+                return unsatisfied ? icon : new Label("");
+            } else if (o instanceof WorkflowTask) {
+                WorkflowTask wft = (WorkflowTask) o;
+                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
+                icon.setColor("red");
+                boolean unsatisfied = wft.getOutput().stream()
+                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .filter(a -> a instanceof QACheckDocument)
+                                .map(a -> (QACheckDocument) a)
+                                .map(QACheckDocument::getConstraintsReadonly)
+                                .anyMatch(a -> a.stream()
+                                        .anyMatch(c -> !c.isFulfilled()));
+                return unsatisfied ? icon : new Label("");
+            } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Div div= new Div();
+                Dialog dialog = new Dialog();
+                VerticalLayout l = new VerticalLayout();
+                l.add(new H3(rebc.getWorkflow().getId()));
+                l.add(new Label("Constraint: "+rebc.getDescription()+" was unsatisfied by:"));
+                Button btn = new Button("Resource Link(s)", e -> dialog.open());
+                btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+                AtomicBoolean linkPresent = new AtomicBoolean(false);
                 rebc.getUnsatisfiedForReadOnly().stream()
                         .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
                         .forEach(anchor -> {
                             anchor.setTarget("_blank");
-                            div.addComponentAsFirst(anchor);
-                            div.addComponentAsFirst(new Label(" "));
+                            l.add(anchor);
+                            linkPresent.set(true);
                         });
-                return div;
+                dialog.add(l);
+                return linkPresent.get() ? btn : new Label("");
             } else {
                 return new Label("");
             }
-        })).setHeader("Unsatisfied").setClassNameGenerator(item -> {
-            if (item instanceof RuleEngineBasedConstraint && !((RuleEngineBasedConstraint)item).getUnsatisfiedForReadOnly().isEmpty()) {
-                return "error";
-            }
-            return "";
-        });
+        })).setHeader("Unsatisfied").setClassNameGenerator(x -> "column-center");
     }
 
     public void updateTreeGrid(List<WorkflowInstanceWrapper> content) {
@@ -163,7 +230,9 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             this.setItems(content.stream().map(WorkflowInstanceWrapper::getWorkflowInstance), o -> {
                 if (o instanceof WorkflowInstance) {
                     WorkflowInstance wfi = (WorkflowInstance) o;
-                    return wfi.getWorkflowTasksReadonly().stream().map(wft -> (IdentifiableObject) wft);
+                    return wfi.getWorkflowTasksReadonly().stream()
+                            .filter(wft -> !(wft.getTaskType() instanceof NoOpTaskDefinition))
+                            .map(wft -> (IdentifiableObject) wft);
                 } else if (o instanceof WorkflowTask) {
                     WorkflowTask wft = (WorkflowTask) o;
                     Optional<QACheckDocument> qacd =  wft.getOutput().stream()

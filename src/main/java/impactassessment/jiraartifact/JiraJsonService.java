@@ -8,16 +8,28 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 @Slf4j
 public class JiraJsonService implements IJiraArtifactService {
 
     private final String FILENAME;
 
-    public JiraJsonService(String filename) {
-        this.FILENAME = filename;
+    public JiraJsonService() {
+        Properties props = new Properties();
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("application.properties").getFile());
+            FileReader reader = new FileReader(file);
+            props.load(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.FILENAME = props.getProperty("jiraJsonFileName");
     }
 
     @Override

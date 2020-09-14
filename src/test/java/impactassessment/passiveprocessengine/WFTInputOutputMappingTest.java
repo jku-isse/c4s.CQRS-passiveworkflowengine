@@ -2,8 +2,12 @@ package impactassessment.passiveprocessengine;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.passiveprocessengine.definition.ArtifactType;
 import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.workflowmodel.*;
+import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.definition.TaskLifecycle;
+import impactassessment.passiveprocessengine.instance.*;
+import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
 

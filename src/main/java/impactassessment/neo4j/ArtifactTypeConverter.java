@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
 
-import impactassessment.passiveprocessengine.workflowmodel.ArtifactType;
+import impactassessment.passiveprocessengine.definition.ArtifactType;
 
 public abstract class ArtifactTypeConverter implements CompositeAttributeConverter<Map<String,ArtifactType>>{
 
