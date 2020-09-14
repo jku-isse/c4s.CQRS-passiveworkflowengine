@@ -234,11 +234,12 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			if (outBranches.stream()
 					.filter(b -> b.getState()!=BranchState.Disabled) // we ignore those
 					.allMatch(b -> b.getState()==BranchState.TransitionEnabled)) {
-//					outBranches.values().stream()
-//						.forEach(b -> b.setBranchUsedForProgress()); // if we 
-						this.taskActivationConditionsFullfilled = true;
-						sm.fire(Events.OUTBRANCHES_FULFILLED);
-						return tryDataflowFreeActivationPropagation();
+//				outBranches.values().stream()
+//					.forEach(b -> b.setBranchUsedForProgress()); // if we
+				this.taskActivationConditionsFullfilled = true;
+				if (sm.canFire(Events.OUTBRANCHES_FULFILLED))
+					sm.fire(Events.OUTBRANCHES_FULFILLED);
+				return tryDataflowFreeActivationPropagation();
 			}
 			break;
 		case OR:
@@ -247,9 +248,10 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			if (outBranches.stream()
 					.filter(b -> b.getState()!=BranchState.Disabled) // we ignore those
 					.anyMatch(b -> b.getState()==BranchState.TransitionEnabled)) {
-					this.taskActivationConditionsFullfilled = true;
+				this.taskActivationConditionsFullfilled = true;
+				if (sm.canFire(Events.OUTBRANCHES_FULFILLED))
 					sm.fire(Events.OUTBRANCHES_FULFILLED);
-					return tryDataflowFreeActivationPropagation();
+				return tryDataflowFreeActivationPropagation();
 			}
 			break;
 		default:
