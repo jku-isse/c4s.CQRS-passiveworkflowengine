@@ -40,7 +40,7 @@ public class WFTInputOutputMappingWithWrapperTest {
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "inProgressIn"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "inProgress2resolved#test", "In Progress#test"));
-//        wfiWrapper.handle(new ActivatedOutBranchEvt(ID, "inProgress2resolved#test", "resolvedIn2"));
+        wfiWrapper.handle(new ActivatedOutBranchEvt(ID, "inProgress2resolved#test", "resolvedIn2"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "inProgress2resolved#test", rl));
 
         System.out.println("x");

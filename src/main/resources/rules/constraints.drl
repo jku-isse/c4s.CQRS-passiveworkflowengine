@@ -12,9 +12,7 @@ import impactassessment.passiveprocessengine.instance.CorrelationTuple
 import impactassessment.passiveprocessengine.instance.ConstraintTrigger
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
 
-import impactassessment.api.AddQAConstraintCmd
-import impactassessment.api.AddResourceToConstraintCmd
-import impactassessment.api.AddResourcesToConstraintCmd
+import impactassessment.api.AddEvaluationResultToConstraintCmd
 import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList

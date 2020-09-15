@@ -19,8 +19,6 @@ import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
-import java.util.Optional;
-
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
 
@@ -164,29 +162,6 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AddQAConstraintCmd cmd, KieSessionService kieSessionService) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new AddedQAConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getStatus(), cmd.getRuleName(), cmd.getDescription()))
-                .andThen(() -> {
-                    QACheckDocument doc = model.getQACDocOfWft(cmd.getWftId());
-                    kieSessionService.insertOrUpdate(cmd.getId(), doc);
-                    Optional<RuleEngineBasedConstraint> rebc = doc.getConstraintsReadonly().stream()
-                            .filter(q -> q instanceof RuleEngineBasedConstraint)
-                            .map(q -> (RuleEngineBasedConstraint) q)
-                            .filter(r -> r.getConstraintType().equals(cmd.getRuleName()))
-                            .findAny();
-                    rebc.ifPresent(r -> {
-                        kieSessionService.insertOrUpdate(cmd.getId(), r);
-                        // insert constraint trigger
-                        ConstraintTrigger ct = new ConstraintTrigger(model.getWorkflowInstance(), new CorrelationTuple(r.getId(), "AddQAConstraintCmd"));
-                        ct.addConstraint(r.getConstraintType());
-                        kieSessionService.insertOrUpdate(cmd.getId(), ct);
-                    });
-                    kieSessionService.fire(cmd.getId());
-                });
-    }
-
-    @CommandHandler
     public void handle(AddConstraintsCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()))
@@ -207,20 +182,9 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AddResourceToConstraintCmd cmd, KieSessionService kieSessionService) {
+    public void handle(AddEvaluationResultToConstraintCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourceToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getFulfilled(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
-                .andThen(() -> {
-                    QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
-                    kieSessionService.insertOrUpdate(cmd.getId(), qac);
-                    kieSessionService.fire(cmd.getId());
-                });
-    }
-
-    @CommandHandler
-    public void handle(AddResourcesToConstraintCmd cmd, KieSessionService kieSessionService) {
-        log.info("[AGG] handling {}", cmd);
-        apply(new AddedResourcesToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
+        apply(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()))
                 .andThen(() -> {
                     QACheckDocument.QAConstraint qac = model.getQAC(cmd.getQacId());
                     kieSessionService.insertOrUpdate(cmd.getId(), qac);

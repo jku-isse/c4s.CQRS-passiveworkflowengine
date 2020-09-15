@@ -87,28 +87,8 @@ public class WorkflowInstanceWrapper {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {
             dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
-            for (String branchId : evt.getBranchIds()) {
-                dni.activateOutBranch(branchId);
-            }
-        }
-    }
-
-    // rather use AddedConstraintsEvt instead of AddedQAConstraintEvt!
-    private void handle(AddedQAConstraintEvt evt) {
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        if (wft != null) {
-            QACheckDocument qa = getQACDocOfWft(evt.getWftId());
-            if (qa == null) {
-                //create and append new QACheckDocument to WFT
-                qa = new QACheckDocument("QA-"+evt.getStatus()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
-                wft.addOutput(ao);
-                CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
-                qa.setLastChangeDueTo(corr);
-            }
-            String rebcId = evt.getRuleName() +"_"+evt.getStatus() +"_"+ wft.getWorkflow().getId();
-            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, evt.getRuleName(), wft.getWorkflow(), evt.getDescription());
-            qa.addConstraint(rebc);
+            String[] branchIds = new String[evt.getBranchIds().size()];
+            dni.activateOutBranches(evt.getBranchIds().toArray(branchIds));
         }
     }
 
@@ -129,24 +109,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    // rather use AddedResourcesToConstraintEvt instead of AddedResourceToConstraintEvt!
-    private void handle(AddedResourceToConstraintEvt evt) {
-        RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        if (rebc != null) {
-            if (!evt.getFulfilled() && !rebc.getUnsatisfiedForReadOnly().contains(evt.getRes())) {
-                rebc.addAs(evt.getFulfilled(), evt.getRes());
-                rebc.setLastChanged(evt.getTime());
-            }
-            if (evt.getFulfilled() && !rebc.getFulfilledForReadOnly().contains(evt.getRes())) {
-                rebc.addAs(evt.getFulfilled(), evt.getRes());
-                rebc.setLastChanged(evt.getTime());
-            }
-            rebc.setLastEvaluated(evt.getTime());
-            rebc.setEvaluated(evt.getCorr());
-        }
-    }
-
-    private void handle(AddedResourcesToConstraintEvt evt) {
+    private void handle(AddedEvaluationResultToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
         for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()){
             if (!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) {
@@ -177,14 +140,10 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedInOutBranchEvt) evt);
         } else if (evt instanceof ActivatedInOutBranchesEvt) {
             handle((ActivatedInOutBranchesEvt) evt);
-        } else if (evt instanceof AddedQAConstraintEvt) {
-            handle((AddedQAConstraintEvt) evt);
         } else if (evt instanceof AddedConstraintsEvt) {
             handle((AddedConstraintsEvt) evt);
-        } else if (evt instanceof AddedResourceToConstraintEvt) {
-            handle((AddedResourceToConstraintEvt) evt);
-        } else if (evt instanceof AddedResourcesToConstraintEvt) {
-            handle((AddedResourcesToConstraintEvt) evt);
+        } else if (evt instanceof AddedEvaluationResultToConstraintEvt) {
+            handle((AddedEvaluationResultToConstraintEvt) evt);
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }
