@@ -14,6 +14,12 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
     public static final String TASK_STATE_IN_PROGRESS = "In Progress";
     public static final String TASK_STATE_RESOLVED = "Resolved";
 
+    public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
+    public static final String ROLE_QA_CHECK_DOC = "QA_PROCESS_CONSTRAINTS_CHECK";
+    public static final String INPUT_ROLE_DESIGN_DEFINITION = "INPUT_ROLE_DESIGN_DEFINITION";
+    public static final String INPUT_ROLE_REQUIREMENT = "INPUT_ROLE_REQUIREMENT";
+    public static final String OUTPUT_ROLE_TEST = "OUTPUT_ROLE_TEST";
+
     public DronologyWorkflow(){
         super(WORKFLOW_TYPE);
         initWorkflowSpecification();
@@ -35,24 +41,24 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
 
     private TaskDefinition getStateOpenTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_OPEN, this);
-        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
     private TaskDefinition getStateInProgressTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_IN_PROGRESS, this);
-        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
     private TaskDefinition getStateResolvedTaskDefinition() {
         TaskDefinition td = new TaskDefinition(TASK_STATE_RESOLVED, this);
-        td.getExpectedInput().put(Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
-        td.getExpectedInput().put(Roles.INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
-        td.getExpectedOutput().put(Roles.OUTPUT_ROLE_TEST, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedOutput().put(OUTPUT_ROLE_TEST, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         return td;
     }
 

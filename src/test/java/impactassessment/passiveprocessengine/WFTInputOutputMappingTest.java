@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;
 import static org.junit.Assert.assertEquals;
 
 public class WFTInputOutputMappingTest {
@@ -51,7 +50,7 @@ public class WFTInputOutputMappingTest {
         taskDefinitionsOpen.stream()
                 .forEach(td -> {
                     WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
+                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
                     wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                     wfi.activateDecisionNodesFromTask(wft);
                     dniKickoff.consumeTaskForUnconnectedOutBranch(wft);

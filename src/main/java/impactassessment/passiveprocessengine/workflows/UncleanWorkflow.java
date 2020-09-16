@@ -4,14 +4,13 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-import static impactassessment.passiveprocessengine.definition.Roles.ROLE_WPTICKET;
-
 public class UncleanWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "UNCLEAN_TEST_WORKFLOW_TYPE";
 
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_CLOSED = "Closed";
+    public static final String ROLE_WPTICKET = "ROLE_WPTICKET";
 
     public UncleanWorkflow() {
         super(WORKFLOW_TYPE);
