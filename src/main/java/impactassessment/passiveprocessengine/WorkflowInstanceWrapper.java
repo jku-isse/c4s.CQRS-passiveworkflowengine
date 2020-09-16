@@ -47,10 +47,8 @@ public class WorkflowInstanceWrapper {
         dni.completedDataflowInvolvingActivationPropagation();
         dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
             .forEach(td -> {
-                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.toString());
+                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.getId());
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wt.addOutput(new WorkflowTask.ArtifactOutput(evt.getRes(), Roles.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
-                wt.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                 wfi.activateDecisionNodesFromTask(wt);
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
                 log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
@@ -82,7 +80,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-        private void handle(ActivatedInOutBranchesEvt evt) {
+    private void handle(ActivatedInOutBranchesEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (dni != null && wft != null) {

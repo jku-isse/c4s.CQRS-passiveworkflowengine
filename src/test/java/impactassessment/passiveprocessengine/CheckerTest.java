@@ -22,7 +22,7 @@ public class CheckerTest {
         report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(0, report.getWarnings().size());
+        assertEquals(2, report.getWarnings().size());
     }
 
     @Test
@@ -35,7 +35,7 @@ public class CheckerTest {
         report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(3, report.getWarnings().size());
+        assertEquals(4, report.getWarnings().size());
     }
 
     @Test
@@ -48,7 +48,7 @@ public class CheckerTest {
         report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(1, report.getWarnings().size());
+        assertEquals(4, report.getWarnings().size());
     }
 
     @Test
@@ -61,7 +61,7 @@ public class CheckerTest {
         report.getWarnings().forEach(w -> System.out.println(w.getDescription() + " ID: " + w.getAffectedArtifacts()));
         System.out.println("--------------------------------------");
         // assertions
-        assertEquals(0, report.getWarnings().size());
+        assertEquals(5, report.getWarnings().size());
     }
 
 //    @Test

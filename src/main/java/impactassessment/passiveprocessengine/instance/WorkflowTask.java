@@ -342,8 +342,12 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		return getOutputState();
 	}
 	
-	private InputState calcInputState() {		
-		return taskType.calcInputState(this);		
+	private InputState calcInputState() {
+		InputState inputState = taskType.calcInputState(this);
+		if (inputState.equals(InputState.INPUT_SUFFICIENT)) {
+			this.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
+		}
+		return inputState;
 	}
 	
 	private OutputState calcOutputState() {

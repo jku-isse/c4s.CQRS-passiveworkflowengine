@@ -6,7 +6,9 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
 import impactassessment.passiveprocessengine.instance.WorkflowInstance
 import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
+import impactassessment.passiveprocessengine.instance.IBranchInstance.BranchState
 import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
 import impactassessment.passiveprocessengine.definition.TaskDefinition
 import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition
 import impactassessment.passiveprocessengine.instance.WorkflowTask
@@ -100,9 +102,12 @@ rule "No-Op-Automatic-Progress"
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
-        							getInBranchIdForWorkflowTask($task) != null
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							getState().equals(States.AVAILABLE)
         							, $wfi : getWorkflow() )
     then
-        Set<String> branchIds = $dn.getOutBranches().stream().map(b -> b.getBranchDefinition().getName()).collect(Collectors.toSet());
+        Set<String> branchIds = $dn.getOutBranches().stream()
+                .map(b -> b.getBranchDefinition().getName())
+                .collect(Collectors.toSet());
         commandGateway.send(new ActivateInOutBranchesCmd($wfi.getId(), $dn.getId(), $task.getId(), branchIds));
 end

@@ -457,14 +457,14 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		Optional<IBranchInstance> branch = inBranches.stream()
 				.filter(b -> b.getTask().equals(task))
 				.findFirst();
-		return branch.isPresent() ? branch.get() : null;
+		return branch.orElse(null);
 	}
 
 	public IBranchInstance getOutBranchForWorkflowTask(WorkflowTask task) {
 		Optional<IBranchInstance> branch = outBranches.stream()
 				.filter(b -> b.getTask().equals(task))
 				.findFirst();
-		return branch.isPresent() ? branch.get() : null;
+		return branch.orElse(null);
 	}
 
 	public void executeMapping() {
@@ -478,17 +478,24 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY)) {
 						// fitting toTask is selected (if possible)
 						WorkflowTask subWft = findBestFit(ao, toTasks);
-						subWft.addInput(new WorkflowTask.ArtifactInput(ao));
-						mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
+						if (subWft != null) {
+							executeMappingIfNotMappedPrior(preWft, ao, subWft);
+						}
 					} else if (m.getMappingType().equals(MappingDefinition.MappingType.ALL)) {
 						// every toTask is selected
 						for (WorkflowTask subWft : toTasks) {
-							subWft.addInput(new WorkflowTask.ArtifactInput(ao));
-							mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
+							executeMappingIfNotMappedPrior(preWft, ao, subWft);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	private void executeMappingIfNotMappedPrior(WorkflowTask preWft, WorkflowTask.ArtifactOutput ao, WorkflowTask subWft) {
+		if (mappingReports.stream().noneMatch(r -> r.getFrom().equals(preWft.getId()) && r.getTo().equals(subWft.getId()))) {
+			subWft.addInput(new WorkflowTask.ArtifactInput(ao));
+			mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
 		}
 	}
 
@@ -504,14 +511,14 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			for (Map.Entry<String, ArtifactType> entry : wft.getTaskType().getExpectedInput().entrySet()) {
 				if (ao.getArtifactType() != null && entry.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
 					if (entry.getKey().equals(ao.getRole())) {
-						return wft;
+						return wft; // type and role matched, so its a perfect fit
 					}
 					onlyTypeMatched = wft;
 				}
 			}
 		}
 		if (onlyTypeMatched == null) {
-			return subsequentTasks.get(0); // in this case neither type nor role matched --> NOT SURE IF WE SHOULD MAP ANYTHING HERE OR NOT
+			return null;
 		} else {
 			return onlyTypeMatched;
 		}
