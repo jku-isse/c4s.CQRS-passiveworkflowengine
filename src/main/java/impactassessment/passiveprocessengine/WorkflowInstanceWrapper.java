@@ -123,6 +123,18 @@ public class WorkflowInstanceWrapper {
         rebc.setEvaluated(evt.getCorr());
     }
 
+    private void handle(AddedAsInputEvt evt) {
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        WorkflowTask.ArtifactInput input = new WorkflowTask.ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
+        wft.addInput(input);
+    }
+
+    private  void handle(AddedAsOutputEvt evt) {
+        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        WorkflowTask.ArtifactOutput output = new WorkflowTask.ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
+        wft.addOutput(output);
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof ImportedOrUpdatedArtifactEvt) {
             handle((ImportedOrUpdatedArtifactEvt) evt);
@@ -142,6 +154,10 @@ public class WorkflowInstanceWrapper {
             handle((AddedConstraintsEvt) evt);
         } else if (evt instanceof AddedEvaluationResultToConstraintEvt) {
             handle((AddedEvaluationResultToConstraintEvt) evt);
+        } else if (evt instanceof AddedAsInputEvt) {
+            handle((AddedAsInputEvt) evt);
+        } else if (evt instanceof AddedAsOutputEvt) {
+            handle((AddedAsOutputEvt) evt);
         } else {
             log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
         }

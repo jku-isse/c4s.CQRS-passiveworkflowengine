@@ -4,6 +4,8 @@ import impactassessment.passiveprocessengine.instance.CorrelationTuple
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
 import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition
+import impactassessment.passiveprocessengine.definition.Artifact
+import impactassessment.passiveprocessengine.definition.ArtifactType
 import impactassessment.passiveprocessengine.instance.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
@@ -23,6 +25,8 @@ data class AddEvaluationResultToConstraintCmd(@TargetAggregateIdentifier val id:
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
 data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
 data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
+data class AddAsInputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
+data class AddAsOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
@@ -37,6 +41,8 @@ data class ActivatedInOutBranchesEvt(override val id: String, val dniId: String,
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedConstraintsEvt(override val id: String, val wftId: String, val rules: Map<String, String>) : IdentifiableEvt
 data class AddedEvaluationResultToConstraintEvt(override val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
+data class AddedAsInputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
+data class AddedAsOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 
 // QUERIES
 data class FindQuery(val id: String)

@@ -23,7 +23,7 @@ public class SpringConfig {
     public AbstractWorkflowDefinition getAbstractWorkflowDefinition() {
         // careful! execution.drl has hardcoded (dronology)workflow-branch names
         // --> just injecting a new workflow here won't work
-        return new DronologyWorkflow();
+        return new DronologyWorkflowFixed();
     }
 
 }

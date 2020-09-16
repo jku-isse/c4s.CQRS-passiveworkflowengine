@@ -1,15 +1,12 @@
 package impactassessment.command;
 
-import impactassessment.passiveprocessengine.instance.CorrelationTuple;
+import impactassessment.passiveprocessengine.instance.*;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.instance.ConstraintTrigger;
-import impactassessment.passiveprocessengine.instance.QACheckDocument;
-import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -217,6 +214,7 @@ public class WorkflowAggregate {
         kieSessionService.fire(cmd.getId());
     }
 
+    // no side effects can occur
     @CommandHandler
     public void handle(PrintKBCmd cmd, KieSessionService kieSessionService) {
         log.info("[AGG] handling {}", cmd);
@@ -229,6 +227,26 @@ public class WorkflowAggregate {
                     " ######### "+ kieSessionService.getNumKieSessions()+" #######");
             log.info(s.toString());
         }
+    }
+
+    @CommandHandler
+    public void handle(AddAsInputCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedAsInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()))
+            .andThen(() -> {
+                WorkflowTask wft = model.getWorkflowInstance().getWorkflowTask(cmd.getWftId());
+                kieSessionService.insertOrUpdate(cmd.getId(), wft);
+            });
+    }
+
+    @CommandHandler
+    public void handle(AddAsOutputCmd cmd, KieSessionService kieSessionService) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedAsOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()))
+                .andThen(() -> {
+                    WorkflowTask wft = model.getWorkflowInstance().getWorkflowTask(cmd.getWftId());
+                    kieSessionService.insertOrUpdate(cmd.getId(), wft);
+                });
     }
 
     // Event Handlers
@@ -250,6 +268,8 @@ public class WorkflowAggregate {
         markDeleted();
     }
 
+    // this event handler processes all events (if not already treated by above)
+    // because every event inherits from IdentifiableEvt
     @EventSourcingHandler
     public void on(IdentifiableEvt evt) {
         log.debug("[AGG] applying {}", evt);
