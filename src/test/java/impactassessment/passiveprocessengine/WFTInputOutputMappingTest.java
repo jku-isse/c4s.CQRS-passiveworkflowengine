@@ -50,7 +50,7 @@ public class WFTInputOutputMappingTest {
         taskDefinitionsOpen.stream()
                 .forEach(td -> {
                     WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.addOutput(new WorkflowTask.ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
+                    wft.addOutput(new ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
                     wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
                     wfi.activateDecisionNodesFromTask(wft);
                     dniKickoff.consumeTaskForUnconnectedOutBranch(wft);

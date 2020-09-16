@@ -17,12 +17,9 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.instance.QACheckDocument;
-import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint;
+import impactassessment.passiveprocessengine.instance.*;
 import impactassessment.passiveprocessengine.definition.IdentifiableObject;
 import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
-import impactassessment.passiveprocessengine.instance.WorkflowInstance;
-import impactassessment.passiveprocessengine.instance.WorkflowTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;
@@ -129,7 +126,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 icon.setColor("green");
                 boolean fulfilled = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
-                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .map(ArtifactIO::getArtifact)
                                 .filter(a -> a instanceof QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
@@ -143,7 +140,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
                 icon.setColor("green");
                 boolean fulfilled = wft.getOutput().stream()
-                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .map(ArtifactIO::getArtifact)
                                 .filter(a -> a instanceof QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
@@ -183,7 +180,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 icon.setColor("red");
                 boolean unsatisfied = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
-                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .map(ArtifactIO::getArtifact)
                                 .filter(a -> a instanceof QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
@@ -196,7 +193,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
                 icon.setColor("red");
                 boolean unsatisfied = wft.getOutput().stream()
-                                .map(WorkflowTask.ArtifactIO::getArtifact)
+                                .map(ArtifactIO::getArtifact)
                                 .filter(a -> a instanceof QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)

@@ -1,9 +1,6 @@
 package impactassessment.passiveprocessengine.instance;
 
-import impactassessment.passiveprocessengine.definition.TaskDefinition;
-import impactassessment.passiveprocessengine.definition.TaskLifecycle;
-import impactassessment.passiveprocessengine.definition.TaskStateTransitionEventPublisher;
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition;
+import impactassessment.passiveprocessengine.definition.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -15,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 @NodeEntity
-public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable{
+public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable, IInputOutputArtifact {
 
     /**
      *
@@ -40,6 +37,12 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     private transient Map<WorkflowTask, DecisionNodeInstance> taskOutOfDNI = new HashMap<WorkflowTask, DecisionNodeInstance>();
 
     private transient TaskStateTransitionEventPublisher pub;
+
+    @Relationship(type="TASK_IO", direction=Relationship.OUTGOING)
+    List<ArtifactOutput> output = new ArrayList<>();
+
+    @Relationship(type="TASK_IO", direction=Relationship.INCOMING)
+    List<ArtifactInput> input = new ArrayList<>();
 
     @Deprecated
     public WorkflowInstance() {
@@ -281,6 +284,36 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
 
     public Set<Entry<String,String>> getPropertiesReadOnly() {
         return Collections.unmodifiableSet(wfProps.entrySet());
+    }
+
+    @Override
+    public List<ArtifactOutput> getOutput() {
+        return Collections.unmodifiableList(output);
+    }
+
+    @Override
+    public boolean removeOutput(ArtifactOutput ao) {
+        return output.remove(ao);
+    }
+
+    @Override
+    public void addOutput(ArtifactOutput ao) {
+        output.add(ao);
+    }
+
+    @Override
+    public List<ArtifactInput> getInput() {
+        return Collections.unmodifiableList(input);
+    }
+
+    @Override
+    public boolean removeInput(ArtifactInput ai) {
+        return input.remove(ai);
+    }
+
+    @Override
+    public void addInput(ArtifactInput ai) {
+        input.add(ai);
     }
 
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY

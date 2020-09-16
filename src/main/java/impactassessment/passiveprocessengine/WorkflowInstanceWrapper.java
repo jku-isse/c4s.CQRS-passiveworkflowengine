@@ -94,7 +94,7 @@ public class WorkflowInstanceWrapper {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft != null) {
             QACheckDocument qa = new QACheckDocument("QA-"+wft.getTaskType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            WorkflowTask.ArtifactOutput ao = new WorkflowTask.ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             wft.addOutput(ao);
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
             qa.setLastChangeDueTo(corr);
@@ -125,13 +125,14 @@ public class WorkflowInstanceWrapper {
 
     private void handle(AddedAsInputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        WorkflowTask.ArtifactInput input = new WorkflowTask.ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
+        ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
+        // TODO check if input is expected
         wft.addInput(input);
     }
 
     private  void handle(AddedAsOutputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        WorkflowTask.ArtifactOutput output = new WorkflowTask.ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
+        ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
     }
 
@@ -178,7 +179,7 @@ public class WorkflowInstanceWrapper {
 
     public RuleEngineBasedConstraint getQAC(String qacId) {
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
-            for (WorkflowTask.ArtifactOutput ao : wft.getOutput()) {
+            for (ArtifactOutput ao : wft.getOutput()) {
                 if (ao.getArtifact() instanceof QACheckDocument) {
                     QACheckDocument qacd = (QACheckDocument) ao.getArtifact();
                     for (QACheckDocument.QAConstraint qac : qacd.getConstraintsReadonly()) {

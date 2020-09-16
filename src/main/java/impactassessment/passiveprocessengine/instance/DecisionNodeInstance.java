@@ -474,7 +474,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			List<WorkflowTask> toTasks = getWorkflowTasksFromTaskDefinitionIds(m.getTo());
 			if (toTasks.size() == 0) break;
 			for (WorkflowTask preWft : fromTasks) {
-				for (WorkflowTask.ArtifactOutput ao : preWft.getOutput()) {
+				for (ArtifactOutput ao : preWft.getOutput()) {
 					if (m.getMappingType().equals(MappingDefinition.MappingType.ANY)) {
 						// fitting toTask is selected (if possible)
 						WorkflowTask subWft = findBestFit(ao, toTasks);
@@ -492,9 +492,9 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		}
 	}
 
-	private void executeMappingIfNotMappedPrior(WorkflowTask preWft, WorkflowTask.ArtifactOutput ao, WorkflowTask subWft) {
+	private void executeMappingIfNotMappedPrior(WorkflowTask preWft, ArtifactOutput ao, WorkflowTask subWft) {
 		if (mappingReports.stream().noneMatch(r -> r.getFrom().equals(preWft.getId()) && r.getTo().equals(subWft.getId()))) {
-			subWft.addInput(new WorkflowTask.ArtifactInput(ao));
+			subWft.addInput(new ArtifactInput(ao));
 			mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
 		}
 	}
@@ -505,7 +505,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 				.collect(Collectors.toList());
 	}
 
-	private WorkflowTask findBestFit(WorkflowTask.ArtifactOutput ao, List<WorkflowTask> subsequentTasks) {
+	private WorkflowTask findBestFit(ArtifactOutput ao, List<WorkflowTask> subsequentTasks) {
 		WorkflowTask onlyTypeMatched = null;
 		for (WorkflowTask wft : subsequentTasks) {
 			for (Map.Entry<String, ArtifactType> entry : wft.getTaskType().getExpectedInput().entrySet()) {
