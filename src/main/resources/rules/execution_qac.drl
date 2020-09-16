@@ -8,6 +8,7 @@ import impactassessment.passiveprocessengine.instance.WorkflowInstance
 import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
 import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
 import impactassessment.passiveprocessengine.definition.TaskDefinition
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition
 import impactassessment.passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.definition.TaskLifecycle.Events
 import impactassessment.passiveprocessengine.instance.AbstractWorkflowInstanceObject
@@ -20,12 +21,14 @@ import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
 import impactassessment.api.ActivateOutBranchCmd
 import impactassessment.api.ActivateInOutBranchCmd
+import impactassessment.api.ActivateInOutBranchesCmd
 
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.jiraartifact.IJiraStatus
 
 import java.util.List
 import java.util.Set
+import java.util.stream.Collectors
 import impactassessment.passiveprocessengine.instance.ResourceLink
 
 
@@ -94,4 +97,21 @@ rule "Open2Resolved-InBranchConditions"
                                    areConstraintsFulfilled() )
     then
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
+end
+
+rule "No-Op-Automatic-Progress"
+    when
+    	$a : IJiraArtifact(  )
+        $task : WorkflowTask( getTaskType() instanceof NoOpTaskDefinition )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							getState().equals(States.AVAILABLE)
+        							, $wfi : getWorkflow() )
+    then
+        Set<String> branchIds = $dn.getOutBranches().stream()
+                .map(b -> b.getBranchDefinition().getName())
+                .collect(Collectors.toSet());
+        commandGateway.send(new ActivateInOutBranchesCmd($wfi.getId(), $dn.getId(), $task.getId(), branchIds));
 end
