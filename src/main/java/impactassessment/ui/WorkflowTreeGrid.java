@@ -70,7 +70,8 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
             this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
                 if (o instanceof WorkflowInstance) {
                     WorkflowInstance wfi = (WorkflowInstance) o;
-                    Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+                    Icon icon = new Icon(VaadinIcon.ROTATE_LEFT);
+                    icon.setColor("#1565C0");
                     icon.getStyle().set("cursor", "pointer");
                     icon.addClickListener(e -> {
                         f.apply(new CheckAllConstraintsCmd(wfi.getId()));
@@ -79,7 +80,8 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                     return icon;
                 } else if (o instanceof RuleEngineBasedConstraint) {
                     RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                    Icon icon = new Icon(VaadinIcon.QUESTION_CIRCLE_O);
+                    Icon icon = new Icon(VaadinIcon.ROTATE_LEFT);
+                    icon.setColor("#1565C0");
                     icon.getStyle().set("cursor", "pointer");
                     icon.addClickListener(e -> {
                         f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()));
