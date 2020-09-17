@@ -7,7 +7,7 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-public class WPWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class WPWorkflow extends AbstractWorkflowDefinition {
 
 	public static final String WORKFLOW_TYPE = "WP_WORKFLOW_TYPE";	
 	

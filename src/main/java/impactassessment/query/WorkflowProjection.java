@@ -31,6 +31,7 @@ public class WorkflowProjection {
             m.handle(evt);
         }
     }
+
     @EventHandler
     public void on(IdentifiableEvt evt) {
         log.info("[PRJ] projecting {}", evt);

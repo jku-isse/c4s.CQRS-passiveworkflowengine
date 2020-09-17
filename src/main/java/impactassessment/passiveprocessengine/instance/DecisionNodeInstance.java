@@ -364,7 +364,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		// for now we only assume one tasktype per branch, and fixed branch number
 		Optional<IBranchInstance> branch = inBranches.stream()
 			.filter(b -> !b.hasTask())
-			.filter(b -> b.getBranchDefinition().getTask().equals(wti.getTaskType()))
+			.filter(b -> b.getBranchDefinition().getTask().equals(wti.getType()))
 			.findFirst();
 		branch.ifPresent(b -> { b.setTask(wti); 
 								this.getWorkflow().registerTaskAsInToDNI(this, wti); 
@@ -380,7 +380,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		Optional<IBranchInstance> branch = outBranches.stream()
 				.filter(b -> b.getState() != BranchState.Disabled)
 				.filter(b -> !b.hasTask())
-				.filter(b -> b.getBranchDefinition().getTask().getId().equals(wti.getTaskType().getId()))
+				.filter(b -> b.getBranchDefinition().getTask().getId().equals(wti.getType().getId()))
 				.findFirst();
 			branch.ifPresent(b -> { 
 					b.setTask(wti);
@@ -495,20 +495,20 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	private void executeMappingIfNotMappedPrior(WorkflowTask preWft, ArtifactOutput ao, WorkflowTask subWft) {
 		if (mappingReports.stream().noneMatch(r -> r.getFrom().equals(preWft.getId()) && r.getTo().equals(subWft.getId()))) {
 			subWft.addInput(new ArtifactInput(ao));
-			mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getTaskType().getExpectedInput()));
+			mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getType().getExpectedInput()));
 		}
 	}
 
 	private List<WorkflowTask> getWorkflowTasksFromTaskDefinitionIds(List<String> tdIds) {
 		return getWorkflow().getWorkflowTasksReadonly().stream()
-				.filter(wft -> tdIds.contains(wft.getTaskType().getId()))
+				.filter(wft -> tdIds.contains(wft.getType().getId()))
 				.collect(Collectors.toList());
 	}
 
 	private WorkflowTask findBestFit(ArtifactOutput ao, List<WorkflowTask> subsequentTasks) {
 		WorkflowTask onlyTypeMatched = null;
 		for (WorkflowTask wft : subsequentTasks) {
-			for (Map.Entry<String, ArtifactType> entry : wft.getTaskType().getExpectedInput().entrySet()) {
+			for (Map.Entry<String, ArtifactType> entry : wft.getType().getExpectedInput().entrySet()) {
 				if (ao.getArtifactType() != null && entry.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
 					if (entry.getKey().equals(ao.getRole())) {
 						return wft; // type and role matched, so its a perfect fit

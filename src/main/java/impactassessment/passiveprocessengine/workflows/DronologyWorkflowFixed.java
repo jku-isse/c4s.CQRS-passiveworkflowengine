@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * Same as DronologyWorkflow but added additional NoOp TaskDefinition in order to ensure a valid structure
  */
-public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
 

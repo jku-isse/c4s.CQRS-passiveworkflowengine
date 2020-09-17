@@ -2,7 +2,7 @@ package impactassessment.kiesession;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -51,8 +51,8 @@ public class KieSessionWrapper {
             IJiraArtifact a = (IJiraArtifact) o;
             String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
             insertOrUpdate(key, a);
-        } else if (o instanceof IdentifiableObject) {
-            IdentifiableObject idO = (IdentifiableObject) o;
+        } else if (o instanceof AbstractIdentifiableObject) {
+            AbstractIdentifiableObject idO = (AbstractIdentifiableObject) o;
             String key = idO.getId() + "[" + idO.getClass().getSimpleName() + "]";
             insertOrUpdate(key, idO);
         } else {

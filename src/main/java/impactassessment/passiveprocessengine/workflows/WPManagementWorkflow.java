@@ -9,7 +9,7 @@ import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-public class WPManagementWorkflow extends DefaultWorkflowDefinition implements WorkflowDefinition {
+public class WPManagementWorkflow extends DefaultWorkflowDefinition {
 
 	public static final String WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE = "WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE";
 	

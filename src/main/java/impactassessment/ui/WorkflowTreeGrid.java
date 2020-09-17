@@ -18,7 +18,7 @@ import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.instance.*;
-import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
-public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
+public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
     private Function<Object, Object> f;
@@ -54,7 +54,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 return wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) + ": " + wfi.getId();
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
-                return wft.getTaskType().getId();
+                return wft.getType().getId();
             } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
                 return rebc.getDescription();
@@ -64,7 +64,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
         }).setHeader("Workflow Instance").setWidth("35%");
 
         if (evalMode) {
-            this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
+            this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
                 if (o instanceof WorkflowInstance) {
                     WorkflowInstance wfi = (WorkflowInstance) o;
                     Icon icon = new Icon(VaadinIcon.ROTATE_LEFT);
@@ -119,7 +119,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
         }).setHeader("Last Changed");
 
 
-        this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
+        this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
@@ -173,7 +173,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
         })).setHeader("Fulfilled").setClassNameGenerator(x -> "column-center");
 
 
-        this.addColumn(new ComponentRenderer<Component, IdentifiableObject>(o -> {
+        this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
@@ -230,8 +230,8 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                 if (o instanceof WorkflowInstance) {
                     WorkflowInstance wfi = (WorkflowInstance) o;
                     return wfi.getWorkflowTasksReadonly().stream()
-                            .filter(wft -> !(wft.getTaskType() instanceof NoOpTaskDefinition))
-                            .map(wft -> (IdentifiableObject) wft);
+                            .filter(wft -> !(wft.getType() instanceof NoOpTaskDefinition))
+                            .map(wft -> (AbstractIdentifiableObject) wft);
                 } else if (o instanceof WorkflowTask) {
                     WorkflowTask wft = (WorkflowTask) o;
                     Optional<QACheckDocument> qacd =  wft.getOutput().stream()
@@ -240,7 +240,7 @@ public class WorkflowTreeGrid extends TreeGrid<IdentifiableObject> {
                             .map(io -> (QACheckDocument) io)
                             .findFirst();
                     if (qacd.isPresent()) {
-                        return qacd.get().getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
+                        return qacd.get().getConstraintsReadonly().stream().map(x -> (AbstractIdentifiableObject) x);
                     } else {
                         return Stream.empty();
                     }

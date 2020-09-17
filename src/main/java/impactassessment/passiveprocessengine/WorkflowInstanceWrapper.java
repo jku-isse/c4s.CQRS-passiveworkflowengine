@@ -93,14 +93,14 @@ public class WorkflowInstanceWrapper {
     private void handle(AddedConstraintsEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft != null) {
-            QACheckDocument qa = new QACheckDocument("QA-"+wft.getTaskType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
+            QACheckDocument qa = new QACheckDocument("QA-"+wft.getType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
             ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             wft.addOutput(ao);
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
             qa.setLastChangeDueTo(corr);
             Map<String, String> rules = evt.getRules();
             for (Map.Entry<String, String> e : rules.entrySet()) {
-                String rebcId = e.getKey()+"_"+wft.getTaskType().getId()+"_"+ wft.getWorkflow().getId();
+                String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
                 RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
                 qa.addConstraint(rebc);
             }

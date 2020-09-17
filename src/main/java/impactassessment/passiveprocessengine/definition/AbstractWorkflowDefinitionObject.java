@@ -4,7 +4,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
 @NodeEntity
-public abstract class AbstractWorkflowDefinitionObject extends IdentifiableObject {
+public abstract class AbstractWorkflowDefinitionObject extends AbstractIdentifiableObject {
 	
 	
 	@Relationship(type="WorkflowDefinition")

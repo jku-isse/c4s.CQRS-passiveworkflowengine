@@ -20,7 +20,7 @@ import impactassessment.passiveprocessengine.definition.TaskLifecycle.State;
 import impactassessment.passiveprocessengine.definition.Participant;
 
 @NodeEntity
-public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable, IInputOutputArtifact{
+public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
 	/**
 	 * 
 	 */
@@ -39,11 +39,11 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	transient private StateMachine<TaskLifecycle.State, TaskLifecycle.Events> sm;
 	transient private TaskStateTransitionEventPublisher pub;
 	transient private TaskStateTransitionEvent nextEvent;
-	
+
 	@Relationship(type="TASK_IO", direction=Relationship.OUTGOING)
 	List<ArtifactOutput> output = new ArrayList<ArtifactOutput>();
-	//ObservableList<ArtifactOutput> output = FXCollections.observableList(new ArrayList<ArtifactOutput>());	
-	
+	//ObservableList<ArtifactOutput> output = FXCollections.observableList(new ArrayList<ArtifactOutput>());
+
 	@Relationship(type="TASK_IO", direction=Relationship.INCOMING)
 	List<ArtifactInput> input = new ArrayList<ArtifactInput>();
 	//ObservableList<ArtifactInput> input = FXCollections.observableList(new ArrayList<ArtifactInput>());
@@ -113,10 +113,12 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		return id;
 	}
 
-	public TaskDefinition getTaskType() {
+	@Override
+	public TaskDefinition getType() {
 		return taskType;
 	}
 
+	@Override
 	public TaskLifecycle.State getLifecycleState() {
 		if (sm == null) return null;
 		lifecycleState = sm.getState();
@@ -154,8 +156,9 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			log.warn(String.format("Task %s received (and ignored) unexpected Event %s for State %s ", this.id,  event,  sm.getState()));			
 		}		
 	}
-	
-	public void setTaskType(TaskDefinition taskType) {
+
+
+	public void setType(TaskDefinition taskType) {
 		this.taskType = taskType;
 	}
 
@@ -291,7 +294,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	}
 	
 	public Set<Map.Entry<String, ArtifactType>> getMissingInput() {
-		return getTaskType().getMissingInput(this);
+		return getType().getMissingInput(this);
 	}
 	
 	// considers only artifacts that are not removedAtOrigin
@@ -319,7 +322,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	}
 	
 	public Set<Map.Entry<String, ArtifactType>> getMissingOutput() {
-		return getTaskType().getMissingOutput(this);
+		return getType().getMissingOutput(this);
 	}
 	
 	public OutputState getOutputState() {

@@ -15,7 +15,7 @@ import impactassessment.passiveprocessengine.definition.TaskLifecycle.InputState
 import impactassessment.passiveprocessengine.definition.TaskLifecycle.OutputState;
 
 
-public class TaskDefinition extends AbstractWorkflowDefinitionObject implements java.io.Serializable {
+public class TaskDefinition extends AbstractWorkflowDefinitionObject implements java.io.Serializable, ITaskDefinition {
 	
 	private static final long serialVersionUID = 2899700748101656836L;
 	@Convert(ArtifactTypeConverter.Input.class)
@@ -45,18 +45,22 @@ public class TaskDefinition extends AbstractWorkflowDefinitionObject implements 
 		super(definitionId, wfd);
 	}
 
+	@Override
 	public Map<String,ArtifactType> getExpectedInput() {
 		return expectedInput;
 	}
 
+	@Override
 	public ArtifactType putExpectedInput(String key, ArtifactType value) {
 		return expectedInput.put(key, value);
 	}
 
+	@Override
 	public Map<String,ArtifactType> getExpectedOutput() {
 		return expectedOutput;
 	}
 
+	@Override
 	public ArtifactType putExpectedOutput(String key, ArtifactType value) {
 		return expectedOutput.put(key, value);
 	}

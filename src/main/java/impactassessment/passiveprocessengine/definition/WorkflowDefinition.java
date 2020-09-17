@@ -4,7 +4,7 @@ import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.List;
 
-public interface WorkflowDefinition {
+public interface WorkflowDefinition extends ITaskDefinition {
 
     public List<TaskDefinition> getWorkflowTaskDefinitions();
     public List<DecisionNodeDefinition> getDecisionNodeDefinitions();

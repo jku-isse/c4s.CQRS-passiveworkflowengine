@@ -6,7 +6,7 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-public class DronologyWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class DronologyWorkflow extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
 

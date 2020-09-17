@@ -1,6 +1,6 @@
 package impactassessment.passiveprocessengine.definition;
 
-public interface Artifact extends java.io.Serializable{
+public interface Artifact extends java.io.Serializable {
 	public String getId();
 	public ArtifactType getType();
 	public Artifact getParentArtifact();

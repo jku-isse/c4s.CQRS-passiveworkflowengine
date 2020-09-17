@@ -1,8 +1,8 @@
 package impactassessment.neo4j;
 
-import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 
-public interface IPersistable<T extends IdentifiableObject> {
+public interface IPersistable<T extends AbstractIdentifiableObject> {
 
 	Iterable<T> findAll();
 

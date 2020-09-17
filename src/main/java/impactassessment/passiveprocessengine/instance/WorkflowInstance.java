@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 @NodeEntity
-public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable, IInputOutputArtifact {
+public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
 
     /**
      *
@@ -107,7 +107,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     public WorkflowTask prepareTask(TaskDefinition td) {
         //WorkflowTask tf = new WorkflowTask(td.getId()+"#"+UUID.randomUUID().toString(), this, TaskLifecycle.buildStatemachine(), pub);
         WorkflowTask tf = new WorkflowTask(td.getId()+"#"+getId().toString(), this, TaskLifecycle.buildStatemachine(), pub);
-        tf.setTaskType(td);
+        tf.setType(td);
         return tf;
     }
 
@@ -120,9 +120,15 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     }
 
 
-
-    public WorkflowDefinition getWorkflowDefinition() {
+    @Override
+    public WorkflowDefinition getType() {
         return workflowDefinition;
+    }
+
+    @Override
+    public TaskLifecycle.State getLifecycleState() {
+        // TODO: how to handle state when using this as task?
+        return null;
     }
 
     public Set<WorkflowTask> getWorkflowTasksReadonly() {
@@ -285,6 +291,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     public Set<Entry<String,String>> getPropertiesReadOnly() {
         return Collections.unmodifiableSet(wfProps.entrySet());
     }
+
 
     @Override
     public List<ArtifactOutput> getOutput() {

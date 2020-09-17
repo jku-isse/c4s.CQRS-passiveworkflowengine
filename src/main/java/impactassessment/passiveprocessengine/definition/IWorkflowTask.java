@@ -2,10 +2,14 @@ package impactassessment.passiveprocessengine.definition;
 
 import impactassessment.passiveprocessengine.instance.ArtifactInput;
 import impactassessment.passiveprocessengine.instance.ArtifactOutput;
+import impactassessment.passiveprocessengine.instance.IWorkflowInstanceObject;
 
 import java.util.List;
 
-public interface IInputOutputArtifact {
+public interface IWorkflowTask extends IWorkflowInstanceObject {
+
+    ITaskDefinition getType();
+    TaskLifecycle.State getLifecycleState();
 
     List<ArtifactOutput> getOutput();
     boolean removeOutput(ArtifactOutput ao);
