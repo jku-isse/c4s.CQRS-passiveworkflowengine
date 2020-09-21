@@ -10,6 +10,7 @@ public interface IWorkflowTask extends IWorkflowInstanceObject {
 
     ITaskDefinition getType();
     TaskLifecycle.State getLifecycleState();
+    void signalEvent(TaskLifecycle.Events event);
 
     List<ArtifactOutput> getOutput();
     boolean removeOutput(ArtifactOutput ao);

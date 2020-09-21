@@ -14,12 +14,12 @@ import java.util.concurrent.ConcurrentMap;
 
 @Component
 @Slf4j
-public class MockDatabase {
+public class ProjectionModel {
 
     private @Getter
     ConcurrentMap<String, WorkflowInstanceWrapper> db;
 
-    public MockDatabase() {
+    public ProjectionModel() {
         db = new ConcurrentHashMap<>();
     }
 
@@ -36,17 +36,21 @@ public class MockDatabase {
         return db.remove(id);
     }
 
+    public void handle(IdentifiableEvt evt) {
+        if (evt instanceof DeletedEvt) {
+            this.delete(evt.getId());
+            return;
+        }
+        if (getWorkflowModel(evt.getId()) == null) {
+            createAndPutWorkflowModel(evt.getId());
+        }
+        getWorkflowModel(evt.getId()).handle(evt);
+    }
+
     public void handle(EventMessage<?> message) {
         try {
             IdentifiableEvt evt = (IdentifiableEvt) message.getPayload();
-            if (evt instanceof DeletedEvt) {
-                this.delete(evt.getId());
-                return;
-            }
-            if (getWorkflowModel(evt.getId()) == null) {
-                createAndPutWorkflowModel(evt.getId());
-            }
-            getWorkflowModel(evt.getId()).handle(evt);
+            handle(evt);
         } catch (ClassCastException e) {
             log.error("Invalid event type! "+e.getMessage());
         }

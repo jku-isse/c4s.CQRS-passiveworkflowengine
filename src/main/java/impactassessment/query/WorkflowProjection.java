@@ -19,34 +19,14 @@ import java.util.stream.Collectors;
 @ProcessingGroup("projection")
 public class WorkflowProjection {
 
-    private final MockDatabase mockDB;
+    private final ProjectionModel projection;
 
     // Event Handlers
 
     @EventHandler
-    public void on(ImportedOrUpdatedArtifactEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
-        if (mockDB.getWorkflowModel(evt.getId()) == null) { // if workflow is new
-            WorkflowInstanceWrapper m = mockDB.createAndPutWorkflowModel(evt.getId());
-            m.handle(evt);
-        }
-    }
-
-    @EventHandler
     public void on(IdentifiableEvt evt) {
         log.info("[PRJ] projecting {}", evt);
-        WorkflowInstanceWrapper wfi = mockDB.getWorkflowModel(evt.getId());
-        if (wfi != null) {
-            wfi.handle(evt);
-        } else {
-            log.warn("[PRJ] WFI with ID: "+evt.getId()+" not found in projection");
-        }
-    }
-
-    @EventHandler
-    public void on(DeletedEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
-        mockDB.delete(evt.getId());
+        projection.handle(evt);
     }
 
     // Query Handlers
@@ -54,7 +34,7 @@ public class WorkflowProjection {
     @QueryHandler
     public FindResponse handle(FindQuery query) {
         log.debug("[PRJ] handle {}", query);
-        System.out.println(mockDB.getWorkflowModel(query.getId()).toString()); // TODO remove
+        System.out.println(projection.getWorkflowModel(query.getId()).toString()); // TODO remove
         String id = query.getId();
         return new FindResponse(id, 404); // TODO replace
     }
@@ -62,7 +42,7 @@ public class WorkflowProjection {
     @QueryHandler
     public GetStateResponse handle(GetStateQuery query) {
         log.debug("[PRJ] handle {}", query);
-        GetStateResponse response = new GetStateResponse(mockDB.getDb().entrySet().stream()
+        GetStateResponse response = new GetStateResponse(projection.getDb().entrySet().stream()
                 .map(entry -> entry.getValue())
                 .collect(Collectors.toList()));
         return response;
@@ -73,6 +53,6 @@ public class WorkflowProjection {
     @ResetHandler
     public void reset() {
         log.debug("[PRJ] reset view db");
-        mockDB.reset();
+        projection.reset();
     }
 }

@@ -17,7 +17,7 @@ public abstract class AbstractBranchInstance implements IBranchInstance {
 	//@Relationship(type="SPECIFIED_BY") 
 	protected transient IBranchDefinition bd;
 	@EndNode
-	private WorkflowTask task = null;	
+	private WorkflowTask task = null;
 	@Property
 	private BranchState state = BranchState.Waiting;
 	@StartNode

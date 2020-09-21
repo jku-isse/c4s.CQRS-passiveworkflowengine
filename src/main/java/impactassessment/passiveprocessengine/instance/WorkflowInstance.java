@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 @NodeEntity
-public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
+public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable {
 
     /**
      *
@@ -25,24 +25,18 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     private WorkflowDefinition workflowDefinition;
 
     @Relationship(type="DECISIONNODE_INSTANCES")
-    private Set<DecisionNodeInstance> dnInst = new HashSet<DecisionNodeInstance>();
+    private Set<DecisionNodeInstance> dnInst = new HashSet<>();
     @Relationship(type="TASK_INSTANCES")
-    private Set<WorkflowTask> taskInst = new HashSet<WorkflowTask>();
+    private Set<WorkflowTask> taskInst = new HashSet<>();
     //private Set<DecisionNodeDefinition> dnDefs = new HashSet<DecisionNodeDefinition>(); // available via workflowdefinition
 
     @Properties
-    private Map<String,String> wfProps = new HashMap<String,String>();
+    private Map<String,String> wfProps = new HashMap<>();
 
-    private transient Map<WorkflowTask, DecisionNodeInstance> taskIntoDNI = new HashMap<WorkflowTask, DecisionNodeInstance>();
-    private transient Map<WorkflowTask, DecisionNodeInstance> taskOutOfDNI = new HashMap<WorkflowTask, DecisionNodeInstance>();
+    private transient Map<WorkflowTask, DecisionNodeInstance> taskIntoDNI = new HashMap<>();
+    private transient Map<WorkflowTask, DecisionNodeInstance> taskOutOfDNI = new HashMap<>();
 
     private transient TaskStateTransitionEventPublisher pub;
-
-    @Relationship(type="TASK_IO", direction=Relationship.OUTGOING)
-    List<ArtifactOutput> output = new ArrayList<>();
-
-    @Relationship(type="TASK_IO", direction=Relationship.INCOMING)
-    List<ArtifactInput> input = new ArrayList<>();
 
     @Deprecated
     public WorkflowInstance() {
@@ -105,8 +99,14 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     }
 
     public WorkflowTask prepareTask(TaskDefinition td) {
-        //WorkflowTask tf = new WorkflowTask(td.getId()+"#"+UUID.randomUUID().toString(), this, TaskLifecycle.buildStatemachine(), pub);
-        WorkflowTask tf = new WorkflowTask(td.getId()+"#"+getId().toString(), this, TaskLifecycle.buildStatemachine(), pub);
+        WorkflowTask tf;
+        if (td instanceof WorkflowWrapperTaskDefinition) {
+            WorkflowWrapperTaskDefinition wwtd = (WorkflowWrapperTaskDefinition) td;
+            tf = new WorkflowWrapperTaskInstance(td.getId()+"#"+getId(), this, TaskLifecycle.buildStatemachine(), pub, wwtd.getInternalWfd());
+        // } else if (td instanceof NoOpTaskDefinition) {
+        } else {
+            tf = new WorkflowTask(td.getId() + "#" + getId(), this, TaskLifecycle.buildStatemachine(), pub);
+        }
         tf.setType(td);
         return tf;
     }
@@ -120,15 +120,8 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     }
 
 
-    @Override
     public WorkflowDefinition getType() {
         return workflowDefinition;
-    }
-
-    @Override
-    public TaskLifecycle.State getLifecycleState() {
-        // TODO: how to handle state when using this as task?
-        return null;
     }
 
     public Set<WorkflowTask> getWorkflowTasksReadonly() {
@@ -210,10 +203,8 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         awos.addAll(dnis);
         Set<DecisionNodeInstance> dnis2 = this.workflowDefinition.getDecisionNodeDefinitions().stream()
                 .filter(dnd -> dnd.acceptsWorkflowTaskForInBranches(wft))
-                .filter(dnd -> { return !dnis.stream()
-                        .filter(dni -> dni.getDefinition().getId() == dnd.getId()) // TODO: FIXME: filter dni of same type, needed when we have parallel in, otherwise we would generate another instance of this DNI whenever there second task becomes created
-                        .findAny()
-                        .isPresent();
+                .filter(dnd -> { return dnis.stream()
+                        .noneMatch(dni -> dni.getDefinition().getId().equals(dnd.getId())); // TODO: FIXME: filter dni of same type, needed when we have parallel in, otherwise we would generate another instance of this DNI whenever there second task becomes created
                 })
                 .map(dnd -> { DecisionNodeInstance dni = dnd.createInstance(this); // we would need to check for any task that already exists (prematurely executed)
                     registerDecisionNodeInstance(dni);
@@ -292,35 +283,14 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return Collections.unmodifiableSet(wfProps.entrySet());
     }
 
-
-    @Override
-    public List<ArtifactOutput> getOutput() {
-        return Collections.unmodifiableList(output);
+    // return the last decision node in the workflow that finishes the workflow
+    public DecisionNodeInstance getFinish() {
+        throw new RuntimeException("not implemented");
     }
 
-    @Override
-    public boolean removeOutput(ArtifactOutput ao) {
-        return output.remove(ao);
-    }
-
-    @Override
-    public void addOutput(ArtifactOutput ao) {
-        output.add(ao);
-    }
-
-    @Override
-    public List<ArtifactInput> getInput() {
-        return Collections.unmodifiableList(input);
-    }
-
-    @Override
-    public boolean removeInput(ArtifactInput ai) {
-        return input.remove(ai);
-    }
-
-    @Override
-    public void addInput(ArtifactInput ai) {
-        input.add(ai);
+    // return the first decision node in the workflow that starts the workflow
+    public DecisionNodeInstance getKickOff() {
+        throw new RuntimeException("not implemented");
     }
 
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY

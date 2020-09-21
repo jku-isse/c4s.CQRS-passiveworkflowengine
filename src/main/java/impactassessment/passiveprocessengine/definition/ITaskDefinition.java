@@ -2,7 +2,7 @@ package impactassessment.passiveprocessengine.definition;
 
 import java.util.Map;
 
-public interface ITaskDefinition {
+public interface ITaskDefinition extends IdentifiableObject {
     Map<String,ArtifactType> getExpectedInput();
 
     ArtifactType putExpectedInput(String key, ArtifactType value);

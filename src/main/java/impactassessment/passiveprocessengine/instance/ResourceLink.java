@@ -5,7 +5,7 @@ import impactassessment.passiveprocessengine.definition.AbstractArtifact;
 import impactassessment.passiveprocessengine.definition.Artifact;
 import impactassessment.passiveprocessengine.definition.ArtifactType;
 
-public class ResourceLink extends AbstractArtifact implements Artifact {
+public class ResourceLink extends AbstractArtifact {
 	/**
 	 * 
 	 */

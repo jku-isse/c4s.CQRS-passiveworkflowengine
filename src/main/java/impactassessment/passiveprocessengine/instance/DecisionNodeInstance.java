@@ -304,7 +304,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return Collections.emptyMap();	
 	}
 	
-	public Set<AbstractWorkflowInstanceObject> tryDataflowFreeActivationPropagation() {
+	public Set<AbstractWorkflowInstanceObject> tryDataflowFreeActivationPropagation() { // TODO add automatic dataflow propagation
 		// checks whether output tasks can be activated
 		// can only activate tasks but not provide dataflow
 		if (sm.isInState(States.PASSED_OUTBRANCH_CONDITIONS) &&  // only if input, context, and activation conditions fulfilled
@@ -319,7 +319,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			Set<AbstractWorkflowInstanceObject> awfos =
 				outBranches.stream() // return for each enabled outbranch the respective workflow task instance (not part of process yet)
 				.filter(b -> b.getState() == BranchState.TransitionEnabled && !b.hasTask() &&  !b.getBranchDefinition().hasDataFlow())
-				.flatMap(b -> { List<AbstractWorkflowInstanceObject> awos = new ArrayList<AbstractWorkflowInstanceObject>();
+				.flatMap(b -> { List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
 								WorkflowTask wft = workflow.instantiateTask(b.getBranchDefinition().getTask());
 								awos.add(wft);
 								awos.addAll(workflow.activateDecisionNodesFromTask(wft));
@@ -336,7 +336,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	
 	public void completedDataflowInvolvingActivationPropagation() {
 		outBranches.stream()
-			.forEach(b -> b.setBranchUsedForProgress());
+			.forEach(IBranchInstance::setBranchUsedForProgress);
 		// not necessary for outbranches as we set them via task assignment --> no we dont
 		activationPropagationCompleted = true;
 		sm.fire(Events.PROGRESS_TRIGGERED);

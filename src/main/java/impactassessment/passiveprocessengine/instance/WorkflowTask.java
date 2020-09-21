@@ -20,7 +20,7 @@ import impactassessment.passiveprocessengine.definition.TaskLifecycle.State;
 import impactassessment.passiveprocessengine.definition.Participant;
 
 @NodeEntity
-public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
+public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable {
 	/**
 	 * 
 	 */
@@ -113,12 +113,10 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		return id;
 	}
 
-	@Override
 	public TaskDefinition getType() {
 		return taskType;
 	}
 
-	@Override
 	public TaskLifecycle.State getLifecycleState() {
 		if (sm == null) return null;
 		lifecycleState = sm.getState();
@@ -170,19 +168,16 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		this.responsibleEngineer = responsibleEngineer;
 	}
 
-	@Override
 	public List<ArtifactOutput> getOutput() {
 		return Collections.unmodifiableList(output);
 	}
 
-	@Override
 	public boolean removeOutput(ArtifactOutput ao) {
 		boolean result = output.remove(ao);
 		os = calcOutputState();
 		return result;
 	}
 
-	@Override
 	@Modifies( { "lifecycleState", "outputState" } )
 	public void addOutput(ArtifactOutput ao) {
 		ao.setContainer(this);
@@ -190,19 +185,16 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		os = calcOutputState();
 	}
 
-	@Override
 	public List<ArtifactInput> getInput() {
 		return Collections.unmodifiableList(input); 
 	}
 
-	@Override
 	public boolean removeInput(ArtifactInput ai) {
 		boolean result = input.remove(ai);
 		is = calcInputState();
 		return result;
 	}
 
-	@Override
 	@Modifies( { "lifecycleState", "inputState" } )
 	public void addInput(ArtifactInput ai) {
 		ai.setContainer(this);
@@ -386,7 +378,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		}
 		return osNow;
 	}
-	
+
 	public void signalEvent(Events event) {
 		trigger(event);
 	}
