@@ -78,8 +78,8 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
     private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2inProgressOrResolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, false, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
 
         return dnd;
@@ -87,9 +87,9 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
-        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, false, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, false, dnd));
         dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_RESOLVED);
         return dnd;
     }

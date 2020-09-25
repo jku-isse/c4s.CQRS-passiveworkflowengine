@@ -24,7 +24,6 @@ data class AddConstraintsCmd(@TargetAggregateIdentifier val id: String, val wftI
 data class AddEvaluationResultToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant)
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
 data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
-data class PrintKBCmd(@TargetAggregateIdentifier val id: String)
 data class AddAsInputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
 data class AddAsOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
 
@@ -41,16 +40,18 @@ data class ActivatedInOutBranchesEvt(override val id: String, val dniId: String,
 data class DeletedEvt(override val id:String) : IdentifiableEvt
 data class AddedConstraintsEvt(override val id: String, val wftId: String, val rules: Map<String, String>) : IdentifiableEvt
 data class AddedEvaluationResultToConstraintEvt(override val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
+data class CheckedConstraintEvt(override val id: String, val corrId: String) : IdentifiableEvt
+data class CheckedAllConstraintsEvt(override val id: String) : IdentifiableEvt
 data class AddedAsInputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 data class AddedAsOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 
 // QUERIES
-data class FindQuery(val id: String)
 data class GetStateQuery(val depth: Int)
+data class PrintKBQuery(val id: String)
 
 // QUERY-RESPONSES
-data class FindResponse(val id: String, val amount: Int)
 data class GetStateResponse(val state: List<WorkflowInstanceWrapper>)
+data class PrintKBResponse(val kbString: String)
 
 // EXCEPTIONS
 class SomeException(message: String) : Exception(message)

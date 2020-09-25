@@ -441,8 +441,9 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 	
 	public String getInBranchIdForWorkflowTask(WorkflowTask task) {
 		Optional<IBranchInstance> branch = inBranches.stream()
-			.filter(b -> b.getTask().equals(task))
-			.findFirst();
+				.filter(b -> b.getTask() != null)
+				.filter(b -> b.getTask().equals(task))
+				.findFirst();
 		return branch.isPresent() ? branch.get().getBranchDefinition().getName() : null;
 	}
 	

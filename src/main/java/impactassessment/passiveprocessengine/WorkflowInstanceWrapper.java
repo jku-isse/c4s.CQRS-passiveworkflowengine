@@ -7,14 +7,21 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
+    private IJiraArtifact artifact;
+
+    public IJiraArtifact getArtifact() {
+        return artifact;
+    }
+
+    public void setArtifact(IJiraArtifact artifact) {
+        this.artifact = artifact;
+    }
 
     public WorkflowInstance getWorkflowInstance() {
         return wfi;
@@ -24,74 +31,86 @@ public class WorkflowInstanceWrapper {
     public static final String PROP_ISSUE_TYPE = "Issue Type";
     public static final String PROP_PRIORITY = "Priority";
 
-    private void handle(ImportedOrUpdatedArtifactEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactEvt evt) {
         AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
-        initWfi(wfd, evt.getArtifact());
+        return initWfi(wfd, evt.getArtifact());
     }
 
-    private void handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
-        initWfi(evt.getWfd(), evt.getArtifact());
+    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
+        return initWfi(evt.getWfd(), evt.getArtifact());
     }
 
-    private void initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
+    private List<AbstractWorkflowInstanceObject> initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
         wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
-        wfi.enableWorkflowTasksAndDecisionNodes();
+        return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    private void handle(CompletedDataflowEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
             .forEach(td -> {
                 log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.getId());
                 WorkflowTask wt = wfi.instantiateTask(td);
-                wfi.activateDecisionNodesFromTask(wt);
+                awos.add(wt);
+                awos.addAll(wfi.activateDecisionNodesFromTask(wt));
                 dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
                 log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
             });
         dni.executeMapping();
+        return awos;
     }
 
-    private void handle(ActivatedInBranchEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
+            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
         }
+        return awos;
     }
 
-    private void handle(ActivatedOutBranchEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(ActivatedOutBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null) {
-            dni.activateOutBranch(evt.getBranchId());
+            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
         }
+        return awos;
     }
 
-    private void handle(ActivatedInOutBranchEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
-            dni.activateOutBranch(evt.getBranchId());
+            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
+            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
         }
+        return awos;
     }
 
-    private void handle(ActivatedInOutBranchesEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchesEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
-            dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft));
+            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
             String[] branchIds = new String[evt.getBranchIds().size()];
-            dni.activateOutBranches(evt.getBranchIds().toArray(branchIds));
+            awos.addAll(dni.activateOutBranches(evt.getBranchIds().toArray(branchIds)));
         }
+        return awos;
     }
 
-    private void handle(AddedConstraintsEvt evt) {
+    public List<RuleEngineBasedConstraint> handle(AddedConstraintsEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        List<RuleEngineBasedConstraint> rebcs = new ArrayList<>();
         if (wft != null) {
             QACheckDocument qa = new QACheckDocument("QA-"+wft.getType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
             ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
@@ -103,37 +122,44 @@ public class WorkflowInstanceWrapper {
                 String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
                 RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
                 qa.addConstraint(rebc);
+                rebcs.add(rebc);
             }
         }
+        return rebcs;
     }
 
-    private void handle(AddedEvaluationResultToConstraintEvt evt) {
+    public RuleEngineBasedConstraint handle(AddedEvaluationResultToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
-        for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()){
-            if (!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) {
-                rebc.addAs(entry.getValue(), entry.getKey());
-                rebc.setLastChanged(evt.getTime());
+        if (rebc != null) {
+            for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
+                if (!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) {
+                    rebc.addAs(entry.getValue(), entry.getKey());
+                    rebc.setLastChanged(evt.getTime());
+                }
+                if (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey())) {
+                    rebc.addAs(entry.getValue(), entry.getKey());
+                    rebc.setLastChanged(evt.getTime());
+                }
             }
-            if (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey())) {
-                rebc.addAs(entry.getValue(), entry.getKey());
-                rebc.setLastChanged(evt.getTime());
-            }
+            rebc.setLastEvaluated(evt.getTime());
+            rebc.setEvaluated(evt.getCorr());
         }
-        rebc.setLastEvaluated(evt.getTime());
-        rebc.setEvaluated(evt.getCorr());
+        return rebc;
     }
 
-    private void handle(AddedAsInputEvt evt) {
+    public WorkflowTask handle(AddedAsInputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
         // TODO check if input is expected
         wft.addInput(input);
+        return wft;
     }
 
-    private  void handle(AddedAsOutputEvt evt) {
+    public WorkflowTask handle(AddedAsOutputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
+        return wft;
     }
 
     public void handle(IdentifiableEvt evt) {
@@ -160,7 +186,7 @@ public class WorkflowInstanceWrapper {
         } else if (evt instanceof AddedAsOutputEvt) {
             handle((AddedAsOutputEvt) evt);
         } else {
-            log.error("[MOD] Unknown message type: "+evt.getClass().getSimpleName());
+            log.error("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }
     }
 

@@ -123,7 +123,7 @@ public class MainView extends VerticalLayout {
         accordion.add("Import Artifact", importArtifact());
         accordion.add("Remove Artifact", remove());
 //        accordion.add("Evaluate Constraint", evaluate()); // evaluating now over icon-buttons in current-state-grid
-        accordion.add("Developer Commands", backend());
+        accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
         accordion.setWidthFull();
@@ -379,23 +379,13 @@ public class MainView extends VerticalLayout {
         TextField id = new TextField("ID");
         id.setValue("A3");
 
-        Button print = new Button("send PrintKBCmd");
+        Button print = new Button("PrintKBQuery");
         print.addClickListener(evt -> {
-            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
             Notification.show("Success");
         });
 
-        Button query = new Button("send FindQuery");
-        query.addClickListener(evt -> {
-            CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
-            try {
-                Notification.show(String.valueOf(val.get().getAmount()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        return new VerticalLayout(description, id, print, query);
+        return new VerticalLayout(description, id, print);
     }
 
     private Component remove() {

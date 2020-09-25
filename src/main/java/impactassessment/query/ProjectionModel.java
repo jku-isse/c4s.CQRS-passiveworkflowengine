@@ -27,6 +27,13 @@ public class ProjectionModel {
         return db.get(id);
     }
 
+    public WorkflowInstanceWrapper getOrCreateWorkflowModel(String id) {
+        if (getWorkflowModel(id) == null) {
+            createAndPutWorkflowModel(id);
+        }
+        return getWorkflowModel(id);
+    }
+
     public WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
         db.put(id, new WorkflowInstanceWrapper());
         return db.get(id);
@@ -41,10 +48,7 @@ public class ProjectionModel {
             this.delete(evt.getId());
             return;
         }
-        if (getWorkflowModel(evt.getId()) == null) {
-            createAndPutWorkflowModel(evt.getId());
-        }
-        getWorkflowModel(evt.getId()).handle(evt);
+        getOrCreateWorkflowModel(evt.getId()).handle(evt);
     }
 
     public void handle(EventMessage<?> message) {
