@@ -339,7 +339,8 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 			.forEach(IBranchInstance::setBranchUsedForProgress);
 		// not necessary for outbranches as we set them via task assignment --> no we dont
 		activationPropagationCompleted = true;
-		sm.fire(Events.PROGRESS_TRIGGERED);
+		if (sm.canFire(Events.PROGRESS_TRIGGERED))
+			sm.fire(Events.PROGRESS_TRIGGERED);
 
 //		inBranches.values().stream()
 //			.filter(b -> b.getState() != BranchState.Disabled)

@@ -40,6 +40,13 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getWfd(), evt.getArtifact());
     }
 
+    public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
+        AbstractWorkflowDefinition wfd = evt.getWfd();
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
+        wfi = wfd.createInstance(evt.getId());
+        return wfi.enableWorkflowTasksAndDecisionNodes();
+    }
+
     private List<AbstractWorkflowInstanceObject> initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
@@ -162,11 +169,21 @@ public class WorkflowInstanceWrapper {
         return wft;
     }
 
+    public void handle(AddedAsInputToWfiEvt evt) {
+        wfi.addInput(evt.getInput());
+    }
+
+    public void handle(AddedAsOutputToWfiEvt evt) {
+        wfi.addOutput(evt.getOutput());
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof ImportedOrUpdatedArtifactEvt) {
             handle((ImportedOrUpdatedArtifactEvt) evt);
         } else if (evt instanceof ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) {
             handle((ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) evt);
+        } else if (evt instanceof CreatedChildWorkflowEvt) {
+            handle((CreatedChildWorkflowEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {
@@ -185,6 +202,10 @@ public class WorkflowInstanceWrapper {
             handle((AddedAsInputEvt) evt);
         } else if (evt instanceof AddedAsOutputEvt) {
             handle((AddedAsOutputEvt) evt);
+        } else if (evt instanceof AddedAsInputToWfiEvt) {
+            handle((AddedAsInputToWfiEvt) evt);
+        } else if (evt instanceof AddedAsOutputToWfiEvt) {
+            handle((AddedAsOutputToWfiEvt) evt);
         } else {
             log.error("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

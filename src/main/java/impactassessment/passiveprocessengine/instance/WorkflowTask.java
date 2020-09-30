@@ -41,11 +41,11 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	transient private TaskStateTransitionEvent nextEvent;
 
 	@Relationship(type="TASK_IO", direction=Relationship.OUTGOING)
-	List<ArtifactOutput> output = new ArrayList<ArtifactOutput>();
+	List<ArtifactOutput> output = new ArrayList<>();
 	//ObservableList<ArtifactOutput> output = FXCollections.observableList(new ArrayList<ArtifactOutput>());
 
 	@Relationship(type="TASK_IO", direction=Relationship.INCOMING)
-	List<ArtifactInput> input = new ArrayList<ArtifactInput>();
+	List<ArtifactInput> input = new ArrayList<>();
 	//ObservableList<ArtifactInput> input = FXCollections.observableList(new ArrayList<ArtifactInput>());
 	
 	@Deprecated

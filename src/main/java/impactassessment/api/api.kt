@@ -6,6 +6,8 @@ import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
 import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition
 import impactassessment.passiveprocessengine.definition.Artifact
 import impactassessment.passiveprocessengine.definition.ArtifactType
+import impactassessment.passiveprocessengine.instance.ArtifactInput
+import impactassessment.passiveprocessengine.instance.ArtifactOutput
 import impactassessment.passiveprocessengine.instance.ResourceLink
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
@@ -14,6 +16,7 @@ import java.time.Instant
 data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
 data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
 data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val source: Sources, val wfd: AbstractWorkflowDefinition)
+data class CreateChildWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val wfd: AbstractWorkflowDefinition)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
@@ -26,12 +29,15 @@ data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val cor
 data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
 data class AddAsInputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
 data class AddAsOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
+data class AddAsInputToWfiCmd(@TargetAggregateIdentifier val id: String, val input: ArtifactInput)
+data class AddAsOutputToWfiCmd(@TargetAggregateIdentifier val id: String, val output: ArtifactOutput)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
 data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
 data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val wfd: AbstractWorkflowDefinition) : IdentifiableEvt
+data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val wfd: AbstractWorkflowDefinition) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
@@ -44,6 +50,8 @@ data class CheckedConstraintEvt(override val id: String, val corrId: String) : I
 data class CheckedAllConstraintsEvt(override val id: String) : IdentifiableEvt
 data class AddedAsInputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 data class AddedAsOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
+data class AddedAsInputToWfiEvt(override val id: String, val input: ArtifactInput) : IdentifiableEvt
+data class AddedAsOutputToWfiEvt(override val id: String, val output: ArtifactOutput) : IdentifiableEvt
 
 // QUERIES
 data class GetStateQuery(val depth: Int)

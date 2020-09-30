@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 @NodeEntity
-public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable {
+public class WorkflowInstance extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
 
     /**
      *
@@ -37,6 +37,9 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     private transient Map<WorkflowTask, DecisionNodeInstance> taskOutOfDNI = new HashMap<>();
 
     private transient TaskStateTransitionEventPublisher pub;
+
+    List<ArtifactOutput> output = new ArrayList<>();
+    List<ArtifactInput> input = new ArrayList<>();
 
     @Deprecated
     public WorkflowInstance() {
@@ -112,16 +115,60 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     }
 
     public WorkflowTask instantiateTask(TaskDefinition td) {
-        WorkflowTask tf = prepareTask(td);
-        taskInst.add(tf);
-        taskIntoDNI.put(tf, null);
-        taskOutOfDNI.put(tf, null);
-        return tf;
+        if (taskInst.stream().noneMatch(t -> t.getType().getId().equals(td.getId()))) {
+            WorkflowTask tf = prepareTask(td);
+            taskInst.add(tf);
+            taskIntoDNI.put(tf, null);
+            taskOutOfDNI.put(tf, null);
+            return tf;
+        }
+        return null;
     }
 
 
     public WorkflowDefinition getType() {
         return workflowDefinition;
+    }
+
+    @Override
+    public TaskLifecycle.State getLifecycleState() {
+        log.warn("NOT IMPLEMENTED");
+        return null;
+    }
+
+    @Override
+    public void signalEvent(TaskLifecycle.Events event) {
+        log.warn("NOT IMPLEMENTED");
+    }
+
+    @Override
+    public List<ArtifactOutput> getOutput() {
+        return Collections.unmodifiableList(output);
+    }
+
+    @Override
+    public boolean removeOutput(ArtifactOutput ao) {
+        return output.remove(ao);
+    }
+
+    @Override
+    public void addOutput(ArtifactOutput ao) {
+        output.add(ao);
+    }
+
+    @Override
+    public List<ArtifactInput> getInput() {
+        return Collections.unmodifiableList(input);
+    }
+
+    @Override
+    public boolean removeInput(ArtifactInput ai) {
+        return input.remove(ai);
+    }
+
+    @Override
+    public void addInput(ArtifactInput ai) {
+        input.add(ai);
     }
 
     public Set<WorkflowTask> getWorkflowTasksReadonly() {
@@ -292,6 +339,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     public DecisionNodeInstance getKickOff() {
         throw new RuntimeException("not implemented");
     }
+
 
     // METHOD BELOW NEED CHECKING WHETHER NECESSARY
 

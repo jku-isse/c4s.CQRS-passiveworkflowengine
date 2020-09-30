@@ -22,10 +22,9 @@ public class ArtifactInput extends ArtifactIO {
     }
 
     public ArtifactInput(ArtifactOutput ao) {
+        super(ao.artifact, ao.role, ao.artifactType);
         id = ao.id;
-        role = ao.role;
         container = ao.container;
-        artifact = ao.artifact;
     }
 
     public ArtifactInput(Artifact artifact, String role, ArtifactType artifactType) {

@@ -21,10 +21,9 @@ public class ArtifactOutput extends ArtifactIO {
     }
 
     public ArtifactOutput(ArtifactInput ai) {
+        super(ai.artifact, ai.role, ai.artifactType);
         id = ai.id;
-        role = ai.role;
         container = ai.container;
-        artifact = ai.artifact;
     }
 
     public ArtifactOutput(Artifact artifact, String role, ArtifactType artifactType) {

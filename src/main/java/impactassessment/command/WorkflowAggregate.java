@@ -25,11 +25,13 @@ import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted
 public class WorkflowAggregate {
 
     @AggregateIdentifier
-    private String id;
-    private WorkflowInstanceWrapper model;
+    String id;
+    WorkflowInstanceWrapper model;
+    private String parentWfiId; // also parent aggregate id
+    private String parentWftId;
 
     public WorkflowAggregate() {
-        log.debug("[AGG] empty constructor invoked");
+        log.debug("[AGG] empty constructor WorkflowAggregate invoked");
     }
 
     public String getId() {
@@ -72,11 +74,18 @@ public class WorkflowAggregate {
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(id, a, cmd.getWfd()));
+                apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, cmd.getWfd()));
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
         }
+    }
+
+    @CommandHandler
+    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+    public void handle(CreateChildWorkflowCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getWfd()));
     }
 
     @CommandHandler
@@ -149,6 +158,21 @@ public class WorkflowAggregate {
     public void handle(AddAsOutputCmd cmd) {
         log.info("[AGG] handling {}", cmd);
         apply(new AddedAsOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+        if (parentWfiId != null && parentWftId != null) {
+            apply(new AddedAsOutputEvt(parentWfiId, parentWftId, cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+        }
+    }
+
+    @CommandHandler
+    public void handle(AddAsInputToWfiCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedAsInputToWfiEvt(cmd.getId(), cmd.getInput()));
+    }
+
+    @CommandHandler
+    public void handle(AddAsOutputToWfiCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedAsOutputToWfiEvt(cmd.getId(), cmd.getOutput()));
     }
 
 
@@ -164,6 +188,16 @@ public class WorkflowAggregate {
             model.handle(evt);
         }
         model.setArtifact(evt.getArtifact()); // UPDATE
+    }
+
+    @EventSourcingHandler
+    public void on(CreatedChildWorkflowEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        id = evt.getId();
+        parentWfiId = evt.getParentWfiId();
+        parentWftId = evt.getParentWftId();
+        model = new WorkflowInstanceWrapper();
+        model.handle(evt);
     }
 
     @EventSourcingHandler

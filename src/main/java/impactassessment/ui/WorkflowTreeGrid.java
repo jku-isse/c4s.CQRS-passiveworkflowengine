@@ -51,7 +51,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         this.addHierarchyColumn(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
-                return wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) + ": " + wfi.getId();
+                String type = wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) == null ? "Unspecified Type" : wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE);
+                return type + ": " + wfi.getId();
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
                 return wft.getType().getId();
