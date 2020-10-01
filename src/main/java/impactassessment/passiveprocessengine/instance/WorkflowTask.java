@@ -20,7 +20,7 @@ import impactassessment.passiveprocessengine.definition.TaskLifecycle.State;
 import impactassessment.passiveprocessengine.definition.Participant;
 
 @NodeEntity
-public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable {
+public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
 	/**
 	 * 
 	 */

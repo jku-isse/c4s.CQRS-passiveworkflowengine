@@ -37,6 +37,20 @@ import impactassessment.passiveprocessengine.instance.ResourceLink
 
 global CommandGateway commandGateway;
 
+rule "AddWPTicketAsInputToNewTasks"
+    when // matches any inBranch for the Workflow waiting for input,
+    	$a : IJiraArtifact(  )
+        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        							 getWorkflow().getType().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
+									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
+									 !isActivationPropagationCompleted()
+									 , $wfi : getWorkflow() )
+									 	@watch ( state )
+    then      // creates the task and adds the ticket as input
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLink.of($a)));
+
+end
+
 rule "CompleteActivationPropagationAndExecuteMapping"
     when
     	$a : IJiraArtifact(  )

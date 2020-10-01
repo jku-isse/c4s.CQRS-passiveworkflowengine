@@ -166,7 +166,17 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddAsInputToWfiCmd cmd) {
         log.info("[AGG] handling {}", cmd);
+        log.error("******************* "+cmd.getId());
         apply(new AddedAsInputToWfiEvt(cmd.getId(), cmd.getInput()));
+
+        if (cmd.getInput().getArtifact() instanceof ArtifactWrapper) {
+            ArtifactWrapper artWrapper = (ArtifactWrapper) cmd.getInput().getArtifact();
+            if (artWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
+                IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact();
+                log.error("*******************2 "+cmd.getId());
+                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), iJira));
+            }
+        }
     }
 
     @CommandHandler

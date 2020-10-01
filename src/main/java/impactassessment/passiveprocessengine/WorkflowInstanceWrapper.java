@@ -21,6 +21,10 @@ public class WorkflowInstanceWrapper {
 
     public void setArtifact(IJiraArtifact artifact) {
         this.artifact = artifact;
+        if (wfi != null) {
+            ArtifactWrapper aw = new ArtifactWrapper("Wrapped#"+artifact.getId(), artifact.getClass().getSimpleName(), wfi, artifact);
+            wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+        }
     }
 
     public WorkflowInstance getWorkflowInstance() {
@@ -56,7 +60,7 @@ public class WorkflowInstanceWrapper {
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    public Map<WorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
+    public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
         // TODO can be removed? already added in ActivateOutBranch

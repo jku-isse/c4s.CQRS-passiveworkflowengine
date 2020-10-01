@@ -50,7 +50,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
     }
     private TaskDefinition getStateInProgressTaskDefinition() {
         TaskDefinition td = new WorkflowWrapperTaskDefinition(TASK_STATE_IN_PROGRESS, this, new DronologyWorkflowFixed());
-        td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        td.getExpectedInput().put("INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
         td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
@@ -74,7 +74,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, false, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
-        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_IN_PROGRESS);
+        dnd.addMapping(WORKFLOW_TYPE, TASK_STATE_IN_PROGRESS);
         return dnd;
     }
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved) {

@@ -9,7 +9,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 public class ArtifactWrapper extends AbstractArtifact {
 
 	private static final long serialVersionUID = 1L;
-	private transient Object wrappedArtifact;
+	private Object wrappedArtifact;
 	
 	
 	@Deprecated
