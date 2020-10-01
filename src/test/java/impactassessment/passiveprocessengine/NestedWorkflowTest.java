@@ -29,8 +29,6 @@ public class NestedWorkflowTest {
         wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new NestedWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new AddedAsOutputEvt(ID, "Open#test", new ResourceLink(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, "dummy", "dummy", "dummy", "dummy", "dummy"), "irrelevantForTest", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
-
-        // TODO needs dependency injection! (wants to instantiate WorkflowWrapperTaskInstance, which needs a commandGateway)
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgress#test", "Open#test", "inProgressIn"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgress#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "inProgress2resolved#test", "In Progress#test"));

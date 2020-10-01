@@ -323,6 +323,7 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 								WorkflowTask wft = workflow.instantiateTask(b.getBranchDefinition().getTask());
 								awos.add(wft);
 								awos.addAll(workflow.activateDecisionNodesFromTask(wft));
+								consumeTaskForUnconnectedInBranch(wft);
 								return awos.stream();
 					})
 				.collect(Collectors.toSet());
@@ -469,8 +470,9 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return branch.orElse(null);
 	}
 
-	public void executeMapping() {
+	public Map<WorkflowTask, ArtifactInput> executeMapping() {
 		log.debug("execute mapping");
+		Map<WorkflowTask, ArtifactInput> mappedInputs = new HashMap<>();
 		for (MappingDefinition m : getDefinition().getMappings()) {
 			List<WorkflowTask> fromTasks = getWorkflowTasksFromTaskDefinitionIds(m.getFrom());
 			List<WorkflowTask> toTasks = getWorkflowTasksFromTaskDefinitionIds(m.getTo());
@@ -481,24 +483,34 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 						// fitting toTask is selected (if possible)
 						WorkflowTask subWft = findBestFit(ao, toTasks);
 						if (subWft != null) {
-							executeMappingIfNotMappedPrior(preWft, ao, subWft);
+							ArtifactInput ai = executeMappingIfNotMappedPrior(preWft, ao, subWft);
+							if (ai != null) {
+								mappedInputs.put(subWft, ai);
+							}
 						}
 					} else if (m.getMappingType().equals(MappingDefinition.MappingType.ALL)) {
 						// every toTask is selected
 						for (WorkflowTask subWft : toTasks) {
-							executeMappingIfNotMappedPrior(preWft, ao, subWft);
+							ArtifactInput ai = executeMappingIfNotMappedPrior(preWft, ao, subWft);
+							if (ai != null) {
+								mappedInputs.put(subWft, ai);
+							}
 						}
 					}
 				}
 			}
 		}
+		return mappedInputs;
 	}
 
-	private void executeMappingIfNotMappedPrior(WorkflowTask preWft, ArtifactOutput ao, WorkflowTask subWft) {
+	private ArtifactInput executeMappingIfNotMappedPrior(WorkflowTask preWft, ArtifactOutput ao, WorkflowTask subWft) {
 		if (mappingReports.stream().noneMatch(r -> r.getFrom().equals(preWft.getId()) && r.getTo().equals(subWft.getId()))) {
-			subWft.addInput(new ArtifactInput(ao));
+			ArtifactInput ai = new ArtifactInput(ao);
+			subWft.addInput(ai);
 			mappingReports.add(new MappingReport(preWft.getId(), ao.getArtifactType(), ao.getRole(), subWft.getId(), subWft.getType().getExpectedInput()));
+			return ai;
 		}
+		return null;
 	}
 
 	private List<WorkflowTask> getWorkflowTasksFromTaskDefinitionIds(List<String> tdIds) {

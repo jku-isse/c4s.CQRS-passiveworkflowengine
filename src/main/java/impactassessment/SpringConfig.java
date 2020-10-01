@@ -25,6 +25,7 @@ public class SpringConfig {
         // careful! execution.drl has hardcoded (dronology)workflow-branch names
         // --> just injecting a new workflow here won't work
         return new NestedWorkflow();
+//        return new DronologyWorkflowFixed();
     }
 
 }

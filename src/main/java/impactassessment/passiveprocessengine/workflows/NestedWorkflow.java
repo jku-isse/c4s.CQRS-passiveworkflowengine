@@ -52,7 +52,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
         TaskDefinition td = new WorkflowWrapperTaskDefinition(TASK_STATE_IN_PROGRESS, this, new DronologyWorkflowFixed());
         td.getExpectedInput().put(ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
         td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
-        td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+        td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
         return td;
     }
     private TaskDefinition getStateResolvedTaskDefinition() {
@@ -66,7 +66,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
 
     private DecisionNodeDefinition getWfKickOff(TaskDefinition tdOpen) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("workflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, false, dnd));
         return dnd;
     }
     private DecisionNodeDefinition getOpen2InProgress(TaskDefinition tdOpen, TaskDefinition tdInProgress) {
@@ -79,7 +79,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
     }
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, false, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.AND);
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, false, false, dnd));
         dnd.addMapping(TASK_STATE_IN_PROGRESS, TASK_STATE_RESOLVED);

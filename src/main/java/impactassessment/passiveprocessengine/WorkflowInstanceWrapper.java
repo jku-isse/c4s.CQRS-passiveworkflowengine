@@ -56,21 +56,21 @@ public class WorkflowInstanceWrapper {
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(CompletedDataflowEvt evt) {
+    public Map<WorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
-        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-        dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
-            .forEach(td -> {
-                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.getId());
-                WorkflowTask wt = wfi.instantiateTask(td);
-                awos.add(wt);
-                awos.addAll(wfi.activateDecisionNodesFromTask(wt));
-                dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
-                log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
-            });
-        dni.executeMapping();
-        return awos;
+        // TODO can be removed? already added in ActivateOutBranch
+//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
+//        dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
+//            .forEach(td -> {
+//                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.getId());
+//                WorkflowTask wt = wfi.instantiateTask(td);
+//                awos.add(wt);
+//                awos.addAll(wfi.activateDecisionNodesFromTask(wt));
+//                dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
+//                log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
+//            });
+        return dni.executeMapping();
     }
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
