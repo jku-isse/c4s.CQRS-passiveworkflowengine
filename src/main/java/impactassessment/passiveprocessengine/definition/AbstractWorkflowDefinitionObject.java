@@ -8,7 +8,7 @@ public abstract class AbstractWorkflowDefinitionObject extends AbstractIdentifia
 	
 	
 	@Relationship(type="WorkflowDefinition")
-	protected WorkflowDefinition wfd;
+	transient protected WorkflowDefinition wfd;
 	
 	public WorkflowDefinition getWorkflowDefinition() {
 		return wfd;

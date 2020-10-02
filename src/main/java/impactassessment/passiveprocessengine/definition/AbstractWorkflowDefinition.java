@@ -85,4 +85,9 @@ public abstract class AbstractWorkflowDefinition extends AbstractWorkflowDefinit
 		return expectedOutput.put(key, value);
 	}
 
+	// to be used after deserialization to ensure all elements have the reference to this workflow definition
+	public void propagateWorkflowDefinitionId() {
+		taskDefinitions.stream().forEach(task -> task.setWorkflowDefinition(this));
+		dnds.stream().forEach(dnd -> dnd.setWorkflowDefinition(this));
+	}
 }
