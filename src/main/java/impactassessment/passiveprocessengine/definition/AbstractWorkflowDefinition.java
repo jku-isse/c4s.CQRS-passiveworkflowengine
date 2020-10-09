@@ -21,7 +21,7 @@ public abstract class AbstractWorkflowDefinition extends AbstractWorkflowDefinit
 	protected List<DecisionNodeDefinition> dnds = new ArrayList<DecisionNodeDefinition>();
 	
 	@Inject
-	protected transient TaskStateTransitionEventPublisher pub;
+	protected transient TaskStateTransitionEventPublisher pub = e -> {};
 
 	@Convert(ArtifactTypeConverter.Input.class)
 	private Map<String, ArtifactType> expectedInput = new HashMap<>();

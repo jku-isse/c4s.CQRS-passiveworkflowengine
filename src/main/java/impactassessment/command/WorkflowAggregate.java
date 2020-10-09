@@ -4,9 +4,10 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.instance.*;
+import impactassessment.registry.ProcessDefinitionRegistry;
+import impactassessment.registry.ProcessDefintionObject;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -69,12 +70,14 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService) {
+    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService, ProcessDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, cmd.getWfd()));
+                ProcessDefintionObject pdo = registry.get(cmd.getDefinitionName());
+                if (pdo != null)
+                    apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, pdo));
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
@@ -83,9 +86,11 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateChildWorkflowCmd cmd) {
+    public void handle(CreateChildWorkflowCmd cmd, ProcessDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
-        apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getWfd()));
+        ProcessDefintionObject pdo = registry.get(cmd.getDefinitionName());
+        if (pdo != null)
+            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), pdo));
     }
 
     @CommandHandler

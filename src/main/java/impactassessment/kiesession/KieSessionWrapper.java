@@ -6,6 +6,7 @@ import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObje
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.springframework.context.annotation.Scope;
@@ -22,10 +23,19 @@ public class KieSessionWrapper {
 
     private @Getter KieSession kieSession;
     private Map<String, FactHandle> sessionHandles;
-    private @Getter @Setter
-    boolean isInitialized;
+    private @Getter @Setter boolean isInitialized;
+
+    private final CommandGateway commandGateway;
+    private final IJiraArtifactService artifactService;
 
     public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
+        this.commandGateway = commandGateway;
+        this.artifactService = artifactService;
+        sessionHandles = new HashMap<>();
+        isInitialized = false;
+    }
+
+    public void create() {
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -40,10 +50,19 @@ public class KieSessionWrapper {
         String[] ruleFilesArray = ruleFiles.split(",");
 
         this.kieSession = new KieSessionFactory().getKieSession(ruleFilesArray);
+        setGlobals();
+    }
+
+    public void create(KieContainer kieContainer) {
+        this.kieSession = kieContainer.newKieSession();
+        KieSessionLogger.addRuleRuntimeEventListener(this.kieSession);
+        KieSessionLogger.addAgendaEventListener(this.kieSession);
+        setGlobals();
+    }
+
+    private void setGlobals() {
         this.kieSession.setGlobal("commandGateway", commandGateway);
         this.kieSession.setGlobal("artifactService", artifactService);
-        sessionHandles = new HashMap<>();
-        isInitialized = false;
     }
 
     public void insertOrUpdate(Object o) {

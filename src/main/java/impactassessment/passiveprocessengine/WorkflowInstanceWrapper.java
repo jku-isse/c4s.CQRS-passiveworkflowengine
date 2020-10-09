@@ -41,18 +41,16 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
-        return initWfi(evt.getWfd(), evt.getArtifact());
+        return initWfi(evt.getProcessDefinition().getWfd(), evt.getArtifact());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
-        AbstractWorkflowDefinition wfd = evt.getWfd();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
+        WorkflowDefinition wfd = evt.getProcessDefinition().getWfd();
         wfi = wfd.createInstance(evt.getId());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(AbstractWorkflowDefinition wfd, IJiraArtifact artifact) {
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
+    private List<AbstractWorkflowInstanceObject> initWfi(WorkflowDefinition wfd, IJiraArtifact artifact) {
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());

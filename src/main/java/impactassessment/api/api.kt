@@ -3,20 +3,21 @@ package impactassessment.api
 import impactassessment.passiveprocessengine.instance.CorrelationTuple
 import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
-import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition
 import impactassessment.passiveprocessengine.definition.Artifact
 import impactassessment.passiveprocessengine.definition.ArtifactType
+import impactassessment.passiveprocessengine.definition.WorkflowDefinition
 import impactassessment.passiveprocessengine.instance.ArtifactInput
 import impactassessment.passiveprocessengine.instance.ArtifactOutput
 import impactassessment.passiveprocessengine.instance.ResourceLink
+import impactassessment.registry.ProcessDefintionObject
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
 // COMMANDS
 data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
 data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
-data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val source: Sources, val wfd: AbstractWorkflowDefinition)
-data class CreateChildWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val wfd: AbstractWorkflowDefinition)
+data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val source: Sources, val definitionName: String)
+data class CreateChildWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
@@ -36,8 +37,8 @@ data class AddAsOutputToWfiCmd(@TargetAggregateIdentifier val id: String, val ou
 interface IdentifiableEvt{val id: String}
 
 data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
-data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val wfd: AbstractWorkflowDefinition) : IdentifiableEvt
-data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val wfd: AbstractWorkflowDefinition) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val processDefinition: ProcessDefintionObject) : IdentifiableEvt
+data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val processDefinition: ProcessDefintionObject) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt

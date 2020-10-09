@@ -34,6 +34,10 @@ public class ProjectionModel {
         return getWorkflowModel(id);
     }
 
+    public boolean contains(String id) {
+        return db.containsKey(id);
+    }
+
     public WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
         db.put(id, new WorkflowInstanceWrapper());
         return db.get(id);
