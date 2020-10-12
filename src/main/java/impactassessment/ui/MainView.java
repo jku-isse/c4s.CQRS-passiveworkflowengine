@@ -284,7 +284,7 @@ public class MainView extends VerticalLayout {
     private Component importArtifact() {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
-        layout.setWidthFull();
+        layout.setWidth("90%");
 
         // Process Definition
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
@@ -298,6 +298,7 @@ public class MainView extends VerticalLayout {
 
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(buffer);
+        upload.setWidthFull();
         Div output = new Div();
         upload.addSucceededListener(event -> {
             Component component = createComponent(event.getMIMEType(),
@@ -323,6 +324,7 @@ public class MainView extends VerticalLayout {
                 }
                 if (json != null && ruleFiles.size() > 0) {
                     registry.register(name, json, ruleFiles);
+                    processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getDefinitions().keySet());
                     Notification.show("Workflow loaded and added to registry");
                 }
             } catch (IOException ex) {

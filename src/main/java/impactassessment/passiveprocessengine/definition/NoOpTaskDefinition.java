@@ -4,6 +4,8 @@ import impactassessment.passiveprocessengine.instance.WorkflowTask;
 
 public class NoOpTaskDefinition extends TaskDefinition {
 
+
+
     public NoOpTaskDefinition(String definitionId, WorkflowDefinition wfd) {
         super(definitionId, wfd);
     }

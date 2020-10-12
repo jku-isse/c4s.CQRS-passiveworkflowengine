@@ -49,6 +49,7 @@ public class MultiTypeAdapterFactory  implements TypeAdapterFactory {
             @Override
             public TaskDefinition read(JsonReader in) throws IOException {
                 TaskDefinition td = delegate.read(in);
+
                 ShortTermTaskDefinitionCache.addToCache(td);
                 return td;
             }
