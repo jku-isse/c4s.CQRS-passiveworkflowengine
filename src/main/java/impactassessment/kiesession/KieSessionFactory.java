@@ -8,6 +8,8 @@ import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.util.List;
 
 @Slf4j
@@ -43,6 +45,18 @@ public class KieSessionFactory {
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
         for (File ruleFile : ruleFiles) {
             kieFileSystem.write(ResourceFactory.newFileResource(ruleFile));
+        }
+        KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+        kb.buildAll();
+        KieModule kieModule = kb.getKieModule();
+        return kieServices.newKieContainer(kieModule.getReleaseId());
+    }
+
+    public KieContainer getKieContainerFromStrings(List<String> ruleFiles) {
+        getKieRepository();
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        for (String ruleFile : ruleFiles) {
+            kieFileSystem.write("src/main/resources/rules/temp.drl", kieServices.getResources().newReaderResource( new StringReader(ruleFile) ));
         }
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();

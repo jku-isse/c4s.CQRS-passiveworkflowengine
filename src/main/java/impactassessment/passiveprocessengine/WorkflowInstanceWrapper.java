@@ -51,6 +51,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private List<AbstractWorkflowInstanceObject> initWfi(WorkflowDefinition wfd, IJiraArtifact artifact) {
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
         wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
         wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());

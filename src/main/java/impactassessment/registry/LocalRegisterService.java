@@ -12,22 +12,18 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class LocalRegisterService extends AbstractRegisterService {
 
     private DefinitionSerializer serializer = new DefinitionSerializer();
+    private KieSessionFactory kieSessionFactory = new KieSessionFactory();
 
     public LocalRegisterService(ProcessDefinitionRegistry registry) {
         super(registry);
-    }
-
-    @Override
-    public boolean register(String workflowName) {
-        throw new RuntimeException("NOT IMPLEMENTED");
     }
 
     @Override
@@ -48,7 +44,7 @@ public class LocalRegisterService extends AbstractRegisterService {
                 for (Resource drl : drlResources) {
                     files.add(drl.getFile());
                 }
-                KieContainer kieContainer = new KieSessionFactory().getKieContainer(files);
+                KieContainer kieContainer = kieSessionFactory.getKieContainer(files);
 
                 registry.register(res.getFilename(), wfd, kieContainer);
                 i++;

@@ -13,4 +13,6 @@ public interface WorkflowDefinition extends ITaskDefinition {
     public String getId();
     public WorkflowInstance createInstance(String withOptionalId);//, KieSession intoOptionalKSession);
 
+    void setTaskStateTransitionEventPublisher(TaskStateTransitionEventPublisher pub);
+
 }

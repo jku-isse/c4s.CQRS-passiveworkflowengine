@@ -76,8 +76,12 @@ public class WorkflowAggregate {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
                 ProcessDefintionObject pdo = registry.get(cmd.getDefinitionName());
-                if (pdo != null)
+                pdo.setKieContainer(null);
+                if (pdo != null) {
                     apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, pdo));
+                } else {
+                    log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+                }
             }
         } else {
             log.error("Unsupported Artifact source: "+cmd.getSource());
@@ -196,6 +200,17 @@ public class WorkflowAggregate {
 
     @EventSourcingHandler
     public void on(ImportedOrUpdatedArtifactEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        if (model == null || id == null) { // CREATE
+            id = evt.getId();
+            model = new WorkflowInstanceWrapper();
+            model.handle(evt);
+        }
+        model.setArtifact(evt.getArtifact()); // UPDATE
+    }
+
+    @EventSourcingHandler
+    public void on(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
         log.debug("[AGG] applying {}", evt);
         if (model == null || id == null) { // CREATE
             id = evt.getId();
