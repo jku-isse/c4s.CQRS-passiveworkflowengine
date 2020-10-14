@@ -9,10 +9,9 @@ import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 import impactassessment.passiveprocessengine.instance.WorkflowTask;
 import impactassessment.passiveprocessengine.workflows.ComplexWorkflow;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
 import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
-import impactassessment.registry.ProcessDefintionObject;
+import impactassessment.registry.WorkflowDefinitionContainer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +36,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     @Test
     public void testMapOutputsToExpectedInputsDronologyWorkflowFixed() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(DronologyWorkflowFixed.WORKFLOW_TYPE, new DronologyWorkflowFixed(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(DronologyWorkflowFixed.WORKFLOW_TYPE, new DronologyWorkflowFixed(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgressOrResolved#test", "Open#test", "inProgressIn"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgressOrResolved#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
@@ -51,7 +50,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     @Test
     public void testMapOutputsToExpectedInputsSimpleWorkflow() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(SimpleWorkflow.WORKFLOW_TYPE, new SimpleWorkflow(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(SimpleWorkflow.WORKFLOW_TYPE, new SimpleWorkflow(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "open2closed#"+ID, "Open#test"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2closed#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
@@ -63,7 +62,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     @Test
     public void testMapOutputsToExpectedInputsComplexWorkflow() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         // add additional mappings
@@ -87,7 +86,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     public void testMapOutputsToExpectedInputsComplexWorkflowAdditionalMappingQACheckDocNotPresent() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
 
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         // add additional mappings
@@ -115,7 +114,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     public void testMapOutputsToExpectedInputsComplexWorkflowAdditionalMappingQACheckDocPresent() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
 
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         // add additional mappings
@@ -142,7 +141,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     public void testMapOutputsToExpectedInputsComplexWorkflowAdditionalMappingQACheckDocPresentMappingTypeALL() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
 
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new ProcessDefintionObject(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
+        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, a, new WorkflowDefinitionContainer(ComplexWorkflow.WORKFLOW_TYPE, new ComplexWorkflow(), null)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         // add additional mappings

@@ -5,11 +5,10 @@ import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
 import impactassessment.passiveprocessengine.definition.Artifact
 import impactassessment.passiveprocessengine.definition.ArtifactType
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition
 import impactassessment.passiveprocessengine.instance.ArtifactInput
 import impactassessment.passiveprocessengine.instance.ArtifactOutput
 import impactassessment.passiveprocessengine.instance.ResourceLink
-import impactassessment.registry.ProcessDefintionObject
+import impactassessment.registry.WorkflowDefinitionContainer
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
@@ -37,8 +36,8 @@ data class AddAsOutputToWfiCmd(@TargetAggregateIdentifier val id: String, val ou
 interface IdentifiableEvt{val id: String}
 
 data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
-data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val processDefinition: ProcessDefintionObject) : IdentifiableEvt
-data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val processDefinition: ProcessDefintionObject) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val wfdContainer: WorkflowDefinitionContainer) : IdentifiableEvt
+data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val wfdContainer: WorkflowDefinitionContainer) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt

@@ -13,9 +13,9 @@ import java.util.Map;
 
 @Service
 @Scope("singleton")
-public class ProcessDefinitionRegistry {
+public class WorkflowDefinitionRegistry {
 
-    private Map<String, ProcessDefintionObject> definitions = new HashMap<>();
+    private Map<String, WorkflowDefinitionContainer> definitions = new HashMap<>();
     private DefinitionSerializer serializer = new DefinitionSerializer();
     private KieSessionFactory kieSessionFactory = new KieSessionFactory();
 
@@ -26,15 +26,15 @@ public class ProcessDefinitionRegistry {
     }
 
     public void register(String name, WorkflowDefinition wfd, KieContainer kieContainer) {
-        ProcessDefintionObject def = new ProcessDefintionObject(name, wfd, kieContainer);
+        WorkflowDefinitionContainer def = new WorkflowDefinitionContainer(name, wfd, kieContainer);
         definitions.put(name, def);
     }
 
-    public ProcessDefintionObject get(String name) {
+    public WorkflowDefinitionContainer get(String name) {
         return definitions.get(name);
     }
 
-    public Map<String, ProcessDefintionObject> getDefinitions() {
+    public Map<String, WorkflowDefinitionContainer> getDefinitions() {
         return definitions;
     }
 }

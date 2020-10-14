@@ -41,11 +41,11 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
-        return initWfi(evt.getProcessDefinition().getWfd(), evt.getArtifact());
+        return initWfi(evt.getWfdContainer().getWfd(), evt.getArtifact());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
-        WorkflowDefinition wfd = evt.getProcessDefinition().getWfd();
+        WorkflowDefinition wfd = evt.getWfdContainer().getWfd();
         wfi = wfd.createInstance(evt.getId());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }

@@ -29,8 +29,7 @@ import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Snapshotter;
 import impactassessment.query.Replayer;
-import impactassessment.registry.LocalRegisterService;
-import impactassessment.registry.ProcessDefinitionRegistry;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -39,7 +38,6 @@ import org.axonframework.queryhandling.QueryGateway;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -64,7 +62,7 @@ public class MainView extends VerticalLayout {
     private QueryGateway queryGateway;
     private Snapshotter snapshotter;
     private Replayer replayer;
-    private ProcessDefinitionRegistry registry;
+    private WorkflowDefinitionRegistry registry;
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
@@ -86,7 +84,7 @@ public class MainView extends VerticalLayout {
         this.replayer = replayer;
     }
     @Inject
-    public void setProcessDefinitionRegistry(ProcessDefinitionRegistry registry) {
+    public void setProcessDefinitionRegistry(WorkflowDefinitionRegistry registry) {
         this.registry = registry;
     }
 

@@ -7,7 +7,7 @@ import lombok.Setter;
 import org.kie.api.runtime.KieContainer;
 
 @AllArgsConstructor
-public class ProcessDefintionObject {
+public class WorkflowDefinitionContainer {
 
     private @Getter @Setter String name;
     private @Getter @Setter WorkflowDefinition wfd;

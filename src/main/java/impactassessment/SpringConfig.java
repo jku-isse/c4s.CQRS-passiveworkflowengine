@@ -6,7 +6,7 @@ import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefiniti
 import impactassessment.passiveprocessengine.workflows.NestedWorkflow;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
-import impactassessment.registry.ProcessDefinitionRegistry;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ public class SpringConfig {
 
     @Bean
     @Autowired
-    public IRegisterService getIRegisterService(ProcessDefinitionRegistry registry) {
+    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
         return new LocalRegisterService(registry);
     }
 

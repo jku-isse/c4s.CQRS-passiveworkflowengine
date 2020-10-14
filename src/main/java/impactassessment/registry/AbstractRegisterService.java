@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public abstract class AbstractRegisterService implements IRegisterService {
 
-    final ProcessDefinitionRegistry registry;
+    final WorkflowDefinitionRegistry registry;
 
     /**
      * Source: https://www.baeldung.com/running-setup-logic-on-startup-in-spring

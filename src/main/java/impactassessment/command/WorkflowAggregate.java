@@ -6,8 +6,8 @@ import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.instance.*;
-import impactassessment.registry.ProcessDefinitionRegistry;
-import impactassessment.registry.ProcessDefintionObject;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.registry.WorkflowDefinitionContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -70,15 +70,15 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService, ProcessDefinitionRegistry registry) {
+    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         if (cmd.getSource().equals(Sources.JIRA)) {
             IJiraArtifact a = artifactService.get(cmd.getId());
             if (a != null) {
-                ProcessDefintionObject pdo = registry.get(cmd.getDefinitionName());
-                pdo.setKieContainer(null);
-                if (pdo != null) {
-                    apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, pdo));
+                WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+                wfdContainer.setKieContainer(null);
+                if (wfdContainer != null) {
+                    apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, wfdContainer));
                 } else {
                     log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
                 }
@@ -90,11 +90,11 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateChildWorkflowCmd cmd, ProcessDefinitionRegistry registry) {
+    public void handle(CreateChildWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
-        ProcessDefintionObject pdo = registry.get(cmd.getDefinitionName());
-        if (pdo != null)
-            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), pdo));
+        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+        if (wfdContainer != null)
+            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), wfdContainer));
     }
 
     @CommandHandler

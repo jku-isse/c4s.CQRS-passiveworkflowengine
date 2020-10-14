@@ -12,7 +12,6 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class LocalRegisterService extends AbstractRegisterService {
     private DefinitionSerializer serializer = new DefinitionSerializer();
     private KieSessionFactory kieSessionFactory = new KieSessionFactory();
 
-    public LocalRegisterService(ProcessDefinitionRegistry registry) {
+    public LocalRegisterService(WorkflowDefinitionRegistry registry) {
         super(registry);
     }
 

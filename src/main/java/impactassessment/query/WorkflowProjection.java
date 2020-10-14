@@ -62,7 +62,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
-        createKieSession(evt.getId(), evt.getProcessDefinition().getKieContainer());
+        createKieSession(evt.getId(), evt.getWfdContainer().getKieContainer());
         ensureInitializedKB(evt.getId());
         if (!projection.contains(evt.getId())) {
             WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
@@ -85,7 +85,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedChildWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
-        createKieSession(evt.getId(), evt.getProcessDefinition().getKieContainer());
+        createKieSession(evt.getId(), evt.getWfdContainer().getKieContainer());
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
