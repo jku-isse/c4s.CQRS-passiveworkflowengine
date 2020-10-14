@@ -6,10 +6,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Label;
-import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -29,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -50,11 +48,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     public void initTreeGrid() {
 
+        // Column "Workflow Instance"
         this.addHierarchyColumn(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
-                String type = wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE) == null ? "Unspecified Type" : wfi.getEntry(WorkflowInstanceWrapper.PROP_ISSUE_TYPE);
-                return type + ": " + wfi.getId();
+                return wfi.getType().getId() + " (" + wfi.getId() + ")";
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
                 return wft.getType().getId();
@@ -65,6 +63,20 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 return o.getClass().getSimpleName() + ": " + o.getId();
             }
         }).setHeader("Workflow Instance").setWidth("35%");
+
+        // Column "Info"
+
+        this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
+            if (o instanceof WorkflowInstance) {
+                return infoDialog((WorkflowInstance)o);
+            } else if (o instanceof WorkflowTask) {
+                return infoDialog((WorkflowTask)o);
+            } else {
+                return new Label("");
+            }
+        })).setWidth("5%").setFlexGrow(0);
+
+        // Column "Reevaluate"
 
         if (evalMode) {
             this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
@@ -96,6 +108,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             })).setWidth("5%").setFlexGrow(0);
         }
 
+        // Column "Last Evaluated"
+
         this.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
@@ -109,6 +123,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             }
         }).setHeader("Last Evaluated");
 
+        // Column "Last Changed"
 
         this.addColumn(o -> {
             if (o instanceof RuleEngineBasedConstraint) {
@@ -123,6 +138,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             }
         }).setHeader("Last Changed");
 
+        // Column "Fulfilled"
 
         this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
@@ -180,8 +196,9 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             } else {
                 return new Label("");
             }
-        })).setHeader("Fulfilled").setClassNameGenerator(x -> "column-center");
+        })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
 
+        // Column "Unsatisfied"
 
         this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
@@ -236,7 +253,58 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             } else {
                 return new Label("");
             }
-        })).setHeader("Unsatisfied").setClassNameGenerator(x -> "column-center");
+        })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
+    }
+
+    private Component infoDialog(WorkflowInstance wfi) {
+        VerticalLayout l = new VerticalLayout();
+        l.add(new H3(wfi.getId()));
+        for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
+            l.add(new Paragraph(e.getKey() + ": " + e.getValue()));
+        }
+        l.add(new H4("Inputs"));
+        for (ArtifactInput ai : wfi.getInput()) {
+            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+        }
+        l.add(new H4("Outputs"));
+        for (ArtifactOutput ao : wfi.getOutput()) {
+            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        }
+        Dialog dialog = new Dialog();
+
+        Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
+        icon.setColor("#1565C0");
+        icon.getStyle().set("cursor", "pointer");
+        icon.addClickListener(e -> dialog.open());
+        icon.getElement().setProperty("title", "Show more information about this workflow instance");
+
+        dialog.add(l);
+
+        return icon;
+    }
+
+    private Component infoDialog(WorkflowTask wft) {
+        VerticalLayout l = new VerticalLayout();
+        l.add(new H3(wft.getId()));
+        l.add(new H4("Inputs"));
+        for (ArtifactInput ai : wft.getInput()) {
+            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+        }
+        l.add(new H4("Outputs"));
+        for (ArtifactOutput ao : wft.getOutput()) {
+            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        }
+        Dialog dialog = new Dialog();
+
+        Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
+        icon.setColor("#1565C0");
+        icon.getStyle().set("cursor", "pointer");
+        icon.addClickListener(e -> dialog.open());
+        icon.getElement().setProperty("title", "Show more information about this workflow task");
+
+        dialog.add(l);
+
+        return icon;
     }
 
     public void updateTreeGrid(List<WorkflowInstanceWrapper> content) {
