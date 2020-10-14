@@ -10,7 +10,9 @@ import org.kie.internal.io.ResourceFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class KieSessionFactory {
@@ -52,7 +54,7 @@ public class KieSessionFactory {
         return kieServices.newKieContainer(kieModule.getReleaseId());
     }
 
-    public KieContainer getKieContainerFromStrings(List<String> ruleFiles) {
+    public KieContainer getKieContainerFromStrings(Collection<String> ruleFiles) {
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
         for (String ruleFile : ruleFiles) {

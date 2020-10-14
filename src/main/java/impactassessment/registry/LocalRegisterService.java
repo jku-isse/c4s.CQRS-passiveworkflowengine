@@ -45,7 +45,7 @@ public class LocalRegisterService extends AbstractRegisterService {
                 }
                 KieContainer kieContainer = kieSessionFactory.getKieContainer(files);
 
-                registry.register(res.getFilename(), wfd, kieContainer);
+                registry.register(wfd.getId(), wfd, kieContainer);
                 i++;
             }
         } catch (IOException e) {

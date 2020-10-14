@@ -43,9 +43,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -287,11 +285,11 @@ public class MainView extends VerticalLayout {
         // Process Definition
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
         processDefinition.setLabel("1. Select Process Definition");
-        processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getDefinitions().keySet());
+        processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
         processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
 
-        Button loadDefinitions = new Button("Load Available Definitions", e -> {
-            processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getDefinitions().keySet());
+        Button loadDefinitions = new Button("Fetch Available Definitions", e -> {
+            processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
         });
 
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
@@ -305,25 +303,25 @@ public class MainView extends VerticalLayout {
             showOutput(event.getFileName(), component, output);
         });
 
-        Button addDefinition = new Button("Add New Definition", e -> {
+        Button addDefinition = new Button("Store New Definition", e -> {
             try {
-                List<String> ruleFiles = new ArrayList<>();
+                Map<String, String> ruleFiles = new HashMap<>();
                 String json = null;
-                String name = null;
                 for (String filename : buffer.getFiles()) {
                     if (filename.endsWith(".json")) {
                         json = IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name());
-                        name = filename.replace(".json", "");
                     } else if (filename.endsWith(".drl")) {
-                        ruleFiles.add(IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name()));
+                        ruleFiles.put(filename, IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name()));
                     } else {
                         // not allowed
                     }
                 }
                 if (json != null && ruleFiles.size() > 0) {
-                    registry.register(name, json, ruleFiles);
-                    processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getDefinitions().keySet());
+                    registry.register(json, ruleFiles);
+                    processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
                     Notification.show("Workflow loaded and added to registry");
+                } else {
+                    Notification.show("Make sure to have exactly one JSON file and at least one DRL file in the upload");
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
