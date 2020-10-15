@@ -25,6 +25,7 @@ import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import impactassessment.passiveprocessengine.definition.ArtifactType;
 import impactassessment.query.Snapshotter;
 import impactassessment.query.Replayer;
 import impactassessment.registry.WorkflowDefinitionContainer;
@@ -341,9 +342,9 @@ public class MainView extends VerticalLayout {
         processDefinition.addValueChangeListener( e -> {
             WorkflowDefinitionContainer wfdContainer = registry.get(e.getValue());
             source.removeAll();
-            for (String role : wfdContainer.getWfd().getExpectedInput().keySet()) {
+            for (ArtifactType artT : wfdContainer.getWfd().getExpectedInput().values()) {
                 TextField tf = new TextField();
-                tf.setLabel(role);
+                tf.setLabel(artT.getArtifactType());
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {

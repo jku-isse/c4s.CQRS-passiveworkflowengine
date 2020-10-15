@@ -163,15 +163,17 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     }
 
     public boolean containsInput(String id) {
-        return input.stream()
-                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
-                .anyMatch(ai -> ai.getArtifact().getId().contains(id));
+        return contains(input, id);
     }
 
     public boolean containsOutput(String id) {
-        return output.stream()
-                .filter(ao -> ao.getArtifact() instanceof ArtifactWrapper)
-                .anyMatch(ao -> ao.getArtifact().getId().contains(id));
+        return contains(output, id);
+    }
+
+    private <T extends ArtifactIO> boolean contains(List<T> io, String id) {
+        return io.stream()
+                .filter(x -> x.getArtifact() instanceof ArtifactWrapper)
+                .anyMatch(x -> x.getArtifact().getId().contains(id));
     }
 
     public boolean containsInputOrOutput(String id) {

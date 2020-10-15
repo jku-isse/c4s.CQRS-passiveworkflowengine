@@ -2,7 +2,6 @@ package impactassessment.passiveprocessengine.workflows;
 
 import java.util.UUID;
 import com.google.inject.Inject;
-import impactassessment.api.Sources;
 import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
@@ -28,7 +27,7 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition {
 
     @Inject
     public void initWorkflowSpecification() {
-        putExpectedInput(Sources.JIRA.toString(), new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
+        putExpectedInput("Jira Issue", new ArtifactType("JIRA"));
 
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
