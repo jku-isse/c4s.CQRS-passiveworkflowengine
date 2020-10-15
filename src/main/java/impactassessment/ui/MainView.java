@@ -8,9 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -29,6 +27,7 @@ import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Snapshotter;
 import impactassessment.query.Replayer;
+import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -65,6 +64,13 @@ public class MainView extends VerticalLayout {
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
 
+    // TODO: exchange naive id generation
+    private int idCount = 0;
+    private String getWfId() {
+        idCount++;
+        return "WF"+idCount;
+    }
+
     @Inject
     public void setCommandGateway(CommandGateway commandGateway) {
         this.commandGateway = commandGateway;
@@ -96,7 +102,7 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new Icon(VaadinIcon.AUTOMATION), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
+        header.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
@@ -284,9 +290,9 @@ public class MainView extends VerticalLayout {
 
         // Process Definition
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
-        processDefinition.setLabel("1. Select Process Definition");
         processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
         processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+
 
         Button loadDefinitions = new Button("Fetch Available Definitions", e -> {
             processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
@@ -329,22 +335,34 @@ public class MainView extends VerticalLayout {
         });
 
         // Source
-
-        RadioButtonGroup<String> source = new RadioButtonGroup<>();
-        source.setLabel("2. Select Source");
-        source.setItems(Sources.JIRA.toString(), "JAMA", "GitHub");
-        source.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
-        source.setValue(Sources.JIRA.toString());
-        source.setItemEnabledProvider(item -> !(item.equals("JAMA")||item.equals("GitHub")));
-
-        // Key
-
-        TextField key = new TextField("3. Specify Key");
-        key.setValue("UAV-1117");
+        VerticalLayout source = new VerticalLayout();
+        source.setMargin(false);
+        source.setPadding(false);
+        processDefinition.addValueChangeListener( e -> {
+            WorkflowDefinitionContainer wfdContainer = registry.get(e.getValue());
+            source.removeAll();
+            for (String role : wfdContainer.getWfd().getExpectedInput().keySet()) {
+                TextField tf = new TextField();
+                tf.setLabel(role);
+                source.add(tf);
+            }
+            if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
+                source.add(new Paragraph("no input artifacts are expected for this workflow.."));
+            }
+        });
 
         Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
             try {
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(key.getValue(), Sources.valueOf(source.getValue()), processDefinition.getValue()));
+                // collect all input IDs
+                Map<String, String> inputs = new HashMap<>();
+                source.getChildren()
+                        .filter(child -> child instanceof TextField)
+                        .map(child -> (TextField)child)
+                        .filter(tf -> !tf.getValue().equals(""))
+                        .filter(tf -> !tf.getLabel().equals(""))
+                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                // send command
+                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getWfId(), inputs, processDefinition.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
@@ -353,7 +371,15 @@ public class MainView extends VerticalLayout {
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
-        layout.add(processDefinition, loadDefinitions, upload, addDefinition, source, key, importOrUpdateArtifactButton);
+        layout.add(
+                new H4("1. Select Process Definition"),
+                processDefinition,
+                loadDefinitions,
+                upload,
+                addDefinition,
+                new H4("2. Enter Artifact ID(s)"),
+                source,
+                importOrUpdateArtifactButton);
         return layout;
     }
 

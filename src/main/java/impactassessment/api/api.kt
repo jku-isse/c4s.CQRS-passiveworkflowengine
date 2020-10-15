@@ -5,6 +5,7 @@ import impactassessment.jiraartifact.IJiraArtifact
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper
 import impactassessment.passiveprocessengine.definition.Artifact
 import impactassessment.passiveprocessengine.definition.ArtifactType
+import impactassessment.passiveprocessengine.definition.WorkflowDefinition
 import impactassessment.passiveprocessengine.instance.ArtifactInput
 import impactassessment.passiveprocessengine.instance.ArtifactOutput
 import impactassessment.passiveprocessengine.instance.ResourceLink
@@ -14,8 +15,8 @@ import java.time.Instant
 
 // COMMANDS
 data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
-data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val source: Sources)
-data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val source: Sources, val definitionName: String)
+data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>)
+data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>, val definitionName: String)
 data class CreateChildWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
@@ -35,9 +36,9 @@ data class AddAsOutputToWfiCmd(@TargetAggregateIdentifier val id: String, val ou
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
-data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifact: IJiraArtifact) : IdentifiableEvt
-data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifact: IJiraArtifact, val wfdContainer: WorkflowDefinitionContainer) : IdentifiableEvt
-data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val wfdContainer: WorkflowDefinitionContainer) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifacts: List<IJiraArtifact>) : IdentifiableEvt
+data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifacts: List<IJiraArtifact>, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
+data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt

@@ -20,6 +20,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -112,7 +114,7 @@ public class RuleTest {
     }
 
     private void addArtifact(IJiraArtifact a) {
-        model.handle(new ImportedOrUpdatedArtifactEvt(a.getKey(), a));
+        model.handle(new ImportedOrUpdatedArtifactEvt(a.getKey(), List.of(a)));
     }
 
     private void completeDataflow(IJiraArtifact a) {

@@ -6,6 +6,7 @@ import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.definition.IWorkflowTask;
 import impactassessment.passiveprocessengine.instance.*;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -33,6 +34,7 @@ public class WorkflowProjection {
     private final ProjectionModel projection;
     private final KieSessionService kieSessions;
     private final CommandGateway commandGateway;
+    private final WorkflowDefinitionRegistry registry;
 
     // Event Handlers
 
@@ -44,16 +46,20 @@ public class WorkflowProjection {
         if (!projection.contains(evt.getId())) {
             WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
             List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-            wfiWrapper.setArtifact(evt.getArtifact());
+            wfiWrapper.setArtifact(evt.getArtifacts());
             if (!status.isReplay()) {
-                kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
+                for (IJiraArtifact a : evt.getArtifacts()) {
+                    kieSessions.insertOrUpdate(evt.getId(), a);
+                }
                 awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
                 kieSessions.fire(evt.getId());
             }
         } else {
-            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifact());
+            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifacts());
             if (!status.isReplay()) {
-                kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
+                for (IJiraArtifact a : evt.getArtifacts()) {
+                    kieSessions.insertOrUpdate(evt.getId(), a);
+                }
                 kieSessions.fire(evt.getId());
             }
         }
@@ -62,21 +68,26 @@ public class WorkflowProjection {
     @EventHandler
     public void on(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
-        createKieSession(evt.getId(), evt.getWfdContainer().getKieContainer());
+        KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
+        createKieSession(evt.getId(), kieContainer);
         ensureInitializedKB(evt.getId());
         if (!projection.contains(evt.getId())) {
             WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
             List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-            wfiWrapper.setArtifact(evt.getArtifact());
+            wfiWrapper.setArtifact(evt.getArtifacts());
             if (!status.isReplay()) {
-                kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
+                for (IJiraArtifact a : evt.getArtifacts()) {
+                    kieSessions.insertOrUpdate(evt.getId(), a);
+                }
                 awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
                 kieSessions.fire(evt.getId());
             }
         } else {
-            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifact());
+            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifacts());
             if (!status.isReplay()) {
-                kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
+                for (IJiraArtifact a : evt.getArtifacts()) {
+                    kieSessions.insertOrUpdate(evt.getId(), a);
+                }
                 kieSessions.fire(evt.getId());
             }
         }
@@ -85,7 +96,8 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedChildWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
-        createKieSession(evt.getId(), evt.getWfdContainer().getKieContainer());
+        KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
+        createKieSession(evt.getId(), kieContainer);
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -306,10 +318,12 @@ public class WorkflowProjection {
     private void ensureInitializedKB(String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
-            IJiraArtifact artifact = wfiWrapper.getArtifact();
+            List<IJiraArtifact> artifacts = wfiWrapper.getArtifacts();
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
-            kieSessions.insertOrUpdate(id, artifact);
+            for (IJiraArtifact artifact : artifacts) {
+                kieSessions.insertOrUpdate(id, artifact);
+            }
             wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly().stream()
                     .forEach(wft -> {
                         kieSessions.insertOrUpdate(id, wft);

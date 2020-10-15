@@ -1,5 +1,6 @@
 package impactassessment.passiveprocessengine.instance;
 
+import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.passiveprocessengine.definition.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,6 +160,22 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
     @Override
     public List<ArtifactInput> getInput() {
         return Collections.unmodifiableList(input);
+    }
+
+    public boolean containsInput(String id) {
+        return input.stream()
+                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
+                .anyMatch(ai -> ai.getArtifact().getId().contains(id));
+    }
+
+    public boolean containsOutput(String id) {
+        return output.stream()
+                .filter(ao -> ao.getArtifact() instanceof ArtifactWrapper)
+                .anyMatch(ao -> ao.getArtifact().getId().contains(id));
+    }
+
+    public boolean containsInputOrOutput(String id) {
+        return containsInput(id) || containsOutput(id);
     }
 
     @Override

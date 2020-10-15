@@ -17,6 +17,10 @@ import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
 
@@ -51,20 +55,29 @@ public class WorkflowAggregate {
     public void handle(AddMockArtifactCmd cmd) {
         log.info("[AGG] handling {}", cmd);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a));
+        apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), List.of(a)));
     }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(ImportOrUpdateArtifactCmd cmd, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
-        if (cmd.getSource().equals(Sources.JIRA)) {
-            IJiraArtifact a = artifactService.get(cmd.getId());
-            if (a != null) {
-                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), a));
+        List<IJiraArtifact> artifacts = new ArrayList<>();
+        for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
+            String id = entry.getKey();
+            String source = entry.getValue();
+            if (source.equals(Sources.JIRA.toString())) {
+                IJiraArtifact a = artifactService.get(id);
+                if (a != null) {
+                    artifacts.add(a);
+                }
+            } else {
+                log.error("Unsupported Artifact source: "+source);
             }
-        } else {
-            log.error("Unsupported Artifact source: "+cmd.getSource());
+        }
+
+        if (artifacts.size() > 0) {
+            apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), artifacts));
         }
     }
 
@@ -72,19 +85,25 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
-        if (cmd.getSource().equals(Sources.JIRA)) {
-            IJiraArtifact a = artifactService.get(cmd.getId());
-            if (a != null) {
-                WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
-                wfdContainer.setKieContainer(null);
-                if (wfdContainer != null) {
-                    apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), a, wfdContainer));
-                } else {
-                    log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+        List<IJiraArtifact> artifacts = new ArrayList<>();
+        for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
+            String id = entry.getKey();
+            String source = entry.getValue();
+            if (source.equals(Sources.JIRA.toString())) {
+                IJiraArtifact a = artifactService.get(id);
+                if (a != null) {
+                    artifacts.add(a);
                 }
+            } else {
+                log.error("Unsupported Artifact source: "+source);
             }
+        }
+
+        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+        if (wfdContainer != null) {
+            apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
-            log.error("Unsupported Artifact source: "+cmd.getSource());
+            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
     }
 
@@ -94,7 +113,7 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null)
-            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), wfdContainer));
+            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
     }
 
     @CommandHandler
@@ -175,15 +194,13 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(AddAsInputToWfiCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-        log.error("******************* "+cmd.getId());
         apply(new AddedAsInputToWfiEvt(cmd.getId(), cmd.getInput()));
 
         if (cmd.getInput().getArtifact() instanceof ArtifactWrapper) {
             ArtifactWrapper artWrapper = (ArtifactWrapper) cmd.getInput().getArtifact();
             if (artWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
                 IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact();
-                log.error("*******************2 "+cmd.getId());
-                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), iJira));
+                apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), List.of(iJira)));
             }
         }
     }
@@ -206,7 +223,7 @@ public class WorkflowAggregate {
             model = new WorkflowInstanceWrapper();
             model.handle(evt);
         }
-        model.setArtifact(evt.getArtifact()); // UPDATE
+        model.setArtifact(evt.getArtifacts()); // UPDATE
     }
 
     @EventSourcingHandler
@@ -217,7 +234,7 @@ public class WorkflowAggregate {
             model = new WorkflowInstanceWrapper();
             model.handle(evt);
         }
-        model.setArtifact(evt.getArtifact()); // UPDATE
+        model.setArtifact(evt.getArtifacts()); // UPDATE
     }
 
     @EventSourcingHandler

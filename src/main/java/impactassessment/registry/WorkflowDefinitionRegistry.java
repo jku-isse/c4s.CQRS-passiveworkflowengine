@@ -36,7 +36,6 @@ public class WorkflowDefinitionRegistry {
         ClassLoader classLoader = getClass().getClassLoader();
         URL definitionsURL = classLoader.getResource("processdefinition/");
         try {
-            System.out.println("*************** "+definitionsURL.getPath()+name+"/"+name+".json");
             File file = new File(definitionsURL.getPath()+name+"/"+name+".json");
             file.getParentFile().mkdirs();
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));

@@ -8,22 +8,36 @@ import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
-    private IJiraArtifact artifact;
 
-    public IJiraArtifact getArtifact() {
-        return artifact;
+    public List<IJiraArtifact> getArtifacts() {
+        List<IJiraArtifact> artifacts = new ArrayList<>();
+        if (wfi != null) {
+            artifacts.addAll(wfi.getInput().stream()
+                    .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
+                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .collect(Collectors.toList()));
+            artifacts.addAll(wfi.getOutput().stream()
+                    .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
+                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .collect(Collectors.toList()));
+        }
+        return artifacts;
     }
 
-    public void setArtifact(IJiraArtifact artifact) {
-        this.artifact = artifact;
+    public void setArtifact(List<IJiraArtifact> artifacts) {
         if (wfi != null) {
-            ArtifactWrapper aw = new ArtifactWrapper("Wrapped#"+artifact.getId(), artifact.getClass().getSimpleName(), wfi, artifact);
-            wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+            for (IJiraArtifact artifact : artifacts) {
+                ArtifactWrapper aw = new ArtifactWrapper("Wrapped#" + artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
+                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+            }
         }
     }
 
@@ -37,42 +51,34 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactEvt evt) {
         AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
-        return initWfi(wfd, evt.getArtifact());
+        return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
-        return initWfi(evt.getWfdContainer().getWfd(), evt.getArtifact());
+        return initWfi(evt.getId(), evt.getWfd(), evt.getArtifacts());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
-        WorkflowDefinition wfd = evt.getWfdContainer().getWfd();
+        WorkflowDefinition wfd = evt.getWfd();
         wfi = wfd.createInstance(evt.getId());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(WorkflowDefinition wfd, IJiraArtifact artifact) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, List<IJiraArtifact> artifacts) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
-        wfi = wfd.createInstance(artifact.getKey()); // TODO use internal ID
-        wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
-        wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
+        wfi = wfd.createInstance(id);
+        for (IJiraArtifact artifact: artifacts) {
+            wfi.addOrReplaceProperty(artifact.getKey(), artifact.getIssueType().getName());
+        }
+//        wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
+//        wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
+//        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
     public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
         dni.completedDataflowInvolvingActivationPropagation();
-        // TODO can be removed? already added in ActivateOutBranch
-//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-//        dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks().stream()
-//            .forEach(td -> {
-//                log.debug("[MOD] Upon DNI {} completion, trigger progress by Instantiating Tasktype {}", dni.getDefinition().getId(), td.getId());
-//                WorkflowTask wt = wfi.instantiateTask(td);
-//                awos.add(wt);
-//                awos.addAll(wfi.activateDecisionNodesFromTask(wt));
-//                dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
-//                log.debug("[MOD] Input Conditions for task fullfilled: "+wt.toString());
-//            });
         return dni.executeMapping();
     }
 

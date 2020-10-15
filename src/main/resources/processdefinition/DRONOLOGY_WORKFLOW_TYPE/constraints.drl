@@ -34,7 +34,7 @@ global IJiraArtifactService artifactService;
 rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJiraArtifact(  )
-		$wft : WorkflowTask( getWorkflow().getId().equals($a.getKey()) &&
+		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
 		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
 		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
 	then
@@ -62,7 +62,7 @@ end
 rule "InsertQAConstraintsStateInProgress"
 	when
 		$a : IJiraArtifact(  )
-        		$wft : WorkflowTask( getWorkflow().getId().equals($a.getKey()) &&
+        		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
@@ -87,7 +87,7 @@ end
 rule "InsertQAConstraintsStateResolved"
 	when
 		$a : IJiraArtifact(  )
-        		$wft : WorkflowTask( getWorkflow().getId().equals($a.getKey()) &&
+        		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
@@ -120,14 +120,14 @@ rule "CheckJiraIssueBase"
 	no-loop
 	when
 		$a : IJiraArtifact ( )
-		$ct : ConstraintTrigger ( getWorkflow().getId().equals($a.getKey()) )
+		$ct : ConstraintTrigger ( getWorkflow().containsInputOrOutput($a.getKey()) )
 	then
 end
 
 rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
 											&& isAffectedBy($ct) )
 	then
@@ -139,7 +139,7 @@ end
 rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
 											&& isAffectedBy($ct) )
 	then
@@ -163,7 +163,7 @@ end
 rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
 											&& isAffectedBy($ct) )
 	then
@@ -191,7 +191,7 @@ end
 rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueHasAssignee" )
 											&& isAffectedBy($ct) )
 	then
@@ -203,7 +203,7 @@ end
 rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
 											&& isAffectedBy($ct) )
 	then
@@ -225,7 +225,7 @@ end
 rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckAllRelatedBugsClosed" )
 											&& isAffectedBy($ct) )
 	then
@@ -251,7 +251,7 @@ end
 rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().getId().equals($a.getKey())
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
 											&& getConstraintType().equals( "CheckHazardIsMitigated" )
 											&& isAffectedBy($ct) )
 	then

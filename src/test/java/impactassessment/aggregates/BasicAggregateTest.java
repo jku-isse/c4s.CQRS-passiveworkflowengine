@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.List;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = SpringApp.class)
 public class BasicAggregateTest {
@@ -48,7 +50,7 @@ public class BasicAggregateTest {
     @Test
     public void testAddCompleteActivate() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new ImportedOrUpdatedArtifactEvt(id, a))
+        fixture.given(new ImportedOrUpdatedArtifactEvt(id, List.of(a)))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .when(new ActivateInOutBranchCmd(id, "open2inProgressOrResolved#"+id, "Open#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
@@ -57,7 +59,7 @@ public class BasicAggregateTest {
     @Test
     public void testDelete() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new ImportedOrUpdatedArtifactEvt(id, a))
+        fixture.given(new ImportedOrUpdatedArtifactEvt(id, List.of(a)))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new DeletedEvt(id))
