@@ -40,7 +40,7 @@ global CommandGateway commandGateway;
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
     	$a : IJiraArtifact(  )
-        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							 getWorkflow().getType().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
@@ -54,7 +54,7 @@ end
 rule "CompleteActivationPropagationAndExecuteMapping"
     when
     	$a : IJiraArtifact(  )
-        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							 getWorkflow().getType().getId().equals(NestedWorkflow.WORKFLOW_TYPE) &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
@@ -70,7 +70,7 @@ rule "Open2InProgress-InBranchConditions"
     	$a : IJiraArtifact( getStatus().getName().equals(NestedWorkflow.TASK_STATE_RESOLVED) )
         $task : WorkflowTask( getType().getId().equals(NestedWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgress") &&
         							getInBranchIdForWorkflowTask($task) != null &&
@@ -85,7 +85,7 @@ rule "InProgress2Resolved-InBranchConditions"
     	$a : IJiraArtifact( getStatus().getName().equals("Resolved") )
         $task : WorkflowTask( getType().getId().equals("In Progress"))
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("inProgressToResolved") &&
         							getInBranchIdForWorkflowTask($task) != null &&
@@ -100,7 +100,7 @@ rule "Open2Resolved-InBranchConditions"
     	$a : IJiraArtifact( getStatus().getName().equals(NestedWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Closed") )
         $task : WorkflowTask( getType().getId().equals(NestedWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getDefinition().getId().equals("open2inProgressOrResolved") &&
         							getInBranchIdForWorkflowTask($task) != null &&
@@ -115,7 +115,7 @@ rule "No-Op-Automatic-Progress"
     	$a : IJiraArtifact(  )
         $task : WorkflowTask( getType() instanceof NoOpTaskDefinition )
         						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getKey()) &&
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
         							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
         							getInBranchIdForWorkflowTask($task) != null &&
         							getState().equals(States.AVAILABLE)
