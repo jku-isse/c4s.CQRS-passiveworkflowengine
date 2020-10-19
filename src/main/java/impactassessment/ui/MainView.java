@@ -26,10 +26,11 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.definition.ArtifactType;
-import impactassessment.query.Snapshotter;
 import impactassessment.query.Replayer;
+import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import static impactassessment.general.IdGenerator.getNewId;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -43,7 +44,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -64,13 +68,6 @@ public class MainView extends VerticalLayout {
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
-
-    // TODO: exchange naive id generation
-    private int idCount = 0;
-    private String getWfId() {
-        idCount++;
-        return "WF"+idCount;
-    }
 
     @Inject
     public void setCommandGateway(CommandGateway commandGateway) {
@@ -171,8 +168,7 @@ public class MainView extends VerticalLayout {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
-        Button replay = new Button("Replay All Events");
-        replay.addClickListener(evt -> {
+        Button replay = new Button("Replay All Events", evt -> {
             replayer.replay("projection");
             Notification.show("Replaying..");
         });
@@ -363,7 +359,7 @@ public class MainView extends VerticalLayout {
                         .filter(tf -> !tf.getLabel().equals(""))
                         .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
                 // send command
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getWfId(), inputs, processDefinition.getValue()));
+                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getNewId(), inputs, processDefinition.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());

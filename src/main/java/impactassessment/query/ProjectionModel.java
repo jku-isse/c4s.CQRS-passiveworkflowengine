@@ -23,6 +23,10 @@ public class ProjectionModel {
         db = new ConcurrentHashMap<>();
     }
 
+    public int size() {
+        return db.size();
+    }
+
     public WorkflowInstanceWrapper getWorkflowModel(String id) {
         return db.get(id);
     }
