@@ -2,23 +2,23 @@ package impactassessment.passiveprocessengine.definition;
 
 public class WorkflowWrapperTaskDefinition extends TaskDefinition {
 
-    private AbstractWorkflowDefinition internalWfd;
+    private String subWfdId;
 
-    public WorkflowWrapperTaskDefinition(String definitionId, WorkflowDefinition wfd, AbstractWorkflowDefinition internalWfd) {
+    public WorkflowWrapperTaskDefinition(String definitionId, WorkflowDefinition wfd, String subWfdId) {
         super(definitionId, wfd);
-        this.internalWfd = internalWfd;
+        this.subWfdId = subWfdId;
     }
     @Deprecated // needed only for neo4j persistence mechanism requires non-arg constructor
     public WorkflowWrapperTaskDefinition() {
         super();
     }
 
-    public AbstractWorkflowDefinition getInternalWfd() {
-        return internalWfd;
+    public String getSubWfdId() {
+        return subWfdId;
     }
 
-    public void setInternalWfd(AbstractWorkflowDefinition internalWfd) {
-        this.internalWfd = internalWfd;
+    public void setSubWfdId(String subWfdId) {
+        this.subWfdId = subWfdId;
     }
 
     // TODO

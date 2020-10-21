@@ -45,10 +45,6 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    public static final String PROP_ID = "ID";
-    public static final String PROP_ISSUE_TYPE = "Issue Type";
-    public static final String PROP_PRIORITY = "Priority";
-
     public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactEvt evt) {
         AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
@@ -60,6 +56,7 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
+        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(evt.getId());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
@@ -68,11 +65,8 @@ public class WorkflowInstanceWrapper {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
         for (IJiraArtifact artifact: artifacts) {
-            wfi.addOrReplaceProperty(artifact.getKey(), artifact.getIssueType().getName());
+            wfi.addOrReplaceProperty(artifact.getKey() + " (" + artifact.getId() + ")", artifact.getIssueType().getName());
         }
-//        wfi.addOrReplaceProperty(PROP_ID, artifact.getId());
-//        wfi.addOrReplaceProperty(PROP_ISSUE_TYPE, artifact.getIssueType().getName());
-//        wfi.addOrReplaceProperty(PROP_PRIORITY, artifact.getPriority() == null ? "" : artifact.getPriority().getName());
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 

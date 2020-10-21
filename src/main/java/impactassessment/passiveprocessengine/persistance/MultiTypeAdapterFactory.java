@@ -1,20 +1,15 @@
 package impactassessment.passiveprocessengine.persistance;
 
-import java.io.IOException;
-
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
-import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition;
-import impactassessment.passiveprocessengine.definition.DefaultWorkflowDefinition;
-import impactassessment.passiveprocessengine.definition.IBranchDefinition;
-import impactassessment.passiveprocessengine.definition.TaskDefinition;
+import impactassessment.passiveprocessengine.definition.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class MultiTypeAdapterFactory  implements TypeAdapterFactory {
 
@@ -30,25 +25,51 @@ public class MultiTypeAdapterFactory  implements TypeAdapterFactory {
             return (TypeAdapter<T>) wrapWorkflowDefinitionAdapter(gson, new TypeToken<DefaultWorkflowDefinition>() {});
         }
         if (type.getRawType() == TaskDefinition.class) {
-            return (TypeAdapter<T>) wrapTaskDefinitionAdapter(gson, new TypeToken<TaskDefinition>() {});
+            return (TypeAdapter<T>) wrapTaskDefinitionAdapter(gson);
         }
 
         return null;
     }
 
-    private TypeAdapter<TaskDefinition> wrapTaskDefinitionAdapter(Gson gson, TypeToken<TaskDefinition> type) {
-        final TypeAdapter<TaskDefinition> delegate = gson.getDelegateAdapter(this, type);
+    private TypeAdapter<TaskDefinition> wrapTaskDefinitionAdapter(Gson gson) {
+        final TypeAdapter<TaskDefinition> tdDelegate = gson.getDelegateAdapter(this, new TypeToken<TaskDefinition>() {});
+        final TypeAdapter<NoOpTaskDefinition> noOpDelegate = gson.getDelegateAdapter(this, new TypeToken<NoOpTaskDefinition>() {});
+        final TypeAdapter<WorkflowWrapperTaskDefinition> wfWrapDelegate = gson.getDelegateAdapter(this, new TypeToken<WorkflowWrapperTaskDefinition>() {});
+
+        final TypeAdapter<TaskDefinitionIntermediary> intermediaryDelegate = gson.getDelegateAdapter(this, new TypeToken<TaskDefinitionIntermediary>() {});
 
         return new TypeAdapter<TaskDefinition>() {
 
             @Override
             public void write(JsonWriter out, TaskDefinition value) throws IOException {
-                delegate.write(out, value);
+                if (value instanceof NoOpTaskDefinition) {
+                    noOpDelegate.write(out, (NoOpTaskDefinition) value);
+                } else if (value instanceof WorkflowWrapperTaskDefinition) {
+                    wfWrapDelegate.write(out, (WorkflowWrapperTaskDefinition) value);
+                } else {
+                    tdDelegate.write(out, value);
+                }
             }
 
             @Override
             public TaskDefinition read(JsonReader in) throws IOException {
-                TaskDefinition td = delegate.read(in);
+                TaskDefinitionIntermediary intermediary = intermediaryDelegate.read(in);
+                TaskDefinition td;
+                if (intermediary.isNoOp()) {
+                    td = new NoOpTaskDefinition(intermediary.getId(), null);
+
+                } else if (intermediary.getSubWfdId() != null) {
+                    td = new WorkflowWrapperTaskDefinition(intermediary.getId(), null, intermediary.getSubWfdId());
+                } else {
+                    td = new TaskDefinition(intermediary.getId(), null);
+                }
+
+                for (Map.Entry<String, ArtifactType> e : intermediary.getExpectedInput().entrySet()) {
+                    td.putExpectedInput(e.getKey(), e.getValue());
+                }
+                for (Map.Entry<String, ArtifactType> e : intermediary.getExpectedOutput().entrySet()) {
+                    td.putExpectedOutput(e.getKey(), e.getValue());
+                }
 
                 ShortTermTaskDefinitionCache.addToCache(td);
                 return td;

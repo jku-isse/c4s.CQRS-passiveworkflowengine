@@ -106,7 +106,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         WorkflowTask tf;
         if (td instanceof WorkflowWrapperTaskDefinition) {
             WorkflowWrapperTaskDefinition wwtd = (WorkflowWrapperTaskDefinition) td;
-            tf = new WorkflowWrapperTaskInstance(td.getId()+"#"+getId(), this, TaskLifecycle.buildStatemachine(), pub, wwtd.getInternalWfd());
+            tf = new WorkflowWrapperTaskInstance(td.getId()+"#"+getId(), this, TaskLifecycle.buildStatemachine(), pub, wwtd.getSubWfdId());
         // } else if (td instanceof NoOpTaskDefinition) {
         } else {
             tf = new WorkflowTask(td.getId() + "#" + getId(), this, TaskLifecycle.buildStatemachine(), pub);

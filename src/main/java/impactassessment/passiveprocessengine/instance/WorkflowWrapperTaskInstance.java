@@ -4,29 +4,22 @@ import com.github.oxo42.stateless4j.StateMachine;
 import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition;
 import impactassessment.passiveprocessengine.definition.TaskLifecycle;
 import impactassessment.passiveprocessengine.definition.TaskStateTransitionEventPublisher;
+import lombok.Getter;
 
 public class WorkflowWrapperTaskInstance extends WorkflowTask {
 
-    private String subWorkflowId;
-    private AbstractWorkflowDefinition subWfd;
+    private @Getter String subWfdId;
+    private @Getter String subWfiId;
 
     @Deprecated
     public WorkflowWrapperTaskInstance() {
         super();
     }
 
-    public WorkflowWrapperTaskInstance(String taskId, WorkflowInstance wfi, StateMachine<TaskLifecycle.State, TaskLifecycle.Events> sm, TaskStateTransitionEventPublisher pub, AbstractWorkflowDefinition subWfd) {
+    public WorkflowWrapperTaskInstance(String taskId, WorkflowInstance wfi, StateMachine<TaskLifecycle.State, TaskLifecycle.Events> sm, TaskStateTransitionEventPublisher pub, String subWfdId) {
         super(taskId, wfi, sm, pub);
-        subWorkflowId = "Nested#"+taskId;
-        this.subWfd = subWfd;
-    }
-
-    public String getSubWorkflowId() {
-        return subWorkflowId;
-    }
-
-    public AbstractWorkflowDefinition getSubWfd() {
-        return subWfd;
+        subWfiId = "Nested#"+taskId;
+        this.subWfdId = subWfdId;
     }
 
 }

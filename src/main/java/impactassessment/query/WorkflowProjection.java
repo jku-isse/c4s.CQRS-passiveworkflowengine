@@ -356,7 +356,7 @@ public class WorkflowProjection {
 //                    if (optIJira.isPresent()) {
 //
 //                    } else {
-                        commandGateway.send(new CreateChildWorkflowCmd(wwti.getSubWorkflowId(), wfiId, wwti.getId(), wwti.getSubWfd().getId()));
+                        commandGateway.send(new CreateChildWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
 //                    }
                 });
     }
@@ -364,7 +364,7 @@ public class WorkflowProjection {
     private void addToSubWorkflow(IWorkflowTask wft, ArtifactInput ai) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
-            commandGateway.send(new AddAsInputToWfiCmd(wwti.getSubWorkflowId(), ai));
+            commandGateway.send(new AddAsInputToWfiCmd(wwti.getSubWfiId(), ai));
         }
     }
 }

@@ -29,6 +29,8 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
 
     @Inject
     public void initWorkflowSpecification() {
+        putExpectedInput("Jira Issue", new ArtifactType("JIRA"));
+
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
         TaskDefinition tdInProgress = getStateInProgressTaskDefinition();
@@ -49,7 +51,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
         return td;
     }
     private TaskDefinition getStateInProgressTaskDefinition() {
-        TaskDefinition td = new WorkflowWrapperTaskDefinition(TASK_STATE_IN_PROGRESS, this, new DronologyWorkflowFixed());
+        TaskDefinition td = new WorkflowWrapperTaskDefinition(TASK_STATE_IN_PROGRESS, this, "DRONOLOGY_WORKFLOW_FIXED");
         td.getExpectedInput().put("INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET));
         td.getExpectedInput().put(INPUT_ROLE_DESIGN_DEFINITION, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
         td.getExpectedInput().put(INPUT_ROLE_REQUIREMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));

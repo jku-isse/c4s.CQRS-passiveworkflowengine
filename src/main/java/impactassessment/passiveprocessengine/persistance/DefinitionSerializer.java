@@ -32,10 +32,4 @@ public class DefinitionSerializer {
         return wfd;
     }
 
-    public WorkflowDefinition fromJson(FileReader wfdJson) throws JsonSyntaxException {
-        JsonReader reader = new JsonReader(wfdJson);
-        WorkflowDefinition wfd = gson.fromJson(reader, DefaultWorkflowDefinition.class);
-        return wfd;
-    }
-
 }

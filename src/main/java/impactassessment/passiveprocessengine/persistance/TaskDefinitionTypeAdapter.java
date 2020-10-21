@@ -7,6 +7,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 
 public class TaskDefinitionTypeAdapter extends TypeAdapter<TaskDefinition> {

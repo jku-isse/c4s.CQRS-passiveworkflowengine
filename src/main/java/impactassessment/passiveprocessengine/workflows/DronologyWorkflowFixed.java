@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
 
-    public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
+    public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_FIXED";
 
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_IN_PROGRESS = "In Progress";
@@ -33,6 +33,8 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
 
     @Inject
     public void initWorkflowSpecification() {
+        putExpectedInput("Jira Issue", new ArtifactType("JIRA"));
+
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
         TaskDefinition tdInProgress = getStateInProgressTaskDefinition();

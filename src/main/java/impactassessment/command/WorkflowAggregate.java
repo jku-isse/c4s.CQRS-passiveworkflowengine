@@ -112,8 +112,11 @@ public class WorkflowAggregate {
     public void handle(CreateChildWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
-        if (wfdContainer != null)
+        if (wfdContainer != null) {
             apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
+        } else {
+            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+        }
     }
 
     @CommandHandler
