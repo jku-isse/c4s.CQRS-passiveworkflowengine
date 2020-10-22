@@ -5,9 +5,9 @@ import javax.inject.Inject;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 
-import impactassessment.passiveprocessengine.definition.IdentifiableObject;
+import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 
-public abstract class Persistable<T extends IdentifiableObject> implements IPersistable<T> {
+public abstract class Persistable<T extends AbstractIdentifiableObject> implements IPersistable<T> {
 
     protected int DEPTH_LIST = 0;
     protected int DEPTH_ENTITY = 1;

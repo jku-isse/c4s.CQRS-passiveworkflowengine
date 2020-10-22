@@ -10,9 +10,9 @@ import java.util.UUID;
 /**
  * Same as DronologyWorkflow but added additional NoOp TaskDefinition in order to ensure a valid structure
  */
-public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
 
-    public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
+    public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_FIXED";
 
     public static final String TASK_STATE_OPEN = "Open";
     public static final String TASK_STATE_IN_PROGRESS = "In Progress";
@@ -33,6 +33,8 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implement
 
     @Inject
     public void initWorkflowSpecification() {
+        putExpectedInput("Jira Issue", new ArtifactType("JIRA"));
+
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
         TaskDefinition tdInProgress = getStateInProgressTaskDefinition();
@@ -72,14 +74,14 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implement
 
     private DecisionNodeDefinition getWfKickOff(TaskDefinition tdOpen) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("workflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, false, dnd));
         return dnd;
     }
     private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2inProgressOrResolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdNoop, true, false, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
 
         return dnd;
@@ -87,9 +89,9 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition implement
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved, TaskDefinition tdNoop) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
-        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, false, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, false, dnd));
         dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_RESOLVED);
         return dnd;
     }

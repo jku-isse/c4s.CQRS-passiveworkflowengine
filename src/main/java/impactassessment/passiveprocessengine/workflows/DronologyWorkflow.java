@@ -6,7 +6,7 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-public class DronologyWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class DronologyWorkflow extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "DRONOLOGY_WORKFLOW_TYPE";
 
@@ -27,6 +27,8 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
 
     @Inject
     public void initWorkflowSpecification() {
+        putExpectedInput("Jira Issue", new ArtifactType("JIRA"));
+
         TaskDefinition tdOpen = getStateOpenTaskDefinition();
         taskDefinitions.add(tdOpen);
         TaskDefinition tdInProgress = getStateInProgressTaskDefinition();
@@ -64,21 +66,21 @@ public class DronologyWorkflow extends AbstractWorkflowDefinition implements Wor
 
     private DecisionNodeDefinition getWfKickOff(TaskDefinition tdOpen) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("workflowKickOff", this, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("OpenIn", tdOpen, false, false, dnd));
         return dnd;
     }
     private DecisionNodeDefinition getOpen2InProgressOrResolved(TaskDefinition tdOpen, TaskDefinition tdInProgress, TaskDefinition tdResolved) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("open2inProgressOrResolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, true, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, true, false, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
         return dnd;
     }
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved) {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition("inProgress2resolved", this, DecisionNodeDefinition.HAVING_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE, DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, false, true, dnd));
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, false, false, dnd));
         return dnd;
     }
 

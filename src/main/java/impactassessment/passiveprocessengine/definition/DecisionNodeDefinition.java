@@ -105,14 +105,14 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject {
 	
 	public boolean acceptsWorkflowTaskForInBranches(WorkflowTask wti) {
 		Optional<IBranchDefinition> optinB = inB.stream()
-			.filter(b -> b.getTask().equals(wti.getTaskType()))
+			.filter(b -> b.getTask().equals(wti.getType()))
 			.findFirst();
 		return optinB.isPresent();			
 	}
 
 	public boolean acceptsWorkflowTaskForOutBranches(WorkflowTask wti) {
 		Optional<IBranchDefinition> optoutB = outB.stream()
-			.filter(b -> b.getTask().equals(wti.getTaskType()))
+			.filter(b -> b.getTask().equals(wti.getType()))
 			.findFirst();
 		return optoutB.isPresent();			
 	}

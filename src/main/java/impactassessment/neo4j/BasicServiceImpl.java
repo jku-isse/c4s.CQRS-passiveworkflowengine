@@ -115,7 +115,7 @@ public class BasicServiceImpl {
 		public WorkflowInstance find(String id) {
 			WorkflowInstance wfi = super.find(id);
 			if (wfi != null) {
-				WorkflowDefinition wfd = wfi.getWorkflowDefinition();
+				WorkflowDefinition wfd = wfi.getType();
 				if (wfd != null) {
 					wfd = wfdService.find(wfd.getId());
 				}

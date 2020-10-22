@@ -3,8 +3,11 @@ package impactassessment;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraJsonService;
 import impactassessment.passiveprocessengine.definition.AbstractWorkflowDefinition;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
+import impactassessment.passiveprocessengine.workflows.NestedWorkflow;
+import impactassessment.registry.IRegisterService;
+import impactassessment.registry.LocalRegisterService;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,7 +26,14 @@ public class SpringConfig {
     public AbstractWorkflowDefinition getAbstractWorkflowDefinition() {
         // careful! execution.drl has hardcoded (dronology)workflow-branch names
         // --> just injecting a new workflow here won't work
-        return new DronologyWorkflow();
+        return new NestedWorkflow();
+//        return new DronologyWorkflowFixed();
+    }
+
+    @Bean
+    @Autowired
+    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
+        return new LocalRegisterService(registry);
     }
 
 }

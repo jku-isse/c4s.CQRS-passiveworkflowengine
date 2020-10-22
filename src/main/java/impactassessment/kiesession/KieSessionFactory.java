@@ -3,11 +3,16 @@ package impactassessment.kiesession;
 import lombok.extern.slf4j.Slf4j;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
-import org.kie.api.event.rule.*;
-import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class KieSessionFactory {
@@ -21,90 +26,54 @@ public class KieSessionFactory {
         kieRepository.addKieModule(() -> kieRepository.getDefaultReleaseId());
     }
 
-    public KieSession getKieSession(String... rulefiles){
+    public KieSession getKieSession(String... ruleFiles){
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
-        for (String rulefile : rulefiles) {
-            kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+rulefile));
+        for (String ruleFile : ruleFiles) {
+            kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH+ruleFile));
         }
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();
         KieModule kieModule = kb.getKieModule();
         KieContainer kContainer = kieServices.newKieContainer(kieModule.getReleaseId());
         KieSession kieSession = kContainer.newKieSession();
-        addRuleRuntimeEventListender(kieSession);
-        addAgendaEventListender(kieSession);
+        KieSessionLogger.addRuleRuntimeEventListener(kieSession);
+        KieSessionLogger.addAgendaEventListener(kieSession);
         return kieSession;
     }
 
-    public KieSession getKieSession(Resource dt) {
-        KieFileSystem kieFileSystem = kieServices.newKieFileSystem().write(dt);
-        KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem).buildAll();
-        KieRepository kieRepository = kieServices.getRepository();
-        ReleaseId krDefaultReleaseId = kieRepository.getDefaultReleaseId();
-        KieContainer kieContainer = kieServices.newKieContainer(krDefaultReleaseId);
-        KieSession kiesession = kieContainer.newKieSession();
-        return kiesession;
+    public KieContainer getKieContainer(List<File> ruleFiles) {
+        getKieRepository();
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        for (File ruleFile : ruleFiles) {
+            kieFileSystem.write(ResourceFactory.newFileResource(ruleFile));
+        }
+        KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+        kb.buildAll();
+        KieModule kieModule = kb.getKieModule();
+        return kieServices.newKieContainer(kieModule.getReleaseId());
     }
 
-    private void addRuleRuntimeEventListender(KieSession kieSession) {
-        kieSession.addEventListener(new RuleRuntimeEventListener() {
-            @Override
-            public void objectInserted(ObjectInsertedEvent evt) {
-                log.debug("[KB ] inserted {}", evt.getObject().toString());
-            }
-
-            @Override
-            public void objectUpdated(ObjectUpdatedEvent evt) {
-                log.debug("[KB ] updated {}", evt.getObject().toString());
-            }
-
-            @Override
-            public void objectDeleted(ObjectDeletedEvent evt) {
-                log.debug("[KB ] deleted {}", evt.getOldObject().toString());
-            }
-        });
+    public KieContainer getKieContainerFromStrings(Collection<String> ruleFiles) {
+        getKieRepository();
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        for (String ruleFile : ruleFiles) {
+            kieFileSystem.write("src/main/resources/rules/temp.drl", kieServices.getResources().newReaderResource( new StringReader(ruleFile) ));
+        }
+        KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+        kb.buildAll();
+        KieModule kieModule = kb.getKieModule();
+        return kieServices.newKieContainer(kieModule.getReleaseId());
     }
 
-    private void addAgendaEventListender(KieSession kieSession) {
-        kieSession.addEventListener(new AgendaEventListener() {
-            @Override
-            public void matchCreated(MatchCreatedEvent evt) {
-                log.debug("[KB ] the rule {} can be fired in agenda", evt.getMatch().getRule().getName());
-            }
+//    public KieSession getKieSession(Resource dt) {
+//        KieFileSystem kieFileSystem = kieServices.newKieFileSystem().write(dt);
+//        KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem).buildAll();
+//        KieRepository kieRepository = kieServices.getRepository();
+//        ReleaseId krDefaultReleaseId = kieRepository.getDefaultReleaseId();
+//        KieContainer kieContainer = kieServices.newKieContainer(krDefaultReleaseId);
+//        KieSession kiesession = kieContainer.newKieSession();
+//        return kiesession;
+//    }
 
-            @Override
-            public void matchCancelled(MatchCancelledEvent evt) {
-                log.debug("[KB ] the rule {} cannot be in agenda", evt.getMatch().getRule().getName());
-            }
-
-            @Override
-            public void beforeMatchFired(BeforeMatchFiredEvent evt) {
-                log.debug("[KB ] the rule {} will be fired", evt.getMatch().getRule().getName());
-            }
-
-            @Override
-            public void afterMatchFired(AfterMatchFiredEvent evt) {
-                log.debug("[KB ] the rule {} has been fired", evt.getMatch().getRule().getName());
-            }
-
-            @Override
-            public void agendaGroupPopped(AgendaGroupPoppedEvent evt) { }
-
-            @Override
-            public void agendaGroupPushed(AgendaGroupPushedEvent evt) { }
-
-            @Override
-            public void beforeRuleFlowGroupActivated(RuleFlowGroupActivatedEvent evt) { }
-
-            @Override
-            public void afterRuleFlowGroupActivated(RuleFlowGroupActivatedEvent evt) { }
-
-            @Override
-            public void beforeRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent evt) { }
-
-            @Override
-            public void afterRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent evt) { }
-        });
-    }
 }

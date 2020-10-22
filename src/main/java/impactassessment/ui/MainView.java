@@ -8,8 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -20,26 +19,40 @@ import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.query.Snapshotter;
+import impactassessment.passiveprocessengine.definition.ArtifactType;
 import impactassessment.query.Replayer;
+import impactassessment.query.Snapshotter;
+import impactassessment.registry.WorkflowDefinitionContainer;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+import static impactassessment.general.IdGenerator.getNewId;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static impactassessment.ui.Helpers.createComponent;
+import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @Route
@@ -51,6 +64,7 @@ public class MainView extends VerticalLayout {
     private QueryGateway queryGateway;
     private Snapshotter snapshotter;
     private Replayer replayer;
+    private WorkflowDefinitionRegistry registry;
 
     private WorkflowTreeGrid stateGrid;
     private WorkflowTreeGrid snapshotGrid;
@@ -71,6 +85,10 @@ public class MainView extends VerticalLayout {
     public void setReplayer(Replayer replayer) {
         this.replayer = replayer;
     }
+    @Inject
+    public void setProcessDefinitionRegistry(WorkflowDefinitionRegistry registry) {
+        this.registry = registry;
+    }
 
     public MainView() {
         setSizeFull();
@@ -82,7 +100,7 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
-        header.add(new Icon(VaadinIcon.AUTOMATION), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
+        header.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
@@ -121,9 +139,10 @@ public class MainView extends VerticalLayout {
 
         Accordion accordion = new Accordion();
         accordion.add("Import Artifact", importArtifact());
+        accordion.add("Import Mock-Artifact", importMocked());
         accordion.add("Remove Artifact", remove());
 //        accordion.add("Evaluate Constraint", evaluate()); // evaluating now over icon-buttons in current-state-grid
-        accordion.add("Developer Commands", backend());
+        accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
         accordion.setWidthFull();
@@ -149,8 +168,7 @@ public class MainView extends VerticalLayout {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
         });
-        Button replay = new Button("Replay All Events");
-        replay.addClickListener(evt -> {
+        Button replay = new Button("Replay All Events", evt -> {
             replayer.replay("projection");
             Notification.show("Replaying..");
         });
@@ -265,83 +283,100 @@ public class MainView extends VerticalLayout {
     private Component importArtifact() {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
-        layout.setPadding(false);
-        layout.setWidthFull();
+        layout.setWidth("90%");
 
-        RadioButtonGroup<String> source = new RadioButtonGroup<>();
-        source.setLabel("Source");
-        source.setItems(Sources.JIRA.toString(), Sources.MOCK.toString());
-        source.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
-        source.setValue(Sources.JIRA.toString());
+        // Process Definition
+        RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
+        processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
+        processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
 
-        TextField key = new TextField("Key");
-        key.setValue("UAV-1117");
 
-        // MOCK fields
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-        id.setWidthFull();
-        TextField status = new TextField("Status");
-        status.setValue(JiraMockService.DEFAULT_STATUS);
-        status.setWidthFull();
-        TextField issuetype = new TextField("Issue-Type");
-        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
-        issuetype.setWidthFull();
-        TextField priority = new TextField("Priority");
-        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
-        priority.setWidthFull();
-        TextField summary = new TextField("Summary");
-        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
-        summary.setWidthFull();
+        Button loadDefinitions = new Button("Fetch Available Definitions", e -> {
+            processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
+        });
 
-        enable(false, id, status, issuetype, priority, summary);
+        MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
+        Upload upload = new Upload(buffer);
+        upload.setWidthFull();
+        Div output = new Div();
+        upload.addSucceededListener(event -> {
+            Component component = createComponent(event.getMIMEType(),
+                    event.getFileName(),
+                    buffer.getInputStream(event.getFileName()));
+            showOutput(event.getFileName(), component, output);
+        });
+
+        Button addDefinition = new Button("Store New Definition", e -> {
+            try {
+                Map<String, String> ruleFiles = new HashMap<>();
+                String json = null;
+                for (String filename : buffer.getFiles()) {
+                    if (filename.endsWith(".json")) {
+                        json = IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name());
+                    } else if (filename.endsWith(".drl")) {
+                        ruleFiles.put(filename, IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name()));
+                    } else {
+                        // not allowed
+                    }
+                }
+                if (json != null && ruleFiles.size() > 0) {
+                    registry.register(json, ruleFiles);
+                    processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
+                    Notification.show("Workflow loaded and added to registry");
+                } else {
+                    Notification.show("Make sure to have exactly one JSON file and at least one DRL file in the upload");
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        // Source
+        VerticalLayout source = new VerticalLayout();
+        source.setMargin(false);
+        source.setPadding(false);
+        processDefinition.addValueChangeListener( e -> {
+            WorkflowDefinitionContainer wfdContainer = registry.get(e.getValue());
+            source.removeAll();
+            for (ArtifactType artT : wfdContainer.getWfd().getExpectedInput().values()) {
+                TextField tf = new TextField();
+                tf.setLabel(artT.getArtifactType());
+                source.add(tf);
+            }
+            if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
+                source.add(new Paragraph("no input artifacts are expected for this workflow.."));
+            }
+        });
 
         Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
-            if (source.getValue().equals(Sources.MOCK.toString())) {
-                commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+            try {
+                // collect all input IDs
+                Map<String, String> inputs = new HashMap<>();
+                source.getChildren()
+                        .filter(child -> child instanceof TextField)
+                        .map(child -> (TextField)child)
+                        .filter(tf -> !tf.getValue().equals(""))
+                        .filter(tf -> !tf.getLabel().equals(""))
+                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                // send command
+                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getNewId(), inputs, processDefinition.getValue()));
                 Notification.show("Success");
-            } else {
-                try {
-                    commandGateway.sendAndWait(new ImportOrUpdateArtifactCmd(key.getValue(), Sources.valueOf(source.getValue())));
-                    Notification.show("Success");
-                } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-                    log.error("CommandExecutionException: "+e.getMessage());
-                    Notification.show("Import failed!");
-                }
+            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                log.error("CommandExecutionException: "+e.getMessage());
+                Notification.show("Import failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
-        VerticalLayout column1 = new VerticalLayout();
-        column1.setMargin(false);
-        column1.setPadding(false);
-        column1.add(id, status);
-        column1.setWidth("50%");
-        VerticalLayout column2 = new VerticalLayout();
-        column2.setMargin(false);
-        column2.setPadding(false);
-        column2.add(issuetype, priority);
-        column2.setWidth("50%");
-        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
-        row1.setWidthFull();
-        row1.setMargin(false);
-        row1.setPadding(false);
-        VerticalLayout row2 = new VerticalLayout();
-        row2.setMargin(false);
-        row2.setPadding(false);
-        row2.add(summary, importOrUpdateArtifactButton);
-
-        source.addValueChangeListener(evt -> {
-            if (evt.getValue().equals(Sources.MOCK.toString())) {
-                enable(true, id, status, issuetype, priority, summary);
-                key.setEnabled(false);
-            } else {
-                enable(false, id, status, issuetype, priority, summary);
-                key.setEnabled(true);
-            }
-        });
-
-        layout.add(source, key, row1, row2);
+        layout.add(
+                new H4("1. Select Process Definition"),
+                processDefinition,
+                loadDefinitions,
+                upload,
+                addDefinition,
+                new H4("2. Enter Artifact ID(s)"),
+                source,
+                importOrUpdateArtifactButton);
         return layout;
     }
 
@@ -379,23 +414,13 @@ public class MainView extends VerticalLayout {
         TextField id = new TextField("ID");
         id.setValue("A3");
 
-        Button print = new Button("send PrintKBCmd");
+        Button print = new Button("PrintKBQuery");
         print.addClickListener(evt -> {
-            commandGateway.sendAndWait(new PrintKBCmd(id.getValue()));
+            queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
             Notification.show("Success");
         });
 
-        Button query = new Button("send FindQuery");
-        query.addClickListener(evt -> {
-            CompletableFuture<FindResponse> val = queryGateway.query(new FindQuery(id.getValue()), FindResponse.class);
-            try {
-                Notification.show(String.valueOf(val.get().getAmount()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        return new VerticalLayout(description, id, print, query);
+        return new VerticalLayout(description, id, print);
     }
 
     private Component remove() {
@@ -413,6 +438,62 @@ public class MainView extends VerticalLayout {
         return layout;
     }
 
+    private Component importMocked() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(false);
+        layout.setPadding(false);
+        layout.setWidthFull();
+
+        // MOCK fields
+        TextField id = new TextField("ID");
+        id.setValue("JiraMock1");
+        id.setWidthFull();
+        TextField status = new TextField("Status");
+        status.setValue(JiraMockService.DEFAULT_STATUS);
+        status.setWidthFull();
+        TextField issuetype = new TextField("Issue-Type");
+        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
+        issuetype.setWidthFull();
+        TextField priority = new TextField("Priority");
+        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
+        priority.setWidthFull();
+        TextField summary = new TextField("Summary");
+        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
+        summary.setWidthFull();
+
+        Button importOrUpdateArtifactButton = new Button("Import or Update Mock-Artifact", evt -> {
+            try {
+                commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                Notification.show("Success");
+            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                log.error("CommandExecutionException: "+e.getMessage());
+                Notification.show("Import failed!");
+            }
+        });
+        importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
+
+        VerticalLayout column1 = new VerticalLayout();
+        column1.setMargin(false);
+        column1.setPadding(false);
+        column1.add(id, status);
+        column1.setWidth("50%");
+        VerticalLayout column2 = new VerticalLayout();
+        column2.setMargin(false);
+        column2.setPadding(false);
+        column2.add(issuetype, priority);
+        column2.setWidth("50%");
+        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
+        row1.setWidthFull();
+        row1.setMargin(false);
+        row1.setPadding(false);
+        VerticalLayout row2 = new VerticalLayout();
+        row2.setMargin(false);
+        row2.setPadding(false);
+        row2.add(summary, importOrUpdateArtifactButton);
+
+        layout.add(row1, row2);
+        return layout;
+    }
     private VerticalLayout snapshotPanel() {
         snapshotGrid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
         snapshotGrid.initTreeGrid();
@@ -449,6 +530,5 @@ public class MainView extends VerticalLayout {
         );
         return layout;
     }
-
 
 }

@@ -4,7 +4,7 @@ import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.List;
 
-public interface WorkflowDefinition {
+public interface WorkflowDefinition extends ITaskDefinition {
 
     public List<TaskDefinition> getWorkflowTaskDefinitions();
     public List<DecisionNodeDefinition> getDecisionNodeDefinitions();
@@ -12,5 +12,7 @@ public interface WorkflowDefinition {
     public TaskDefinition getTDbyID(String tdID);
     public String getId();
     public WorkflowInstance createInstance(String withOptionalId);//, KieSession intoOptionalKSession);
+
+    void setTaskStateTransitionEventPublisher(TaskStateTransitionEventPublisher pub);
 
 }

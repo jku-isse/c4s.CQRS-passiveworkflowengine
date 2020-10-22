@@ -1,0 +1,128 @@
+package rules;
+
+import org.slf4j.Logger
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
+import impactassessment.passiveprocessengine.instance.WorkflowInstance
+import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
+import impactassessment.passiveprocessengine.instance.IBranchInstance.BranchState
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
+import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
+import impactassessment.passiveprocessengine.definition.TaskDefinition
+import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition
+import impactassessment.passiveprocessengine.instance.WorkflowTask
+import impactassessment.passiveprocessengine.definition.TaskLifecycle.Events
+import impactassessment.passiveprocessengine.instance.AbstractWorkflowInstanceObject
+import impactassessment.passiveprocessengine.definition.WorkflowDefinition
+import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
+import impactassessment.passiveprocessengine.workflows.NestedWorkflow
+import impactassessment.passiveprocessengine.instance.ResourceLink
+
+import impactassessment.api.CompleteDataflowCmd
+import impactassessment.api.ActivateInBranchCmd
+import impactassessment.api.ActivateOutBranchCmd
+import impactassessment.api.ActivateInOutBranchCmd
+import impactassessment.api.ActivateInOutBranchesCmd
+
+import impactassessment.jiraartifact.IJiraArtifact
+import impactassessment.jiraartifact.IJiraStatus
+
+import java.util.List
+import java.util.Set
+import java.util.ArrayList
+import java.util.stream.Collectors
+import impactassessment.passiveprocessengine.instance.ResourceLink
+
+
+global CommandGateway commandGateway;
+
+rule "AddWPTicketAsInputToNewTasks"
+    when // matches any inBranch for the Workflow waiting for input,
+    	$a : IJiraArtifact(  )
+        $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							 getWorkflow().getType().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
+									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
+									 !isActivationPropagationCompleted()
+									 , $wfi : getWorkflow() )
+									 	@watch ( state )
+    then      // creates the task and adds the ticket as input
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLink.of($a)));
+
+end
+
+rule "CompleteActivationPropagationAndExecuteMapping"
+    when
+    	$a : IJiraArtifact(  )
+        $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							 getWorkflow().getType().getId().equals(NestedWorkflow.WORKFLOW_TYPE) &&
+									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
+									 !isActivationPropagationCompleted()
+									 , $wfi : getWorkflow() )
+									 	@watch ( state )
+    then
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLink.of($a)));
+
+end
+
+rule "Open2InProgress-InBranchConditions"
+    when
+    	$a : IJiraArtifact( getStatus().getName().equals(NestedWorkflow.TASK_STATE_RESOLVED) )
+        $task : WorkflowTask( getType().getId().equals(NestedWorkflow.TASK_STATE_OPEN) )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("open2inProgress") &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled()
+        							, $wfi : getWorkflow() )
+    then
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "inProgressIn"));
+end
+
+rule "InProgress2Resolved-InBranchConditions"
+    when
+    	$a : IJiraArtifact( getStatus().getName().equals("Resolved") )
+        $task : WorkflowTask( getType().getId().equals("In Progress"))
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("inProgressToResolved") &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled()
+        							, $wfi : getWorkflow() )
+    then
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
+end
+
+rule "Open2Resolved-InBranchConditions"
+    when
+    	$a : IJiraArtifact( getStatus().getName().equals(NestedWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Closed") )
+        $task : WorkflowTask( getType().getId().equals(NestedWorkflow.TASK_STATE_OPEN) )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("open2inProgressOrResolved") &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled()
+        							, $wfi : getWorkflow() )
+    then
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
+end
+
+rule "No-Op-Automatic-Progress"
+    when
+    	$a : IJiraArtifact(  )
+        $task : WorkflowTask( getType() instanceof NoOpTaskDefinition )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							getState().equals(States.AVAILABLE)
+        							, $wfi : getWorkflow() )
+    then
+        Set<String> branchIds = $dn.getOutBranches().stream()
+                .map(b -> b.getBranchDefinition().getName())
+                .collect(Collectors.toSet());
+        commandGateway.send(new ActivateInOutBranchesCmd($wfi.getId(), $dn.getId(), $task.getId(), branchIds));
+end

@@ -1,5 +1,6 @@
 package impactassessment.kiesession;
 
+import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,19 @@ public class KieSessionService {
         kieSessions = new HashMap<>();
     }
 
+
     public void insertOrUpdate(String id, Object o) {
-        getOtherwiseCreate(id).insertOrUpdate(o);
+        kieSessions.get(id).insertOrUpdate(o);
+    }
+
+    public void create(String id, KieContainer kieContainer) {
+        KieSessionWrapper kieSessionWrapper = appContext.getBean(KieSessionWrapper.class);
+        if (kieContainer == null) {
+            kieSessionWrapper.create();
+        } else {
+            kieSessionWrapper.create(kieContainer);
+        }
+        kieSessions.put(id, kieSessionWrapper);
     }
 
     public void fire(String id) {
@@ -53,17 +65,6 @@ public class KieSessionService {
 
     public int getNumKieSessions() {
         return kieSessions.size();
-    }
-
-    private KieSessionWrapper getOtherwiseCreate(String id) {
-        KieSessionWrapper kb;
-        if (kieSessions.containsKey(id)) {
-            kb = kieSessions.get(id);
-        } else {
-            kb = appContext.getBean(KieSessionWrapper.class);
-            kieSessions.put(id, kb);
-        }
-        return kb;
     }
 
 }

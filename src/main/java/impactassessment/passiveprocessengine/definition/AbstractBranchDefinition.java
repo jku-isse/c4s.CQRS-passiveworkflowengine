@@ -1,7 +1,9 @@
 package impactassessment.passiveprocessengine.definition;
 
+import com.google.gson.annotations.JsonAdapter;
 import impactassessment.passiveprocessengine.instance.IBranchInstance;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
+import impactassessment.passiveprocessengine.persistance.TaskDefinitionTypeAdapter;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Property;
@@ -13,9 +15,10 @@ public abstract class AbstractBranchDefinition implements IBranchDefinition {
 	@Id
 	private String name;
 	@EndNode
-	private TaskDefinition task;
+	@JsonAdapter(TaskDefinitionTypeAdapter.class)
+	protected TaskDefinition task;	// transient to allow for serialization via json
 	@StartNode
-	private DecisionNodeDefinition dnd;
+	transient protected DecisionNodeDefinition dnd;
 	
 	// when used as outbranch: no activation condition means, branch is fullfilled once the DNI context is fullfilled, we can activate task at end
 	// when used as inbranch: no condition on output of branch: as soon as task is set to output complete, branch is fulfilled

@@ -6,13 +6,9 @@ import impactassessment.passiveprocessengine.definition.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kie.api.definition.type.Modifies;
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.StartNode;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import com.github.oxo42.stateless4j.delegates.Action2;
@@ -24,7 +20,7 @@ import impactassessment.passiveprocessengine.definition.TaskLifecycle.State;
 import impactassessment.passiveprocessengine.definition.Participant;
 
 @NodeEntity
-public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable{
+public class WorkflowTask extends AbstractWorkflowInstanceObject implements java.io.Serializable, IWorkflowTask {
 	/**
 	 * 
 	 */
@@ -43,13 +39,13 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	transient private StateMachine<TaskLifecycle.State, TaskLifecycle.Events> sm;
 	transient private TaskStateTransitionEventPublisher pub;
 	transient private TaskStateTransitionEvent nextEvent;
-	
+
 	@Relationship(type="TASK_IO", direction=Relationship.OUTGOING)
-	List<ArtifactOutput> output = new ArrayList<ArtifactOutput>();
-	//ObservableList<ArtifactOutput> output = FXCollections.observableList(new ArrayList<ArtifactOutput>());	
-	
+	List<ArtifactOutput> output = new ArrayList<>();
+	//ObservableList<ArtifactOutput> output = FXCollections.observableList(new ArrayList<ArtifactOutput>());
+
 	@Relationship(type="TASK_IO", direction=Relationship.INCOMING)
-	List<ArtifactInput> input = new ArrayList<ArtifactInput>();
+	List<ArtifactInput> input = new ArrayList<>();
 	//ObservableList<ArtifactInput> input = FXCollections.observableList(new ArrayList<ArtifactInput>());
 	
 	@Deprecated
@@ -117,7 +113,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		return id;
 	}
 
-	public TaskDefinition getTaskType() {
+	public TaskDefinition getType() {
 		return taskType;
 	}
 
@@ -158,8 +154,9 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 			log.warn(String.format("Task %s received (and ignored) unexpected Event %s for State %s ", this.id,  event,  sm.getState()));			
 		}		
 	}
-	
-	public void setTaskType(TaskDefinition taskType) {
+
+
+	public void setType(TaskDefinition taskType) {
 		this.taskType = taskType;
 	}
 
@@ -174,13 +171,13 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	public List<ArtifactOutput> getOutput() {
 		return Collections.unmodifiableList(output);
 	}
-	
-	private boolean removeOutput(ArtifactOutput ao) {
+
+	public boolean removeOutput(ArtifactOutput ao) {
 		boolean result = output.remove(ao);
 		os = calcOutputState();
 		return result;
 	}
-	
+
 	@Modifies( { "lifecycleState", "outputState" } )
 	public void addOutput(ArtifactOutput ao) {
 		ao.setContainer(this);
@@ -191,13 +188,13 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	public List<ArtifactInput> getInput() {
 		return Collections.unmodifiableList(input); 
 	}
-	
-	private boolean removeInput(ArtifactInput ai) {
+
+	public boolean removeInput(ArtifactInput ai) {
 		boolean result = input.remove(ai);
 		is = calcInputState();
 		return result;
 	}
-	
+
 	@Modifies( { "lifecycleState", "inputState" } )
 	public void addInput(ArtifactInput ai) {
 		ai.setContainer(this);
@@ -289,7 +286,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	}
 	
 	public Set<Map.Entry<String, ArtifactType>> getMissingInput() {
-		return getTaskType().getMissingInput(this);
+		return getType().getMissingInput(this);
 	}
 	
 	// considers only artifacts that are not removedAtOrigin
@@ -317,7 +314,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 	}
 	
 	public Set<Map.Entry<String, ArtifactType>> getMissingOutput() {
-		return getTaskType().getMissingOutput(this);
+		return getType().getMissingOutput(this);
 	}
 	
 	public OutputState getOutputState() {
@@ -381,7 +378,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 		}
 		return osNow;
 	}
-	
+
 	public void signalEvent(Events event) {
 		trigger(event);
 	}
@@ -392,159 +389,7 @@ public class WorkflowTask extends AbstractWorkflowInstanceObject implements java
 				+ responsibleEngineer + ", output=" + output + ", input=" + input + "]";
 	}
 
-	@RelationshipEntity
-	public static abstract class ArtifactIO implements java.io.Serializable{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		
-		@Id
-		String id;
-//		@GeneratedValue
-//		private Long id; //not used outside of OGM neo4j
-		
-		@EndNode
-		Artifact artifact;
-		@Property
-		String role;
-		@StartNode
-		WorkflowTask container;
-
-		public ArtifactType getArtifactType() {
-			return artifactType;
-		}
-
-		public void setArtifactType(ArtifactType artifactType) {
-			this.artifactType = artifactType;
-		}
-
-		ArtifactType artifactType;
-		
-		protected void setContainer(WorkflowTask wt) {
-			this.container = wt;
-			//FIXME: brittle setting/overriding of id
-			this.id = role+"#"+artifact.getId()+"#"+wt.getId();
-		}
-		
-		public String getRole() {
-			return role;
-		}
-
-		public void setRole(String outputRole) {
-			this.role = outputRole;
-		}
-
-		public Artifact getArtifact() {
-			return artifact;
-		}
-
-		public void setArtifact(Artifact artifact) {
-			this.artifact = artifact;
-		}		
-		
-		public ArtifactIO(Artifact artifact) {
-			super();
-			this.artifact = artifact;
-		}
-
-		@Deprecated
-		public ArtifactIO() {}
-		
-		public ArtifactIO(Artifact artifact, String role) {
-			super();
-			this.id = role+"#"+artifact.getId();
-			this.artifact = artifact;
-			this.role = role;
-		}
-
-		public ArtifactIO(Artifact artifact, String role, ArtifactType artifactType) {
-			super();
-			this.id = role+"#"+artifact.getId();
-			this.artifact = artifact;
-			this.role = role;
-			this.artifactType = artifactType;
-		}
-		
-
-		@Override
-		public String toString() {
-			if (artifact.isRemovedAtOrigin())
-				return "[DEL "+ artifact.getId() +"::"+ artifact.getType() + "]";
-			else
-				return "["+ artifact.getId() +"::"+ artifact.getType() + "]";
-		}
-
-	}
-	
-	@RelationshipEntity(type="TASK_IO")
-	public static class ArtifactOutput extends ArtifactIO {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		public ArtifactOutput(Artifact artifact, String role) {
-			super(artifact, role);
-		}
-
-		public ArtifactOutput(Artifact artifact) {
-			super(artifact);
-		}
-
-		public ArtifactOutput(ArtifactInput ai) {
-			id = ai.id;
-			role = ai.role;
-			container = ai.container;
-			artifact = ai.artifact;
-		}
-
-		public ArtifactOutput(Artifact artifact, String role, ArtifactType artifactType) {
-			super(artifact, role, artifactType);
-		}
-		
-		@Deprecated
-		public ArtifactOutput() {
-			super();
-		}
-	}
-	
-	@RelationshipEntity(type="TASK_IO")
-	public static class ArtifactInput extends ArtifactIO {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		
-
-		public ArtifactInput(Artifact artifact, String role) {
-			super(artifact, role);
-		}
-
-		public ArtifactInput(Artifact artifact) {
-			super(artifact);
-		}
-
-		public ArtifactInput(ArtifactOutput ao) {
-			id = ao.id;
-			role = ao.role;
-			container = ao.container;
-			artifact = ao.artifact;
-		}
-
-		public ArtifactInput(Artifact artifact, String role, ArtifactType artifactType) {
-			super(artifact, role, artifactType);
-		}
-		
-		@Deprecated
-		public ArtifactInput(){
-			super();
-		}
-	}
-	
-//	@RelationshipEntity
+	//	@RelationshipEntity
 //	public static class ArtifactInput implements java.io.Serializable {
 //		/**
 //		 * 

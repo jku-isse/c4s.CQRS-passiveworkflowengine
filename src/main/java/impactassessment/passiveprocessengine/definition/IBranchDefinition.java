@@ -11,7 +11,8 @@ public interface IBranchDefinition {
 
 	boolean hasActivationCondition();
 
-	boolean hasDataFlow();
+	// true if it has no external dataflow
+	boolean hasDataFlow(); // TODO refactor hasNoOrOnlyAutomaticDataFlow
 
 	IBranchInstance createInstance(WorkflowInstance wfi);
 

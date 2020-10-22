@@ -25,7 +25,7 @@
         <java.version>11</java.version>
         <kotlin.version>1.3.61</kotlin.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-        <axon.version>4.3.1</axon.version>
+        <axon.version>4.4.3</axon.version>
         <vaadin.version>14.2.0</vaadin.version>
         <lombok.version>1.18.0</lombok.version>
         <drool.version>7.32.0.Final</drool.version>
@@ -281,6 +281,27 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.4.0.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.6</version>
+        </dependency>
     </dependencies>
 
     <build>

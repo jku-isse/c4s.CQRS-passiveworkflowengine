@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 public class Snapshotter {
     private final EventStore eventStore;
 
-    private MockDatabase mockDB;
-    private CompletableFuture<MockDatabase> futureDB = new CompletableFuture<>();
+    private ProjectionModel projectionModel;
+    private CompletableFuture<ProjectionModel> futureDB = new CompletableFuture<>();
     private ReplayRunnable worker;
 
     private CompletableFuture<Action> futureAction = new CompletableFuture<>();
@@ -39,7 +39,7 @@ public class Snapshotter {
         futureDB = new CompletableFuture<>();
         futureAction = new CompletableFuture<>();
         futureAction.complete(Action.STEP);
-        mockDB = new MockDatabase();
+        projectionModel = new ProjectionModel();
 
         worker = new ReplayRunnable(eventStore, timestamp);
         worker.start();
@@ -137,21 +137,21 @@ public class Snapshotter {
         public void run() {
             eventStream.forEach(e -> {
                 if (e.getTimestamp().isBefore(timestamp)) {
-                    mockDB.handle(e);
+                    projectionModel.handle(e);
                 } else {
                     switch (getAction()) {
                         case STEP:
                             cur = ((GenericTrackedDomainEventMessage)e).trackingToken().position().getAsLong();
-                            futureDB.complete(mockDB);
-                            mockDB.handle(e);
+                            futureDB.complete(projectionModel);
+                            projectionModel.handle(e);
                             break;
                         case JUMP:
                             cur = ((GenericTrackedDomainEventMessage)e).trackingToken().position().getAsLong();
                             if (e.getTimestamp().isBefore(jumpTimestamp)) {
-                                mockDB.handle(e);
+                                projectionModel.handle(e);
                             } else {
-                                futureDB.complete(mockDB);
-                                mockDB.handle(e);
+                                futureDB.complete(projectionModel);
+                                projectionModel.handle(e);
                                 futureAction = new CompletableFuture<>();
                             }
                             break;

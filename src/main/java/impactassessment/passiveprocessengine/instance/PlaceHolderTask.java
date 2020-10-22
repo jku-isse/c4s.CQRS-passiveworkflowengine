@@ -27,7 +27,7 @@ public class PlaceHolderTask extends WorkflowTask{
 	public PlaceHolderTask(WorkflowInstance wfi, TaskDefinition td, String placeHolderId) {
 		super();
 		super.id = placeHolderId;
-		super.setTaskType(td);
+		super.setType(td);
 		super.setWorkflow(wfi);
 	}
 	
@@ -42,7 +42,7 @@ public class PlaceHolderTask extends WorkflowTask{
 	}
 
 	@Override
-	public void setTaskType(TaskDefinition taskType) {
+	public void setType(TaskDefinition taskType) {
 		throw new RuntimeException("PlaceHolderTask invocation disallowed");
 	}
 

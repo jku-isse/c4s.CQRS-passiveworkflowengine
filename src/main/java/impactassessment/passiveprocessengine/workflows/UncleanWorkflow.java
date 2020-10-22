@@ -4,7 +4,7 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
-public class UncleanWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class UncleanWorkflow extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "UNCLEAN_TEST_WORKFLOW_TYPE";
 

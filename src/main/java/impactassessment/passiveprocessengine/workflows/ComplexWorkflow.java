@@ -4,6 +4,8 @@ import impactassessment.passiveprocessengine.definition.*;
 import impactassessment.passiveprocessengine.definition.TaskDefinition;
 import impactassessment.passiveprocessengine.instance.WorkflowInstance;
 
+import java.util.Map;
+
 /**
  *  workflow:
  *
@@ -17,7 +19,7 @@ import impactassessment.passiveprocessengine.instance.WorkflowInstance;
  *
  *
  */
-public class ComplexWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class ComplexWorkflow extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "TEST_WORKFLOW_TYPE";
 
@@ -123,4 +125,5 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition implements Workf
         dnd.addOutBranchDefinition(new DefaultBranchDefinition(BRANCH_REQ_WORKING_IN, tdReqWorking, false, true, dnd));
         return dnd;
     }
+
 }

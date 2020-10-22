@@ -1,0 +1,8 @@
+mysql -u root -p
+SHOW DATABASES;
+USE token;
+SHOW TABLES;
+DROP TABLE IF EXISTS tokenentry;
+DROP TABLE IF EXISTS token_entry;
+SHOW TABLES;
+EXIT

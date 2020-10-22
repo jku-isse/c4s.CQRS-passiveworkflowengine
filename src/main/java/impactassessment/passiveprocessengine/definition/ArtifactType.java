@@ -3,7 +3,7 @@ package impactassessment.passiveprocessengine.definition;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 @NodeEntity
-public class ArtifactType extends IdentifiableObject {
+public class ArtifactType extends AbstractIdentifiableObject {
 	/**
 	 * 
 	 */

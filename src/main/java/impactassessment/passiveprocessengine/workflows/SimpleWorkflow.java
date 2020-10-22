@@ -12,7 +12,7 @@ import impactassessment.passiveprocessengine.instance.WorkflowInstance;
  *    kickoff ---- OPEN ---- open2closed ---- CLOSED
  *
  */
-public class SimpleWorkflow extends AbstractWorkflowDefinition implements WorkflowDefinition {
+public class SimpleWorkflow extends AbstractWorkflowDefinition {
 
     public static final String WORKFLOW_TYPE = "TEST_WORKFLOW_TYPE";
 
