@@ -36,7 +36,8 @@ public class WorkflowInstanceWrapper {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
                 ArtifactWrapper aw = new ArtifactWrapper("Wrapped#" + artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
-                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET))); // TODO add as input (enable input to input mapping!)
+                // TODO add as input (enable input to input mapping!)
+                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
             }
         }
     }
@@ -219,7 +220,7 @@ public class WorkflowInstanceWrapper {
         Optional<QACheckDocument> optQACD = Optional.empty();
         if (wft != null){
             optQACD = wft.getOutput().stream()
-                    .map(ao -> ao.getArtifact())
+                    .map(ArtifactIO::getArtifact)
                     .filter(ao -> ao instanceof QACheckDocument)
                     .map(a -> (QACheckDocument) a)
                     .findAny();

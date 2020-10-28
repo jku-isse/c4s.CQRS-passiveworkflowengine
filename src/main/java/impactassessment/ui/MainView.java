@@ -138,10 +138,10 @@ public class MainView extends VerticalLayout {
         menu.setFlexGrow(0);
 
         Accordion accordion = new Accordion();
-        accordion.add("Import Artifact", importArtifact());
-        accordion.add("Import Mock-Artifact", importMocked());
-        accordion.add("Remove Artifact", remove());
-//        accordion.add("Evaluate Constraint", evaluate()); // evaluating now over icon-buttons in current-state-grid
+        accordion.add("Create Workflow", importArtifact());
+        accordion.add("Mock Workflow", importMocked());
+//        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
+//        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
@@ -158,7 +158,7 @@ public class MainView extends VerticalLayout {
         controlButtonLayout.setPadding(false);
         controlButtonLayout.setWidthFull();
 
-        Button getState = new Button("Get State");
+        Button getState = new Button("Refresh");
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
@@ -348,7 +348,7 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        Button importOrUpdateArtifactButton = new Button("Import", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
             try {
                 // collect all input IDs
                 Map<String, String> inputs = new HashMap<>();
@@ -363,7 +363,7 @@ public class MainView extends VerticalLayout {
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Import failed!");
+                Notification.show("Creation failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
@@ -461,13 +461,13 @@ public class MainView extends VerticalLayout {
         summary.setValue(JiraMockService.DEFAULT_SUMMARY);
         summary.setWidthFull();
 
-        Button importOrUpdateArtifactButton = new Button("Import or Update Mock-Artifact", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Create Mock-Workflow", evt -> {
             try {
                 commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Import failed!");
+                Notification.show("Creation failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);

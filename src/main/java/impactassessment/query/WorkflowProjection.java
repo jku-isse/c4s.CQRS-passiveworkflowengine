@@ -73,8 +73,9 @@ public class WorkflowProjection {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         Map<IWorkflowTask, ArtifactInput> mappedInputs = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
-            System.out.println("#################### size: "+mappedInputs.size()); // TODO remove debug output
-            mappedInputs.forEach((key, value) -> System.out.println("#################### WFT: " + key.getId() + " AI: " + value.toString())); // TODO remove debug output
+            // TODO remove debug output
+            System.out.println("#################### size: "+mappedInputs.size());
+            mappedInputs.forEach((key, value) -> System.out.println("#################### WFT: " + key.getId() + " AI: " + value.toString()));
             mappedInputs.forEach(this::addToSubWorkflow);
         }
     }
@@ -245,10 +246,13 @@ public class WorkflowProjection {
         StringBuilder s = new StringBuilder();
         if (kieSessions.getKieSession(query.getId()) != null) {
             s.append("\n############## KB CONTENT ################\n");
-            kieSessions.getKieSession(query.getId()).getObjects().stream()
-                    .forEach(o -> s.append(o.toString() + "\n"));
-            s.append("####### SIZE: " + kieSessions.getKieSession(query.getId()).getObjects().size() +
-                    " ######### "+ kieSessions.getNumKieSessions()+" #######");
+            kieSessions.getKieSession(query.getId()).getObjects()
+                    .forEach(o -> s.append(o.toString()).append("\n"));
+            s.append("####### SIZE: ")
+                    .append(kieSessions.getKieSession(query.getId()).getObjects().size())
+                    .append(" ######### ")
+                    .append(kieSessions.getNumKieSessions())
+                    .append(" #######");
             log.info(s.toString());
         }
         return new PrintKBResponse(s.toString());
@@ -279,7 +283,7 @@ public class WorkflowProjection {
             for (IJiraArtifact artifact : artifacts) {
                 kieSessions.insertOrUpdate(id, artifact);
             }
-            wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+            wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly()
                     .forEach(wft -> {
                         kieSessions.insertOrUpdate(id, wft);
                         QACheckDocument doc = wfiWrapper.getQACDocOfWft(wft.getTaskId());
@@ -291,7 +295,7 @@ public class WorkflowProjection {
                                     .forEach(rebc -> kieSessions.insertOrUpdate(id, rebc));
                         }
                     });
-            wfiWrapper.getWorkflowInstance().getDecisionNodeInstancesReadonly().stream()
+            wfiWrapper.getWorkflowInstance().getDecisionNodeInstancesReadonly()
                     .forEach(dni -> kieSessions.insertOrUpdate(id, dni));
             kieSessions.setInitialized(id);
         }
