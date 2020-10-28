@@ -255,9 +255,16 @@ public class WorkflowProjection {
     public void on(AddedAsInputToWfiEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         projection.handle(evt);
+        // if this input is an jira-artifact, insert it into kieSession
         if (!status.isReplay()) {
-            kieSessions.insertOrUpdate(evt.getId(), evt.getInput().getArtifact());
-            kieSessions.fire(evt.getId());
+            if (evt.getInput().getArtifact() instanceof ArtifactWrapper) {
+                ArtifactWrapper artWrapper = (ArtifactWrapper) evt.getInput().getArtifact();
+                if (artWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
+                    IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact();
+                    kieSessions.insertOrUpdate(evt.getId(), iJira);
+                    kieSessions.fire(evt.getId());
+                }
+            }
         }
     }
 
