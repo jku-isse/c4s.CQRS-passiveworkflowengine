@@ -10,6 +10,7 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -25,6 +26,7 @@ import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +54,9 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         this.addHierarchyColumn(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
-                return wfi.getType().getId() + " (" + wfi.getId() + ")";
+                int i = wfi.getId().indexOf("WF-");
+                String id = i < 0 ? wfi.getId() : wfi.getId().substring(0, i+2).concat("...").concat(wfi.getId().substring(wfi.getId().length()-5));
+                return wfi.getType().getId() + " (" + id + ")";
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
                 return wft.getType().getId();
@@ -71,6 +75,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 return infoDialog((WorkflowInstance)o);
             } else if (o instanceof WorkflowTask) {
                 return infoDialog((WorkflowTask)o);
+            } else if (o instanceof RuleEngineBasedConstraint) {
+                return infoDialog((RuleEngineBasedConstraint)o);
             } else {
                 return new Label("");
             }
@@ -170,29 +176,6 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                                 .anyMatch(a -> a.stream()
                                         .anyMatch(QACheckDocument.QAConstraint::isFulfilled));
                 return fulfilled ? icon : new Label("");
-            }
-            else if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Dialog dialog = new Dialog();
-                VerticalLayout l = new VerticalLayout();
-                l.add(new H3(rebc.getWorkflow().getId()));
-                l.add(new Label("Constraint: "+rebc.getDescription()+" was fulfilled by:"));
-                Icon icon = new Icon(VaadinIcon.SEARCH);
-                icon.setColor("green");
-                icon.getStyle().set("cursor", "pointer");
-                icon.addClickListener(e -> dialog.open());
-                icon.getElement().setProperty("title", "Show all resources that caused this rule to be fulfilled..");
-                AtomicBoolean linkPresent = new AtomicBoolean(false);
-                rebc.getFulfilledForReadOnly().stream()
-                        .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
-                        .forEach(anchor -> {
-                            anchor.setTarget("_blank");
-                            l.add(anchor);
-                            linkPresent.set(true);
-                        });
-
-                dialog.add(l);
-                return linkPresent.get() ? icon : new Label("");
             } else {
                 return new Label("");
             }
@@ -229,27 +212,6 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                                 .anyMatch(a -> a.stream()
                                         .anyMatch(c -> !c.isFulfilled()));
                 return unsatisfied ? icon : new Label("");
-            } else if (o instanceof RuleEngineBasedConstraint) {
-                RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                Dialog dialog = new Dialog();
-                VerticalLayout l = new VerticalLayout();
-                l.add(new H3(rebc.getWorkflow().getId()));
-                l.add(new Label("Constraint: "+rebc.getDescription()+" was unsatisfied by:"));
-                Icon icon = new Icon(VaadinIcon.SEARCH);
-                icon.setColor("red");
-                icon.getStyle().set("cursor", "pointer");
-                icon.addClickListener(e -> dialog.open());
-                icon.getElement().setProperty("title", "Show all resources that caused this rule to be unsatisfied..");
-                AtomicBoolean linkPresent = new AtomicBoolean(false);
-                rebc.getUnsatisfiedForReadOnly().stream()
-                        .map(rl -> new Anchor(rl.getHref(), rl.getTitle()))
-                        .forEach(anchor -> {
-                            anchor.setTarget("_blank");
-                            l.add(anchor);
-                            linkPresent.set(true);
-                        });
-                dialog.add(l);
-                return linkPresent.get() ? icon : new Label("");
             } else {
                 return new Label("");
             }
@@ -303,6 +265,74 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         icon.getElement().setProperty("title", "Show more information about this workflow task");
 
         dialog.add(l);
+
+        return icon;
+    }
+
+    private Component infoDialog(RuleEngineBasedConstraint rebc) {
+        VerticalLayout l = new VerticalLayout();
+        l.add(new H3(rebc.getWorkflow().getId()));
+        l.add(new H4(rebc.getDescription()));
+        // Unsatisfied resources
+        List<Anchor> unsatisfiedLinks = new ArrayList<>();
+        for (ResourceLink rl : rebc.getUnsatisfiedForReadOnly()) {
+            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+            a.setTarget("_blank");
+            unsatisfiedLinks.add(a);
+        }
+        if (unsatisfiedLinks.size() > 0) {
+            l.add(new H5("Unsatisfied by:"));
+            for (Anchor a : unsatisfiedLinks) {
+                HorizontalLayout h = new HorizontalLayout();
+                h.setWidthFull();
+                h.setMargin(false);
+                h.setPadding(false);
+                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
+                icon.setColor("red");
+                h.add(icon, a);
+                l.add(h);
+            }
+        }
+        // Fulfilled resources
+        List<Anchor> fulfilledLinks = new ArrayList<>();
+        for (ResourceLink rl : rebc.getFulfilledForReadOnly()) {
+            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+            a.setTarget("_blank");
+            fulfilledLinks.add(a);
+        }
+        if (fulfilledLinks.size() > 0) {
+            l.add(new H5("Fulfilled by:"));
+            for (Anchor a : fulfilledLinks) {
+                HorizontalLayout h = new HorizontalLayout();
+                h.setWidthFull();
+                h.setMargin(false);
+                h.setPadding(false);
+                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
+                icon.setColor("green");
+                h.add(icon, a);
+                l.add(h);
+            }
+        }
+
+        Dialog dialog = new Dialog();
+        dialog.add(l);
+
+        Icon icon;
+        if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
+            icon = new Icon(VaadinIcon.PLUS_MINUS);
+            icon.setColor("#E24C00");
+        } else if (fulfilledLinks.size() > 0) {
+            icon = new Icon(VaadinIcon.PLUS);
+            icon.setColor("green");
+        } else if (unsatisfiedLinks.size() > 0) {
+            icon = new Icon(VaadinIcon.MINUS);
+            icon.setColor("red");
+        } else {
+            return new Label("");
+        }
+        icon.getStyle().set("cursor", "pointer");
+        icon.addClickListener(e -> dialog.open());
+        icon.getElement().setProperty("title", "Show all resources of this rule");
 
         return icon;
     }

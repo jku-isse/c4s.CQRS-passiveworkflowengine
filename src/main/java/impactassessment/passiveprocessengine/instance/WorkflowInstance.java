@@ -198,7 +198,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return this.taskInst.stream()
                 .filter(x -> x.getId().equals(id))
                 .findFirst()
-                .get();
+                .orElse(null);
     }
 
     public Set<DecisionNodeInstance> getDecisionNodeInstancesReadonly() {
@@ -209,7 +209,7 @@ public class WorkflowInstance extends AbstractWorkflowInstanceObject implements 
         return this.dnInst.stream()
                 .filter(x -> x.getId().equals(id))
                 .findFirst()
-                .get();
+                .orElse(null);
     }
 //	public void setWorkflowDefinitionId(WorkflowDefinition workflowDefinition) {
 //		this.workflowDefinition = workflowDefinition;

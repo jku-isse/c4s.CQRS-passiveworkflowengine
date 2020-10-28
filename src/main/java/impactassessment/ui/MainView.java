@@ -348,7 +348,7 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        Button importOrUpdateArtifactButton = new Button("Import or Update Artifact", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Import", evt -> {
             try {
                 // collect all input IDs
                 Map<String, String> inputs = new HashMap<>();
