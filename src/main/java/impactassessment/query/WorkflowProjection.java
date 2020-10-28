@@ -42,27 +42,9 @@ public class WorkflowProjection {
     public void on(CreatedDefaultWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         createKieSession(evt.getId(), null);
-        ensureInitializedKB(evt.getId());
-        if (!projection.contains(evt.getId())) {
-            WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
-            List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-            wfiWrapper.setArtifact(evt.getArtifacts());
-            if (!status.isReplay()) {
-                for (IJiraArtifact a : evt.getArtifacts()) {
-                    kieSessions.insertOrUpdate(evt.getId(), a);
-                }
-                awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-                kieSessions.fire(evt.getId());
-            }
-        } else {
-            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifacts());
-            if (!status.isReplay()) {
-                for (IJiraArtifact a : evt.getArtifacts()) {
-                    kieSessions.insertOrUpdate(evt.getId(), a);
-                }
-                kieSessions.fire(evt.getId());
-            }
-        }
+        WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
+        List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
+        insertOrUpdateKieSession(evt.getId(), awos, evt.getArtifacts(), status.isReplay());
     }
 
     @EventHandler
@@ -70,27 +52,9 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         createKieSession(evt.getId(), kieContainer);
-        ensureInitializedKB(evt.getId());
-        if (!projection.contains(evt.getId())) {
-            WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
-            List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-            wfiWrapper.setArtifact(evt.getArtifacts());
-            if (!status.isReplay()) {
-                for (IJiraArtifact a : evt.getArtifacts()) {
-                    kieSessions.insertOrUpdate(evt.getId(), a);
-                }
-                awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-                kieSessions.fire(evt.getId());
-            }
-        } else {
-            projection.getWorkflowModel(evt.getId()).setArtifact(evt.getArtifacts());
-            if (!status.isReplay()) {
-                for (IJiraArtifact a : evt.getArtifacts()) {
-                    kieSessions.insertOrUpdate(evt.getId(), a);
-                }
-                kieSessions.fire(evt.getId());
-            }
-        }
+        WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
+        List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
+        insertOrUpdateKieSession(evt.getId(), awos, evt.getArtifacts(), status.isReplay());
     }
 
     @EventHandler
@@ -100,10 +64,7 @@ public class WorkflowProjection {
         createKieSession(evt.getId(), kieContainer);
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        if (!status.isReplay()) {
-            awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            kieSessions.fire(evt.getId());
-        }
+        insertOrUpdateKieSession(evt.getId(), awos, null, status.isReplay());
     }
 
     @EventHandler
@@ -112,10 +73,9 @@ public class WorkflowProjection {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         Map<IWorkflowTask, ArtifactInput> mappedInputs = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
-            System.out.println("#################### size: "+mappedInputs.size());
-            mappedInputs.entrySet().stream().forEach(e -> System.out.println("#################### WFT: "+e.getKey().getId()+" AI: "+e.getValue().toString()));
-            mappedInputs.entrySet().stream().forEach(entry -> addToSubWorkflow(entry.getKey(), entry.getValue()));
-            kieSessions.fire(evt.getId());
+            System.out.println("#################### size: "+mappedInputs.size()); // TODO remove debug output
+            mappedInputs.forEach((key, value) -> System.out.println("#################### WFT: " + key.getId() + " AI: " + value.toString())); // TODO remove debug output
+            mappedInputs.forEach(this::addToSubWorkflow);
         }
     }
 
@@ -124,10 +84,7 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        if (!status.isReplay()) {
-            awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            kieSessions.fire(evt.getId());
-        }
+        insertOrUpdateKieSession(evt.getId(), awos, null, status.isReplay());
     }
 
     @EventHandler
@@ -135,11 +92,8 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        if (!status.isReplay()) {
-            awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            kieSessions.fire(evt.getId());
-            createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId());
-        }
+        insertOrUpdateKieSession(evt.getId(), awos, null, status.isReplay());
+        createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId(), status.isReplay());
     }
 
     @EventHandler
@@ -147,11 +101,8 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        if (!status.isReplay()) {
-            awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            kieSessions.fire(evt.getId());
-            createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId());
-        }
+        insertOrUpdateKieSession(evt.getId(), awos, null, status.isReplay());
+        createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId(), status.isReplay());
     }
 
     @EventHandler
@@ -159,11 +110,8 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        if (!status.isReplay()) {
-            awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            kieSessions.fire(evt.getId());
-            createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId());
-        }
+        insertOrUpdateKieSession(evt.getId(), awos, null, status.isReplay());
+        createSubWorkflow(awos, wfiWrapper.getWorkflowInstance().getId(), status.isReplay());
     }
 
     @EventHandler
@@ -349,11 +297,12 @@ public class WorkflowProjection {
         }
     }
 
-    private void createSubWorkflow(List<AbstractWorkflowInstanceObject> awos, String wfiId) {
-        awos.stream()
-                .filter(awo -> awo instanceof WorkflowWrapperTaskInstance)
-                .map(awo -> (WorkflowWrapperTaskInstance) awo)
-                .forEach(wwti -> {
+    private void createSubWorkflow(List<AbstractWorkflowInstanceObject> awos, String wfiId, boolean isReplay) {
+        if (!isReplay) {
+            awos.stream()
+                    .filter(awo -> awo instanceof WorkflowWrapperTaskInstance)
+                    .map(awo -> (WorkflowWrapperTaskInstance) awo)
+                    .forEach(wwti -> {
 //                    Optional<IJiraArtifact> optIJira = wwti.getInput().stream()
 //                            .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
 //                            .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
@@ -365,13 +314,24 @@ public class WorkflowProjection {
 //                    } else {
                         commandGateway.send(new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
 //                    }
-                });
+                    });
+        }
     }
 
     private void addToSubWorkflow(IWorkflowTask wft, ArtifactInput ai) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
             commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), ai));
+        }
+    }
+
+    private void insertOrUpdateKieSession(String id, List<AbstractWorkflowInstanceObject> awos, List<IJiraArtifact> artifacts, boolean isReplay) {
+        if (!isReplay) {
+            if (artifacts != null)
+                artifacts.forEach(a -> kieSessions.insertOrUpdate(id, a));
+            if (awos != null)
+                awos.forEach(awo -> kieSessions.insertOrUpdate(id, awo));
+            kieSessions.fire(id);
         }
     }
 }

@@ -61,22 +61,11 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = new ArrayList<>();
-        for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
-            String id = entry.getKey();
-            String source = entry.getValue();
-            if (source.equals(Sources.JIRA.toString())) {
-                IJiraArtifact a = artifactService.get(id);
-                if (a != null) {
-                    artifacts.add(a);
-                }
-            } else {
-                log.error("Unsupported Artifact source: "+source);
-            }
-        }
-
+        List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
         if (artifacts.size() > 0) {
             apply(new CreatedDefaultWorkflowEvt(cmd.getId(), artifacts));
+        } else {
+            log.error("Artifacts couldn't get retrieved!");
         }
     }
 
@@ -84,8 +73,18 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
+        List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
+        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+        if (wfdContainer != null) {
+            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
+        } else {
+            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+        }
+    }
+
+    private List<IJiraArtifact> createWorkflow(IJiraArtifactService artifactService, Map<String, String> inputs) {
         List<IJiraArtifact> artifacts = new ArrayList<>();
-        for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
+        for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String id = entry.getKey();
             String source = entry.getValue();
             if (source.equals(Sources.JIRA.toString())) {
@@ -97,13 +96,7 @@ public class WorkflowAggregate {
                 log.error("Unsupported Artifact source: "+source);
             }
         }
-
-        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
-        if (wfdContainer != null) {
-            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
-        } else {
-            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
-        }
+        return artifacts;
     }
 
     @CommandHandler
@@ -212,23 +205,17 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(CreatedDefaultWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        if (model == null || id == null) { // CREATE
-            id = evt.getId();
-            model = new WorkflowInstanceWrapper();
-            model.handle(evt);
-        }
-        model.setArtifact(evt.getArtifacts()); // UPDATE
+        id = evt.getId();
+        model = new WorkflowInstanceWrapper();
+        model.handle(evt);
     }
 
     @EventSourcingHandler
     public void on(CreatedWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        if (model == null || id == null) { // CREATE
-            id = evt.getId();
-            model = new WorkflowInstanceWrapper();
-            model.handle(evt);
-        }
-        model.setArtifact(evt.getArtifacts()); // UPDATE
+        id = evt.getId();
+        model = new WorkflowInstanceWrapper();
+        model.handle(evt);
     }
 
     @EventSourcingHandler

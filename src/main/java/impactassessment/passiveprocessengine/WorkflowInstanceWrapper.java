@@ -32,11 +32,11 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
 
-    public void setArtifact(List<IJiraArtifact> artifacts) {
+    private void setArtifact(List<IJiraArtifact> artifacts) {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
                 ArtifactWrapper aw = new ArtifactWrapper("Wrapped#" + artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
-                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET))); // TODO add as input (enable input to input mapping!)
             }
         }
     }
@@ -46,24 +46,24 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedDefaultWorkflowEvt evt) {
-        AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
+        WorkflowDefinition wfd = SpringUtil.getBean(WorkflowDefinition.class); // use default workflow specified in SpringConfig
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedWorkflowEvt evt) {
-        return initWfi(evt.getId(), evt.getWfd(), evt.getArtifacts());
+        WorkflowDefinition wfd = evt.getWfd();
+        return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedSubWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
-        wfi = wfd.createInstance(evt.getId());
-        return wfi.enableWorkflowTasksAndDecisionNodes();
+        return initWfi(evt.getId(), wfd, Collections.emptyList());
     }
 
     private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, List<IJiraArtifact> artifacts) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
+        setArtifact(artifacts);
         for (IJiraArtifact artifact: artifacts) {
             wfi.addOrReplaceProperty(artifact.getKey() + " (" + artifact.getId() + ")", artifact.getIssueType().getName());
         }
@@ -210,7 +210,7 @@ public class WorkflowInstanceWrapper {
         } else if (evt instanceof AddedOutputToWorkflowEvt) {
             handle((AddedOutputToWorkflowEvt) evt);
         } else {
-            log.error("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
+            log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }
     }
 
