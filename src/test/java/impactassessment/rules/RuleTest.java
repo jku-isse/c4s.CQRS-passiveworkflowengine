@@ -2,7 +2,7 @@ package impactassessment.rules;
 
 import impactassessment.SpringApp;
 import impactassessment.api.CompletedDataflowEvt;
-import impactassessment.api.ImportedOrUpdatedArtifactEvt;
+import impactassessment.api.CreatedDefaultWorkflowEvt;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -114,7 +114,7 @@ public class RuleTest {
     }
 
     private void addArtifact(IJiraArtifact a) {
-        model.handle(new ImportedOrUpdatedArtifactEvt(a.getKey(), List.of(a)));
+        model.handle(new CreatedDefaultWorkflowEvt(a.getKey(), List.of(a)));
     }
 
     private void completeDataflow(IJiraArtifact a) {

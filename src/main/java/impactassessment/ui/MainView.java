@@ -359,7 +359,7 @@ public class MainView extends VerticalLayout {
                         .filter(tf -> !tf.getLabel().equals(""))
                         .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
                 // send command
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getNewId(), inputs, processDefinition.getValue()));
+                commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
@@ -463,7 +463,7 @@ public class MainView extends VerticalLayout {
 
         Button importOrUpdateArtifactButton = new Button("Import or Update Mock-Artifact", evt -> {
             try {
-                commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());

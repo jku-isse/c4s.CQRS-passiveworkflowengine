@@ -39,7 +39,7 @@ public class WorkflowProjection {
     // Event Handlers
 
     @EventHandler
-    public void on(ImportedOrUpdatedArtifactEvt evt, ReplayStatus status) {
+    public void on(CreatedDefaultWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         createKieSession(evt.getId(), null);
         ensureInitializedKB(evt.getId());
@@ -66,7 +66,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt, ReplayStatus status) {
+    public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         createKieSession(evt.getId(), kieContainer);
@@ -94,7 +94,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(CreatedChildWorkflowEvt evt, ReplayStatus status) {
+    public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         createKieSession(evt.getId(), kieContainer);
@@ -227,7 +227,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(AddedAsInputEvt evt, ReplayStatus status) {
+    public void on(AddedInputEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         IWorkflowTask wft = wfiWrapper.handle(evt);
@@ -240,7 +240,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(AddedAsOutputEvt evt, ReplayStatus status) {
+    public void on(AddedOutputEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         WorkflowTask wft = wfiWrapper.handle(evt);
@@ -252,7 +252,7 @@ public class WorkflowProjection {
     }
 
     @EventHandler
-    public void on(AddedAsInputToWfiEvt evt, ReplayStatus status) {
+    public void on(AddedInputToWorkflowEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         projection.handle(evt);
         // if this input is an jira-artifact, insert it into kieSession
@@ -363,7 +363,7 @@ public class WorkflowProjection {
 //                    if (optIJira.isPresent()) {
 //
 //                    } else {
-                        commandGateway.send(new CreateChildWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
+                        commandGateway.send(new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
 //                    }
                 });
     }
@@ -371,7 +371,7 @@ public class WorkflowProjection {
     private void addToSubWorkflow(IWorkflowTask wft, ArtifactInput ai) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
-            commandGateway.send(new AddAsInputToWfiCmd(wwti.getSubWfiId(), ai));
+            commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), ai));
         }
     }
 }

@@ -8,7 +8,6 @@ import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
 import impactassessment.passiveprocessengine.workflows.NestedWorkflow;
-import impactassessment.registry.WorkflowDefinitionContainer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,9 +28,9 @@ public class NestedWorkflowTest {
     @Test
     public void testNestedWorkflow() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(ID, List.of(a), "", new NestedWorkflow()));
+        wfiWrapper.handle(new CreatedWorkflowEvt(ID, List.of(a), "", new NestedWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-        wfiWrapper.handle(new AddedAsOutputEvt(ID, "Open#test", new ResourceLink(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, "dummy", "dummy", "dummy", "dummy", "dummy"), "irrelevantForTest", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
+        wfiWrapper.handle(new AddedOutputEvt(ID, "Open#test", new ResourceLink(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, "dummy", "dummy", "dummy", "dummy", "dummy"), "irrelevantForTest", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgress#test", "Open#test", "inProgressIn"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgress#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "inProgress2resolved#test", "In Progress#test"));
@@ -39,7 +38,7 @@ public class NestedWorkflowTest {
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "inProgress2resolved#test", rl));
 
         WorkflowInstanceWrapper nestedWfiWrapper = new WorkflowInstanceWrapper();
-        nestedWfiWrapper.handle(new CreatedChildWorkflowEvt("Nested#In Progress#test", ID, "In Progress#test", "", new DronologyWorkflowFixed()));
+        nestedWfiWrapper.handle(new CreatedSubWorkflowEvt("Nested#In Progress#test", ID, "In Progress#test", "", new DronologyWorkflowFixed()));
         System.out.println("x");
     }
 

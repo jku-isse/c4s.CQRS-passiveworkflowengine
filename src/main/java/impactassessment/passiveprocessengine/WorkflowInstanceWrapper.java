@@ -45,16 +45,16 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(CreatedDefaultWorkflowEvt evt) {
         AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(CreatedWorkflowEvt evt) {
         return initWfi(evt.getId(), evt.getWfd(), evt.getArtifacts());
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(CreatedSubWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(evt.getId());
@@ -157,7 +157,7 @@ public class WorkflowInstanceWrapper {
         return rebc;
     }
 
-    public WorkflowTask handle(AddedAsInputEvt evt) {
+    public WorkflowTask handle(AddedInputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
         // TODO check if input is expected
@@ -165,28 +165,28 @@ public class WorkflowInstanceWrapper {
         return wft;
     }
 
-    public WorkflowTask handle(AddedAsOutputEvt evt) {
+    public WorkflowTask handle(AddedOutputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
         return wft;
     }
 
-    public void handle(AddedAsInputToWfiEvt evt) {
+    public void handle(AddedInputToWorkflowEvt evt) {
         wfi.addInput(evt.getInput());
     }
 
-    public void handle(AddedAsOutputToWfiEvt evt) {
+    public void handle(AddedOutputToWorkflowEvt evt) {
         wfi.addOutput(evt.getOutput());
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof ImportedOrUpdatedArtifactEvt) {
-            handle((ImportedOrUpdatedArtifactEvt) evt);
-        } else if (evt instanceof ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) {
-            handle((ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) evt);
-        } else if (evt instanceof CreatedChildWorkflowEvt) {
-            handle((CreatedChildWorkflowEvt) evt);
+        if (evt instanceof CreatedDefaultWorkflowEvt) {
+            handle((CreatedDefaultWorkflowEvt) evt);
+        } else if (evt instanceof CreatedWorkflowEvt) {
+            handle((CreatedWorkflowEvt) evt);
+        } else if (evt instanceof CreatedSubWorkflowEvt) {
+            handle((CreatedSubWorkflowEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {
@@ -201,14 +201,14 @@ public class WorkflowInstanceWrapper {
             handle((AddedConstraintsEvt) evt);
         } else if (evt instanceof AddedEvaluationResultToConstraintEvt) {
             handle((AddedEvaluationResultToConstraintEvt) evt);
-        } else if (evt instanceof AddedAsInputEvt) {
-            handle((AddedAsInputEvt) evt);
-        } else if (evt instanceof AddedAsOutputEvt) {
-            handle((AddedAsOutputEvt) evt);
-        } else if (evt instanceof AddedAsInputToWfiEvt) {
-            handle((AddedAsInputToWfiEvt) evt);
-        } else if (evt instanceof AddedAsOutputToWfiEvt) {
-            handle((AddedAsOutputToWfiEvt) evt);
+        } else if (evt instanceof AddedInputEvt) {
+            handle((AddedInputEvt) evt);
+        } else if (evt instanceof AddedOutputEvt) {
+            handle((AddedOutputEvt) evt);
+        } else if (evt instanceof AddedInputToWorkflowEvt) {
+            handle((AddedInputToWorkflowEvt) evt);
+        } else if (evt instanceof AddedOutputToWorkflowEvt) {
+            handle((AddedOutputToWorkflowEvt) evt);
         } else {
             log.error("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

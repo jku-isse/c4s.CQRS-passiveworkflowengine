@@ -5,7 +5,6 @@ import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.instance.*;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import lombok.extern.slf4j.Slf4j;
@@ -52,15 +51,15 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(AddMockArtifactCmd cmd) {
+    public void handle(CreateMockWorkflowCmd cmd) {
         log.info("[AGG] handling {}", cmd);
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), List.of(a)));
+        apply(new CreatedDefaultWorkflowEvt(cmd.getId(), List.of(a)));
     }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(ImportOrUpdateArtifactCmd cmd, IJiraArtifactService artifactService) {
+    public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService) {
         log.info("[AGG] handling {}", cmd);
         List<IJiraArtifact> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
@@ -77,13 +76,13 @@ public class WorkflowAggregate {
         }
 
         if (artifacts.size() > 0) {
-            apply(new ImportedOrUpdatedArtifactEvt(cmd.getId(), artifacts));
+            apply(new CreatedDefaultWorkflowEvt(cmd.getId(), artifacts));
         }
     }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(ImportOrUpdateArtifactWithWorkflowDefinitionCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         List<IJiraArtifact> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : cmd.getInput().entrySet()) {
@@ -101,7 +100,7 @@ public class WorkflowAggregate {
 
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
-            apply(new ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
+            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
@@ -109,11 +108,11 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateChildWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
-            apply(new CreatedChildWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
+            apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
@@ -180,30 +179,30 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(AddAsInputCmd cmd) {
+    public void handle(AddInputCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedAsInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+        apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
     }
 
     @CommandHandler
-    public void handle(AddAsOutputCmd cmd) {
+    public void handle(AddOutputCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedAsOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+        apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
         if (parentWfiId != null && parentWftId != null) {
-            apply(new AddedAsOutputEvt(parentWfiId, parentWftId, cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+            apply(new AddedOutputEvt(parentWfiId, parentWftId, cmd.getArtifact(), cmd.getRole(), cmd.getType()));
         }
     }
 
     @CommandHandler
-    public void handle(AddAsInputToWfiCmd cmd) {
+    public void handle(AddInputToWorkflowCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedAsInputToWfiEvt(cmd.getId(), cmd.getInput()));
+        apply(new AddedInputToWorkflowEvt(cmd.getId(), cmd.getInput()));
     }
 
     @CommandHandler
-    public void handle(AddAsOutputToWfiCmd cmd) {
+    public void handle(AddOutputToWorkflowCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-        apply(new AddedAsOutputToWfiEvt(cmd.getId(), cmd.getOutput()));
+        apply(new AddedOutputToWorkflowEvt(cmd.getId(), cmd.getOutput()));
     }
 
 
@@ -211,7 +210,7 @@ public class WorkflowAggregate {
 
 
     @EventSourcingHandler
-    public void on(ImportedOrUpdatedArtifactEvt evt) {
+    public void on(CreatedDefaultWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         if (model == null || id == null) { // CREATE
             id = evt.getId();
@@ -222,7 +221,7 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
+    public void on(CreatedWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         if (model == null || id == null) { // CREATE
             id = evt.getId();
@@ -233,7 +232,7 @@ public class WorkflowAggregate {
     }
 
     @EventSourcingHandler
-    public void on(CreatedChildWorkflowEvt evt) {
+    public void on(CreatedSubWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
         parentWfiId = evt.getParentWfiId();

@@ -14,10 +14,10 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier
 import java.time.Instant
 
 // COMMANDS
-data class AddMockArtifactCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
-data class ImportOrUpdateArtifactCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>)
-data class ImportOrUpdateArtifactWithWorkflowDefinitionCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>, val definitionName: String)
-data class CreateChildWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String)
+data class CreateMockWorkflowCmd(@TargetAggregateIdentifier val id: String, val status: String, val issuetype: String, val priority: String, val summary: String)
+data class CreateDefaultWorkflowCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>)
+data class CreateWorkflowCmd(@TargetAggregateIdentifier val id: String, val input: Map<String, String>, val definitionName: String)
+data class CreateSubWorkflowCmd(@TargetAggregateIdentifier val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String)
 data class CompleteDataflowCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val res: ResourceLink)
 data class ActivateInBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val wftId: String)
 data class ActivateOutBranchCmd(@TargetAggregateIdentifier val id: String, val dniId: String, val branchId: String)
@@ -28,17 +28,17 @@ data class AddConstraintsCmd(@TargetAggregateIdentifier val id: String, val wftI
 data class AddEvaluationResultToConstraintCmd(@TargetAggregateIdentifier val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant)
 data class CheckConstraintCmd(@TargetAggregateIdentifier val id: String, val corrId: String)
 data class CheckAllConstraintsCmd(@TargetAggregateIdentifier val id: String)
-data class AddAsInputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
-data class AddAsOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
-data class AddAsInputToWfiCmd(@TargetAggregateIdentifier val id: String, val input: ArtifactInput)
-data class AddAsOutputToWfiCmd(@TargetAggregateIdentifier val id: String, val output: ArtifactOutput)
+data class AddInputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
+data class AddOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
+data class AddInputToWorkflowCmd(@TargetAggregateIdentifier val id: String, val input: ArtifactInput)
+data class AddOutputToWorkflowCmd(@TargetAggregateIdentifier val id: String, val output: ArtifactOutput)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
 
-data class ImportedOrUpdatedArtifactEvt(override val id: String, val artifacts: List<IJiraArtifact>) : IdentifiableEvt
-data class ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt(override val id: String, val artifacts: List<IJiraArtifact>, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
-data class CreatedChildWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
+data class CreatedDefaultWorkflowEvt(override val id: String, val artifacts: List<IJiraArtifact>) : IdentifiableEvt
+data class CreatedWorkflowEvt(override val id: String, val artifacts: List<IJiraArtifact>, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
+data class CreatedSubWorkflowEvt(override val id: String, val parentWfiId: String, val parentWftId: String, val definitionName: String, val wfd: WorkflowDefinition) : IdentifiableEvt
 data class CompletedDataflowEvt(override val id: String, val dniId: String, val res: ResourceLink) : IdentifiableEvt
 data class ActivatedInBranchEvt(override val id: String, val dniId: String, val wftId: String) : IdentifiableEvt
 data class ActivatedOutBranchEvt(override val id: String, val dniId: String, val branchId: String) : IdentifiableEvt
@@ -49,10 +49,10 @@ data class AddedConstraintsEvt(override val id: String, val wftId: String, val r
 data class AddedEvaluationResultToConstraintEvt(override val id: String, val qacId: String, val res: Map<ResourceLink, Boolean>, val corr: CorrelationTuple, val time: Instant) : IdentifiableEvt
 data class CheckedConstraintEvt(override val id: String, val corrId: String) : IdentifiableEvt
 data class CheckedAllConstraintsEvt(override val id: String) : IdentifiableEvt
-data class AddedAsInputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
-data class AddedAsOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
-data class AddedAsInputToWfiEvt(override val id: String, val input: ArtifactInput) : IdentifiableEvt
-data class AddedAsOutputToWfiEvt(override val id: String, val output: ArtifactOutput) : IdentifiableEvt
+data class AddedInputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
+data class AddedOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
+data class AddedInputToWorkflowEvt(override val id: String, val input: ArtifactInput) : IdentifiableEvt
+data class AddedOutputToWorkflowEvt(override val id: String, val output: ArtifactOutput) : IdentifiableEvt
 
 // QUERIES
 data class GetStateQuery(val depth: Int)
