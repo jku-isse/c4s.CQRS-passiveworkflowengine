@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
@@ -14,9 +15,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
@@ -31,6 +35,8 @@ import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import static impactassessment.general.IdGenerator.getNewId;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -44,10 +50,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -56,6 +59,7 @@ import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @Route
+@Push
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
@@ -65,9 +69,9 @@ public class MainView extends VerticalLayout {
     private Snapshotter snapshotter;
     private Replayer replayer;
     private WorkflowDefinitionRegistry registry;
+    private FrontendPusher pusher;
 
-    private WorkflowTreeGrid stateGrid;
-    private WorkflowTreeGrid snapshotGrid;
+    private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
     @Inject
     public void setCommandGateway(CommandGateway commandGateway) {
@@ -89,6 +93,20 @@ public class MainView extends VerticalLayout {
     public void setProcessDefinitionRegistry(WorkflowDefinitionRegistry registry) {
         this.registry = registry;
     }
+    @Inject
+    public void setPusher(FrontendPusher pusher) {
+        this.pusher = pusher;
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        System.out.println("######################");
+        System.out.println("###################### "+attachEvent.getUI());
+        System.out.println("###################### "+this);
+        pusher.setUi(attachEvent.getUI());
+        pusher.setView(this);
+    }
 
     public MainView() {
         setSizeFull();
@@ -100,12 +118,14 @@ public class MainView extends VerticalLayout {
         header.setMargin(false);
         header.setPadding(true);
         header.setSizeFull();
+        header.setHeight("6%");
         header.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Workflow Monitoring Tool for Software Development Artifacts"));
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
         footer.setMargin(false);
         footer.setSizeFull();
+        footer.setHeight("2%");
         footer.add(new Text("JKU ISSE - Stefan Bichler"));
         footer.setJustifyContentMode(JustifyContentMode.END);
 
@@ -119,14 +139,47 @@ public class MainView extends VerticalLayout {
     private Component main() {
         HorizontalLayout main = new HorizontalLayout();
         main.setClassName("layout-style");
+        main.setHeight("92%");
+        main.add(menu(), content());
+        return main;
+    }
+
+    private Component content() {
+        Tab tab1 = new Tab("Current State");
+        VerticalLayout cur = statePanel(false);
+        cur.setHeight("100%");
+
+
+        Tab tab2 = new Tab("Snapshot State");
+        VerticalLayout snap = snapshotPanel(false);
+        snap.setHeight("100%");
+        snap.setVisible(false);
+
+        Tab tab3 = new Tab("Compare");
+        VerticalLayout split = new VerticalLayout();
+        split.setClassName("layout-style");
+        split.add(statePanel(true), snapshotPanel(true));
+        split.setVisible(false);
+
+        Map<Tab, Component> tabsToPages = new HashMap<>();
+        tabsToPages.put(tab1, cur);
+        tabsToPages.put(tab2, snap);
+        tabsToPages.put(tab3, split);
+        Tabs tabs = new Tabs(tab1, tab2, tab3);
+        Div pages = new Div(cur, snap, split);
+        pages.setHeight("97%");
+        pages.setWidthFull();
+
+        tabs.addSelectedChangeListener(event -> {
+            tabsToPages.values().forEach(page -> page.setVisible(false));
+            Component selectedPage = tabsToPages.get(tabs.getSelectedTab());
+            selectedPage.setVisible(true);
+        });
 
         VerticalLayout content = new VerticalLayout();
         content.setClassName("layout-style");
-        content.add(statePanel(), snapshotPanel());
-
-        main.add(menu(), content);
-
-        return main;
+        content.add(tabs, pages);
+        return  content;
     }
 
     private Component menu() {
@@ -138,10 +191,10 @@ public class MainView extends VerticalLayout {
         menu.setFlexGrow(0);
 
         Accordion accordion = new Accordion();
-        accordion.add("Import Artifact", importArtifact());
-        accordion.add("Import Mock-Artifact", importMocked());
-        accordion.add("Remove Artifact", remove());
-//        accordion.add("Evaluate Constraint", evaluate()); // evaluating now over icon-buttons in current-state-grid
+        accordion.add("Create Workflow", importArtifact());
+        accordion.add("Mock Workflow", importMocked());
+//        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
+//        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
@@ -152,18 +205,18 @@ public class MainView extends VerticalLayout {
         return menu;
     }
 
-    private Component currentStateControls() {
+    private Component currentStateControls(WorkflowTreeGrid grid) {
         HorizontalLayout controlButtonLayout = new HorizontalLayout();
         controlButtonLayout.setMargin(false);
         controlButtonLayout.setPadding(false);
         controlButtonLayout.setWidthFull();
 
-        Button getState = new Button("Get State");
+        Button getState = new Button("Refresh");
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
                 List<WorkflowInstanceWrapper> response = future.get().component1();
-                stateGrid.updateTreeGrid(response);
+                grid.updateTreeGrid(response);
             } catch (InterruptedException | ExecutionException e) {
                 log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
             }
@@ -177,7 +230,7 @@ public class MainView extends VerticalLayout {
         return controlButtonLayout;
     }
 
-    private Component snapshotStateControls() {
+    private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setWidthFull();
         layout.setMargin(false);
@@ -218,7 +271,7 @@ public class MainView extends VerticalLayout {
 
         step.addClickListener(e -> {
             if (snapshotter.step()) {
-                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                grid.updateTreeGrid(snapshotter.getState());
                 progressBar.setValue(snapshotter.getProgress());
             } else {
                 step.setEnabled(false);
@@ -236,7 +289,7 @@ public class MainView extends VerticalLayout {
                     min.getValue().intValue(),
                     sec.getValue().intValue());
             if (snapshotter.jump(jumpTime.atZone(ZoneId.systemDefault()).toInstant())) {
-                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                grid.updateTreeGrid(snapshotter.getState());
                 progressBar.setValue(snapshotter.getProgress());
             } else {
                 Notification.show("Specified time is after the last or before the first event!");
@@ -247,7 +300,7 @@ public class MainView extends VerticalLayout {
         stop.addClickListener(e -> {
             snapshotter.quit();
             progressBar.setValue(0);
-            snapshotGrid.updateTreeGrid(Collections.emptyList());
+            grid.updateTreeGrid(Collections.emptyList());
             step.setEnabled(false);
             jump.setEnabled(false);
             stop.setEnabled(false);
@@ -264,7 +317,7 @@ public class MainView extends VerticalLayout {
                     min.getValue().intValue(),
                     sec.getValue().intValue());
             if (snapshotter.start(snapshotTime.atZone(ZoneId.systemDefault()).toInstant())) {
-                snapshotGrid.updateTreeGrid(snapshotter.getState());
+                grid.updateTreeGrid(snapshotter.getState());
                 progressBar.setValue(snapshotter.getProgress());
                 step.setEnabled(true);
                 jump.setEnabled(true);
@@ -348,7 +401,7 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        Button importOrUpdateArtifactButton = new Button("Import", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
             try {
                 // collect all input IDs
                 Map<String, String> inputs = new HashMap<>();
@@ -359,11 +412,11 @@ public class MainView extends VerticalLayout {
                         .filter(tf -> !tf.getLabel().equals(""))
                         .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
                 // send command
-                commandGateway.sendAndWait(new ImportOrUpdateArtifactWithWorkflowDefinitionCmd(getNewId(), inputs, processDefinition.getValue()));
+                commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Import failed!");
+                Notification.show("Creation failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
@@ -461,13 +514,13 @@ public class MainView extends VerticalLayout {
         summary.setValue(JiraMockService.DEFAULT_SUMMARY);
         summary.setWidthFull();
 
-        Button importOrUpdateArtifactButton = new Button("Import or Update Mock-Artifact", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Create Mock-Workflow", evt -> {
             try {
-                commandGateway.sendAndWait(new AddMockArtifactCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+                commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
                 Notification.show("Success");
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Import failed!");
+                Notification.show("Creation failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
@@ -494,39 +547,42 @@ public class MainView extends VerticalLayout {
         layout.add(row1, row2);
         return layout;
     }
-    private VerticalLayout snapshotPanel() {
-        snapshotGrid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
-        snapshotGrid.initTreeGrid();
+    private VerticalLayout snapshotPanel(boolean addHeader) {
+        WorkflowTreeGrid grid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
+        grid.initTreeGrid();
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");
         layout.setMargin(false);
         layout.setHeight("50%");
+
+        layout.setFlexGrow(0);
+        if (addHeader)
+            layout.add(new Text("Snapshot State"));
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setValue(0);
         layout.add(
-                new Text("Snapshot State"),
-                progress(),
-                snapshotGrid,
-                snapshotStateControls()
+                progressBar,
+                grid,
+                snapshotStateControls(grid, progressBar)
         );
         return layout;
     }
 
-    private ProgressBar progressBar;
-    private Component progress() {
-        progressBar = new ProgressBar();
-        progressBar.setValue(0);
-        return progressBar;
-    }
-    private VerticalLayout statePanel() {
-        stateGrid = new WorkflowTreeGrid(x -> commandGateway.send(x), true);
-        stateGrid.initTreeGrid();
+    private VerticalLayout statePanel(boolean addHeader) {
+        WorkflowTreeGrid grid = new WorkflowTreeGrid(x -> commandGateway.send(x), true);
+        grid.initTreeGrid();
+        grids.add(grid);
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");
         layout.setMargin(false);
         layout.setHeight("50%");
+        layout.setWidthFull();
+        layout.setFlexGrow(0);
+        if (addHeader)
+            layout.add(new Text("Current State"));
         layout.add(
-                new Text("Current State"),
-                stateGrid,
-                currentStateControls()
+                grid,
+                currentStateControls(grid)
         );
         return layout;
     }

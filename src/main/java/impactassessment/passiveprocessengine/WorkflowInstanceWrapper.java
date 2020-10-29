@@ -32,10 +32,11 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
 
-    public void setArtifact(List<IJiraArtifact> artifacts) {
+    private void setArtifact(List<IJiraArtifact> artifacts) {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
                 ArtifactWrapper aw = new ArtifactWrapper("Wrapped#" + artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
+                // TODO add as input (enable input to input mapping!)
                 wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
             }
         }
@@ -45,25 +46,25 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactEvt evt) {
-        AbstractWorkflowDefinition wfd = SpringUtil.getBean(AbstractWorkflowDefinition.class);
+    public List<AbstractWorkflowInstanceObject> handle(CreatedDefaultWorkflowEvt evt) {
+        WorkflowDefinition wfd = SpringUtil.getBean(WorkflowDefinition.class); // use default workflow specified in SpringConfig
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt evt) {
-        return initWfi(evt.getId(), evt.getWfd(), evt.getArtifacts());
+    public List<AbstractWorkflowInstanceObject> handle(CreatedWorkflowEvt evt) {
+        WorkflowDefinition wfd = evt.getWfd();
+        return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    public List<AbstractWorkflowInstanceObject> handle(CreatedChildWorkflowEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(CreatedSubWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
-        wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
-        wfi = wfd.createInstance(evt.getId());
-        return wfi.enableWorkflowTasksAndDecisionNodes();
+        return initWfi(evt.getId(), wfd, Collections.emptyList());
     }
 
     private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, List<IJiraArtifact> artifacts) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
+        setArtifact(artifacts);
         for (IJiraArtifact artifact: artifacts) {
             wfi.addOrReplaceProperty(artifact.getKey() + " (" + artifact.getId() + ")", artifact.getIssueType().getName());
         }
@@ -157,7 +158,7 @@ public class WorkflowInstanceWrapper {
         return rebc;
     }
 
-    public WorkflowTask handle(AddedAsInputEvt evt) {
+    public WorkflowTask handle(AddedInputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
         // TODO check if input is expected
@@ -165,28 +166,28 @@ public class WorkflowInstanceWrapper {
         return wft;
     }
 
-    public WorkflowTask handle(AddedAsOutputEvt evt) {
+    public WorkflowTask handle(AddedOutputEvt evt) {
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
         return wft;
     }
 
-    public void handle(AddedAsInputToWfiEvt evt) {
+    public void handle(AddedInputToWorkflowEvt evt) {
         wfi.addInput(evt.getInput());
     }
 
-    public void handle(AddedAsOutputToWfiEvt evt) {
+    public void handle(AddedOutputToWorkflowEvt evt) {
         wfi.addOutput(evt.getOutput());
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof ImportedOrUpdatedArtifactEvt) {
-            handle((ImportedOrUpdatedArtifactEvt) evt);
-        } else if (evt instanceof ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) {
-            handle((ImportedOrUpdatedArtifactWithWorkflowDefinitionEvt) evt);
-        } else if (evt instanceof CreatedChildWorkflowEvt) {
-            handle((CreatedChildWorkflowEvt) evt);
+        if (evt instanceof CreatedDefaultWorkflowEvt) {
+            handle((CreatedDefaultWorkflowEvt) evt);
+        } else if (evt instanceof CreatedWorkflowEvt) {
+            handle((CreatedWorkflowEvt) evt);
+        } else if (evt instanceof CreatedSubWorkflowEvt) {
+            handle((CreatedSubWorkflowEvt) evt);
         } else if (evt instanceof CompletedDataflowEvt) {
             handle((CompletedDataflowEvt) evt);
         } else if (evt instanceof ActivatedInBranchEvt) {
@@ -201,16 +202,16 @@ public class WorkflowInstanceWrapper {
             handle((AddedConstraintsEvt) evt);
         } else if (evt instanceof AddedEvaluationResultToConstraintEvt) {
             handle((AddedEvaluationResultToConstraintEvt) evt);
-        } else if (evt instanceof AddedAsInputEvt) {
-            handle((AddedAsInputEvt) evt);
-        } else if (evt instanceof AddedAsOutputEvt) {
-            handle((AddedAsOutputEvt) evt);
-        } else if (evt instanceof AddedAsInputToWfiEvt) {
-            handle((AddedAsInputToWfiEvt) evt);
-        } else if (evt instanceof AddedAsOutputToWfiEvt) {
-            handle((AddedAsOutputToWfiEvt) evt);
+        } else if (evt instanceof AddedInputEvt) {
+            handle((AddedInputEvt) evt);
+        } else if (evt instanceof AddedOutputEvt) {
+            handle((AddedOutputEvt) evt);
+        } else if (evt instanceof AddedInputToWorkflowEvt) {
+            handle((AddedInputToWorkflowEvt) evt);
+        } else if (evt instanceof AddedOutputToWorkflowEvt) {
+            handle((AddedOutputToWorkflowEvt) evt);
         } else {
-            log.error("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
+            log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }
     }
 
@@ -219,7 +220,7 @@ public class WorkflowInstanceWrapper {
         Optional<QACheckDocument> optQACD = Optional.empty();
         if (wft != null){
             optQACD = wft.getOutput().stream()
-                    .map(ao -> ao.getArtifact())
+                    .map(ArtifactIO::getArtifact)
                     .filter(ao -> ao instanceof QACheckDocument)
                     .map(a -> (QACheckDocument) a)
                     .findAny();

@@ -50,7 +50,7 @@ public class BasicAggregateTest {
     @Test
     public void testAddCompleteActivate() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new ImportedOrUpdatedArtifactEvt(id, List.of(a)))
+        fixture.given(new CreatedDefaultWorkflowEvt(id, List.of(a)))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
                 .when(new ActivateInOutBranchCmd(id, "open2inProgressOrResolved#"+id, "Open#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
@@ -59,7 +59,7 @@ public class BasicAggregateTest {
     @Test
     public void testDelete() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new ImportedOrUpdatedArtifactEvt(id, List.of(a)))
+        fixture.given(new CreatedDefaultWorkflowEvt(id, List.of(a)))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new DeletedEvt(id))

@@ -1,9 +1,6 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
@@ -16,10 +13,11 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
+import impactassessment.api.DeleteCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.instance.*;
 import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
+import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -75,44 +72,10 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 return infoDialog((WorkflowInstance)o);
             } else if (o instanceof WorkflowTask) {
                 return infoDialog((WorkflowTask)o);
-            } else if (o instanceof RuleEngineBasedConstraint) {
-                return infoDialog((RuleEngineBasedConstraint)o);
             } else {
                 return new Label("");
             }
         })).setWidth("5%").setFlexGrow(0);
-
-        // Column "Reevaluate"
-
-        if (evalMode) {
-            this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
-                if (o instanceof WorkflowInstance) {
-                    WorkflowInstance wfi = (WorkflowInstance) o;
-                    Icon icon = new Icon(VaadinIcon.REPLY_ALL);
-                    icon.setColor("#1565C0");
-                    icon.getStyle().set("cursor", "pointer");
-                    icon.addClickListener(e -> {
-                        f.apply(new CheckAllConstraintsCmd(wfi.getId()));
-                        Notification.show("Evaluation of "+wfi.getId()+" requested");
-                    });
-                    icon.getElement().setProperty("title", "Request a explicit re-evaluation of all rules for this artifact..");
-                    return icon;
-                } else if (o instanceof RuleEngineBasedConstraint) {
-                    RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                    Icon icon = new Icon(VaadinIcon.REPLY);
-                    icon.setColor("#1565C0");
-                    icon.getStyle().set("cursor", "pointer");
-                    icon.addClickListener(e -> {
-                        f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()));
-                        Notification.show("Evaluation of "+rebc.getId()+" requested");
-                    });
-                    icon.getElement().setProperty("title", "Request a explicit re-evaluation of this rule for this artifact..");
-                    return icon;
-                } else {
-                    return new Label("");
-                }
-            })).setWidth("5%").setFlexGrow(0);
-        }
 
         // Column "Last Evaluated"
 
@@ -144,51 +107,61 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             }
         }).setHeader("Last Changed");
 
-        // Column "Fulfilled"
+        // Column delete
 
         this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
-                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
-                icon.setColor("green");
-                icon.getElement().setProperty("title", "This workflow contains fulfilled constraints");
-                boolean fulfilled = wfi.getWorkflowTasksReadonly().stream()
-                        .anyMatch(wft -> wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
-                                .filter(a -> a instanceof QACheckDocument)
-                                .map(a -> (QACheckDocument) a)
-                                .map(QACheckDocument::getConstraintsReadonly)
-                                .anyMatch(a -> a.stream()
-                                    .anyMatch(QACheckDocument.QAConstraint::isFulfilled))
-                        );
-                return fulfilled ? icon : new Label("");
-            }
-            else if (o instanceof WorkflowTask) {
-                WorkflowTask wft = (WorkflowTask) o;
-                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
-                icon.setColor("green");
-                icon.getElement().setProperty("title", "This workflow task contains fulfilled constraints");
-                boolean fulfilled = wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
-                                .filter(a -> a instanceof QACheckDocument)
-                                .map(a -> (QACheckDocument) a)
-                                .map(QACheckDocument::getConstraintsReadonly)
-                                .anyMatch(a -> a.stream()
-                                        .anyMatch(QACheckDocument.QAConstraint::isFulfilled));
-                return fulfilled ? icon : new Label("");
+                Icon icon = new Icon(VaadinIcon.TRASH);
+                icon.setColor("red");
+                icon.getStyle().set("cursor", "pointer");
+                icon.addClickListener(e -> {
+                    f.apply(new DeleteCmd(wfi.getId()));
+                });
+                icon.getElement().setProperty("title", "Remove this workflow");
+                return icon;
             } else {
                 return new Label("");
             }
         })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
 
-        // Column "Unsatisfied"
+        // Column "Reevaluate"
+
+        if (evalMode) {
+            this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
+                if (o instanceof WorkflowInstance) {
+                    WorkflowInstance wfi = (WorkflowInstance) o;
+                    Icon icon = new Icon(VaadinIcon.REPLY_ALL);
+                    icon.setColor("#1565C0");
+                    icon.getStyle().set("cursor", "pointer");
+                    icon.addClickListener(e -> {
+                        f.apply(new CheckAllConstraintsCmd(wfi.getId()));
+                        Notification.show("Evaluation of "+wfi.getId()+" requested");
+                    });
+                    icon.getElement().setProperty("title", "Request a explicit re-evaluation of all rules for this artifact..");
+                    return icon;
+                } else if (o instanceof RuleEngineBasedConstraint) {
+                    RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
+                    Icon icon = new Icon(VaadinIcon.REPLY);
+                    icon.setColor("#1565C0");
+                    icon.getStyle().set("cursor", "pointer");
+                    icon.addClickListener(e -> {
+                        f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()));
+                        Notification.show("Evaluation of "+rebc.getId()+" requested");
+                    });
+                    icon.getElement().setProperty("title", "Request a explicit re-evaluation of this rule for this artifact..");
+                    return icon;
+                } else {
+                    return new Label("");
+                }
+            })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
+        }
+
+        // Column "Unsatisfied" or "Fulfilled"
 
         this.addColumn(new ComponentRenderer<Component, AbstractIdentifiableObject>(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
-                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
-                icon.setColor("red");
-                icon.getElement().setProperty("title", "This workflow contains unsatisfied constraints");
                 boolean unsatisfied = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
                                 .map(ArtifactIO::getArtifact)
@@ -198,12 +171,18 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                                 .anyMatch(a -> a.stream()
                                         .anyMatch(c -> !c.isFulfilled()))
                         );
-                return unsatisfied ? icon : new Label("");
+                boolean fulfilled = wfi.getWorkflowTasksReadonly().stream()
+                        .anyMatch(wft -> wft.getOutput().stream()
+                                .map(ArtifactIO::getArtifact)
+                                .filter(a -> a instanceof QACheckDocument)
+                                .map(a -> (QACheckDocument) a)
+                                .map(QACheckDocument::getConstraintsReadonly)
+                                .anyMatch(a -> a.stream()
+                                        .anyMatch(QACheckDocument.QAConstraint::isFulfilled))
+                        );
+                return getIcon(unsatisfied, fulfilled);
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
-                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
-                icon.setColor("red");
-                icon.getElement().setProperty("title", "This workflow task contains unsatisfied constraints");
                 boolean unsatisfied = wft.getOutput().stream()
                                 .map(ArtifactIO::getArtifact)
                                 .filter(a -> a instanceof QACheckDocument)
@@ -211,11 +190,42 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                                 .map(QACheckDocument::getConstraintsReadonly)
                                 .anyMatch(a -> a.stream()
                                         .anyMatch(c -> !c.isFulfilled()));
-                return unsatisfied ? icon : new Label("");
+                boolean fulfilled = wft.getOutput().stream()
+                        .map(ArtifactIO::getArtifact)
+                        .filter(a -> a instanceof QACheckDocument)
+                        .map(a -> (QACheckDocument) a)
+                        .map(QACheckDocument::getConstraintsReadonly)
+                        .anyMatch(a -> a.stream()
+                                .anyMatch(QACheckDocument.QAConstraint::isFulfilled));
+                return getIcon(unsatisfied, fulfilled);
+            } else if (o instanceof RuleEngineBasedConstraint) {
+                return infoDialog((RuleEngineBasedConstraint)o);
             } else {
                 return new Label("");
             }
         })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
+    }
+
+    private Icon getIcon(boolean unsatisfied, boolean fulfilled) {
+        Icon icon;
+        if (unsatisfied && fulfilled) {
+            icon = new Icon(VaadinIcon.WARNING);
+            icon.setColor("#E24C00");
+            icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled constraints");
+        } else if (unsatisfied) {
+            icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
+            icon.setColor("red");
+            icon.getElement().setProperty("title", "This contains unsatisfied constraints");
+        } else if (fulfilled){
+            icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+            icon.setColor("green");
+            icon.getElement().setProperty("title", "This contains fulfilled constraints");
+        } else {
+            icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+            icon.setColor("#1565C0");
+            icon.getElement().setProperty("title", "Constraints not evaluated");
+        }
+        return icon;
     }
 
     private Component infoDialog(WorkflowInstance wfi) {
@@ -224,14 +234,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
             l.add(new Paragraph(e.getKey() + ": " + e.getValue()));
         }
-        l.add(new H4("Inputs"));
-        for (ArtifactInput ai : wfi.getInput()) {
-            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
-        }
-        l.add(new H4("Outputs"));
-        for (ArtifactOutput ao : wfi.getOutput()) {
-            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
-        }
+        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput());
         Dialog dialog = new Dialog();
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
@@ -248,14 +251,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Component infoDialog(WorkflowTask wft) {
         VerticalLayout l = new VerticalLayout();
         l.add(new H3(wft.getId()));
-        l.add(new H4("Inputs"));
-        for (ArtifactInput ai : wft.getInput()) {
-            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
-        }
-        l.add(new H4("Outputs"));
-        for (ArtifactOutput ao : wft.getOutput()) {
-            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
-        }
+        infoDialogInputOutput(l, wft.getInput(), wft.getOutput());
         Dialog dialog = new Dialog();
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
@@ -267,6 +263,17 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         dialog.add(l);
 
         return icon;
+    }
+
+    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs) {
+        l.add(new H4("Inputs"));
+        for (ArtifactInput ai : inputs) {
+            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+        }
+        l.add(new H4("Outputs"));
+        for (ArtifactOutput ao : outputs) {
+            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        }
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
@@ -319,16 +326,18 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
         Icon icon;
         if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
-            icon = new Icon(VaadinIcon.PLUS_MINUS);
+            icon = new Icon(VaadinIcon.WARNING);
             icon.setColor("#E24C00");
         } else if (fulfilledLinks.size() > 0) {
-            icon = new Icon(VaadinIcon.PLUS);
+            icon = new Icon(VaadinIcon.CHECK_CIRCLE);
             icon.setColor("green");
         } else if (unsatisfiedLinks.size() > 0) {
-            icon = new Icon(VaadinIcon.MINUS);
+            icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
             icon.setColor("red");
         } else {
-            return new Label("");
+            icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+            icon.setColor("#1565C0");
+            return icon;
         }
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
@@ -348,15 +357,13 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 } else if (o instanceof WorkflowTask) {
                     WorkflowTask wft = (WorkflowTask) o;
                     Optional<QACheckDocument> qacd =  wft.getOutput().stream()
-                            .map(ao -> ao.getArtifact())
+                            .map(ArtifactIO::getArtifact)
                             .filter(io -> io instanceof QACheckDocument)
                             .map(io -> (QACheckDocument) io)
                             .findFirst();
-                    if (qacd.isPresent()) {
-                        return qacd.get().getConstraintsReadonly().stream().map(x -> (AbstractIdentifiableObject) x);
-                    } else {
-                        return Stream.empty();
-                    }
+                    return qacd.map(qaCheckDocument -> qaCheckDocument.getConstraintsReadonly().stream()
+                            .map(x -> (AbstractIdentifiableObject) x))
+                            .orElseGet(Stream::empty);
                 }/* else if (o instanceof QACheckDocument) {
                     QACheckDocument qacd = (QACheckDocument) o;
                     return qacd.getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
