@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
@@ -33,6 +35,8 @@ import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import static impactassessment.general.IdGenerator.getNewId;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -46,10 +50,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -58,6 +59,7 @@ import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @Route
+@Push
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
@@ -67,6 +69,9 @@ public class MainView extends VerticalLayout {
     private Snapshotter snapshotter;
     private Replayer replayer;
     private WorkflowDefinitionRegistry registry;
+    private FrontendPusher pusher;
+
+    private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
     @Inject
     public void setCommandGateway(CommandGateway commandGateway) {
@@ -87,6 +92,20 @@ public class MainView extends VerticalLayout {
     @Inject
     public void setProcessDefinitionRegistry(WorkflowDefinitionRegistry registry) {
         this.registry = registry;
+    }
+    @Inject
+    public void setPusher(FrontendPusher pusher) {
+        this.pusher = pusher;
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        System.out.println("######################");
+        System.out.println("###################### "+attachEvent.getUI());
+        System.out.println("###################### "+this);
+        pusher.setUi(attachEvent.getUI());
+        pusher.setView(this);
     }
 
     public MainView() {
@@ -552,6 +571,7 @@ public class MainView extends VerticalLayout {
     private VerticalLayout statePanel(boolean addHeader) {
         WorkflowTreeGrid grid = new WorkflowTreeGrid(x -> commandGateway.send(x), true);
         grid.initTreeGrid();
+        grids.add(grid);
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");
         layout.setMargin(false);

@@ -7,6 +7,7 @@ import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.passiveprocessengine.definition.IWorkflowTask;
 import impactassessment.passiveprocessengine.instance.*;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.ui.FrontendPusher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -35,6 +36,7 @@ public class WorkflowProjection {
     private final KieSessionService kieSessions;
     private final CommandGateway commandGateway;
     private final WorkflowDefinitionRegistry registry;
+    private final FrontendPusher pusher;
 
     // Event Handlers
 
@@ -140,6 +142,7 @@ public class WorkflowProjection {
             kieSessions.insertOrUpdate(evt.getId(), updatedRebc);
             kieSessions.fire(evt.getId());
         }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @DisallowReplay
