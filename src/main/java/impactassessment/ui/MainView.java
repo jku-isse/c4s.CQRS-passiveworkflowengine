@@ -101,9 +101,6 @@ public class MainView extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        System.out.println("######################");
-        System.out.println("###################### "+attachEvent.getUI());
-        System.out.println("###################### "+this);
         pusher.setUi(attachEvent.getUI());
         pusher.setView(this);
     }

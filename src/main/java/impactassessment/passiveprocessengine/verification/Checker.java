@@ -44,7 +44,7 @@ public class Checker {
         report.addWarnings(checkTdIncoming());
         report.addWarnings(checkTdOutgoing());
         report.addWarnings(checkTaskDefinitionConnected());
-        report.addWarnings(checkMappingDefinition(workflow));
+//        report.addWarnings(checkMappingDefinition(workflow)); // TODO rework needed due to interface changes
         // TODO add more aspects to check..
         return report;
     }
@@ -131,49 +131,49 @@ public class Checker {
                 .toArray(Report.Warning[]::new);
     }
 
-    private Report.Warning[] checkMappingDefinition(AbstractWorkflowDefinition workflow) {
-        List<Report.Warning> warnings = new ArrayList<>();
-        for (TaskDefinition td : workflow.getWorkflowTaskDefinitions()) {
-            if (td.getExpectedInput().size() > 0) {
-                if (graph.getNodes().stream()
-                        .filter(n -> n.getId().equals(td.getId()))
-                        .anyMatch(n -> n.getPredecessors().values().stream()
-                                .map(x -> workflow.getDNDbyID(x.getId()))
-                                .anyMatch(dnd -> dnd.getMappings().size() == 0))) {
-                    warnings.add(new Report.Warning("TaskDefinition expects artifact but no mapping is defined in preceding DND.", td.getId()));
-                }
-
-            }
-        }
-        // check if there is a mapping definition, if type and role matched
-        for (DecisionNodeDefinition dnd : workflow.getDecisionNodeDefinitions()) {
-            for (MappingDefinition md : dnd.getMappings()) {
-                for (String inputId : md.getTo()) {
-                    for (Map.Entry<String, ArtifactType> inputEntry : workflow.getTDbyID(inputId).getExpectedInput().entrySet()) {
-                        boolean typeMatches = false;
-                        boolean typeAndRoleMatches = false;
-                        for (String outputId : md.getFrom()) {
-                            for (Map.Entry<String, ArtifactType> outputEntry : workflow.getTDbyID(outputId).getExpectedOutput().entrySet()) {
-                                if (inputEntry.getValue().equals(outputEntry.getValue())) {
-                                    typeMatches = true;
-                                    if (inputEntry.getKey().equals(outputEntry.getKey())) {
-                                        typeAndRoleMatches = true;
-                                    }
-                                }
-                            }
-                        }
-                        if (!typeMatches) {
-                            warnings.add(new Report.Warning("TaskDefinition expects artifact of type "+inputEntry.getValue().getArtifactType()+" that is never provided.", inputId));
-                        } else if (!typeAndRoleMatches) {
-                            warnings.add(new Report.Warning("TaskDefinition expects artifact of role "+inputEntry.getKey()+" that is never provided.", inputId));
-                        }
-                    }
-                }
-            }
-        }
-        Report.Warning[] array = new Report.Warning[warnings.size()];
-        return warnings.toArray(array);
-    }
+//    private Report.Warning[] checkMappingDefinition(AbstractWorkflowDefinition workflow) {
+//        List<Report.Warning> warnings = new ArrayList<>();
+//        for (TaskDefinition td : workflow.getWorkflowTaskDefinitions()) {
+//            if (td.getExpectedInput().size() > 0) {
+//                if (graph.getNodes().stream()
+//                        .filter(n -> n.getId().equals(td.getId()))
+//                        .anyMatch(n -> n.getPredecessors().values().stream()
+//                                .map(x -> workflow.getDNDbyID(x.getId()))
+//                                .anyMatch(dnd -> dnd.getMappings().size() == 0))) {
+//                    warnings.add(new Report.Warning("TaskDefinition expects artifact but no mapping is defined in preceding DND.", td.getId()));
+//                }
+//
+//            }
+//        }
+//        // check if there is a mapping definition, if type and role matched
+//        for (DecisionNodeDefinition dnd : workflow.getDecisionNodeDefinitions()) {
+//            for (MappingDefinition md : dnd.getMappings()) {
+//                for (String inputId : md.getTo()) {
+//                    for (Map.Entry<String, ArtifactType> inputEntry : workflow.getTDbyID(inputId).getExpectedInput().entrySet()) {
+//                        boolean typeMatches = false;
+//                        boolean typeAndRoleMatches = false;
+//                        for (String outputId : md.getFrom()) {
+//                            for (Map.Entry<String, ArtifactType> outputEntry : workflow.getTDbyID(outputId).getExpectedOutput().entrySet()) {
+//                                if (inputEntry.getValue().equals(outputEntry.getValue())) {
+//                                    typeMatches = true;
+//                                    if (inputEntry.getKey().equals(outputEntry.getKey())) {
+//                                        typeAndRoleMatches = true;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        if (!typeMatches) {
+//                            warnings.add(new Report.Warning("TaskDefinition expects artifact of type "+inputEntry.getValue().getArtifactType()+" that is never provided.", inputId));
+//                        } else if (!typeAndRoleMatches) {
+//                            warnings.add(new Report.Warning("TaskDefinition expects artifact of role "+inputEntry.getKey()+" that is never provided.", inputId));
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        Report.Warning[] array = new Report.Warning[warnings.size()];
+//        return warnings.toArray(array);
+//    }
 
     // --------------------- repair utilities --------------------------------------
 

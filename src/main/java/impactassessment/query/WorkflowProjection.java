@@ -76,8 +76,7 @@ public class WorkflowProjection {
         Map<IWorkflowTask, ArtifactInput> mappedInputs = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
             // TODO remove debug output
-            System.out.println("#################### size: "+mappedInputs.size());
-            mappedInputs.forEach((key, value) -> System.out.println("#################### WFT: " + key.getId() + " AI: " + value.toString()));
+            mappedInputs.forEach((key, value) -> log.info("MappedInputs: WFT=" + key.getId() + " AI=" + value.toString()));
             mappedInputs.forEach(this::addToSubWorkflow);
         }
     }

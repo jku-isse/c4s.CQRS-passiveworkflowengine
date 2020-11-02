@@ -76,7 +76,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("inProgressIn", tdInProgress, true, false, dnd));
         dnd.setOutBranchingType(DecisionNodeDefinition.BranchingType.OR);
-        dnd.addMapping(WORKFLOW_TYPE, TASK_STATE_IN_PROGRESS);
+        dnd.addMapping(WORKFLOW_TYPE, "INPUT", TASK_STATE_IN_PROGRESS, "INPUT");
         return dnd;
     }
     private DecisionNodeDefinition getInProgress2Resolved(TaskDefinition tdInProgress, TaskDefinition tdResolved) {
@@ -84,7 +84,7 @@ public class NestedWorkflow extends AbstractWorkflowDefinition {
         dnd.addInBranchDefinition(new DefaultBranchDefinition("inProgressOut", tdInProgress, false, false, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.AND);
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn", tdResolved, false, false, dnd));
-        dnd.addMapping(TASK_STATE_IN_PROGRESS, TASK_STATE_RESOLVED);
+        dnd.addMapping(TASK_STATE_IN_PROGRESS, "INPUT", TASK_STATE_RESOLVED, "INPUT");
         return dnd;
     }
 

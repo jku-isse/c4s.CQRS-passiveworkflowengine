@@ -3,6 +3,8 @@ package impactassessment.passiveprocessengine;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.passiveprocessengine.definition.ArtifactType;
+import impactassessment.passiveprocessengine.definition.ArtifactTypes;
 import impactassessment.passiveprocessengine.definition.MappingDefinition;
 import impactassessment.passiveprocessengine.instance.DecisionNodeInstance;
 import impactassessment.passiveprocessengine.instance.ResourceLink;
@@ -51,7 +53,8 @@ public class WFTInputOutputMappingWithWrapperTest {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
         wfiWrapper.handle(new CreatedWorkflowEvt(ID, List.of(a), "", new SimpleWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-        wfiWrapper.handle(new ActivatedInBranchEvt(ID, "open2closed#"+ID, "Open#test"));
+        wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2closed#"+ID, "Open#test", "openOut"));
+        wfiWrapper.handle(new AddedOutputEvt(ID, "Open#test", new ResourceLink("test", "test", "test", "test", "test", "test"), ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2closed#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         WorkflowTask wftClosed = wfiWrapper.getWorkflowInstance().getWorkflowTask("Closed#"+ID);
@@ -63,15 +66,15 @@ public class WFTInputOutputMappingWithWrapperTest {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
         wfiWrapper.handle(new CreatedWorkflowEvt(ID, List.of(a), "", new ComplexWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_KICKOFF+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
+        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_TASK_OPEN+"#"+ID));
+        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_DD_OPEN+"#"+ID));
+        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_REQ_OPEN+"#"+ID));
 
         // add additional mappings
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(DND_OPEN2CLOSED+"#"+ID);
-        dni.getDefinition().addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
+        dni.getDefinition().addMapping(TD_TASK_OPEN, ROLE_QA_CHECK_DOC, TD_TASK_CLOSED, ROLE_QA_CHECK_DOC);
 
-        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_TASK_OPEN+"#"+ID));
-        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_DD_OPEN+"#"+ID));
-        wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_REQ_OPEN+"#"+ID));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, DND_OPEN2CLOSED+"#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         WorkflowTask wftClosed = wfiWrapper.getWorkflowInstance().getWorkflowTask(TD_TASK_CLOSED+"#"+ID);
@@ -91,8 +94,8 @@ public class WFTInputOutputMappingWithWrapperTest {
         // add additional mappings
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(DND_OPEN2CLOSED+"#"+ID);
-        dni.getDefinition().addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
-        dni.getDefinition().addMapping(TD_REQ_OPEN, TD_REQ_WORKING);
+        dni.getDefinition().addMapping(TD_TASK_OPEN, ROLE_QA_CHECK_DOC, TD_TASK_CLOSED, ROLE_QA_CHECK_DOC);
+        dni.getDefinition().addMapping(TD_REQ_OPEN, ROLE_QA_CHECK_DOC, TD_REQ_WORKING, ROLE_QA_CHECK_DOC);
 
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_TASK_OPEN+"#"+ID));
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, DND_OPEN2CLOSED+"#"+ID, TD_DD_OPEN+"#"+ID));
@@ -119,8 +122,8 @@ public class WFTInputOutputMappingWithWrapperTest {
         // add additional mappings
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(DND_OPEN2CLOSED+"#"+ID);
-        dni.getDefinition().addMapping(TD_TASK_OPEN, TD_TASK_CLOSED);
-        dni.getDefinition().addMapping(TD_REQ_OPEN, TD_REQ_WORKING);
+        dni.getDefinition().addMapping(TD_TASK_OPEN, ROLE_QA_CHECK_DOC, TD_TASK_CLOSED, ROLE_QA_CHECK_DOC);
+        dni.getDefinition().addMapping(TD_REQ_OPEN, ROLE_QA_CHECK_DOC, TD_REQ_WORKING, ROLE_QA_CHECK_DOC);
 
         wfiWrapper.handle(new AddedConstraintsEvt(ID, TD_TASK_OPEN+"#"+ID, Map.of("RuleName", "Description")));
         wfiWrapper.handle(new AddedConstraintsEvt(ID, TD_REQ_OPEN+"#"+ID, Map.of("RuleName", "Description")));
@@ -146,7 +149,8 @@ public class WFTInputOutputMappingWithWrapperTest {
         // add additional mappings
         WorkflowInstance wfi = wfiWrapper.getWorkflowInstance();
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(DND_OPEN2CLOSED+"#"+ID);
-        dni.getDefinition().addMapping(List.of(TD_TASK_OPEN, TD_REQ_OPEN), List.of(TD_TASK_CLOSED, TD_REQ_WORKING), MappingDefinition.MappingType.ALL);
+        dni.getDefinition().addMapping(List.of(MappingDefinition.Pair.of(TD_TASK_OPEN, ROLE_QA_CHECK_DOC), MappingDefinition.Pair.of(TD_REQ_OPEN, ROLE_QA_CHECK_DOC)),
+                List.of(MappingDefinition.Pair.of(TD_TASK_CLOSED, ROLE_QA_CHECK_DOC), MappingDefinition.Pair.of(TD_REQ_WORKING, ROLE_QA_CHECK_DOC)), MappingDefinition.MappingType.ALL);
 
         wfiWrapper.handle(new AddedConstraintsEvt(ID, TD_TASK_OPEN+"#"+ID, Map.of("RuleName", "Description")));
         wfiWrapper.handle(new AddedConstraintsEvt(ID, TD_REQ_OPEN+"#"+ID, Map.of("RuleName", "Description")));

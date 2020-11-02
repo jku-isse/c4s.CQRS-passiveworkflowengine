@@ -25,8 +25,10 @@ public class FrontendPusher {
     }
 
     public void update(List<WorkflowInstanceWrapper> state) {
-        ui.access(() -> view.getGrids().stream()
-                .filter(com.vaadin.flow.component.Component::isVisible)
-                .forEach(grid -> grid.updateTreeGrid(state)));
+        if (ui != null && view != null) {
+            ui.access(() -> view.getGrids().stream()
+                    .filter(com.vaadin.flow.component.Component::isVisible)
+                    .forEach(grid -> grid.updateTreeGrid(state)));
+        }
     }
 }

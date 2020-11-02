@@ -92,7 +92,7 @@ public class DronologyWorkflowFixed extends AbstractWorkflowDefinition {
         dnd.addInBranchDefinition(new DefaultBranchDefinition("noopOut", tdNoop, false, false, dnd));
         dnd.setInBranchingType(DecisionNodeDefinition.BranchingType.OR);
         dnd.addOutBranchDefinition(new DefaultBranchDefinition("resolvedIn2", tdResolved, false, false, dnd));
-        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_RESOLVED);
+        dnd.addMapping(TASK_STATE_OPEN, "JIRA_TICKET", TASK_STATE_RESOLVED, "JIRA_TICKET");
         return dnd;
     }
 

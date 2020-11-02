@@ -117,25 +117,25 @@ public class DecisionNodeDefinition extends AbstractWorkflowDefinitionObject {
 		return optoutB.isPresent();			
 	}
 
-	public void addMapping(String from, String to) {
+	public void addMapping(String fromId, String fromRole, String toId, String toRole) {
+		mappings.add(new MappingDefinition(fromId, fromRole, toId, toRole));
+	}
+	public void addMapping(List<MappingDefinition.Pair<String, String>> from, String toId, String toRole) {
+		mappings.add(new MappingDefinition(from, toId, toRole));
+	}
+	public void addMapping(List<MappingDefinition.Pair<String, String>> from, String toId, String toRole, MappingDefinition.MappingType mappingType) {
+		mappings.add(new MappingDefinition(from, toId, toRole));
+	}
+	public void addMapping(String fromId, String fromRole, List<MappingDefinition.Pair<String, String>> to) {
+		mappings.add(new MappingDefinition(fromId, fromRole, to));
+	}
+	public void addMapping(String fromId, String fromRole, List<MappingDefinition.Pair<String, String>> to, MappingDefinition.MappingType mappingType) {
+		mappings.add(new MappingDefinition(fromId, fromRole, to));
+	}
+	public void addMapping(List<MappingDefinition.Pair<String, String>> from, List<MappingDefinition.Pair<String, String>> to) {
 		mappings.add(new MappingDefinition(from, to));
 	}
-	public void addMapping(List<String> from, String to) {
-		mappings.add(new MappingDefinition(from, to));
-	}
-	public void addMapping(List<String> from, String to, MappingDefinition.MappingType mappingType) {
-		mappings.add(new MappingDefinition(from, to));
-	}
-	public void addMapping(String from, List<String> to) {
-		mappings.add(new MappingDefinition(from, to));
-	}
-	public void addMapping(String from, List<String> to, MappingDefinition.MappingType mappingType) {
-		mappings.add(new MappingDefinition(from, to));
-	}
-	public void addMapping(List<String> from, List<String> to) {
-		mappings.add(new MappingDefinition(from, to));
-	}
-	public void addMapping(List<String> from, List<String> to, MappingDefinition.MappingType mappingType) {
+	public void addMapping(List<MappingDefinition.Pair<String, String>> from, List<MappingDefinition.Pair<String, String>> to, MappingDefinition.MappingType mappingType) {
 		mappings.add(new MappingDefinition(from, to, mappingType));
 	}
 

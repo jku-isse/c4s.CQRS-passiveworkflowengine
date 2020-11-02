@@ -64,7 +64,7 @@ public class UncleanWorkflow extends AbstractWorkflowDefinition {
                 DecisionNodeDefinition.NO_EXTERNAL_RULE);
         dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, true, dnd));
 //        dnd.addOutBranchDefinition(new DefaultBranchDefinition("closedIn", tdClosed, false, true, dnd));
-        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_CLOSED);
+        dnd.addMapping(TASK_STATE_OPEN, "INPUT", TASK_STATE_CLOSED, "INPUT");
         return dnd;
     }
 

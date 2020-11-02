@@ -476,6 +476,8 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		for (MappingDefinition m : getDefinition().getMappings()) {
 			List<IWorkflowTask> fromTasks = getWorkflowTasksFromTaskDefinitionIds(m.getFrom());
 			List<IWorkflowTask> toTasks = getWorkflowTasksFromTaskDefinitionIds(m.getTo());
+			fromTasks = filterWrongRole(fromTasks, m.getFrom());
+			toTasks = filterWrongExpectedRole(toTasks, m.getTo());
 			if (toTasks.size() == 0) break;
 			for (IWorkflowTask preWft : fromTasks) {
 				for (ArtifactOutput ao : preWft.getOutput()) {
@@ -513,35 +515,54 @@ public class DecisionNodeInstance extends AbstractWorkflowInstanceObject {
 		return null;
 	}
 
-	private List<IWorkflowTask> getWorkflowTasksFromTaskDefinitionIds(List<String> tdIds) {
+	private List<IWorkflowTask> getWorkflowTasksFromTaskDefinitionIds(List<MappingDefinition.Pair<String, String>> tdIds) {
 		List<IWorkflowTask> iwfts = new ArrayList<>();
-		if (tdIds.contains(this.getWorkflow().getType().getId())) {
+		if (tdIds.stream().map(MappingDefinition.Pair::getFirst).anyMatch(id -> id.contains(this.getWorkflow().getType().getId()))) {
 			iwfts.add(this.getWorkflow());
 		}
 		iwfts.addAll(getWorkflow().getWorkflowTasksReadonly().stream()
-				.filter(wft -> tdIds.contains(wft.getType().getId()))
+				.filter(wft -> tdIds.stream().map(MappingDefinition.Pair::getFirst).anyMatch(id -> id.contains(wft.getType().getId())))
 				.map(wft -> (IWorkflowTask) wft)
 				.collect(Collectors.toList()));
 		return iwfts;
+
+	}
+
+	private List<IWorkflowTask> filterWrongRole(List<IWorkflowTask> wfts, List<MappingDefinition.Pair<String, String>> tdIds) {
+		return wfts.stream() // only select those which have an input or output with the correct role
+				.filter(wft -> wft.getInput().stream()
+						.anyMatch(in -> tdIds.stream()
+								.map(MappingDefinition.Pair::getSecond)
+								.anyMatch(role -> role.equals(in.getRole()))) || wft.getOutput().stream()
+						.anyMatch(out -> tdIds.stream()
+								.map(MappingDefinition.Pair::getSecond)
+								.anyMatch(role -> role.equals(out.getRole()))))
+				.collect(Collectors.toList());
+	}
+
+	private List<IWorkflowTask> filterWrongExpectedRole(List<IWorkflowTask> wfts, List<MappingDefinition.Pair<String, String>> tdIds) {
+		return wfts.stream() // only select those which have an input or output with the correct role
+				.filter(wft -> wft.getType().getExpectedInput().keySet().stream()
+						.anyMatch(in -> tdIds.stream()
+								.map(MappingDefinition.Pair::getSecond)
+								.anyMatch(role -> role.equals(in))) || wft.getType().getExpectedOutput().keySet().stream()
+						.anyMatch(out -> tdIds.stream()
+								.map(MappingDefinition.Pair::getSecond)
+								.anyMatch(role -> role.equals(out))))
+				.collect(Collectors.toList());
 	}
 
 	private IWorkflowTask findBestFit(ArtifactOutput ao, List<IWorkflowTask> subsequentTasks) {
-		IWorkflowTask onlyTypeMatched = null;
 		for (IWorkflowTask wft : subsequentTasks) {
 			for (Map.Entry<String, ArtifactType> entry : wft.getType().getExpectedInput().entrySet()) {
 				if (ao.getArtifactType() != null && entry.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType())) {
 					if (entry.getKey().equals(ao.getRole())) {
-						return wft; // type and role matched, so its a perfect fit
+						return wft; // type and role matched
 					}
-					onlyTypeMatched = wft;
 				}
 			}
 		}
-		if (onlyTypeMatched == null) {
-			return null;
-		} else {
-			return onlyTypeMatched;
-		}
+		return null;
 	}
 
 	public boolean isConnected(String workflowTaskID) {

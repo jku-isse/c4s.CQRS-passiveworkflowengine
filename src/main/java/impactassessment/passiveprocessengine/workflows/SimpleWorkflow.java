@@ -59,7 +59,7 @@ public class SimpleWorkflow extends AbstractWorkflowDefinition {
                 DecisionNodeDefinition.NO_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("openIn", tdOpen, false, true, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("openIn", tdOpen, false, false, dnd));
         return dnd;
     }
 
@@ -70,9 +70,9 @@ public class SimpleWorkflow extends AbstractWorkflowDefinition {
                 DecisionNodeDefinition.HAVING_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE);
-        dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, true, dnd));
-        dnd.addOutBranchDefinition(new DefaultBranchDefinition("closedIn", tdClosed, false, true, dnd));
-        dnd.addMapping(TASK_STATE_OPEN, TASK_STATE_CLOSED);
+        dnd.addInBranchDefinition(new DefaultBranchDefinition("openOut", tdOpen, false, false, dnd));
+        dnd.addOutBranchDefinition(new DefaultBranchDefinition("closedIn", tdClosed, false, false, dnd));
+        dnd.addMapping(TASK_STATE_OPEN, ROLE_WPTICKET, TASK_STATE_CLOSED, ROLE_WPTICKET);
         return dnd;
     }
 }
