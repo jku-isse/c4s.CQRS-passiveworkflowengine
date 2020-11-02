@@ -3,21 +3,21 @@ package rules;
 import org.slf4j.Logger
 import org.axonframework.commandhandling.gateway.CommandGateway
 
-import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
-import impactassessment.passiveprocessengine.instance.WorkflowInstance
-import impactassessment.passiveprocessengine.instance.DecisionNodeInstance
-import impactassessment.passiveprocessengine.instance.IBranchInstance.BranchState
-import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition
-import impactassessment.passiveprocessengine.definition.DecisionNodeDefinition.States
-import impactassessment.passiveprocessengine.definition.TaskDefinition
-import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition
-import impactassessment.passiveprocessengine.instance.WorkflowTask
-import impactassessment.passiveprocessengine.definition.TaskLifecycle.Events
-import impactassessment.passiveprocessengine.instance.AbstractWorkflowInstanceObject
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed
-import impactassessment.passiveprocessengine.instance.ResourceLink
+import passiveprocessengine.definition.DecisionNodeDefinition.States
+import passiveprocessengine.instance.WorkflowInstance
+import passiveprocessengine.instance.DecisionNodeInstance
+import passiveprocessengine.instance.IBranchInstance.BranchState
+import passiveprocessengine.definition.DecisionNodeDefinition
+import passiveprocessengine.definition.DecisionNodeDefinition.States
+import passiveprocessengine.definition.TaskDefinition
+import passiveprocessengine.definition.NoOpTaskDefinition
+import passiveprocessengine.instance.WorkflowTask
+import passiveprocessengine.definition.TaskLifecycle.Events
+import passiveprocessengine.instance.AbstractWorkflowInstanceObject
+import passiveprocessengine.definition.WorkflowDefinition
+import passiveprocessengine.exampleworkflows.DronologyWorkflow
+import passiveprocessengine.exampleworkflows.DronologyWorkflowFixed
+import passiveprocessengine.instance.ResourceLink
 
 import impactassessment.api.CompleteDataflowCmd
 import impactassessment.api.ActivateInBranchCmd
@@ -32,7 +32,8 @@ import java.util.List
 import java.util.Set
 import java.util.ArrayList
 import java.util.stream.Collectors
-import impactassessment.passiveprocessengine.instance.ResourceLink
+import passiveprocessengine.instance.ResourceLink
+import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 
 global CommandGateway commandGateway;
@@ -47,7 +48,7 @@ rule "AddWPTicketAsInputToNewTasks"
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
-        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLink.of($a)));
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLinkFactory.get($a)));
 
 end
 

@@ -1,11 +1,11 @@
 package impactassessment.registry;
 
 import impactassessment.kiesession.KieSessionFactory;
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition;
-import impactassessment.passiveprocessengine.persistance.DefinitionSerializer;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.persistance.json.DefinitionSerializer;
 
 import java.io.BufferedWriter;
 import java.io.File;

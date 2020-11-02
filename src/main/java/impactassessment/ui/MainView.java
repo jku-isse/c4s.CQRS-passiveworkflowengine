@@ -29,7 +29,6 @@ import com.vaadin.flow.router.Route;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.definition.ArtifactType;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
@@ -42,6 +41,7 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
+import passiveprocessengine.definition.ArtifactType;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -101,9 +101,6 @@ public class MainView extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        System.out.println("######################");
-        System.out.println("###################### "+attachEvent.getUI());
-        System.out.println("###################### "+this);
         pusher.setUi(attachEvent.getUI());
         pusher.setView(this);
     }

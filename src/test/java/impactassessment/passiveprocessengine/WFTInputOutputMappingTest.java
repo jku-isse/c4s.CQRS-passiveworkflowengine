@@ -2,14 +2,14 @@ package impactassessment.passiveprocessengine;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.passiveprocessengine.definition.ArtifactType;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.definition.TaskDefinition;
-import impactassessment.passiveprocessengine.definition.TaskLifecycle;
-import impactassessment.passiveprocessengine.instance.*;
-import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
+import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.definition.TaskDefinition;
+import passiveprocessengine.definition.TaskLifecycle;
+import passiveprocessengine.exampleworkflows.SimpleWorkflow;
+import passiveprocessengine.instance.*;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class WFTInputOutputMappingTest {
     @Before
     public void setup() {
         IJiraArtifact a = JiraMockService.mockArtifact(ID);
-        rl = ResourceLink.of(a);
+        rl = new ResourceLink("test", "test", "test", "test", "test", "test");
     }
 
     /**

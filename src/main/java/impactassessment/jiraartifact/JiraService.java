@@ -1,6 +1,5 @@
 package impactassessment.jiraartifact;
 
-import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,11 +59,6 @@ public class JiraService implements IJiraArtifactService {
         }
 
         @Override
-        public void updateIfExists(IssueAgent issueAgent) {
-
-        }
-
-        @Override
         public Optional<ZonedDateTime> getLastRefreshedOn() {
             return Optional.empty();
         }
@@ -73,16 +67,11 @@ public class JiraService implements IJiraArtifactService {
         public void setLastRefreshedOn(ZonedDateTime zonedDateTime) {
 
         }
-
-        @Override
-        public void removeFromCache(String s) {
-
-        }
     }
     public static class MockSubscriber implements ChangeSubscriber {
 
         @Override
-        public void handleUpdatedIssues(List<IssueAgent> list, CorrelationTuple correlationTuple) {
+        public void handleUpdatedIssues(List<IssueAgent> list) {
 
         }
     }

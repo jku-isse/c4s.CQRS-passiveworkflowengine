@@ -86,6 +86,22 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ISSE.JKU</groupId>
+            <artifactId>c4s.jiralightconnector</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ISSE.JKU</groupId>
+            <artifactId>c4s.analytics</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ISSE.JKU</groupId>
+            <artifactId>c4s.passiveprocessengine.v2</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Axon -->
         <dependency>
             <groupId>org.axonframework</groupId>
@@ -253,11 +269,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ISSE.JKU</groupId>
-            <artifactId>c4s.jiralightconnector</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-rest-java-client-core</artifactId>
             <version>5.2.1</version>
@@ -266,11 +277,6 @@
             <groupId>io.atlassian.fugue</groupId>
             <artifactId>fugue</artifactId>
             <version>4.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.analytics</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.graphstream/gs-ui -->
@@ -310,6 +316,57 @@
 
         <plugins>
 
+            <!-- JARs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>install1</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>ISSE.JKU</groupId>
+                            <artifactId>c4s.jiralightconnector</artifactId>
+                            <version>0.3.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.jiralightconnector-0.0.3-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install2</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>ISSE.JKU</groupId>
+                            <artifactId>c4s.analytics</artifactId>
+                            <version>0.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.analytics-0.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install3</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>ISSE.JKU</groupId>
+                            <artifactId>c4s.passiveprocessengine.v2</artifactId>
+                            <version>1.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-1.0-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Kotlin -->
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -326,16 +383,16 @@
                             </sourceDirs>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <goals> <goal>test-compile</goal> </goals>
-                        <configuration>
-                            <sourceDirs>
-<!--                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>-->
-                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
-                            </sourceDirs>
-                        </configuration>
-                    </execution>
+<!--                    <execution>-->
+<!--                        <id>test-compile</id>-->
+<!--                        <goals> <goal>test-compile</goal> </goals>-->
+<!--                        <configuration>-->
+<!--                            <sourceDirs>-->
+<!--&lt;!&ndash;                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>&ndash;&gt;-->
+<!--                                <sourceDir>${project.basedir}/src/test/java</sourceDir>-->
+<!--                            </sourceDirs>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
                 </executions>
             </plugin>
             <plugin>

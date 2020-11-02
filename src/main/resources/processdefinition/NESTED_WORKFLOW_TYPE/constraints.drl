@@ -2,15 +2,15 @@ package rules;
 
 import org.axonframework.commandhandling.gateway.CommandGateway
 
-import impactassessment.passiveprocessengine.instance.QACheckDocument
-import impactassessment.passiveprocessengine.instance.WorkflowTask
-import impactassessment.passiveprocessengine.instance.ResourceLink
+import passiveprocessengine.instance.QACheckDocument
+import passiveprocessengine.instance.WorkflowTask
+import passiveprocessengine.instance.ResourceLink
 import java.util.Optional
-import impactassessment.passiveprocessengine.instance.RuleEngineBasedConstraint
+import passiveprocessengine.instance.RuleEngineBasedConstraint
 import java.time.Instant
-import impactassessment.passiveprocessengine.instance.CorrelationTuple
-import impactassessment.passiveprocessengine.instance.ConstraintTrigger
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow
+import passiveprocessengine.instance.CorrelationTuple
+import passiveprocessengine.instance.ConstraintTrigger
+import passiveprocessengine.exampleworkflows.DronologyWorkflow
 
 import impactassessment.api.AddEvaluationResultToConstraintCmd
 import java.util.concurrent.TimeUnit
@@ -24,8 +24,9 @@ import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
 import impactassessment.api.AddConstraintsCmd
-import impactassessment.passiveprocessengine.instance.ResourceLink
-import impactassessment.passiveprocessengine.instance.WorkflowTask
+import passiveprocessengine.instance.ResourceLink
+import passiveprocessengine.instance.WorkflowTask
+import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;
@@ -132,7 +133,7 @@ rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean hasFixVersion = $a.getFixVersions().iterator().hasNext();
-		Map<ResourceLink, Boolean> result = Map.of(ResourceLink.of($a), hasFixVersion);
+		Map<ResourceLink, Boolean> result = Map.of(ResourceLinkFactory.get($a), hasFixVersion);
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
@@ -150,12 +151,12 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				n++;
-				resources.put(ResourceLink.of(p), isRelatedToOne);
+				resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
 				isRelatedToOne = false;
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLink.of($a), false);
+		    resources.put(ResourceLinkFactory.get($a), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -175,15 +176,15 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
-				    resources.put(ResourceLink.of(p), isRelatedToOne);
+				    resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
 					isRelatedToOne = false;
 				} else {
-				    resources.put(ResourceLink.of(p), false);
+				    resources.put(ResourceLinkFactory.get(p), false);
 				}
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLink.of($a), false);
+		    resources.put(ResourceLinkFactory.get($a), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -196,7 +197,7 @@ rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean hasAssignee = $a.getAssignee() != null;
-		Map<ResourceLink, Boolean> result = Map.of(ResourceLink.of($a), hasAssignee);
+		Map<ResourceLink, Boolean> result = Map.of(ResourceLinkFactory.get($a), hasAssignee);
         commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
@@ -212,12 +213,12 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		for (IJiraIssueLink link : $a.getIssueLinks()){
 			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
-			    resources.put(ResourceLink.of(p), true);
+			    resources.put(ResourceLinkFactory.get(p), true);
 				n++;
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLink.of($a), false);
+		    resources.put(ResourceLinkFactory.get($a), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -235,15 +236,15 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
 				if (p.getStatus().getName().equals("Closed")) {
-				    resources.put(ResourceLink.of(p), true);
+				    resources.put(ResourceLinkFactory.get(p), true);
 				} else {
-				    resources.put(ResourceLink.of(p), false);
+				    resources.put(ResourceLinkFactory.get(p), false);
 				}
 				relatedBug = true;
 			}
 		}
 		if (!relatedBug) {
-		    resources.put(ResourceLink.of($a), true);
+		    resources.put(ResourceLinkFactory.get($a), true);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -262,12 +263,12 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
-					resources.put(ResourceLink.of(p), isMitigated);
+					resources.put(ResourceLinkFactory.get(p), isMitigated);
 				}
 			}
 		}
 		if (!isMitigated) {
-		    resources.put(ResourceLink.of($a), false);
+		    resources.put(ResourceLinkFactory.get($a), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
