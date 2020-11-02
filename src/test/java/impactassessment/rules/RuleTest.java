@@ -6,8 +6,6 @@ import impactassessment.api.CreatedDefaultWorkflowEvt;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflow;
-import impactassessment.passiveprocessengine.instance.ResourceLink;
 import impactassessment.kiesession.KieSessionFactory;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.After;
@@ -19,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import passiveprocessengine.exampleworkflows.DronologyWorkflow;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.util.List;
 
@@ -119,7 +119,7 @@ public class RuleTest {
 
     private void completeDataflow(IJiraArtifact a) {
         String id = a.getKey();
-        model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, ResourceLink.of(a)));
+        model.handle(new CompletedDataflowEvt(id, "workflowKickOff#"+id, new ResourceLink(a.getKey(), "test", "test", "test", "test", "test")));
     }
 
     private int insertAndFire(IJiraArtifact a) {

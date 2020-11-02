@@ -15,10 +15,18 @@ import impactassessment.api.CheckAllConstraintsCmd;
 import impactassessment.api.CheckConstraintCmd;
 import impactassessment.api.DeleteCmd;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
-import impactassessment.passiveprocessengine.definition.NoOpTaskDefinition;
-import impactassessment.passiveprocessengine.instance.*;
 import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.definition.AbstractIdentifiableObject;
+import passiveprocessengine.definition.NoOpTaskDefinition;
+import passiveprocessengine.instance.*;
+import passiveprocessengine.instance.ArtifactIO;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactOutput;
+import passiveprocessengine.instance.QACheckDocument;
+import passiveprocessengine.instance.ResourceLink;
+import passiveprocessengine.instance.RuleEngineBasedConstraint;
+import passiveprocessengine.instance.WorkflowInstance;
+import passiveprocessengine.instance.WorkflowTask;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
@@ -165,7 +173,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 boolean unsatisfied = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
                                 .map(ArtifactIO::getArtifact)
-                                .filter(a -> a instanceof QACheckDocument)
+                                .filter(a -> a instanceof passiveprocessengine.instance.QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
                                 .anyMatch(a -> a.stream()

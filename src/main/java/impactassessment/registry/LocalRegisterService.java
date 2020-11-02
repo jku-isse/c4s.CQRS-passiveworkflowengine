@@ -1,14 +1,14 @@
 package impactassessment.registry;
 
 import impactassessment.kiesession.KieSessionFactory;
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition;
-import impactassessment.passiveprocessengine.persistance.DefinitionSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.FileCopyUtils;
+import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.persistance.json.DefinitionSerializer;
 
 import java.io.*;
 import java.nio.file.Files;

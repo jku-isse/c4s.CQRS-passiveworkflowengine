@@ -3,23 +3,24 @@ package impactassessment.passiveprocessengine;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.passiveprocessengine.definition.ArtifactType;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.definition.MappingDefinition;
-import impactassessment.passiveprocessengine.instance.DecisionNodeInstance;
-import impactassessment.passiveprocessengine.instance.ResourceLink;
-import impactassessment.passiveprocessengine.instance.WorkflowInstance;
-import impactassessment.passiveprocessengine.instance.WorkflowTask;
-import impactassessment.passiveprocessengine.workflows.ComplexWorkflow;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
-import impactassessment.passiveprocessengine.workflows.SimpleWorkflow;
 import org.junit.Before;
 import org.junit.Test;
+import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.definition.MappingDefinition;
+import passiveprocessengine.exampleworkflows.ComplexWorkflow;
+import passiveprocessengine.exampleworkflows.DronologyWorkflowFixed;
+import passiveprocessengine.exampleworkflows.SimpleWorkflow;
+import passiveprocessengine.instance.DecisionNodeInstance;
+import passiveprocessengine.instance.ResourceLink;
+import passiveprocessengine.instance.WorkflowInstance;
+import passiveprocessengine.instance.WorkflowTask;
+
+import static passiveprocessengine.exampleworkflows.ComplexWorkflow.*;
 
 import java.util.List;
 import java.util.Map;
 
-import static impactassessment.passiveprocessengine.workflows.ComplexWorkflow.*;
 import static org.junit.Assert.assertEquals;
 
 public class WFTInputOutputMappingWithWrapperTest {
@@ -31,7 +32,7 @@ public class WFTInputOutputMappingWithWrapperTest {
     @Before
     public void setup() {
         a = JiraMockService.mockArtifact(ID);
-        rl = ResourceLink.of(a);
+        rl = new ResourceLink("test", "test", "test", "test", "test", "test");
     }
 
     @Test

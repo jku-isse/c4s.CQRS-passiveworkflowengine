@@ -6,7 +6,6 @@ import impactassessment.command.WorkflowAggregate;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
-import impactassessment.passiveprocessengine.instance.ResourceLink;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -15,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class BasicAggregateTest {
     public void testAddCompleteActivate() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
         fixture.given(new CreatedDefaultWorkflowEvt(id, List.of(a)))
-                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, ResourceLink.of(a)))
+                .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, new ResourceLink("test", "test", "test", "test", "test", "test")))
                 .when(new ActivateInOutBranchCmd(id, "open2inProgressOrResolved#"+id, "Open#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
     }

@@ -3,13 +3,13 @@ package impactassessment.passiveprocessengine;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.passiveprocessengine.definition.ArtifactType;
-import impactassessment.passiveprocessengine.definition.ArtifactTypes;
-import impactassessment.passiveprocessengine.instance.ResourceLink;
-import impactassessment.passiveprocessengine.workflows.DronologyWorkflowFixed;
-import impactassessment.passiveprocessengine.workflows.NestedWorkflow;
 import org.junit.Before;
 import org.junit.Test;
+import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.exampleworkflows.DronologyWorkflowFixed;
+import passiveprocessengine.exampleworkflows.NestedWorkflow;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class NestedWorkflowTest {
     @Before
     public void setup() {
         a = JiraMockService.mockArtifact(ID);
-        rl = ResourceLink.of(a);
+        rl = new ResourceLink("test", "test", "test", "test", "test", "test");
     }
 
     @Test
@@ -30,7 +30,13 @@ public class NestedWorkflowTest {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
         wfiWrapper.handle(new CreatedWorkflowEvt(ID, List.of(a), "", new NestedWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
-        wfiWrapper.handle(new AddedOutputEvt(ID, "Open#test", new ResourceLink(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, "dummy", "dummy", "dummy", "dummy", "dummy"), "irrelevantForTest", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
+        wfiWrapper.handle(new AddedOutputEvt(
+                ID,
+                "Open#test",
+                new ResourceLink(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, "dummy", "dummy", "dummy", "dummy", "dummy"),
+                "irrelevantForTest",
+                new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)
+        ));
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2inProgress#test", "Open#test", "inProgressIn"));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2inProgress#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInBranchEvt(ID, "inProgress2resolved#test", "In Progress#test"));

@@ -2,7 +2,6 @@ package impactassessment.kiesession;
 
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.passiveprocessengine.definition.AbstractIdentifiableObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -11,6 +10,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import passiveprocessengine.definition.AbstractIdentifiableObject;
 
 import java.io.File;
 import java.io.FileReader;

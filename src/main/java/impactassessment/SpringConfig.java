@@ -2,14 +2,14 @@ package impactassessment;
 
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraJsonService;
-import impactassessment.passiveprocessengine.definition.WorkflowDefinition;
-import impactassessment.passiveprocessengine.workflows.NestedWorkflow;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.exampleworkflows.NestedWorkflow;
 
 @Configuration
 public class SpringConfig {
