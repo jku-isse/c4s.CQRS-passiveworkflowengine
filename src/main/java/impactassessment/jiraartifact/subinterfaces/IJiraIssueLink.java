@@ -1,4 +1,4 @@
-package impactassessment.jiraartifact;
+package impactassessment.jiraartifact.subinterfaces;
 
 import com.atlassian.jira.rest.client.api.domain.IssueLinkType;
 
@@ -10,6 +10,6 @@ public interface IJiraIssueLink {
 
     URI getTargetIssueUri();
 
-    IssueLinkType getIssueLinkType();
+    IJiraIssueLinkType getIssueLinkType();
 
 }

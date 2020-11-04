@@ -18,7 +18,7 @@ import java.util.List
 import java.util.ArrayList
 
 import impactassessment.jiraartifact.IJiraArtifact
-import impactassessment.jiraartifact.IJiraIssueLink
+import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
 import impactassessment.jiraartifact.IJiraArtifactService
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
@@ -27,6 +27,7 @@ import impactassessment.api.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.ResourceLinkFactory
+import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;

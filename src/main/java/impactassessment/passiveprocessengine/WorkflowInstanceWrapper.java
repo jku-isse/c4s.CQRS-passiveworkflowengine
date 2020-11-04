@@ -87,8 +87,14 @@ public class WorkflowInstanceWrapper {
 
     public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        dni.completedDataflowInvolvingActivationPropagation();
-        return dni.executeMapping();
+        if (dni != null) {
+            dni.completedDataflowInvolvingActivationPropagation();
+            return dni.executeMapping();
+        } else {
+            log.error("{} caused an error. Couldn't be found in current WFI (present DNIs: {})", evt, wfi.getDecisionNodeInstancesReadonly().stream().map(DecisionNodeInstance::toString).collect(Collectors.joining( "," )));
+            return Collections.emptyMap();
+        }
+
     }
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {

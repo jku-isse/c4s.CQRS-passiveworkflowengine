@@ -1,6 +1,7 @@
 package impactassessment.jiraartifact.mock;
 
 import impactassessment.jiraartifact.*;
+import impactassessment.jiraartifact.subinterfaces.*;
 import org.joda.time.DateTime;
 
 import java.net.URI;

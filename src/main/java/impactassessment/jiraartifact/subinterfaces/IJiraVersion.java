@@ -1,4 +1,4 @@
-package impactassessment.jiraartifact;
+package impactassessment.jiraartifact.subinterfaces;
 
 import org.joda.time.DateTime;
 
