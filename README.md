@@ -16,7 +16,7 @@ The workflow-projection receives these state update events and projects the chan
 A user can access the view model via queries to the projection.
 
 ## Architecture
-![](doc/architecture.png)
+![](doc/architecture.PNG)
 
 ## Workflow
 For a more detailled explanation how the workflow is modelled look into the wiki.
