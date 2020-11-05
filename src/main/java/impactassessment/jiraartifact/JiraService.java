@@ -1,21 +1,24 @@
 package impactassessment.jiraartifact;
 
 import c4s.jiralightconnector.*;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import lombok.extern.slf4j.Slf4j;
+import org.codehaus.jettison.json.JSONException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @Slf4j
 public class JiraService implements IJiraArtifactService {
 
     private JiraInstance jira;
 
-    public JiraService() {
-        jira = new JiraInstance(new MockCache(), new MockSubscriber(), new MockMonitoring());
+    public JiraService(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
+        jira = new JiraInstance(issueCache, changeSubscriber, monitoringState);
 
         Properties props = new Properties();
         try {
@@ -46,50 +49,19 @@ public class JiraService implements IJiraArtifactService {
         }
     }
 
-    public static class MockCache implements IssueCache {
-
-        @Override
-        public Optional<IssueAgent> getFromCache(String s) {
-            return Optional.empty();
+    // FIXME: remove this later
+    public void testChangeSubscriber(String key) {
+        log.info("testChangeSubscriber");
+        JiraJsonService jsonService = new JiraJsonService();
+        Issue jiraArtifact = null;
+        try {
+            jiraArtifact = jsonService.loadIssue(key);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
         }
-
-        @Override
-        public void insertOrUpdate(IssueAgent issueAgent) {
-
-        }
-
-        @Override
-        public Optional<ZonedDateTime> getLastRefreshedOn() {
-            return Optional.empty();
-        }
-
-        @Override
-        public void setLastRefreshedOn(ZonedDateTime zonedDateTime) {
-
-        }
+        List<Issue> updates = new ArrayList<>();
+        updates.add(jiraArtifact);
+        jira.processUpdate(updates);
     }
-    public static class MockSubscriber implements ChangeSubscriber {
 
-        @Override
-        public void handleUpdatedIssues(List<IssueAgent> list) {
-
-        }
-    }
-    public static class MockMonitoring implements MonitoringState {
-
-        @Override
-        public Set<String> getMonitoredIssueKeys() {
-            return null;
-        }
-
-        @Override
-        public void removeMonitoredIssueKey(String s) {
-
-        }
-
-        @Override
-        public void addMonitoredIssueKey(String s) {
-
-        }
-    }
 }

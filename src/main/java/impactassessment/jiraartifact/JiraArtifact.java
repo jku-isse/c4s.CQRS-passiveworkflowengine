@@ -3,6 +3,7 @@ package impactassessment.jiraartifact;
 import com.atlassian.jira.rest.client.api.domain.*;
 import impactassessment.jiraartifact.subinterfaces.*;
 import impactassessment.jiraartifact.subtypes.*;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.joda.time.DateTime;
 
 import java.net.URI;
@@ -10,8 +11,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JiraArtifact implements IJiraArtifact {
 
+public class JiraArtifact implements IJiraArtifact {
     private Issue issue;
     private IJiraStatus status;
     private IJiraUser reporter;
@@ -34,7 +35,7 @@ public class JiraArtifact implements IJiraArtifact {
         this.issueType = new JiraIssueType(issue.getIssueType());
         this.basicProject = new JiraBasicProject(issue.getProject());
         this.basicVotes = new JiraBasicVotes(issue.getVotes());
-        if (issue.getIssueLinks() != null) // necessary because field is marked as @Nullable by atlassian
+        if (issue.getIssueLinks() != null) // null-check necessary because field is marked as @Nullable by atlassian
             for (IssueLink il : issue.getIssueLinks()) {
                 issueLinks.add(new JiraIssueLink(il));
             }

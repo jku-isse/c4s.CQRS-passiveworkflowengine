@@ -9,19 +9,26 @@ import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
+import passiveprocessengine.definition.Artifact;
+import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactOutput;
+import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
+import static impactassessment.command.ArtifactUsage.Usage;
 
 @Aggregate
 @Profile("command")
@@ -30,9 +37,9 @@ public class WorkflowAggregate {
 
     @AggregateIdentifier
     String id;
-    WorkflowInstanceWrapper model;
     private String parentWfiId; // also parent aggregate id
     private String parentWftId;
+    private Set<ArtifactUsage> artifactUsages = new HashSet<>();
 
     public WorkflowAggregate() {
         log.debug("[AGG] empty constructor WorkflowAggregate invoked");
@@ -41,9 +48,6 @@ public class WorkflowAggregate {
     public String getId() {
         return id;
     }
-    public WorkflowInstanceWrapper getModel() {
-        return model;
-    }
 
 
     // -------------------------------- Command Handlers --------------------------------
@@ -51,16 +55,18 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateMockWorkflowCmd cmd) {
+    public void handle(CreateMockWorkflowCmd cmd, CommandGateway commandGateway) {
         log.info("[AGG] handling {}", cmd);
+        commandGateway.send(new AddIdCmd("update", cmd.getId()));
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
         apply(new CreatedDefaultWorkflowEvt(cmd.getId(), List.of(a)));
     }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService) {
+    public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService, CommandGateway commandGateway) {
         log.info("[AGG] handling {}", cmd);
+        commandGateway.send(new AddIdCmd("update", cmd.getId()));
         List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
         if (artifacts.size() > 0) {
             apply(new CreatedDefaultWorkflowEvt(cmd.getId(), artifacts));
@@ -71,8 +77,9 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry, CommandGateway commandGateway) {
         log.info("[AGG] handling {}", cmd);
+        commandGateway.send(new AddIdCmd("update", cmd.getId()));
         List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
@@ -101,8 +108,9 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry, CommandGateway commandGateway) {
         log.info("[AGG] handling {}", cmd);
+        commandGateway.send(new AddIdCmd("update", cmd.getId()));
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
@@ -142,8 +150,9 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(DeleteCmd cmd) {
+    public void handle(DeleteCmd cmd, CommandGateway commandGateway) {
         log.info("[AGG] handling {}", cmd);
+        commandGateway.send(new RemovedIdEvt("update", cmd.getId()));
         apply(new DeletedEvt(cmd.getId()));
     }
 
@@ -198,6 +207,45 @@ public class WorkflowAggregate {
         apply(new AddedOutputToWorkflowEvt(cmd.getId(), cmd.getOutput()));
     }
 
+    @CommandHandler
+    public void handle(ArtifactUpdateCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        String artifactKey = cmd.getArtifact().getKey();
+        log.debug("Artifact that was updated: {}, Artifacts used by this aggregate: {}", artifactKey, artifactUsages.stream()
+                .map(ArtifactUsage::getArtifactKey)
+                .collect( Collectors.joining( "," ) ));
+        for (ArtifactUsage artifactUsage : artifactUsages) {
+            if (artifactUsage.getArtifactKey().equals(artifactKey)) {
+                ArtifactWrapper wrapper = new ArtifactWrapper(cmd.getArtifact().getKey(), "JiraArtifact", null, cmd.getArtifact());
+                switch (artifactUsage.getUsage()) {
+                    case OUTPUT:
+                        apply(new AddedOutputEvt(cmd.getId(), artifactUsage.getWftId(), wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType()));
+                        break;
+                    case INPUT:
+                        apply(new AddedInputEvt(cmd.getId(), artifactUsage.getWftId(), wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType()));
+                        break;
+                    case WF_OUTPUT:
+                        ArtifactOutput out = new ArtifactOutput(wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType());
+                        apply(new AddedOutputToWorkflowEvt(cmd.getId(), out));
+                        break;
+                    case WF_INPUT:
+                        ArtifactInput in = new ArtifactInput(wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType());
+                        apply(new AddedInputToWorkflowEvt(cmd.getId(), in));
+                        break;
+                    case RESOURCE:
+                        apply(new CheckedConstraintEvt(cmd.getId(), artifactUsage.getCorrId()));
+                        break;
+                }
+            }
+        }
+    }
+
+    @CommandHandler
+    public void handle(AddArtifactUsageCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new AddedArtifactUsageEvt(cmd.getId(), cmd.getKey(), cmd.getCorrId()));
+    }
+
 
     // -------------------------------- Event Handlers --------------------------------
 
@@ -206,16 +254,18 @@ public class WorkflowAggregate {
     public void on(CreatedDefaultWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
+        evt.getArtifacts().stream()
+                .map(a -> new ArtifactUsage(a.getKey(), Usage.WF_OUTPUT, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET))) // FIXME role and artifacttype are hardcoded in WFIWrapper setArtifact
+                .forEach(u -> artifactUsages.add(u));
     }
 
     @EventSourcingHandler
     public void on(CreatedWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
+        evt.getArtifacts().stream()
+                .map(a -> new ArtifactUsage(a.getKey(), Usage.WF_OUTPUT, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET))) // FIXME role and artifacttype are hardcoded in WFIWrapper setArtifact
+                .forEach(u -> artifactUsages.add(u));
     }
 
     @EventSourcingHandler
@@ -224,8 +274,58 @@ public class WorkflowAggregate {
         id = evt.getId();
         parentWfiId = evt.getParentWfiId();
         parentWftId = evt.getParentWftId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
+    }
+
+    @EventSourcingHandler
+    public void on(AddedInputEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        IJiraArtifact jiraArtifact = checkIfJiraArtifactInside(evt.getArtifact());
+        if (jiraArtifact != null) {
+            artifactUsages.add(new ArtifactUsage(jiraArtifact.getKey(), Usage.INPUT, evt.getWftId(), evt.getRole(), evt.getType()));
+        }
+    }
+
+    @EventSourcingHandler
+    public void on(AddedOutputEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        IJiraArtifact jiraArtifact = checkIfJiraArtifactInside(evt.getArtifact());
+        if (jiraArtifact != null) {
+            artifactUsages.add(new ArtifactUsage(jiraArtifact.getKey(), Usage.OUTPUT, evt.getWftId(), evt.getRole(), evt.getType()));
+        }
+    }
+
+    @EventSourcingHandler
+    public void on(AddedInputToWorkflowEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        IJiraArtifact jiraArtifact = checkIfJiraArtifactInside(evt.getInput().getArtifact());
+        if (jiraArtifact != null) {
+            artifactUsages.add(new ArtifactUsage(jiraArtifact.getKey(), Usage.WF_INPUT, evt.getInput().getRole(), evt.getInput().getArtifactType()));
+        }
+    }
+
+    @EventSourcingHandler
+    public void on(AddedOutputToWorkflowEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        IJiraArtifact jiraArtifact = checkIfJiraArtifactInside(evt.getOutput().getArtifact());
+        if (jiraArtifact != null) {
+            artifactUsages.add(new ArtifactUsage(jiraArtifact.getKey(), Usage.WF_OUTPUT, evt.getOutput().getRole(), evt.getOutput().getArtifactType()));
+        }
+    }
+
+    private IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {
+        if (artifact instanceof ArtifactWrapper) {
+            ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
+            if (artifactWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
+                return (IJiraArtifact) artifactWrapper.getWrappedArtifact();
+            }
+        }
+        return null;
+    }
+
+    @EventSourcingHandler
+    public void on(AddedArtifactUsageEvt evt) {
+        log.debug("[AGG] applying {}", evt);
+        artifactUsages.add(new ArtifactUsage(evt.getKey(), Usage.RESOURCE, evt.getCorrId()));
     }
 
     @EventSourcingHandler
@@ -239,7 +339,6 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(IdentifiableEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
     }
 
 }

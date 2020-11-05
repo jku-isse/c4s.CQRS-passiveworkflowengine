@@ -1,11 +1,18 @@
 package impactassessment.jiraartifact.subtypes;
 
 import com.atlassian.jira.rest.client.api.domain.IssueLink;
+import impactassessment.SpringUtil;
+import impactassessment.api.AddArtifactUsageCmd;
+import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink;
 import impactassessment.jiraartifact.subinterfaces.IJiraIssueLinkType;
+import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import java.net.URI;
 
+@Slf4j
 public class JiraIssueLink implements IJiraIssueLink {
 
     private IssueLink issueLink;
@@ -29,5 +36,19 @@ public class JiraIssueLink implements IJiraIssueLink {
     @Override
     public IJiraIssueLinkType getIssueLinkType() {
         return jiraIssueLinkType;
+    }
+
+    /**
+     * New method to directly fetch the target issue
+     * @return the target issue
+     */
+    @Override
+    public IJiraArtifact getTargetIssue(String aggregateId, String corrId) {
+        log.info("Artifact fetching linked issue: {}", getTargetIssueKey());
+        IJiraArtifactService jiraArtifactService = SpringUtil.getBean(IJiraArtifactService.class);
+        IJiraArtifact jiraArtifact = jiraArtifactService.get(issueLink.getTargetIssueKey());
+        CommandGateway commandGateway = SpringUtil.getBean(CommandGateway.class);
+        commandGateway.send(new AddArtifactUsageCmd(aggregateId, jiraArtifact.getKey(), corrId));
+        return jiraArtifact;
     }
 }

@@ -1,10 +1,15 @@
 package impactassessment;
 
+import c4s.jiralightconnector.ChangeSubscriber;
+import c4s.jiralightconnector.InMemoryMonitoringState;
+import c4s.jiralightconnector.IssueCache;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraJsonService;
+import impactassessment.jiraartifact.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +21,15 @@ public class SpringConfig {
 
     @Bean
     public IJiraArtifactService getJiraArtifactService() {
-        // connects directly to a Jira server
-//        return new JiraService();
         // uses JSON image of Jira data in resources folder
         return new JiraJsonService();
     }
+
+//    @Bean
+//    public IJiraArtifactService getJiraArtifactService(IssueCache issueCache, ChangeSubscriber changeSubscriber) {
+//        // connects directly to a Jira server
+//        return new JiraService(issueCache, changeSubscriber, new InMemoryMonitoringState());
+//    }
 
     @Bean
     public WorkflowDefinition getAbstractWorkflowDefinition() {

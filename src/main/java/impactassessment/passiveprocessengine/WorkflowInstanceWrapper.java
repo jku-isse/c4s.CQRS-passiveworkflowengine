@@ -4,10 +4,7 @@ import impactassessment.SpringUtil;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.definition.ArtifactType;
-import passiveprocessengine.definition.ArtifactTypes;
-import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
 import passiveprocessengine.instance.ArtifactIO;
 import passiveprocessengine.instance.ArtifactInput;
@@ -49,7 +46,7 @@ public class WorkflowInstanceWrapper {
     private void setArtifact(List<IJiraArtifact> artifacts) {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
-                ArtifactWrapper aw = new ArtifactWrapper("Wrapped#" + artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
+                ArtifactWrapper aw = new ArtifactWrapper(artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
                 // TODO add as input (enable input to input mapping!)
                 wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
             }
@@ -179,6 +176,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public WorkflowTask handle(AddedInputEvt evt) {
+        setWfi(evt.getArtifact());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
         // TODO check if input is expected
@@ -187,6 +185,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public WorkflowTask handle(AddedOutputEvt evt) {
+        setWfi(evt.getArtifact());
         WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
@@ -194,10 +193,22 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
+        if (wfi == null) return;
+        setWfi(evt.getInput().getArtifact());
         wfi.addInput(evt.getInput());
     }
 
+    private void setWfi(Artifact a) {
+        if (a instanceof ArtifactWrapper) {
+            if (((ArtifactWrapper)a).getWorkflow() == null) {
+                ((ArtifactWrapper)a).setWorkflow(wfi);
+            }
+        }
+    }
+
     public void handle(AddedOutputToWorkflowEvt evt) {
+        if (wfi == null) return;
+        setWfi(evt.getOutput().getArtifact());
         wfi.addOutput(evt.getOutput());
     }
 
@@ -249,6 +260,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public RuleEngineBasedConstraint getQAC(String qacId) {
+        if (wfi == null) return null;
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
             for (ArtifactOutput ao : wft.getOutput()) {
                 if (ao.getArtifact() instanceof QACheckDocument) {

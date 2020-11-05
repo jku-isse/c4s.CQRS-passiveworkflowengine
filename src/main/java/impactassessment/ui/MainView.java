@@ -1,5 +1,7 @@
 package impactassessment.ui;
 
+import c4s.jiralightconnector.ChangeSubscriber;
+import c4s.jiralightconnector.InMemoryMonitoringState;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
@@ -26,7 +28,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
+import impactassessment.SpringUtil;
 import impactassessment.api.*;
+import impactassessment.jiraartifact.JiraService;
+import impactassessment.jiraartifact.MockCache;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Replayer;
@@ -470,7 +475,17 @@ public class MainView extends VerticalLayout {
             Notification.show("Success");
         });
 
-        return new VerticalLayout(description, id, print);
+        // FIXME: remove afterwards
+        ChangeSubscriber changeSubscriber = SpringUtil.getBean(ChangeSubscriber.class);
+        Button changeSubscriberTest = new Button("Change Subscriber Test", e -> {
+            InMemoryMonitoringState monitoringState = new InMemoryMonitoringState();
+            monitoringState.addMonitoredIssueKey(id.getValue());
+            JiraService jira = new JiraService(new MockCache(), changeSubscriber, monitoringState);
+            jira.testChangeSubscriber(id.getValue());
+        });
+        // FIXME -------------------
+
+        return new VerticalLayout(description, id, print, changeSubscriberTest);
     }
 
     private Component remove() {

@@ -18,6 +18,7 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.*;
 import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
@@ -169,6 +170,8 @@ public class WorkflowProjection {
             } else {
                 log.warn("Concerned RuleEngineBasedConstraint wasn't found");
             }
+        } else {
+            log.warn("WFI not initialized");
         }
     }
 

@@ -4,6 +4,7 @@ import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -47,7 +48,7 @@ public class JiraJsonService implements IJiraArtifactService {
         return artifact;
     }
 
-    private Issue loadIssue(String key) throws JSONException, IOException {
+    protected Issue loadIssue(String key) throws JSONException, IOException {
 		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
         String body = IOUtils.toString(is, "UTF-8");
         JSONObject issueAsJson = new JSONObject(body);
