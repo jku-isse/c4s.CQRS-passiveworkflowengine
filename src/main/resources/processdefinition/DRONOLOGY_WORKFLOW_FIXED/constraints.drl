@@ -149,7 +149,7 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				n++;
 				resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
@@ -173,7 +173,7 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
@@ -212,7 +212,7 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
 			    resources.put(ResourceLinkFactory.get(p), true);
 				n++;
@@ -234,7 +234,7 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		boolean relatedBug = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
 				if (p.getStatus().getName().equals("Closed")) {
 				    resources.put(ResourceLinkFactory.get(p), true);
@@ -260,8 +260,7 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-		    IJiraArtifact p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
-			//IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+		    IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;

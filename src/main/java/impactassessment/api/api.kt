@@ -32,8 +32,7 @@ data class AddInputCmd(@TargetAggregateIdentifier val id: String, val wftId: Str
 data class AddOutputCmd(@TargetAggregateIdentifier val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType)
 data class AddInputToWorkflowCmd(@TargetAggregateIdentifier val id: String, val input: ArtifactInput)
 data class AddOutputToWorkflowCmd(@TargetAggregateIdentifier val id: String, val output: ArtifactOutput)
-data class ArtifactUpdateCmd(@TargetAggregateIdentifier val id: String, val artifact: IJiraArtifact)
-data class AddArtifactUsageCmd(@TargetAggregateIdentifier val id: String, val key: String, val corrId: String)
+data class UpdateArtifactsCmd(@TargetAggregateIdentifier val id: String, val artifacts: List<IJiraArtifact>)
 
 // EVENTS
 interface IdentifiableEvt{val id: String}
@@ -55,7 +54,6 @@ data class AddedInputEvt(override val id: String, val wftId: String, val artifac
 data class AddedOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 data class AddedInputToWorkflowEvt(override val id: String, val input: ArtifactInput) : IdentifiableEvt
 data class AddedOutputToWorkflowEvt(override val id: String, val output: ArtifactOutput) : IdentifiableEvt
-data class AddedArtifactUsageEvt(override val id: String, val key: String, val corrId: String) : IdentifiableEvt
 
 // QUERIES
 data class GetStateQuery(val depth: Int)
@@ -67,14 +65,3 @@ data class PrintKBResponse(val kbString: String)
 
 // EXCEPTIONS
 class SomeException(message: String) : Exception(message)
-
-
-// Update Aggregate
-data class CreateUpdateAggregateCmd(@TargetAggregateIdentifier val id: String)
-data class AddIdCmd(@TargetAggregateIdentifier val id: String, val wfAggregateId: String)
-data class RemoveIdCmd(@TargetAggregateIdentifier val id: String, val wfAggregateId: String)
-data class UpdateWorkflowsCmd(@TargetAggregateIdentifier val id: String, val artifact: IJiraArtifact)
-
-data class CreatedUpdateAggregateEvt(val id: String)
-data class AddedIdEvt(val id: String, val wfAggregateId: String)
-data class RemovedIdEvt(val id: String, val wfAggregateId: String)

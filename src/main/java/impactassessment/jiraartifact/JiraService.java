@@ -8,17 +8,18 @@ import org.codehaus.jettison.json.JSONException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 public class JiraService implements IJiraArtifactService {
 
     private JiraInstance jira;
+    private JiraChangeSubscriber jiraChangeSubscriber;
 
-    public JiraService(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
+
+    public JiraService(IssueCache issueCache, JiraChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
         jira = new JiraInstance(issueCache, changeSubscriber, monitoringState);
+        jiraChangeSubscriber = changeSubscriber;
 
         Properties props = new Properties();
         try {
@@ -38,30 +39,16 @@ public class JiraService implements IJiraArtifactService {
     }
 
     @Override
-    public IJiraArtifact get(String key) {
-        IssueAgent issueAgent = jira.fetchAndMonitor(key);
+    public IJiraArtifact get(String artifactKey, String workflowId) {
+        IssueAgent issueAgent = jira.fetchAndMonitor(artifactKey);
         if (issueAgent == null) {
             log.debug("Not able to fetch Jira Issue");
             return null;
         } else  {
             log.debug("Successfully fetched Jira Issue");
+            jiraChangeSubscriber.addUsage(workflowId, artifactKey);
             return new JiraArtifact(issueAgent.getIssue());
         }
-    }
-
-    // FIXME: remove this later
-    public void testChangeSubscriber(String key) {
-        log.info("testChangeSubscriber");
-        JiraJsonService jsonService = new JiraJsonService();
-        Issue jiraArtifact = null;
-        try {
-            jiraArtifact = jsonService.loadIssue(key);
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
-        }
-        List<Issue> updates = new ArrayList<>();
-        updates.add(jiraArtifact);
-        jira.processUpdate(updates);
     }
 
 }

@@ -1,10 +1,10 @@
 package impactassessment.jiraartifact;
 
+import c4s.jiralightconnector.IssueAgent;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 @Slf4j
@@ -20,7 +21,11 @@ public class JiraJsonService implements IJiraArtifactService {
 
     private final String FILENAME;
 
-    public JiraJsonService() {
+    private JiraChangeSubscriber jiraChangeSubscriber;
+
+    public JiraJsonService(JiraChangeSubscriber jiraChangeSubscriber) {
+        this.jiraChangeSubscriber = jiraChangeSubscriber;
+
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -34,21 +39,22 @@ public class JiraJsonService implements IJiraArtifactService {
     }
 
     @Override
-    public IJiraArtifact get(String key) {
+    public IJiraArtifact get(String artifactKey, String workflowId) {
         Issue issue = null;
         try {
-            issue = loadIssue(key);
+            issue = loadIssue(artifactKey);
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-        JiraArtifact artifact = null;
-        if (issue != null) {
-            artifact = new JiraArtifact(issue);
-        }
-        return artifact;
+        if (issue == null)
+            return null;
+
+        jiraChangeSubscriber.addUsage(workflowId, artifactKey);
+
+        return new JiraArtifact(issue);
     }
 
-    protected Issue loadIssue(String key) throws JSONException, IOException {
+    private Issue loadIssue(String key) throws JSONException, IOException {
 		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
         String body = IOUtils.toString(is, "UTF-8");
         JSONObject issueAsJson = new JSONObject(body);

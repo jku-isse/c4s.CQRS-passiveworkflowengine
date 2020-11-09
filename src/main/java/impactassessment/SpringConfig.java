@@ -4,6 +4,7 @@ import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.InMemoryMonitoringState;
 import c4s.jiralightconnector.IssueCache;
 import impactassessment.jiraartifact.IJiraArtifactService;
+import impactassessment.jiraartifact.JiraChangeSubscriber;
 import impactassessment.jiraartifact.JiraJsonService;
 import impactassessment.jiraartifact.JiraService;
 import impactassessment.registry.IRegisterService;
@@ -20,9 +21,9 @@ import passiveprocessengine.exampleworkflows.NestedWorkflow;
 public class SpringConfig {
 
     @Bean
-    public IJiraArtifactService getJiraArtifactService() {
+    public IJiraArtifactService getJiraArtifactService(JiraChangeSubscriber jiraChangeSubscriber) {
         // uses JSON image of Jira data in resources folder
-        return new JiraJsonService();
+        return new JiraJsonService(jiraChangeSubscriber);
     }
 
 //    @Bean

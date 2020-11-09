@@ -30,6 +30,7 @@ import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
 import impactassessment.api.*;
+import impactassessment.jiraartifact.JiraChangeSubscriber;
 import impactassessment.jiraartifact.JiraService;
 import impactassessment.jiraartifact.MockCache;
 import impactassessment.jiraartifact.mock.JiraMockService;
@@ -475,17 +476,7 @@ public class MainView extends VerticalLayout {
             Notification.show("Success");
         });
 
-        // FIXME: remove afterwards
-        ChangeSubscriber changeSubscriber = SpringUtil.getBean(ChangeSubscriber.class);
-        Button changeSubscriberTest = new Button("Change Subscriber Test", e -> {
-            InMemoryMonitoringState monitoringState = new InMemoryMonitoringState();
-            monitoringState.addMonitoredIssueKey(id.getValue());
-            JiraService jira = new JiraService(new MockCache(), changeSubscriber, monitoringState);
-            jira.testChangeSubscriber(id.getValue());
-        });
-        // FIXME -------------------
-
-        return new VerticalLayout(description, id, print, changeSubscriberTest);
+        return new VerticalLayout(description, id, print);
     }
 
     private Component remove() {
