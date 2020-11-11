@@ -1,6 +1,5 @@
 package impactassessment.jiraartifact;
 
-import c4s.jiralightconnector.IssueAgent;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Properties;
 
 @Slf4j
@@ -40,6 +38,7 @@ public class JiraJsonService implements IJiraArtifactService {
 
     @Override
     public IJiraArtifact get(String artifactKey, String workflowId) {
+        log.debug("JiraJsonService loads "+artifactKey);
         Issue issue = null;
         try {
             issue = loadIssue(artifactKey);

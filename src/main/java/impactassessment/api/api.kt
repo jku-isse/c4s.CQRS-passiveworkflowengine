@@ -54,6 +54,7 @@ data class AddedInputEvt(override val id: String, val wftId: String, val artifac
 data class AddedOutputEvt(override val id: String, val wftId: String, val artifact: Artifact, val role: String, val type: ArtifactType) : IdentifiableEvt
 data class AddedInputToWorkflowEvt(override val id: String, val input: ArtifactInput) : IdentifiableEvt
 data class AddedOutputToWorkflowEvt(override val id: String, val output: ArtifactOutput) : IdentifiableEvt
+data class UpdatedArtifactsEvt(override val id: String, val artifacts: List<IJiraArtifact>) : IdentifiableEvt
 
 // QUERIES
 data class GetStateQuery(val depth: Int)

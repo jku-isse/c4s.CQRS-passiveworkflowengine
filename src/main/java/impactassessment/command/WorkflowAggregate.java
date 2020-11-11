@@ -4,8 +4,8 @@ import impactassessment.api.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.registry.WorkflowDefinitionContainer;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -15,15 +15,10 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
-import passiveprocessengine.definition.Artifact;
-import passiveprocessengine.definition.ArtifactType;
-import passiveprocessengine.definition.ArtifactTypes;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
-import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -143,7 +138,7 @@ public class WorkflowAggregate {
     }
 
     @CommandHandler
-    public void handle(DeleteCmd cmd, CommandGateway commandGateway) {
+    public void handle(DeleteCmd cmd) {
         log.info("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()));
     }
@@ -202,36 +197,7 @@ public class WorkflowAggregate {
     @CommandHandler
     public void handle(UpdateArtifactsCmd cmd) {
         log.info("[AGG] handling {}", cmd);
-//        for (IJiraArtifact artifact : cmd.getArtifacts()) {
-//            String artifactKey = artifact.getKey();
-//            log.debug("Artifact that was updated: {}, Artifacts used by this aggregate: {}", artifactKey, artifactUsages.stream()
-//                    .map(ArtifactUsage::getArtifactKey)
-//                    .collect(Collectors.joining(",")));
-//            for (ArtifactUsage artifactUsage : artifactUsages) {
-//                if (artifactUsage.getArtifactKey().equals(artifactKey)) {
-//                    ArtifactWrapper wrapper = new ArtifactWrapper(artifact.getKey(), "JiraArtifact", null, artifact);
-//                    switch (artifactUsage.getUsage()) {
-//                        case OUTPUT:
-//                            apply(new AddedOutputEvt(cmd.getId(), artifactUsage.getWftId(), wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType()));
-//                            break;
-//                        case INPUT:
-//                            apply(new AddedInputEvt(cmd.getId(), artifactUsage.getWftId(), wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType()));
-//                            break;
-//                        case WF_OUTPUT:
-//                            ArtifactOutput out = new ArtifactOutput(wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType());
-//                            apply(new AddedOutputToWorkflowEvt(cmd.getId(), out));
-//                            break;
-//                        case WF_INPUT:
-//                            ArtifactInput in = new ArtifactInput(wrapper, artifactUsage.getRole(), artifactUsage.getArtifactType());
-//                            apply(new AddedInputToWorkflowEvt(cmd.getId(), in));
-//                            break;
-//                        case RESOURCE:
-//                            apply(new CheckedConstraintEvt(cmd.getId(), artifactUsage.getCorrId()));
-//                            break;
-//                    }
-//                }
-//            }
-//        }
+        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
     }
 
     // -------------------------------- Event Handlers --------------------------------
@@ -256,16 +222,6 @@ public class WorkflowAggregate {
         parentWfiId = evt.getParentWfiId();
         parentWftId = evt.getParentWftId();
     }
-
-//    private IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {
-//        if (artifact instanceof ArtifactWrapper) {
-//            ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
-//            if (artifactWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-//                return (IJiraArtifact) artifactWrapper.getWrappedArtifact();
-//            }
-//        }
-//        return null;
-//    }
 
     @EventSourcingHandler
     public void on(DeletedEvt evt) {

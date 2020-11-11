@@ -65,7 +65,8 @@ public class JiraArtifact implements IJiraArtifact {
     @Override
     public URI getBrowserLink() {
         try {
-            return new URI("http://"+getSelf().getHost()+":"+getSelf().getPort()+"/browse/"+getKey());
+            //Example: https://passiveprocessengine.atlassian.net/jira/software/c/projects/DEMO/issues/DEMO-8
+            return new URI("https://"+getSelf().getHost()+"/jira/software/c/projects/"+getProject().getKey()+"/issues/"+getKey());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

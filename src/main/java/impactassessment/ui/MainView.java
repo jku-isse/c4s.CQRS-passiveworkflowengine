@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.InMemoryMonitoringState;
 import com.vaadin.flow.component.AttachEvent;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
@@ -31,6 +33,7 @@ import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
 import impactassessment.api.*;
 import impactassessment.jiraartifact.JiraChangeSubscriber;
+import impactassessment.jiraartifact.JiraPoller;
 import impactassessment.jiraartifact.JiraService;
 import impactassessment.jiraartifact.MockCache;
 import impactassessment.jiraartifact.mock.JiraMockService;
@@ -51,6 +54,7 @@ import passiveprocessengine.definition.ArtifactType;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -59,6 +63,8 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static impactassessment.ui.Helpers.createComponent;
 import static impactassessment.ui.Helpers.showOutput;
@@ -76,6 +82,7 @@ public class MainView extends VerticalLayout {
     private Replayer replayer;
     private WorkflowDefinitionRegistry registry;
     private FrontendPusher pusher;
+    private JiraPoller jiraPoller;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -102,6 +109,10 @@ public class MainView extends VerticalLayout {
     @Inject
     public void setPusher(FrontendPusher pusher) {
         this.pusher = pusher;
+    }
+    @Inject
+    public void setJiraPoller(JiraPoller jiraPoller) {
+        this.jiraPoller = jiraPoller;
     }
 
     @Override
@@ -196,6 +207,7 @@ public class MainView extends VerticalLayout {
         Accordion accordion = new Accordion();
         accordion.add("Create Workflow", importArtifact());
         accordion.add("Mock Workflow", importMocked());
+        accordion.add("Updates", updates());
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
 //        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         accordion.add("Backend Queries", backend());
@@ -218,10 +230,13 @@ public class MainView extends VerticalLayout {
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
-                List<WorkflowInstanceWrapper> response = future.get().component1();
+                List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).component1();
                 grid.updateTreeGrid(response);
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("GetStateQuery resulted in InterruptedException or ExecutionException: "+e.getMessage());
+            } catch (TimeoutException e1) {
+                log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
+                Notification.show("Timeout: Replay all Events first..");
+            } catch (InterruptedException | ExecutionException e2) {
+                log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
             }
         });
         Button replay = new Button("Replay All Events", evt -> {
@@ -550,6 +565,47 @@ public class MainView extends VerticalLayout {
         layout.add(row1, row2);
         return layout;
     }
+
+    private Component updates() {
+        TextField textField = new TextField();
+        textField.setLabel("Update Interval in Minutes");
+        textField.setValue("1");
+
+        Checkbox checkbox = new Checkbox("Enable Automatic updates");
+        checkbox.setValue(false);
+        checkbox.addValueChangeListener(e -> {
+            if (e.getValue()) {
+                try {
+                    int interval = Integer.parseInt(textField.getValue());
+                    textField.setEnabled(false);
+                    jiraPoller.setInterval(interval);
+                    Thread poller = new Thread(jiraPoller);
+                    poller.start();
+                } catch (NumberFormatException ex) {
+                    Notification.show("Please enter a number");
+                }
+            } else {
+                jiraPoller.stop();
+                textField.setEnabled(true);
+            }
+        });
+
+        Button update = new Button("Fetch Updates Now", e -> {
+            for (int i = 0; i < 3; i++) { // FIXME: dirty solution because first access throws: SSLPeerUnverifiedException
+                ChangeStreamPoller changeStreamPoller = SpringUtil.getBean(ChangeStreamPoller.class);
+                Thread t = new Thread(changeStreamPoller);
+                try {
+                    t.start();
+                    t.join();
+                } catch (Exception ex) {
+                    log.error("Update error: " + ex.getMessage());
+                }
+            }
+        });
+
+        return new VerticalLayout(textField, checkbox, update);
+    }
+
     private VerticalLayout snapshotPanel(boolean addHeader) {
         WorkflowTreeGrid grid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
         grid.initTreeGrid();

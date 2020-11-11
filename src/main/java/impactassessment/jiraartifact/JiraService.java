@@ -1,14 +1,8 @@
 package impactassessment.jiraartifact;
 
-import c4s.jiralightconnector.*;
-import com.atlassian.jira.rest.client.api.domain.Issue;
+import c4s.jiralightconnector.IssueAgent;
+import c4s.jiralightconnector.JiraInstance;
 import lombok.extern.slf4j.Slf4j;
-import org.codehaus.jettison.json.JSONException;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
 
 @Slf4j
 public class JiraService implements IJiraArtifactService {
@@ -17,29 +11,14 @@ public class JiraService implements IJiraArtifactService {
     private JiraChangeSubscriber jiraChangeSubscriber;
 
 
-    public JiraService(IssueCache issueCache, JiraChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
-        jira = new JiraInstance(issueCache, changeSubscriber, monitoringState);
-        jiraChangeSubscriber = changeSubscriber;
-
-        Properties props = new Properties();
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("application.properties").getFile());
-            FileReader reader = new FileReader(file);
-            props.load(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String uri =  props.getProperty("jiraServerURI");
-        String username =  props.getProperty("jiraConnectorUsername");
-        String pw =  props.getProperty("jiraConnectorPassword");
-
-        jira.init(username, pw, uri);
+    public JiraService(JiraInstance jira, JiraChangeSubscriber jiraChangeSubscriber) {
+        this.jira = jira;
+        this.jiraChangeSubscriber = jiraChangeSubscriber;
     }
 
     @Override
     public IJiraArtifact get(String artifactKey, String workflowId) {
+        log.debug("JiraService loads "+artifactKey);
         IssueAgent issueAgent = jira.fetchAndMonitor(artifactKey);
         if (issueAgent == null) {
             log.debug("Not able to fetch Jira Issue");
