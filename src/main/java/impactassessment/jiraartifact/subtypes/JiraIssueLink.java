@@ -49,4 +49,13 @@ public class JiraIssueLink implements IJiraIssueLink {
             jiraArtifactService = SpringUtil.getBean(IJiraArtifactService.class);
         return jiraArtifactService.get(issueLink.getTargetIssueKey(), aggregateId);
     }
+
+    @Override
+    public String toString() {
+        return "JiraIssueLink{" +
+                "issueLink=" + issueLink +
+                ", jiraIssueLinkType=" + jiraIssueLinkType +
+                ", jiraArtifactService=" + jiraArtifactService +
+                '}';
+    }
 }

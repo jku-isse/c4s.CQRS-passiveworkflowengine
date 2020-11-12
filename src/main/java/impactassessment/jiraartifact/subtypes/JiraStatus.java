@@ -40,4 +40,12 @@ public class JiraStatus implements IJiraStatus {
     public IJiraStatusCategory getStatusCategory() {
         return jiraStatusCategory;
     }
+
+    @Override
+    public String toString() {
+        return "JiraStatus{" +
+                "status=" + status +
+                ", jiraStatusCategory=" + jiraStatusCategory +
+                '}';
+    }
 }

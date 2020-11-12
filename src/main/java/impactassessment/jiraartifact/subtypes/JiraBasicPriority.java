@@ -27,4 +27,11 @@ public class JiraBasicPriority implements IJiraBasicPriority {
     public Long getId() {
         return basicPriority.getId();
     }
+
+    @Override
+    public String toString() {
+        return "JiraBasicPriority{" +
+                "basicPriority=" + basicPriority +
+                '}';
+    }
 }
