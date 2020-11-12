@@ -83,7 +83,7 @@ end
 
 rule "Open2Resolved-InBranchConditions"
     when
-    	$a : IJiraArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Closed") )
+    	$a : IJiraArtifact( getStatus().getName().equals(DronologyWorkflow.TASK_STATE_RESOLVED) || getStatus().getName().equals("Fertig") )
         $task : WorkflowTask( getType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
         						@watch ( outputState, lifecycleState )
         $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
