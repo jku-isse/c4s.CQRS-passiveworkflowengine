@@ -1,8 +1,7 @@
 package impactassessment.ui;
 
 import c4s.jiralightconnector.ChangeStreamPoller;
-import c4s.jiralightconnector.ChangeSubscriber;
-import c4s.jiralightconnector.InMemoryMonitoringState;
+import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
@@ -32,18 +31,13 @@ import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
 import impactassessment.api.*;
-import impactassessment.jiraartifact.JiraChangeSubscriber;
 import impactassessment.jiraartifact.JiraPoller;
-import impactassessment.jiraartifact.JiraService;
-import impactassessment.jiraartifact.MockCache;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
-import static impactassessment.general.IdGenerator.getNewId;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -54,7 +48,7 @@ import passiveprocessengine.definition.ArtifactType;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.net.ConnectException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -66,6 +60,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
 import static impactassessment.ui.Helpers.showOutput;
 
@@ -566,7 +561,12 @@ public class MainView extends VerticalLayout {
         return layout;
     }
 
+    private @Getter
+    SimpleTimer timer = new SimpleTimer(60);
     private Component updates() {
+        timer.setHeight("20px");
+        timer.addClassName("big-text");
+        timer.setVisible(false);
         TextField textField = new TextField();
         textField.setLabel("Update Interval in Minutes");
         textField.setValue("1");
@@ -578,20 +578,24 @@ public class MainView extends VerticalLayout {
                 try {
                     int interval = Integer.parseInt(textField.getValue());
                     textField.setEnabled(false);
+                    timer.setStartTime(new BigDecimal(interval*60));
+                    timer.setVisible(true);
+                    timer.start();
                     jiraPoller.setInterval(interval);
-                    Thread poller = new Thread(jiraPoller);
-                    poller.start();
+                    jiraPoller.start();
                 } catch (NumberFormatException ex) {
                     Notification.show("Please enter a number");
                 }
             } else {
-                jiraPoller.stop();
+                jiraPoller.interrupt();
                 textField.setEnabled(true);
+                timer.setVisible(false);
+                timer.pause();
+                timer.reset();
             }
         });
 
         Button update = new Button("Fetch Updates Now", e -> {
-            for (int i = 0; i < 3; i++) { // FIXME: dirty solution because first access throws: SSLPeerUnverifiedException
                 ChangeStreamPoller changeStreamPoller = SpringUtil.getBean(ChangeStreamPoller.class);
                 Thread t = new Thread(changeStreamPoller);
                 try {
@@ -600,10 +604,9 @@ public class MainView extends VerticalLayout {
                 } catch (Exception ex) {
                     log.error("Update error: " + ex.getMessage());
                 }
-            }
         });
 
-        return new VerticalLayout(textField, checkbox, update);
+        return new VerticalLayout(timer, textField, checkbox, update);
     }
 
     private VerticalLayout snapshotPanel(boolean addHeader) {

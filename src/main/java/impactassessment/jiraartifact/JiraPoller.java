@@ -1,10 +1,12 @@
 package impactassessment.jiraartifact;
 
 import c4s.jiralightconnector.ChangeStreamPoller;
+import impactassessment.ui.FrontendPusher;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
@@ -12,31 +14,57 @@ import org.springframework.stereotype.Component;
 public class JiraPoller implements Runnable {
 
     private final ChangeStreamPoller changeStreamPoller;
-    private volatile boolean enabled = true;
+    private final FrontendPusher pusher;
+
+    private Thread worker;
+    private AtomicBoolean running = new AtomicBoolean(false);
+    private AtomicBoolean stopped = new AtomicBoolean(false);
+
+    public void start() {
+        worker = new Thread(this);
+        worker.start();
+    }
+
+    public void interrupt() {
+        running.set(false);
+        worker.interrupt();
+    }
+
+    boolean isRunning() {
+        return running.get();
+    }
+
+    boolean isStopped() {
+        return stopped.get();
+    }
 
     public void setInterval(int minutes) {
         changeStreamPoller.setInterval(minutes);
     }
 
-    public void stop() {
-        enabled = false;
-    }
-
-    @SneakyThrows
     @Override
     public void run() {
-        enabled = true;
-        while(enabled) {
-            log.info("Fetch updates");
-            for (int i = 0; i < 3; i++) { // FIXME: dirty solution because first access throws: SSLPeerUnverifiedException
-                Thread thread = new Thread(changeStreamPoller);
-                thread.start();
-                thread.join();
+        running.set(true);
+        stopped.set(false);
+        while (running.get()) {
+            try {
+                changeStreamPoller.run();
+            } catch (NullPointerException e) {
+                log.error("Catches NullPointerException due to: SSLPeerUnverifiedException");
             }
-            Thread.sleep(changeStreamPoller.getIntervalInMinutes() * 60 * 1000);
+            try {
+                log.info("go to sleep");
+                Thread.sleep(changeStreamPoller.getIntervalInMinutes() * 60 * 1000);
+                log.info("awake");
+            } catch (InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
+            if (running.get()) {
+                pusher.updateFetchTimer();
+            }
         }
-        log.info("Worker stopped");
+        log.info("stopped");
+        stopped.set(true);
     }
-
 
 }
