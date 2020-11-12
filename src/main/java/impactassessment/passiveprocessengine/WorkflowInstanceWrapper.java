@@ -142,10 +142,11 @@ public class WorkflowInstanceWrapper {
         List<RuleEngineBasedConstraint> rebcs = new ArrayList<>();
         if (wft != null) {
             QACheckDocument qa = getQACDocOfWft(wft);
-            if (qa == null)
-                qa = new QACheckDocument("QA-"+wft.getType().getId()+"-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
-            wft.addOutput(ao);
+            if (qa == null) {
+                qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
+                ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+                wft.addOutput(ao);
+            }
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
             qa.setLastChangeDueTo(corr);
             Map<String, String> rules = evt.getRules();
