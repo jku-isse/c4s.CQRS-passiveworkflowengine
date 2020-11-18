@@ -1,6 +1,7 @@
 package impactassessment.query;
 
-import impactassessment.api.*;
+import impactassessment.api.Events.*;
+import impactassessment.api.Queries.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -19,14 +20,19 @@ import org.kie.api.runtime.KieContainer;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.*;
-
-import static impactassessment.query.WorkflowHelpers.*;
+import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
+import passiveprocessengine.instance.ConstraintTrigger;
+import passiveprocessengine.instance.CorrelationTuple;
+import passiveprocessengine.instance.RuleEngineBasedConstraint;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactWrapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static impactassessment.query.WorkflowHelpers.*;
 
 @Component
 @Slf4j
@@ -42,15 +48,6 @@ public class WorkflowProjection {
     private final FrontendPusher pusher;
 
     // Event Handlers
-
-    @EventHandler
-    public void on(CreatedDefaultWorkflowEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
-        createKieSession(kieSessions, projection, evt.getId(), null);
-        WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
-        List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
-        insertOrUpdateKieSession(kieSessions, evt.getId(), awos, evt.getArtifacts(), status.isReplay());
-    }
 
     @EventHandler
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
@@ -199,7 +196,7 @@ public class WorkflowProjection {
     public void on(AddedOutputEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-        WorkflowTask wft = wfiWrapper.handle(evt);
+        IWorkflowTask wft = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
             kieSessions.insertOrUpdate(evt.getId(), wft);

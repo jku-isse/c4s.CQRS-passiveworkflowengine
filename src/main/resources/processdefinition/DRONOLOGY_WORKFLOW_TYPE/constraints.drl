@@ -1,4 +1,4 @@
-package rules;
+package processdefinition;
 
 import org.axonframework.commandhandling.gateway.CommandGateway
 
@@ -10,9 +10,8 @@ import passiveprocessengine.instance.RuleEngineBasedConstraint
 import java.time.Instant
 import passiveprocessengine.instance.CorrelationTuple
 import passiveprocessengine.instance.ConstraintTrigger
-import passiveprocessengine.exampleworkflows.DronologyWorkflow
 
-import impactassessment.api.AddEvaluationResultToConstraintCmd
+import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd
 import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
@@ -23,7 +22,7 @@ import impactassessment.jiraartifact.IJiraArtifactService
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
-import impactassessment.api.AddConstraintsCmd
+import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.ResourceLinkFactory
@@ -37,7 +36,7 @@ rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
+		                        getType().getId().equals("Open") &&
 		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -65,7 +64,7 @@ rule "InsertQAConstraintsStateInProgress"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) &&
+        		                        getType().getId().equals("In Progress") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -90,7 +89,7 @@ rule "InsertQAConstraintsStateResolved"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
+        		                        getType().getId().equals("Resolved") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();

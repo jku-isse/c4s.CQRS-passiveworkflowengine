@@ -1,11 +1,11 @@
 package impactassessment.passiveprocessengine;
 
+import impactassessment.exampleworkflows.DronologyWorkflow;
+import impactassessment.exampleworkflows.DronologyWorkflowFixed;
+import impactassessment.exampleworkflows.MultiStepSubWPWorkflow;
+import impactassessment.exampleworkflows.NestedWorkflow;
 import org.junit.Test;
 import passiveprocessengine.definition.WorkflowDefinition;
-import passiveprocessengine.exampleworkflows.DronologyWorkflow;
-import passiveprocessengine.exampleworkflows.DronologyWorkflowFixed;
-import passiveprocessengine.exampleworkflows.MultiStepSubWPWorkflow;
-import passiveprocessengine.exampleworkflows.NestedWorkflow;
 import passiveprocessengine.persistance.json.DefinitionSerializer;
 
 public class TestDeserializeDefinition {

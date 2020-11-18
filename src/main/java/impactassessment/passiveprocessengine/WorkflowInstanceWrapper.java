@@ -1,10 +1,13 @@
 package impactassessment.passiveprocessengine;
 
-import impactassessment.SpringUtil;
-import impactassessment.api.*;
+import impactassessment.api.Events.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.definition.*;
+import passiveprocessengine.definition.Artifact;
+import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.definition.IWorkflowTask;
+import passiveprocessengine.definition.WorkflowDefinition;
 import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
 import passiveprocessengine.instance.ArtifactIO;
 import passiveprocessengine.instance.ArtifactInput;
@@ -48,19 +51,14 @@ public class WorkflowInstanceWrapper {
             for (IJiraArtifact artifact : artifacts) {
                 ArtifactWrapper aw = new ArtifactWrapper(artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
                 // TODO add as input (enable input to input mapping!)
-                wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
-                wfi.addInput(new ArtifactInput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+                //wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
+                wfi.addInput(new ArtifactInput(aw, "ROLE_WPTICKET", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
             }
         }
     }
 
     public WorkflowInstance getWorkflowInstance() {
         return wfi;
-    }
-
-    public List<AbstractWorkflowInstanceObject> handle(CreatedDefaultWorkflowEvt evt) {
-        WorkflowDefinition wfd = SpringUtil.getBean(WorkflowDefinition.class); // use default workflow specified in SpringConfig
-        return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedWorkflowEvt evt) {
@@ -80,7 +78,8 @@ public class WorkflowInstanceWrapper {
         for (IJiraArtifact artifact: artifacts) {
             wfi.addOrReplaceProperty(artifact.getKey() + " (" + artifact.getId() + ")", artifact.getIssueType().getName());
         }
-        return wfi.enableWorkflowTasksAndDecisionNodes();
+        List<AbstractWorkflowInstanceObject> awos = wfi.enableWorkflowTasksAndDecisionNodes();
+        return awos;
     }
 
     public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
@@ -97,7 +96,7 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
             awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
@@ -116,7 +115,7 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
             awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
@@ -127,7 +126,7 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchesEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (dni != null && wft != null) {
             awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
@@ -138,13 +137,13 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<RuleEngineBasedConstraint> handle(AddedConstraintsEvt evt) {
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         List<RuleEngineBasedConstraint> rebcs = new ArrayList<>();
         if (wft != null) {
             QACheckDocument qa = getQACDocOfWft(wft);
             if (qa == null) {
                 qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                ArtifactOutput ao = new ArtifactOutput(qa, "QA_PROCESS_CONSTRAINTS_CHECK", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+                ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
                 wft.addOutput(ao);
             }
             CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
@@ -180,18 +179,18 @@ public class WorkflowInstanceWrapper {
         return rebc;
     }
 
-    public WorkflowTask handle(AddedInputEvt evt) {
+    public IWorkflowTask handle(AddedInputEvt evt) {
         setWfi(evt.getArtifact());
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
         // TODO check if input is expected
         wft.addInput(input);
         return wft;
     }
 
-    public WorkflowTask handle(AddedOutputEvt evt) {
+    public IWorkflowTask handle(AddedOutputEvt evt) {
         setWfi(evt.getArtifact());
-        WorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
         wft.addOutput(output);
         return wft;
@@ -221,9 +220,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(IdentifiableEvt evt) {
-        if (evt instanceof CreatedDefaultWorkflowEvt) {
-            handle((CreatedDefaultWorkflowEvt) evt);
-        } else if (evt instanceof CreatedWorkflowEvt) {
+        if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
         } else if (evt instanceof CreatedSubWorkflowEvt) {
             handle((CreatedSubWorkflowEvt) evt);
@@ -255,11 +252,11 @@ public class WorkflowInstanceWrapper {
     }
 
     public QACheckDocument getQACDocOfWft(String wftId) {
-        WorkflowTask wft = wfi.getWorkflowTask(wftId);
+        IWorkflowTask wft = wfi.getWorkflowTask(wftId);
         return getQACDocOfWft(wft);
     }
 
-    public QACheckDocument getQACDocOfWft(WorkflowTask wft) {
+    public QACheckDocument getQACDocOfWft(IWorkflowTask wft) {
         Optional<QACheckDocument> optQACD = Optional.empty();
         if (wft != null){
             optQACD = wft.getOutput().stream()

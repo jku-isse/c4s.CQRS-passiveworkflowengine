@@ -1,7 +1,6 @@
 package impactassessment.query;
 
-import impactassessment.api.AddInputToWorkflowCmd;
-import impactassessment.api.CreateSubWorkflowCmd;
+import impactassessment.api.Commands.*;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -10,7 +9,12 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieContainer;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.*;
+import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
+import passiveprocessengine.instance.QACheckDocument;
+import passiveprocessengine.instance.RuleEngineBasedConstraint;
+import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactWrapper;
 
 import java.util.List;
 

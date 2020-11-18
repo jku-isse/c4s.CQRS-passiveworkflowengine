@@ -43,7 +43,7 @@ rule "InsertQAConstraintsStateOpen"
         //constraints for Tasks and Sub-Taks
         if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
             constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
-            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
+//            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
             commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Design Definitions
         } else if ($a.getIssueType().getName().equals("Design Definition")) {
@@ -59,37 +59,12 @@ rule "InsertQAConstraintsStateOpen"
         }
 end
 
-//constraints for state in-progress
-rule "InsertQAConstraintsStateInProgress"
+//constraints for state Closed
+rule "InsertQAConstraintsStateClosed"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals("In Progress") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
-	then
-        Map<String, String> constraints = new HashMap<>();
-        //constraints for Tasks and Sub-Taks
-        if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
-            constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
-            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
-            constraints.put("CheckJiraIssueHasAssignee", "Has the Jira ticket an assignee?");
-            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
-        //constraints for Design Definitions
-        } else if ($a.getIssueType().getName().equals("Design Definition")){
-            constraints.put("CheckDesignDefinitionRelatedToRequirement", "Does the ticket realize exactly one Requirement?");
-            commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
-        //constraints for Bugs
-        } else if ($a.getIssueType().getName().equals("Bug")){
-            // add nothing
-        }
-end
-
-//constraints for state resolved
-rule "InsertQAConstraintsStateResolved"
-	when
-		$a : IJiraArtifact(  )
-        		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals("Resolved") &&
+        		                        getType().getId().equals("Closed") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -259,7 +234,7 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-		    IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;

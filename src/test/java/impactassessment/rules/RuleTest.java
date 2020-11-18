@@ -1,8 +1,9 @@
 package impactassessment.rules;
 
 import impactassessment.SpringApp;
-import impactassessment.api.CompletedDataflowEvt;
-import impactassessment.api.CreatedDefaultWorkflowEvt;
+import impactassessment.api.Events.*;
+import impactassessment.exampleworkflows.DronologyWorkflow;
+import impactassessment.exampleworkflows.DronologyWorkflowFixed;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -17,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import passiveprocessengine.exampleworkflows.DronologyWorkflow;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.util.List;
@@ -114,7 +114,7 @@ public class RuleTest {
     }
 
     private void addArtifact(IJiraArtifact a) {
-        model.handle(new CreatedDefaultWorkflowEvt(a.getKey(), List.of(a)));
+        model.handle(new CreatedWorkflowEvt(a.getKey(), List.of(a), "x", new DronologyWorkflowFixed()));
     }
 
     private void completeDataflow(IJiraArtifact a) {

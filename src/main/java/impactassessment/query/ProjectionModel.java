@@ -1,7 +1,6 @@
 package impactassessment.query;
 
-import impactassessment.api.DeletedEvt;
-import impactassessment.api.IdentifiableEvt;
+import impactassessment.api.Events.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

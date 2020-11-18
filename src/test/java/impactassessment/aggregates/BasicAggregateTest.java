@@ -1,8 +1,10 @@
 package impactassessment.aggregates;
 
 import impactassessment.SpringApp;
-import impactassessment.api.*;
+import impactassessment.api.Events.*;
+import impactassessment.api.Commands.*;
 import impactassessment.command.WorkflowAggregate;
+import impactassessment.exampleworkflows.DronologyWorkflowFixed;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
@@ -50,7 +52,7 @@ public class BasicAggregateTest {
     @Test
     public void testAddCompleteActivate() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new CreatedDefaultWorkflowEvt(id, List.of(a)))
+        fixture.given(new CreatedWorkflowEvt(id, List.of(a), "test", new DronologyWorkflowFixed()))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, new ResourceLink("test", "test", "test", "test", "test", "test")))
                 .when(new ActivateInOutBranchCmd(id, "open2inProgressOrResolved#"+id, "Open#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
@@ -59,7 +61,7 @@ public class BasicAggregateTest {
     @Test
     public void testDelete() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new CreatedDefaultWorkflowEvt(id, List.of(a)))
+        fixture.given(new CreatedWorkflowEvt(id, List.of(a), "test", new DronologyWorkflowFixed()))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new DeletedEvt(id))

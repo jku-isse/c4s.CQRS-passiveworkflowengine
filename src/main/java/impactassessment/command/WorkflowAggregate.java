@@ -1,6 +1,8 @@
 package impactassessment.command;
 
-import impactassessment.api.*;
+import impactassessment.api.Commands.*;
+import impactassessment.api.Events.*;
+import impactassessment.api.Sources;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
@@ -8,7 +10,6 @@ import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -47,27 +48,21 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateMockWorkflowCmd cmd, CommandGateway commandGateway) {
+    public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
+        String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        apply(new CreatedDefaultWorkflowEvt(cmd.getId(), List.of(a)));
-    }
-
-    @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService, CommandGateway commandGateway) {
-        log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = createWorkflow(cmd.getId(), artifactService, cmd.getInput());
-        if (artifacts.size() > 0) {
-            apply(new CreatedDefaultWorkflowEvt(cmd.getId(), artifacts));
+        WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
+        if (wfdContainer != null) {
+            apply(new CreatedWorkflowEvt(cmd.getId(), List.of(a), workflowName, wfdContainer.getWfd()));
         } else {
-            log.error("Artifacts couldn't get retrieved!");
+            log.error("Workflow Definition named {} not found in registry!", workflowName);
         }
     }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry, CommandGateway commandGateway) {
+    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         List<IJiraArtifact> artifacts = createWorkflow(cmd.getId(), artifactService, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
@@ -97,7 +92,7 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry, CommandGateway commandGateway) {
+    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
@@ -201,13 +196,6 @@ public class WorkflowAggregate {
     }
 
     // -------------------------------- Event Handlers --------------------------------
-
-
-    @EventSourcingHandler
-    public void on(CreatedDefaultWorkflowEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        id = evt.getId();
-    }
 
     @EventSourcingHandler
     public void on(CreatedWorkflowEvt evt) {

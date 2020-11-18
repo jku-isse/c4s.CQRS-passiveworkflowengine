@@ -40,7 +40,7 @@ rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
     	$a : IJiraArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        							 getWorkflow().getType().getId().equals("NESTED_WORKFLOW_TYPE") &&
+        							 getWorkflow().getType().getId().equals("LINEARWITHDATA_WORKFLOW_TYPE") &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
 									 , $wfi : getWorkflow() )
@@ -54,7 +54,7 @@ rule "CompleteActivationPropagationAndExecuteMapping"
     when
     	$a : IJiraArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        							 getWorkflow().getType().getId().equals("NESTED_WORKFLOW_TYPE") &&
+        							 getWorkflow().getType().getId().equals("LINEARWITHDATA_WORKFLOW_TYPE") &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
 									 , $wfi : getWorkflow() )

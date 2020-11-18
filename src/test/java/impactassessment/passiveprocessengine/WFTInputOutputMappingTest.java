@@ -1,14 +1,11 @@
 package impactassessment.passiveprocessengine;
 
+import impactassessment.exampleworkflows.SimpleWorkflow;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.mock.JiraMockService;
 import org.junit.Before;
 import org.junit.Test;
-import passiveprocessengine.definition.ArtifactType;
-import passiveprocessengine.definition.ArtifactTypes;
-import passiveprocessengine.definition.TaskDefinition;
-import passiveprocessengine.definition.TaskLifecycle;
-import passiveprocessengine.exampleworkflows.SimpleWorkflow;
+import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 
 import java.util.List;
@@ -72,7 +69,7 @@ public class WFTInputOutputMappingTest {
                     dniOpen2Closed.consumeTaskForUnconnectedOutBranch(wft);
                 });
 
-        WorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);
+        IWorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);
 
         // before the mapping workflow task "Closed" shouldn't have inputs
         assertEquals(0, wftClosed.getInput().size());

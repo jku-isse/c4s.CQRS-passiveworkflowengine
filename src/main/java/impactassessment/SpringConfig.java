@@ -5,17 +5,14 @@ import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.JiraChangeSubscriber;
-import impactassessment.jiraartifact.JiraJsonService;
 import impactassessment.jiraartifact.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import passiveprocessengine.definition.WorkflowDefinition;
-import passiveprocessengine.exampleworkflows.NestedWorkflow;
 
 import java.io.File;
 import java.io.FileReader;
@@ -36,14 +33,6 @@ public class SpringConfig {
     public IJiraArtifactService getJiraArtifactService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         // connects directly to a Jira server
         return new JiraService(jiraInstance, jiraChangeSubscriber);
-    }
-
-    @Bean
-    public WorkflowDefinition getAbstractWorkflowDefinition() {
-        // careful! execution.drl has hardcoded (dronology)workflow-branch names
-        // --> just injecting a new workflow here won't work
-        return new NestedWorkflow();
-//        return new DronologyWorkflowFixed();
     }
 
     @Bean

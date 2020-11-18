@@ -2,7 +2,7 @@ package impactassessment.jiraartifact;
 
 import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.IssueAgent;
-import impactassessment.api.UpdateArtifactsCmd;
+import impactassessment.api.Commands.UpdateArtifactsCmd;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;

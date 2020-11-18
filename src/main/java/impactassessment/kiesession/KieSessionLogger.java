@@ -11,17 +11,17 @@ public class KieSessionLogger {
         kieSession.addEventListener(new RuleRuntimeEventListener() {
             @Override
             public void objectInserted(ObjectInsertedEvent evt) {
-                log.debug("[KB ] inserted {}", evt.getObject().toString());
+//                log.debug("[KB ] inserted {}", evt.getObject().toString());
             }
 
             @Override
             public void objectUpdated(ObjectUpdatedEvent evt) {
-                log.debug("[KB ] updated {}", evt.getObject().toString());
+//                log.debug("[KB ] updated {}", evt.getObject().toString());
             }
 
             @Override
             public void objectDeleted(ObjectDeletedEvent evt) {
-                log.debug("[KB ] deleted {}", evt.getOldObject().toString());
+//                log.debug("[KB ] deleted {}", evt.getOldObject().toString());
             }
         });
     }
