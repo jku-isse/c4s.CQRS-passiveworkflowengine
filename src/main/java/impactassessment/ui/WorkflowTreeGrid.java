@@ -259,7 +259,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         VerticalLayout l = new VerticalLayout();
         l.add(new H3(wft.getId()));
         l.add(new H4("Properties"));
-        l.add(new Paragraph(wft.getLifecycleState().name()));
+        if (wft.getLifecycleState() != null)
+            l.add(new Paragraph(wft.getLifecycleState().name()));
         infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput());
         Dialog dialog = new Dialog();
 

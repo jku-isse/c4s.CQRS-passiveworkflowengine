@@ -49,7 +49,7 @@ public class WorkflowInstanceWrapper {
     private void setArtifact(List<IJiraArtifact> artifacts) {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
-                ArtifactWrapper aw = new ArtifactWrapper(artifact.getKey(), artifact.getClass().getSimpleName(), wfi, artifact);
+                ArtifactWrapper aw = new ArtifactWrapper(artifact.getKey(), ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, wfi, artifact);
                 // TODO add as input (enable input to input mapping!)
                 //wfi.addOutput(new ArtifactOutput(aw, "INPUT", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET)));
                 wfi.addInput(new ArtifactInput(aw, "ROLE_WPTICKET", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
@@ -143,20 +143,28 @@ public class WorkflowInstanceWrapper {
             QACheckDocument qa = getQACDocOfWft(wft);
             if (qa == null) {
                 qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK));
+                ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+                addConstraint(evt, qa, wft, rebcs);
                 wft.addOutput(ao);
+            } else {
+                addConstraint(evt, qa, wft, rebcs);
             }
-            CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
-            qa.setLastChangeDueTo(corr);
-            Map<String, String> rules = evt.getRules();
-            for (Map.Entry<String, String> e : rules.entrySet()) {
-                String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
-                RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
-                qa.addConstraint(rebc);
-                rebcs.add(rebc);
-            }
+
         }
         return rebcs;
+    }
+
+    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<RuleEngineBasedConstraint> rebcs) {
+        CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
+        qa.setLastChangeDueTo(corr);
+        Map<String, String> rules = evt.getRules();
+        for (Map.Entry<String, String> e : rules.entrySet()) {
+            String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
+            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
+            rebc.addAs(false, ResourceLinkFactory.getMock());
+            qa.addConstraint(rebc);
+            rebcs.add(rebc);
+        }
     }
 
     public RuleEngineBasedConstraint handle(AddedEvaluationResultToConstraintEvt evt) {

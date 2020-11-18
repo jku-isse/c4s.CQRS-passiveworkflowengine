@@ -36,14 +36,14 @@ rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-		                        getType().getId().equals("Open") &&
+		                        getType().getId().equals("Prepare Implementation") &&
 		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
         if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
             constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
-//            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
+            constraints.put("CheckJiraIssueRelatedToDesignDefinition", "Is the Jira ticket related to exactly one Design Definition?");
             commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         //constraints for Design Definitions
         } else if ($a.getIssueType().getName().equals("Design Definition")) {
@@ -64,7 +64,7 @@ rule "InsertQAConstraintsStateClosed"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals("Closed") &&
+        		                        getType().getId().equals("Conduct Implementation") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -210,7 +210,7 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		for (IJiraIssueLink link : $a.getIssueLinks()){
 			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
-				if (p.getStatus().getName().equals("Closed")) {
+				if (p.getStatus().getName().equals("Closed") || p.getStatus().getName().equals("Fertig")) {
 				    resources.put(ResourceLinkFactory.get(p), true);
 				} else {
 				    resources.put(ResourceLinkFactory.get(p), false);
