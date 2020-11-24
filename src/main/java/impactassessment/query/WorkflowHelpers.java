@@ -21,13 +21,6 @@ import java.util.List;
 @Slf4j
 public class WorkflowHelpers {
 
-    static void createKieSession(KieSessionService kieSessions, ProjectionModel projection, String id, KieContainer kieContainer) {
-        WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
-        if (!kieSessions.isInitialized(id) && wfiWrapper == null) { // if artifact is only updated wfiWrapper won't be null anymore
-            kieSessions.create(id, kieContainer);
-        }
-    }
-
     static void ensureInitializedKB(KieSessionService kieSessions, ProjectionModel projection, String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
@@ -55,12 +48,11 @@ public class WorkflowHelpers {
         }
     }
 
-    static void createSubWorkflow(CommandGateway commandGateway, List<AbstractWorkflowInstanceObject> awos, String wfiId, boolean isReplay) {
-        if (!isReplay) {
-            awos.stream()
-                    .filter(awo -> awo instanceof WorkflowWrapperTaskInstance)
-                    .map(awo -> (WorkflowWrapperTaskInstance) awo)
-                    .forEach(wwti -> {
+    static void createSubWorkflow(CommandGateway commandGateway, List<AbstractWorkflowInstanceObject> awos, String wfiId) {
+        awos.stream()
+                .filter(awo -> awo instanceof WorkflowWrapperTaskInstance)
+                .map(awo -> (WorkflowWrapperTaskInstance) awo)
+                .forEach(wwti -> {
 //                    Optional<IJiraArtifact> optIJira = wwti.getInput().stream()
 //                            .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
 //                            .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
@@ -70,10 +62,10 @@ public class WorkflowHelpers {
 //                    if (optIJira.isPresent()) {
 //
 //                    } else {
-                        commandGateway.send(new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
+                    commandGateway.send(new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
 //                    }
-                    });
-        }
+                });
+
     }
 
     static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, ArtifactInput ai) {
@@ -83,14 +75,12 @@ public class WorkflowHelpers {
         }
     }
 
-    static void insertOrUpdateKieSession(KieSessionService kieSessions, String id, List<AbstractWorkflowInstanceObject> awos, List<IJiraArtifact> artifacts, boolean isReplay) {
-        if (!isReplay) {
-            if (artifacts != null)
-                artifacts.forEach(a -> kieSessions.insertOrUpdate(id, a));
-            if (awos != null)
-                awos.forEach(awo -> kieSessions.insertOrUpdate(id, awo));
-            kieSessions.fire(id);
-        }
+    static void insertOrUpdateKieSession(KieSessionService kieSessions, String id, List<AbstractWorkflowInstanceObject> awos, List<IJiraArtifact> artifacts) {
+        if (artifacts != null)
+            artifacts.forEach(a -> kieSessions.insertOrUpdate(id, a));
+        if (awos != null)
+            awos.forEach(awo -> kieSessions.insertOrUpdate(id, awo));
+        kieSessions.fire(id);
     }
 
     static IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {

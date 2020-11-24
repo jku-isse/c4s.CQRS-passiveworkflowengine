@@ -136,25 +136,26 @@ public class WorkflowInstanceWrapper {
         return awos;
     }
 
-    public List<RuleEngineBasedConstraint> handle(AddedConstraintsEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(AddedConstraintsEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        List<RuleEngineBasedConstraint> rebcs = new ArrayList<>();
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
         if (wft != null) {
             QACheckDocument qa = getQACDocOfWft(wft);
             if (qa == null) {
                 qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
                 ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
-                addConstraint(evt, qa, wft, rebcs);
+                addConstraint(evt, qa, wft, awos);
                 wft.addOutput(ao);
             } else {
-                addConstraint(evt, qa, wft, rebcs);
+                addConstraint(evt, qa, wft, awos);
             }
-
+            awos.add(qa);
         }
-        return rebcs;
+
+        return awos;
     }
 
-    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<RuleEngineBasedConstraint> rebcs) {
+    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<AbstractWorkflowInstanceObject> rebcs) {
         CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
         qa.setLastChangeDueTo(corr);
         Map<String, String> rules = evt.getRules();
@@ -167,8 +168,9 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    public RuleEngineBasedConstraint handle(AddedEvaluationResultToConstraintEvt evt) {
+    public QACheckDocument handle(AddedEvaluationResultToConstraintEvt evt) {
         RuleEngineBasedConstraint rebc = getQAC(evt.getQacId());
+        QACheckDocument qacd = getQACD(evt.getQacId());
         if (rebc != null) {
             rebc.removeAllResourceLinks();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
@@ -183,8 +185,9 @@ public class WorkflowInstanceWrapper {
             }
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
+            rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
         }
-        return rebc;
+        return qacd;
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
@@ -286,6 +289,25 @@ public class WorkflowInstanceWrapper {
                         if (qac.getId().equals(qacId)) {
                             if (qac instanceof RuleEngineBasedConstraint) {
                                 return (RuleEngineBasedConstraint) qac;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public QACheckDocument getQACD(String qacId) {
+        if (wfi == null) return null;
+        for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
+            for (ArtifactOutput ao : wft.getOutput()) {
+                if (ao.getArtifact() instanceof QACheckDocument) {
+                    QACheckDocument qacd = (QACheckDocument) ao.getArtifact();
+                    for (QACheckDocument.QAConstraint qac : qacd.getConstraintsReadonly()) {
+                        if (qac.getId().equals(qacId)) {
+                            if (qac instanceof RuleEngineBasedConstraint) {
+                                return qacd;
                             }
                         }
                     }

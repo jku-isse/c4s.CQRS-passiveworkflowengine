@@ -16,6 +16,8 @@ import passiveprocessengine.definition.TaskLifecycle.Events
 import passiveprocessengine.instance.AbstractWorkflowInstanceObject
 import passiveprocessengine.definition.WorkflowDefinition
 import passiveprocessengine.instance.ResourceLink
+import passiveprocessengine.instance.QACheckDocument
+import passiveprocessengine.instance.RuleEngineBasedConstraint
 
 import impactassessment.api.Commands.CompleteDataflowCmd
 import impactassessment.api.Commands.ActivateInBranchCmd
@@ -36,11 +38,29 @@ import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 global CommandGateway commandGateway;
 
+rule "Activate-Open2Closed"
+    when
+        $qacd : QACheckDocument( areAllConstraintsFulfilled() )
+        $task : WorkflowTask( getType().getId().equals("Prepare Implementation") &&
+                                getWorkflow().getId().equals($qacd.getWorkflow().getId) &&
+                                hasOutputArtifactWithId($qacd.getId()))
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("open2closed") &&
+        							getInBranchIdForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled()
+        							, $wfi : getWorkflow() )
+
+    then
+        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "closedIn"));
+end
+
+/*
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
     	$a : IJiraArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        							 getWorkflow().getType().getId().equals("NESTED_WORKFLOW_TYPE") &&
+        							 getWorkflow().getType().getId().equals("PARALLELWITHDATA_WORKFLOW_TYPE") &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
 									 , $wfi : getWorkflow() )
@@ -54,7 +74,7 @@ rule "CompleteActivationPropagationAndExecuteMapping"
     when
     	$a : IJiraArtifact(  )
         $dni : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        							 getWorkflow().getType().getId().equals("NESTED_WORKFLOW_TYPE") &&
+        							 getWorkflow().getType().getId().equals("LINEARWITHDATA_WORKFLOW_TYPE") &&
 									 (state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS || state == DecisionNodeDefinition.States.PROGRESSED_OUTBRANCHES) &&
 									 !isActivationPropagationCompleted()
 									 , $wfi : getWorkflow() )
@@ -94,20 +114,6 @@ rule "InProgress2Resolved-InBranchConditions"
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
 end
 
-rule "Open2Resolved-InBranchConditions"
-    when
-    	$a : IJiraArtifact( getStatus().getName().equals("Resolved") || getStatus().getName().equals("Fertig") )
-        $task : WorkflowTask( getType().getId().equals("Open") )
-        						@watch ( outputState, lifecycleState )
-        $dn : DecisionNodeInstance( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
-        							getDefinition().getId().equals("open2inProgressOrResolved") &&
-        							getInBranchIdForWorkflowTask($task) != null &&
-        							!isTaskCompletionConditionsFullfilled()
-        							, $wfi : getWorkflow() )
-    then
-        commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "resolvedIn"));
-end
 
 rule "No-Op-Automatic-Progress"
     when
@@ -125,3 +131,4 @@ rule "No-Op-Automatic-Progress"
                 .collect(Collectors.toSet());
         commandGateway.send(new ActivateInOutBranchesCmd($wfi.getId(), $dn.getId(), $task.getId(), branchIds));
 end
+*/

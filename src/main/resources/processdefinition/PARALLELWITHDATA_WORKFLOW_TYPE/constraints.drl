@@ -210,7 +210,7 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		for (IJiraIssueLink link : $a.getIssueLinks()){
 			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
-				if (p.getStatus().getName().equals("Closed") || p.getStatus().getName().equals("Fertig")) {
+				if (p.getStatus().getName().equals("Closed") || p.getStatus().getName().equals("Done") || p.getStatus().getName().equals("Fertig")) {
 				    resources.put(ResourceLinkFactory.get(p), true);
 				} else {
 				    resources.put(ResourceLinkFactory.get(p), false);

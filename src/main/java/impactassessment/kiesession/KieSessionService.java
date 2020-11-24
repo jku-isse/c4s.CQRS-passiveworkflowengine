@@ -1,11 +1,13 @@
 package impactassessment.kiesession;
 
+import com.google.inject.internal.cglib.core.$ObjectSwitchCallback;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -22,6 +24,7 @@ public class KieSessionService {
 
 
     public void insertOrUpdate(String id, Object o) {
+
         kieSessions.get(id).insertOrUpdate(o);
     }
 
