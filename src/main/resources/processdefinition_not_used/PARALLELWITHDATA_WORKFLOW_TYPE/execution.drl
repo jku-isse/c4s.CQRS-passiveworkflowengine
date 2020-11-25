@@ -37,7 +37,7 @@ import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 
 global CommandGateway commandGateway;
-
+/*
 rule "Activate-Open2Closed"
     when
         $qacd : QACheckDocument( areAllConstraintsFulfilled() )
@@ -55,7 +55,7 @@ rule "Activate-Open2Closed"
         commandGateway.send(new ActivateInOutBranchCmd($wfi.getId(), $dn.getId(), $task.getId(), "closedIn"));
 end
 
-/*
+
 rule "AddWPTicketAsInputToNewTasks"
     when // matches any inBranch for the Workflow waiting for input,
     	$a : IJiraArtifact(  )
