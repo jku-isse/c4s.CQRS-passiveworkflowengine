@@ -203,10 +203,10 @@ public class WorkflowProjection {
     public void on(AddedOutputEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-        IWorkflowTask wft = wfiWrapper.handle(evt);
+        List<IWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
-            kieSessions.insertOrUpdate(evt.getId(), wft);
+            wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
             kieSessions.fire(evt.getId());
         }
     }

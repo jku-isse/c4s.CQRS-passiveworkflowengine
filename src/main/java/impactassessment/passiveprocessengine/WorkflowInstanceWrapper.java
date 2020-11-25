@@ -8,18 +8,7 @@ import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.ArtifactTypes;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.definition.WorkflowDefinition;
-import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
-import passiveprocessengine.instance.ArtifactIO;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
-import passiveprocessengine.instance.ArtifactWrapper;
-import passiveprocessengine.instance.CorrelationTuple;
-import passiveprocessengine.instance.DecisionNodeInstance;
-import passiveprocessengine.instance.QACheckDocument;
-import passiveprocessengine.instance.ResourceLink;
-import passiveprocessengine.instance.RuleEngineBasedConstraint;
-import passiveprocessengine.instance.WorkflowInstance;
-import passiveprocessengine.instance.WorkflowTask;
+import passiveprocessengine.instance.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -202,12 +191,14 @@ public class WorkflowInstanceWrapper {
         return wft;
     }
 
-    public IWorkflowTask handle(AddedOutputEvt evt) {
+    public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
+        List<IWorkflowInstanceObject> awos = new ArrayList<>();
         setWfi(evt.getArtifact());
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
-        wft.addOutput(output);
-        return wft;
+        awos.addAll(wft.addOutput(output));
+        awos.add(wft);
+        return awos;
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
