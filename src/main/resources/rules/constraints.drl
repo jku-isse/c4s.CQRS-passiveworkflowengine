@@ -26,6 +26,7 @@ import java.util.HashMap
 import impactassessment.api.AddConstraintsCmd
 import impactassessment.passiveprocessengine.instance.ResourceLink
 import impactassessment.passiveprocessengine.instance.WorkflowTask
+import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;

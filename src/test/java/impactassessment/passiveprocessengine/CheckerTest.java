@@ -1,11 +1,11 @@
 package impactassessment.passiveprocessengine;
 
 
+import impactassessment.exampleworkflows.ComplexWorkflow;
+import impactassessment.exampleworkflows.DronologyWorkflow;
+import impactassessment.exampleworkflows.DronologyWorkflowFixed;
+import impactassessment.exampleworkflows.UncleanWorkflow;
 import org.junit.jupiter.api.Test;
-import passiveprocessengine.exampleworkflows.ComplexWorkflow;
-import passiveprocessengine.exampleworkflows.DronologyWorkflow;
-import passiveprocessengine.exampleworkflows.DronologyWorkflowFixed;
-import passiveprocessengine.exampleworkflows.UncleanWorkflow;
 import passiveprocessengine.verification.Checker;
 import passiveprocessengine.verification.Report;
 

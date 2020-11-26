@@ -1,22 +1,56 @@
 package impactassessment.jiraartifact;
 
-import com.atlassian.jira.rest.client.api.StatusCategory;
 import com.atlassian.jira.rest.client.api.domain.*;
-import org.jetbrains.annotations.NotNull;
+import impactassessment.jiraartifact.subinterfaces.*;
+import impactassessment.jiraartifact.subtypes.*;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.joda.time.DateTime;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JiraArtifact implements IJiraArtifact {
 
+public class JiraArtifact implements IJiraArtifact {
     private Issue issue;
+    private IJiraStatus status;
+    private IJiraUser reporter;
+    private IJiraUser assignee;
+    private IJiraBasicPriority basicPriority;
+    private IJiraIssueType issueType;
+    private IJiraBasicProject basicProject;
+    private IJiraBasicVotes basicVotes;
+    private List<IJiraIssueLink> issueLinks = new ArrayList<>();
+    private List<IJiraSubtask> subTasks = new ArrayList<>();
+    private List<IJiraIssueField> issueFields = new ArrayList<>();
+    private List<IJiraVersion> versions = new ArrayList<>();
 
     public JiraArtifact(Issue issue) {
         this.issue = issue;
+        this.status = new JiraStatus(issue.getStatus());
+        this.reporter = new JiraUser(issue.getReporter());
+        this.assignee = new JiraUser(issue.getAssignee());
+        this.basicPriority = new JiraBasicPriority(issue.getPriority());
+        this.issueType = new JiraIssueType(issue.getIssueType());
+        this.basicProject = new JiraBasicProject(issue.getProject());
+        this.basicVotes = new JiraBasicVotes(issue.getVotes());
+        if (issue.getIssueLinks() != null) // null-check necessary because field is marked as @Nullable by atlassian
+            for (IssueLink il : issue.getIssueLinks()) {
+                issueLinks.add(new JiraIssueLink(il));
+            }
+        if (issue.getSubtasks() != null)
+            for (Subtask t : issue.getSubtasks()) {
+                subTasks.add(new JiraSubtask(t));
+            }
+        if (issue.getFields() != null)
+            for (IssueField t : issue.getFields()) {
+                issueFields.add(new JiraIssueField(t));
+            }
+        if (issue.getFixVersions() != null)
+            for (Version v : issue.getFixVersions()) {
+                versions.add(new JiraVersion(v));
+            }
     }
 
     public Issue getIssue() {
@@ -31,12 +65,14 @@ public class JiraArtifact implements IJiraArtifact {
     @Override
     public URI getBrowserLink() {
         try {
-            return new URI("http://"+getSelf().getHost()+":"+getSelf().getPort()+"/browse/"+getKey());
+            //Example: https://passiveprocessengine.atlassian.net/jira/software/c/projects/DEMO/issues/DEMO-8
+            return new URI("https://"+getSelf().getHost()+"/jira/software/c/projects/"+getProject().getKey()+"/issues/"+getKey());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         return null;
     }
+
     @Override
     public String getKey() {
         return issue.getKey();
@@ -49,105 +85,17 @@ public class JiraArtifact implements IJiraArtifact {
 
     @Override
     public IJiraStatus getStatus() {
-        return getiStatus(issue.getStatus());
-    }
-
-    @NotNull
-    private IJiraStatus getiStatus(Status status) {
-        return new IJiraStatus() {
-            @Override
-            public URI getSelf() {
-                return status.getSelf();
-            }
-
-            @Override
-            public String getName() {
-                return status.getName();
-            }
-
-            @Override
-            public Long getId() {
-                return status.getId();
-            }
-
-            @Override
-            public String getDescription() {
-                return status.getDescription();
-            }
-
-            @Override
-            public IJiraStatusCategory getStatusCategory() {
-                StatusCategory statusCategory = status.getStatusCategory();
-                return new IJiraStatusCategory() {
-                    @Override
-                    public Long getId() {
-                        return statusCategory.getId();
-                    }
-
-                    @Override
-                    public URI getSelf() {
-                        return statusCategory.getSelf();
-                    }
-
-                    @Override
-                    public String getKey() {
-                        return statusCategory.getKey();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return statusCategory.getName();
-                    }
-                };
-            }
-        };
+        return status;
     }
 
     @Override
     public IJiraUser getReporter() {
-        User user = issue.getReporter();
-        return getiUser(user);
-    }
-
-    @NotNull
-    private IJiraUser getiUser(User user) {
-        return new IJiraUser() {
-            @Override
-            public URI getSelf() {
-                return user.getSelf();
-            }
-
-            @Override
-            public String getName() {
-                return user.getName();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return user.getDisplayName();
-            }
-
-            @Override
-            public String getAccoutId() {
-                return user.getAccountId();
-            }
-
-            @Override
-            public String getEmailAddress() {
-                return user.getEmailAddress();
-            }
-
-            @Override
-            public boolean isActive() {
-                return user.isActive();
-            }
-        };
+        return reporter;
     }
 
     @Override
     public IJiraUser getAssignee() {
-        User user = issue.getAssignee();
-        return getiUser(user);
+        return assignee;
     }
 
     @Override
@@ -157,258 +105,62 @@ public class JiraArtifact implements IJiraArtifact {
 
     @Override
     public IJiraBasicPriority getPriority() {
-        BasicPriority prio = issue.getPriority();
-        if (prio == null) return null;
-        return new IJiraBasicPriority() {
-            @Override
-            public URI getSelf() {
-                return prio.getSelf();
-            }
-
-            @Override
-            public String getName() {
-                return prio.getName();
-            }
-
-            @Override
-            public Long getId() {
-                return prio.getId();
-            }
-        };
+        return basicPriority;
     }
 
     @Override
     public Iterable<IJiraIssueLink> getIssueLinks() {
-        List<IJiraIssueLink> iLinks = new ArrayList<>();
-        for (IssueLink link : issue.getIssueLinks()) {
-            iLinks.add(new IJiraIssueLink() {
-                @Override
-                public String getTargetIssueKey() {
-                    return link.getTargetIssueKey();
-                }
-
-                @Override
-                public URI getTargetIssueUri() {
-                    return link.getTargetIssueUri();
-                }
-
-                @Override
-                public IssueLinkType getIssueLinkType() {
-                    return link.getIssueLinkType();
-                }
-            });
-        }
-        return iLinks;
+        return issueLinks;
     }
 
     @Override
     public Iterable<IJiraSubtask> getSubtasks() {
-        List<IJiraSubtask> iTasks = new ArrayList<>();
-        for (Subtask task : issue.getSubtasks()) {
-            iTasks.add(new IJiraSubtask() {
-                @Override
-                public String getIssueKey() {
-                    return task.getIssueKey();
-                }
-
-                @Override
-                public URI getIssueUri() {
-                    return task.getIssueUri();
-                }
-
-                @Override
-                public String getSummary() {
-                    return task.getSummary();
-                }
-
-                @Override
-                public IJiraIssueType getIssueType() {
-                    return getiIssueType(task.getIssueType());
-                }
-
-                @Override
-                public IJiraStatus getStatus() {
-                    return getiStatus(task.getStatus());
-                }
-            });
-        }
-        return iTasks;
+        return subTasks;
     }
 
     @Override
     public Iterable<IJiraIssueField> getFields() {
-        List<IJiraIssueField> iIssueFields = new ArrayList<>();
-        for (IssueField issueField : issue.getFields()) {
-            iIssueFields.add(getiIssueField(issueField));
-        }
-        return iIssueFields;
+        return issueFields;
     }
 
     @Override
     public IJiraIssueField getField(String id) {
-        IssueField issueField = issue.getField(id);
-        return getiIssueField(issueField);
-    }
-
-    @NotNull
-    private IJiraIssueField getiIssueField(IssueField issueField) {
-        return new IJiraIssueField() {
-            @Override
-            public String getId() {
-                return issueField.getId();
+        for (IJiraIssueField issueField : issueFields) {
+            if (issueField.getId().equals(id)) {
+                return issueField;
             }
-
-            @Override
-            public String getName() {
-                return issueField.getName();
-            }
-
-            @Override
-            public String getType() {
-                return issueField.getType();
-            }
-
-            @Override
-            public Object getValue() {
-                return issueField.getValue();
-            }
-        };
+        }
+        return null;
     }
 
     @Override
     public IJiraIssueField getFieldByName(String name) {
-        IssueField issueField = issue.getFieldByName(name);
-        return getiIssueField(issueField);
+        for (IJiraIssueField issueField : issueFields) {
+            if (issueField.getName().equals(name)) {
+                return issueField;
+            }
+        }
+        return null;
     }
 
     @Override
     public IJiraIssueType getIssueType() {
-        return getiIssueType(issue.getIssueType());
-    }
-
-    @NotNull
-    private IJiraIssueType getiIssueType(IssueType issueType) {
-        return new IJiraIssueType() {
-            @Override
-            public Long getId() {
-                return issueType.getId();
-            }
-
-            @Override
-            public String getName() {
-                return issueType.getName();
-            }
-
-            @Override
-            public boolean isSubtask() {
-                return issueType.isSubtask();
-            }
-
-            @Override
-            public URI getSelf() {
-                return issueType.getSelf();
-            }
-
-            @Override
-            public String getDescription() {
-                return issueType.getDescription();
-            }
-        };
+        return issueType;
     }
 
     @Override
     public IJiraBasicProject getProject() {
-        BasicProject project = issue.getProject();
-        return new IJiraBasicProject() {
-            @Override
-            public URI getSelf() {
-                return project.getSelf();
-            }
-
-            @Override
-            public String getKey() {
-                return project.getKey();
-            }
-
-            @Nullable
-            @Override
-            public String getName() {
-                return project.getName();
-            }
-
-            @Nullable
-            @Override
-            public Long getId() {
-                return project.getId();
-            }
-        };
+       return basicProject;
     }
 
     @Override
     public IJiraBasicVotes getVotes() {
-        BasicVotes votes = issue.getVotes();
-        return new IJiraBasicVotes() {
-            @Override
-            public URI getSelf() {
-                return votes.getSelf();
-            }
-
-            @Override
-            public int getVotes() {
-                return votes.getVotes();
-            }
-
-            @Override
-            public boolean hasVoted() {
-                return votes.hasVoted();
-            }
-        };
+        return basicVotes;
     }
 
     @Override
     public Iterable<IJiraVersion> getFixVersions() {
-        List<IJiraVersion> iVersions = new ArrayList<>();
-        for (Version version : issue.getFixVersions()) {
-            iVersions.add(new IJiraVersion() {
-                @Override
-                public URI getSelf() {
-                    return version.getSelf();
-                }
-
-                @Nullable
-                @Override
-                public Long getId() {
-                    return version.getId();
-                }
-
-                @Override
-                public String getDescription() {
-                    return version.getDescription();
-                }
-
-                @Override
-                public String getName() {
-                    return version.getName();
-                }
-
-                @Override
-                public boolean isArchived() {
-                    return version.isArchived();
-                }
-
-                @Override
-                public boolean isReleased() {
-                    return version.isReleased();
-                }
-
-                @Nullable
-                @Override
-                public DateTime getReleaseDate() {
-                    return version.getReleaseDate();
-                }
-            });
-        }
-        return iVersions;
+        return versions;
     }
 
     @Override

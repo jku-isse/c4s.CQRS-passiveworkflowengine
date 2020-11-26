@@ -11,14 +11,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import impactassessment.api.CheckAllConstraintsCmd;
-import impactassessment.api.CheckConstraintCmd;
-import impactassessment.api.DeleteCmd;
+import impactassessment.api.Commands.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
+import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.NoOpTaskDefinition;
-import passiveprocessengine.instance.*;
 import passiveprocessengine.instance.ArtifactIO;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactOutput;
@@ -239,10 +237,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Component infoDialog(WorkflowInstance wfi) {
         VerticalLayout l = new VerticalLayout();
         l.add(new H3(wfi.getId()));
+        l.add(new H4("Properties"));
         for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
             l.add(new Paragraph(e.getKey() + ": " + e.getValue()));
         }
-        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput());
+        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput());
         Dialog dialog = new Dialog();
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
@@ -259,7 +258,10 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Component infoDialog(WorkflowTask wft) {
         VerticalLayout l = new VerticalLayout();
         l.add(new H3(wft.getId()));
-        infoDialogInputOutput(l, wft.getInput(), wft.getOutput());
+        l.add(new H4("Properties"));
+        if (wft.getLifecycleState() != null)
+            l.add(new Paragraph(wft.getLifecycleState().name()));
+        infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput());
         Dialog dialog = new Dialog();
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
@@ -273,15 +275,32 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return icon;
     }
 
-    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs) {
+    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
         l.add(new H4("Inputs"));
+        VerticalLayout inLayout = new VerticalLayout();
+        inLayout.setClassName("card-border");
+        inLayout.add(new H5("Expected"));
+        for (Map.Entry<String, ArtifactType> entry : expectedInput.entrySet()) {
+            inLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+        }
+        inLayout.add(new H5("Present"));
         for (ArtifactInput ai : inputs) {
-            l.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+            inLayout.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
         }
+        l.add(inLayout);
+
         l.add(new H4("Outputs"));
-        for (ArtifactOutput ao : outputs) {
-            l.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        VerticalLayout outLayout = new VerticalLayout();
+        outLayout.setClassName("card-border");
+        outLayout.add(new H5("Expected"));
+        for (Map.Entry<String, ArtifactType> entry : expectedOutput.entrySet()) {
+            outLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
         }
+        outLayout.add(new H5("Present"));
+        for (ArtifactOutput ao : outputs) {
+            outLayout.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        }
+        l.add(outLayout);
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {

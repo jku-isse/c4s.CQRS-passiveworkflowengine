@@ -35,6 +35,7 @@ public class KieSessionWrapper {
         isInitialized = false;
     }
 
+    @Deprecated
     public void create() {
         Properties props = new Properties();
         try {

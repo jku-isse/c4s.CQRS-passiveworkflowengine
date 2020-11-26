@@ -1,12 +1,13 @@
 package impactassessment.command;
 
-import impactassessment.api.*;
+import impactassessment.api.Commands.*;
+import impactassessment.api.Events.*;
+import impactassessment.api.Sources;
 import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.jiraartifact.mock.JiraMockService;
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.registry.WorkflowDefinitionContainer;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -30,7 +31,6 @@ public class WorkflowAggregate {
 
     @AggregateIdentifier
     String id;
-    WorkflowInstanceWrapper model;
     private String parentWfiId; // also parent aggregate id
     private String parentWftId;
 
@@ -41,9 +41,6 @@ public class WorkflowAggregate {
     public String getId() {
         return id;
     }
-    public WorkflowInstanceWrapper getModel() {
-        return model;
-    }
 
 
     // -------------------------------- Command Handlers --------------------------------
@@ -51,21 +48,15 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateMockWorkflowCmd cmd) {
+    public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
+        String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
         IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
-        apply(new CreatedDefaultWorkflowEvt(cmd.getId(), List.of(a)));
-    }
-
-    @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateDefaultWorkflowCmd cmd, IJiraArtifactService artifactService) {
-        log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
-        if (artifacts.size() > 0) {
-            apply(new CreatedDefaultWorkflowEvt(cmd.getId(), artifacts));
+        WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
+        if (wfdContainer != null) {
+            apply(new CreatedWorkflowEvt(cmd.getId(), List.of(a), workflowName, wfdContainer.getWfd()));
         } else {
-            log.error("Artifacts couldn't get retrieved!");
+            log.error("Workflow Definition named {} not found in registry!", workflowName);
         }
     }
 
@@ -73,7 +64,7 @@ public class WorkflowAggregate {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
         log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = createWorkflow(artifactService, cmd.getInput());
+        List<IJiraArtifact> artifacts = createWorkflow(cmd.getId(), artifactService, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
@@ -82,13 +73,13 @@ public class WorkflowAggregate {
         }
     }
 
-    private List<IJiraArtifact> createWorkflow(IJiraArtifactService artifactService, Map<String, String> inputs) {
+    private List<IJiraArtifact> createWorkflow(String id, IJiraArtifactService artifactService, Map<String, String> inputs) {
         List<IJiraArtifact> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
-            String id = entry.getKey();
+            String key = entry.getKey();
             String source = entry.getValue();
             if (source.equals(Sources.JIRA.toString())) {
-                IJiraArtifact a = artifactService.get(id);
+                IJiraArtifact a = artifactService.get(key, id);
                 if (a != null) {
                     artifacts.add(a);
                 }
@@ -105,7 +96,7 @@ public class WorkflowAggregate {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
-            apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd()));
+            apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd(), cmd.getArtifacts()));
         } else {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
@@ -198,24 +189,18 @@ public class WorkflowAggregate {
         apply(new AddedOutputToWorkflowEvt(cmd.getId(), cmd.getOutput()));
     }
 
+    @CommandHandler
+    public void handle(UpdateArtifactsCmd cmd) {
+        log.info("[AGG] handling {}", cmd);
+        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
+    }
 
     // -------------------------------- Event Handlers --------------------------------
-
-
-    @EventSourcingHandler
-    public void on(CreatedDefaultWorkflowEvt evt) {
-        log.debug("[AGG] applying {}", evt);
-        id = evt.getId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
-    }
 
     @EventSourcingHandler
     public void on(CreatedWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
     }
 
     @EventSourcingHandler
@@ -224,8 +209,6 @@ public class WorkflowAggregate {
         id = evt.getId();
         parentWfiId = evt.getParentWfiId();
         parentWftId = evt.getParentWftId();
-        model = new WorkflowInstanceWrapper();
-        model.handle(evt);
     }
 
     @EventSourcingHandler
@@ -239,7 +222,6 @@ public class WorkflowAggregate {
     @EventSourcingHandler
     public void on(IdentifiableEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        model.handle(evt);
     }
 
 }

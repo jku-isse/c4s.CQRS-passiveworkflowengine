@@ -1,4 +1,4 @@
-package rules;
+package processdefinition;
 
 import org.axonframework.commandhandling.gateway.CommandGateway
 
@@ -10,23 +10,23 @@ import passiveprocessengine.instance.RuleEngineBasedConstraint
 import java.time.Instant
 import passiveprocessengine.instance.CorrelationTuple
 import passiveprocessengine.instance.ConstraintTrigger
-import passiveprocessengine.exampleworkflows.DronologyWorkflow
 
-import impactassessment.api.AddEvaluationResultToConstraintCmd
+import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd
 import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
 
 import impactassessment.jiraartifact.IJiraArtifact
-import impactassessment.jiraartifact.IJiraIssueLink
+import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
 import impactassessment.jiraartifact.IJiraArtifactService
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
-import impactassessment.api.AddConstraintsCmd
+import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.ResourceLinkFactory
+import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;
@@ -36,7 +36,7 @@ rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) &&
+		                        getType().getId().equals("Open") &&
 		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -64,7 +64,7 @@ rule "InsertQAConstraintsStateInProgress"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS) &&
+        		                        getType().getId().equals("In Progress") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -89,7 +89,7 @@ rule "InsertQAConstraintsStateResolved"
 	when
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals(DronologyWorkflow.TASK_STATE_RESOLVED) &&
+        		                        getType().getId().equals("Resolved") &&
 							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -148,7 +148,7 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				n++;
 				resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
@@ -172,7 +172,7 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
@@ -211,7 +211,7 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
 			    resources.put(ResourceLinkFactory.get(p), true);
 				n++;
@@ -233,7 +233,7 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		boolean relatedBug = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
 				if (p.getStatus().getName().equals("Closed")) {
 				    resources.put(ResourceLinkFactory.get(p), true);
@@ -259,7 +259,7 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = artifactService.get(link.getTargetIssueKey());
+		    IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;

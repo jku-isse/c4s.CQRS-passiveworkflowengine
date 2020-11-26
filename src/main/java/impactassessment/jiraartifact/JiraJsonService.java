@@ -19,7 +19,11 @@ public class JiraJsonService implements IJiraArtifactService {
 
     private final String FILENAME;
 
-    public JiraJsonService() {
+    private JiraChangeSubscriber jiraChangeSubscriber;
+
+    public JiraJsonService(JiraChangeSubscriber jiraChangeSubscriber) {
+        this.jiraChangeSubscriber = jiraChangeSubscriber;
+
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -33,18 +37,20 @@ public class JiraJsonService implements IJiraArtifactService {
     }
 
     @Override
-    public IJiraArtifact get(String key) {
+    public IJiraArtifact get(String artifactKey, String workflowId) {
+        log.debug("JiraJsonService loads "+artifactKey);
         Issue issue = null;
         try {
-            issue = loadIssue(key);
+            issue = loadIssue(artifactKey);
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-        JiraArtifact artifact = null;
-        if (issue != null) {
-            artifact = new JiraArtifact(issue);
-        }
-        return artifact;
+        if (issue == null)
+            return null;
+
+        jiraChangeSubscriber.addUsage(workflowId, artifactKey);
+
+        return new JiraArtifact(issue);
     }
 
     private Issue loadIssue(String key) throws JSONException, IOException {

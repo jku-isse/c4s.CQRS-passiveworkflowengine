@@ -9,3 +9,10 @@
 .column-center {
     text-align: center;
 }
+
+.card-border {
+    border-color: black;
+    border-radius: 15px;
+    border-style: solid;
+    border-width: thin;
+}

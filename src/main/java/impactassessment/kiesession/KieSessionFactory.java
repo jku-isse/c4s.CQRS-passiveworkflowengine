@@ -57,8 +57,10 @@ public class KieSessionFactory {
     public KieContainer getKieContainerFromStrings(Collection<String> ruleFiles) {
         getKieRepository();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        int i = 0;
         for (String ruleFile : ruleFiles) {
-            kieFileSystem.write("src/main/resources/rules/temp.drl", kieServices.getResources().newReaderResource( new StringReader(ruleFile) ));
+            kieFileSystem.write("src/main/resources/rules/temp"+i+".drl", kieServices.getResources().newReaderResource( new StringReader(ruleFile) ));
+            i++;
         }
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();

@@ -34,7 +34,7 @@ public class WorkflowDefinitionRegistry {
 
     private void persist(String name, String json, Map<String, String> ruleFiles) {
         ClassLoader classLoader = getClass().getClassLoader();
-        URL definitionsURL = classLoader.getResource("processdefinition/");
+        URL definitionsURL = classLoader.getResource("processdefinition");
         try {
             File file = new File(definitionsURL.getPath()+name+"/"+name+".json");
             file.getParentFile().mkdirs();
