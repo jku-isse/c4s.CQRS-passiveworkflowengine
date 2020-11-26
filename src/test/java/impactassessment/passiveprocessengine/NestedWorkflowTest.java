@@ -12,6 +12,7 @@ import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.ArtifactTypes;
 import passiveprocessengine.instance.ResourceLink;
 
+import java.util.Collections;
 import java.util.List;
 
 public class NestedWorkflowTest {
@@ -45,7 +46,7 @@ public class NestedWorkflowTest {
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "inProgress2resolved#test", rl));
 
         WorkflowInstanceWrapper nestedWfiWrapper = new WorkflowInstanceWrapper();
-        nestedWfiWrapper.handle(new CreatedSubWorkflowEvt("Nested#In Progress#test", ID, "In Progress#test", "", new DronologyWorkflowFixed()));
+        nestedWfiWrapper.handle(new CreatedSubWorkflowEvt("Nested#In Progress#test", ID, "In Progress#test", "", new DronologyWorkflowFixed(), Collections.emptyList()));
         System.out.println("x");
     }
 

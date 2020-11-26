@@ -35,7 +35,7 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
 
-    private void setArtifact(List<IJiraArtifact> artifacts) {
+    private void setArtifact(Collection<IJiraArtifact> artifacts) {
         if (wfi != null) {
             for (IJiraArtifact artifact : artifacts) {
                 ArtifactWrapper aw = new ArtifactWrapper(artifact.getKey(), ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, wfi, artifact);
@@ -57,10 +57,10 @@ public class WorkflowInstanceWrapper {
 
     public List<AbstractWorkflowInstanceObject> handle(CreatedSubWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
-        return initWfi(evt.getId(), wfd, Collections.emptyList());
+        return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, List<IJiraArtifact> artifacts) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<IJiraArtifact> artifacts) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
         setArtifact(artifacts);

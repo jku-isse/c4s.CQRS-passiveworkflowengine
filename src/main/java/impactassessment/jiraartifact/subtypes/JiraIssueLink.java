@@ -16,7 +16,7 @@ public class JiraIssueLink implements IJiraIssueLink {
     private IssueLink issueLink;
     private IJiraIssueLinkType jiraIssueLinkType;
 
-    private volatile IJiraArtifactService jiraArtifactService = null;
+    private transient IJiraArtifactService jiraArtifactService = null;
 
     public JiraIssueLink(IssueLink issueLink) {
         this.issueLink = issueLink;

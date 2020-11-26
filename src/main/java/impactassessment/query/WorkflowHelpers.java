@@ -16,7 +16,11 @@ import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class WorkflowHelpers {
@@ -48,24 +52,16 @@ public class WorkflowHelpers {
         }
     }
 
-    static void createSubWorkflow(CommandGateway commandGateway, List<AbstractWorkflowInstanceObject> awos, String wfiId) {
-        awos.stream()
-                .filter(awo -> awo instanceof WorkflowWrapperTaskInstance)
-                .map(awo -> (WorkflowWrapperTaskInstance) awo)
-                .forEach(wwti -> {
-//                    Optional<IJiraArtifact> optIJira = wwti.getInput().stream()
-//                            .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
-//                            .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
-//                            .filter(o -> o instanceof IJiraArtifact)
-//                            .map(o -> (IJiraArtifact)o)
-//                            .findAny();
-//                    if (optIJira.isPresent()) {
-//
-//                    } else {
-                    commandGateway.send(new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId()));
-//                    }
-                });
-
+    static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
+        List<IJiraArtifact> artifacts = wwti.getInput().stream()
+                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
+                .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
+                .filter(o -> o instanceof IJiraArtifact)
+                .map(o -> (IJiraArtifact)o)
+                .collect(Collectors.toList());
+        CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);
+        UpdateArtifactsCmd cmd2 = new UpdateArtifactsCmd(wfiId, artifacts);
+        commandGateway.send(cmd);
     }
 
     static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, ArtifactInput ai) {
@@ -73,14 +69,6 @@ public class WorkflowHelpers {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
             commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), ai));
         }
-    }
-
-    static void insertOrUpdateKieSession(KieSessionService kieSessions, String id, List<AbstractWorkflowInstanceObject> awos, List<IJiraArtifact> artifacts) {
-        if (artifacts != null)
-            artifacts.forEach(a -> kieSessions.insertOrUpdate(id, a));
-        if (awos != null)
-            awos.forEach(awo -> kieSessions.insertOrUpdate(id, awo));
-        kieSessions.fire(id);
     }
 
     static IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {

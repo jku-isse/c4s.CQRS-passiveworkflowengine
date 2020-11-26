@@ -11,6 +11,7 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
+        private final List<IJiraArtifact> artifacts;
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {

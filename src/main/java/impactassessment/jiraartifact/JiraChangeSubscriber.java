@@ -35,8 +35,8 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
                     affectedArtifacts.add(new JiraArtifact(ia.getIssue()));
                 }
             }
-
-            commandGateway.sendAndWait(new UpdateArtifactsCmd(workflowId, affectedArtifacts));
+            UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(workflowId, affectedArtifacts);
+            commandGateway.sendAndWait(cmd);
         }
     }
 
