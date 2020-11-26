@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
 
-import impactassessment.jiraartifact.IJiraArtifact
-import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
-import impactassessment.jiraartifact.IJiraArtifactService
+import impactassessment.artifactconnector.jira.IJiraArtifact
+import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.jira.IJiraArtifactService
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
@@ -26,7 +26,7 @@ import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.ResourceLinkFactory
-import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink
 import impactassessment.artifactconnector.jira.IJiraArtifact
 
 global CommandGateway commandGateway;
