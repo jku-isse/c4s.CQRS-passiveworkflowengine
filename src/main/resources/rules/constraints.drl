@@ -27,6 +27,7 @@ import impactassessment.api.AddConstraintsCmd
 import impactassessment.passiveprocessengine.instance.ResourceLink
 import impactassessment.passiveprocessengine.instance.WorkflowTask
 import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.jira.IJiraArtifact
 
 global CommandGateway commandGateway;
 global IJiraArtifactService artifactService;

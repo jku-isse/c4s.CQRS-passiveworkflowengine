@@ -2,7 +2,7 @@ package impactassessment.query;
 
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.registry.WorkflowDefinitionRegistry;

@@ -1,6 +1,6 @@
 package impactassessment.api;
 
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import lombok.Data;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
@@ -11,7 +11,6 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

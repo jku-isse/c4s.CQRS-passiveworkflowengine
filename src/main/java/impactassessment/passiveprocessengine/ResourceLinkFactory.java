@@ -1,6 +1,6 @@
 package impactassessment.passiveprocessengine;
 
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import passiveprocessengine.instance.ResourceLink;
 
 public class ResourceLinkFactory {

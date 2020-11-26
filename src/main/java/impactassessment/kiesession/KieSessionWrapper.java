@@ -1,7 +1,7 @@
 package impactassessment.kiesession;
 
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.IJiraArtifactService;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifactService;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;

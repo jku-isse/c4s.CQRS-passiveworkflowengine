@@ -1,25 +1,20 @@
 package impactassessment.query;
 
 import impactassessment.api.Commands.*;
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.kie.api.runtime.KieContainer;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
 import passiveprocessengine.instance.QACheckDocument;
 import passiveprocessengine.instance.RuleEngineBasedConstraint;
 import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j

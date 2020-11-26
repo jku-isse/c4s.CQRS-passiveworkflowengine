@@ -1,7 +1,7 @@
 package impactassessment.passiveprocessengine;
 
 import impactassessment.api.Events.*;
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
