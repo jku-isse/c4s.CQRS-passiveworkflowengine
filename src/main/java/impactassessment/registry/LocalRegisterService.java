@@ -35,11 +35,11 @@ public class LocalRegisterService extends AbstractRegisterService {
             Resource[] folders = resolver.getResources("classpath:processdefinition/*") ;
             for (Resource res : folders) {
                 Resource[] jsonResources = resolver.getResources(res.getURL()+"/*.json");
-                if (jsonResources.length != 1) break;
+                if (jsonResources.length != 1) continue;
                 WorkflowDefinition wfd = serializer.fromJson(asString(jsonResources[0]));
 
                 Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
-                if (drlResources.length < 1) break;
+                if (drlResources.length < 1) continue;
                 List<File> files = new ArrayList<>();
                 for (Resource drl : drlResources) {
                     files.add(drl.getFile());
