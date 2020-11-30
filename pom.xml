@@ -89,7 +89,7 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jiralightconnector</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <version>0.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ISSE.JKU</groupId>
@@ -330,7 +330,7 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jiralightconnector</artifactId>
-                            <version>0.3.0-SNAPSHOT</version>
+                            <version>0.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.jiralightconnector-0.0.3-SNAPSHOT.jar</file>
                         </configuration>
