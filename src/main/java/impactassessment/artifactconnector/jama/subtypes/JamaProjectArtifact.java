@@ -10,9 +10,13 @@ import java.util.List;
 
 public class JamaProjectArtifact {
     private JamaProject jamaProject;
+    private JamaUserArtifact userCreated;
+    private JamaUserArtifact userModified;
 
     public JamaProjectArtifact(JamaProject jamaProject) {
         this.jamaProject = jamaProject;
+        this.userCreated = new JamaUserArtifact(jamaProject.getCreatedBy());
+        this.userModified = new JamaUserArtifact(jamaProject.getModifiedBy());
     }
 
     public String getProjectKey() {
@@ -31,8 +35,8 @@ public class JamaProjectArtifact {
         return jamaProject.isFolder();
     }
 
-    public JamaUser getCreatedBy() {
-        return jamaProject.getCreatedBy();
+    public JamaUserArtifact getCreatedBy() {
+        return userCreated;
     }
 
     public Date getCreatedDate() {
@@ -43,13 +47,11 @@ public class JamaProjectArtifact {
         return jamaProject.getModifiedDate();
     }
 
-    public JamaUser getModifiedBy() {
-        return jamaProject.getModifiedBy();
+    public JamaUserArtifact getModifiedBy() {
+        return userModified;
     }
 
-    public List<JamaItem> getItems() throws RestClientException {
-        return jamaProject.getItems();
-    }
+
 
     @Override
     public String toString() {

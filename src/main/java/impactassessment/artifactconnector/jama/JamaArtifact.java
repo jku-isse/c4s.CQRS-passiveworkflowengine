@@ -1,20 +1,89 @@
 package impactassessment.artifactconnector.jama;
 
+import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItemType;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
+import impactassessment.artifactconnector.jama.subtypes.JamaRelease;
+import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 public class JamaArtifact implements IJamaArtifact {
 
     private JamaItem jamaItem;
+    private JamaProjectArtifact jamaProjectArtifact;
 
     public JamaArtifact(JamaItem jamaItem) {
         this.jamaItem = jamaItem;
+        this.jamaProjectArtifact = new JamaProjectArtifact(jamaItem.getProject());
+    }
+
+    public Integer getId() {
+        return jamaItem.getId();
+    }
+
+    public List<JamaItem> getChildren() throws RestClientException {
+        return jamaItem.getChildren();
+    }
+
+    public boolean isProject() {
+        return jamaItem.isProject();
+    }
+
+    public TextFieldValue getName() {
+        return jamaItem.getName();
+    }
+
+    public String getGlobalId() {
+        return jamaItem.getGlobalId();
+    }
+
+    public JamaProject getProject() {
+        return jamaItem.getProject();
+    }
+
+    public JamaItemType getItemType() {
+        return jamaItem.getItemType();
+    }
+
+    public JamaUser getCreatedBy() {
+        return jamaItem.getCreatedBy();
+    }
+
+    public JamaUser getModifiedBy() {
+        return jamaItem.getModifiedBy();
+    }
+
+    public String getDocumentKey() {
+        return jamaItem.getDocumentKey();
+    }
+
+    public Date getCreatedDate() {
+        return jamaItem.getCreatedDate();
+    }
+
+    public Date getModifiedDate() {
+        return jamaItem.getModifiedDate();
+    }
+
+    public Date getLastActivityDate() {
+        return jamaItem.getLastActivityDate();
+    }
+
+    public List<JamaItem> prefetchDownstreamItems() throws RestClientException {
+        return jamaItem.prefetchDownstreamItems();
+    }
+
+    public List<JamaItem> getDownstreamItems() {
+        return jamaItem.getDownstreamItems();
     }
 
     @Override
@@ -81,6 +150,9 @@ public class JamaArtifact implements IJamaArtifact {
 
     @Override
     public Optional<JamaProjectArtifact> getJamaProject(String fieldName) {
+        // What about this???
+//        return Optional.of(jamaProjectArtifact);
+
         JamaFieldValue jfv = jamaItem.getFieldValueByName(fieldName);
         if (jfv instanceof ProjectFieldValue) {
             return Optional.of(new JamaProjectArtifact(((ProjectFieldValue) jfv).getValue()));
@@ -89,5 +161,27 @@ public class JamaArtifact implements IJamaArtifact {
             return Optional.empty();
         }
     }
+
+    public Optional<JamaRelease> getJamaRelease(String fieldName) {
+        JamaFieldValue jfv = jamaItem.getFieldValueByName(fieldName);
+        if (jfv instanceof ReleaseFieldValue) {
+            return Optional.of(new JamaRelease(((ReleaseFieldValue) jfv).getValue()));
+        } else {
+            log.warn("Invalid field value type: {}", jfv.getClass().getSimpleName());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<JamaUserArtifact> getJamaUser(String fieldName) {
+        JamaFieldValue jfv = jamaItem.getFieldValueByName(fieldName);
+        if (jfv instanceof UserFieldValue) {
+            return Optional.of(new JamaUserArtifact(((UserFieldValue) jfv).getValue()));
+        } else {
+            log.warn("Invalid field value type: {}", jfv.getClass().getSimpleName());
+            return Optional.empty();
+        }
+    }
+
+
 
 }
