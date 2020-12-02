@@ -1,6 +1,8 @@
 package impactassessment.artifactconnector.jira;
 
 import com.atlassian.jira.rest.client.api.domain.*;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jira.subinterfaces.*;
 import impactassessment.artifactconnector.jira.subtypes.*;
 import org.joda.time.DateTime;
@@ -12,6 +14,9 @@ import java.util.List;
 
 
 public class JiraArtifact implements IJiraArtifact {
+
+    private ArtifactIdentifier artifactIdentifier;
+
     private Issue issue;
     private IJiraStatus status;
     private IJiraUser reporter;
@@ -26,6 +31,9 @@ public class JiraArtifact implements IJiraArtifact {
     private List<IJiraVersion> versions = new ArrayList<>();
 
     public JiraArtifact(Issue issue) {
+
+        this.artifactIdentifier = new ArtifactIdentifier(issue.getKey(), IJiraArtifact.class.getSimpleName());
+
         this.issue = issue;
         this.status = new JiraStatus(issue.getStatus());
         this.reporter = new JiraUser(issue.getReporter());
@@ -50,6 +58,11 @@ public class JiraArtifact implements IJiraArtifact {
             for (Version v : issue.getFixVersions()) {
                 versions.add(new JiraVersion(v));
             }
+    }
+
+    @Override
+    public ArtifactIdentifier getArtifactIdentifier() {
+        return artifactIdentifier;
     }
 
     public Issue getIssue() {

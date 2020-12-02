@@ -3,6 +3,8 @@ package impactassessment.artifactconnector.jama;
 import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaRelease;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaUserArtifact;
@@ -19,16 +21,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JamaArtifact implements IJamaArtifact {
 
+    private ArtifactIdentifier artifactIdentifier;
+
     private JamaItem jamaItem;
     private IJamaProjectArtifact jamaProjectArtifact;
     private IJamaUserArtifact userCreated;
     private IJamaUserArtifact userModified;
 
     public JamaArtifact(JamaItem jamaItem) {
+        this.artifactIdentifier = new ArtifactIdentifier(String.valueOf(jamaItem.getId()), IJamaArtifact.class.getSimpleName());
         this.jamaItem = jamaItem;
         this.jamaProjectArtifact = new JamaProjectArtifact(jamaItem.getProject());
         this.userCreated = new JamaUserArtifact(jamaItem.getCreatedBy());
         this.userModified = new JamaUserArtifact(jamaItem.getModifiedBy());
+    }
+
+    @Override
+    public ArtifactIdentifier getArtifactIdentifier() {
+        return artifactIdentifier;
     }
 
     @Override

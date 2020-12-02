@@ -2,18 +2,33 @@ package impactassessment.artifactconnector.jira;
 
 import c4s.jiralightconnector.IssueAgent;
 import c4s.jiralightconnector.JiraInstance;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.IArtifactService;
+import impactassessment.artifactconnector.jama.IJamaArtifact;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JiraService implements IJiraArtifactService {
+public class JiraService implements IJiraArtifactService, IArtifactService {
+
+    private static final String TYPE = IJiraArtifact.class.getSimpleName();
 
     private JiraInstance jira;
     private JiraChangeSubscriber jiraChangeSubscriber;
 
-
     public JiraService(JiraInstance jira, JiraChangeSubscriber jiraChangeSubscriber) {
         this.jira = jira;
         this.jiraChangeSubscriber = jiraChangeSubscriber;
+    }
+
+    @Override
+    public boolean provides(String type) {
+        return type.equals(TYPE);
+    }
+
+    @Override
+    public IArtifact get(ArtifactIdentifier id, String workflowId) {
+        return get(id.getId(), workflowId);
     }
 
     @Override

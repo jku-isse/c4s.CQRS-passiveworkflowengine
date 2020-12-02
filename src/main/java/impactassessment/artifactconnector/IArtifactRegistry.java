@@ -4,8 +4,7 @@ import passiveprocessengine.instance.ArtifactWrapper;
 
 public interface IArtifactRegistry {
 
-    ArtifactWrapper get(String type, String idType, String id);
+    ArtifactWrapper get(ArtifactIdentifier id, String workflowId);
 
-    ArtifactWrapper get(String type, String id);
-
+    void register(IArtifactService service);
 }

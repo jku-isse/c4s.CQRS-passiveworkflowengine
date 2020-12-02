@@ -1,11 +1,12 @@
 package impactassessment.artifactconnector.jira;
 
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jira.subinterfaces.*;
 import org.joda.time.DateTime;
 
 import java.net.URI;
 
-public interface IJiraArtifact {
+public interface IJiraArtifact extends IArtifact {
 
     URI getSelf();
 

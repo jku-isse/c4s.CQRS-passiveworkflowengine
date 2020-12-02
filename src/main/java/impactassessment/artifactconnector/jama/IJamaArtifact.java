@@ -1,6 +1,7 @@
 package impactassessment.artifactconnector.jama;
 
 import com.jamasoftware.services.restclient.exception.RestClientException;
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaRelease;
 import impactassessment.artifactconnector.jama.subinterfaces.IJamaUserArtifact;
@@ -9,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface IJamaArtifact {
+public interface IJamaArtifact extends IArtifact {
     Integer getId();
 
     boolean isProject();
