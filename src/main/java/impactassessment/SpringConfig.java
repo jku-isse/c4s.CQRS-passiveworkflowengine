@@ -1,14 +1,22 @@
 package impactassessment;
 
+import c4s.jamaconnector.OfflineHttpClientMock;
+import c4s.jamaconnector.cache.CachedResourcePool;
+import c4s.jamaconnector.cache.CachingJsonHandler;
+import c4s.jamaconnector.cache.CouchDBJamaCache;
 import c4s.jiralightconnector.*;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
+import com.jamasoftware.services.restclient.JamaConfig;
+import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import impactassessment.artifactconnector.jira.IJiraArtifactService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.CouchDbProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +30,14 @@ import java.util.Properties;
 @Configuration
 public class SpringConfig {
 
+    @Bean
+    @Autowired
+    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
+        return new LocalRegisterService(registry);
+    }
+
+    // --------------- JIRA ---------------
+
 //    @Bean
 //    public IJiraArtifactService getJiraArtifactService(JiraChangeSubscriber jiraChangeSubscriber) {
 //        // uses JSON image of Jira data in resources folder
@@ -32,12 +48,6 @@ public class SpringConfig {
     public IJiraArtifactService getJiraArtifactService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         // connects directly to a Jira server
         return new JiraService(jiraInstance, jiraChangeSubscriber);
-    }
-
-    @Bean
-    @Autowired
-    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
-        return new LocalRegisterService(registry);
     }
 
     @Bean
@@ -57,6 +67,53 @@ public class SpringConfig {
 
     @Bean
     public JiraRestClient getJiraRestClient() {
+        Properties props = getProps();
+        String uri =  props.getProperty("jiraServerURI");
+        String username =  props.getProperty("jiraConnectorUsername");
+        String pw =  props.getProperty("jiraConnectorPassword");
+        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+    }
+
+    // --------------- JAMA ---------------
+
+    @Bean
+    public JamaInstance getJamaInstance(CouchDbClient dbClient) {
+        JamaConfig jamaConf = new JamaConfig();
+        CouchDBJamaCache cache = new CouchDBJamaCache(dbClient);
+        jamaConf.setJson(new CachingJsonHandler(cache));
+        jamaConf.setApiKey("SUPERSECRETKEY");
+        String url = "http://localhost";
+        jamaConf.setBaseUrl(url);
+        jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+        jamaConf.setOpenUrlBase(url);
+        jamaConf.setUsername("OFFLINE");
+        jamaConf.setPassword("OFFLINE");
+        jamaConf.setResourceTimeOut(60);
+        jamaConf.setHttpClient(new OfflineHttpClientMock());
+
+        JamaInstance jamaInst = new JamaInstance(jamaConf, true);
+        cache.setJamaInstance(jamaInst);
+        jamaInst.setResourcePool(new CachedResourcePool(cache));
+        return jamaInst;
+    }
+
+    @Bean
+    public CouchDbClient getCouchDbClient() {
+        Properties props = getProps();
+        CouchDbProperties dbprops = new CouchDbProperties()
+                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems2"))
+                .setCreateDbIfNotExist(true)
+                .setProtocol("http")
+                .setHost(props.getProperty("couchDBip", "localhost"))
+                .setPort(Integer.parseInt(props.getProperty("couchDBport", "5984")))
+                .setUsername(props.getProperty("jiraCacheCouchDBuser","admin"))
+                .setPassword(props.getProperty("jiraCacheCouchDBpassword","password"))
+                .setMaxConnections(100)
+                .setConnectionTimeout(0);
+        return new CouchDbClient(dbprops);
+    }
+
+    private Properties getProps() {
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -66,10 +123,6 @@ public class SpringConfig {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        String uri =  props.getProperty("jiraServerURI");
-        String username =  props.getProperty("jiraConnectorUsername");
-        String pw =  props.getProperty("jiraConnectorPassword");
-        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+        return props;
     }
 }

@@ -53,7 +53,7 @@ public class JamaArtifact implements IJamaArtifact {
 
     @Override
     public String getName() {
-        return jamaItem.getName().getValue();
+        return jamaItem.getName() == null ? null : jamaItem.getName().getValue();
     }
 
     @Override
@@ -217,6 +217,21 @@ public class JamaArtifact implements IJamaArtifact {
         }
     }
 
-
-
+    @Override
+    public String toString() {
+        return "JamaArtifact{" +
+                "documentKey=" + getDocumentKey() +
+                ", artifactIdentifier=" + artifactIdentifier +
+                ", createdBy=" + getCreatedBy() +
+                ", createdDate=" + getCreatedDate() +
+                ", globalId=" + getGlobalId() +
+                ", id=" + getId() +
+                ", itemType=" + getItemType() +
+                ", lastActivityDate=" + getLastActivityDate() +
+                ", modifiedBy=" + getModifiedBy() +
+                ", modifiedDate=" + getModifiedDate() +
+                ", name=" + getName() +
+                ", project=" + getProject() +
+                '}';
+    }
 }

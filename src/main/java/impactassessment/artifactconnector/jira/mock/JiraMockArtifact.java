@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.jira.mock;
 
+import impactassessment.artifactconnector.ArtifactIdentifier;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.artifactconnector.jira.subinterfaces.*;
 import org.joda.time.DateTime;
@@ -15,6 +16,11 @@ public class JiraMockArtifact implements IJiraArtifact {
     private String issueType;
     private String priority;
     private String summary;
+
+    @Override
+    public ArtifactIdentifier getArtifactIdentifier() {
+        return new ArtifactIdentifier(id, "Mock");
+    }
 
     public void setId(String id) {
         this.id = id;
@@ -220,4 +226,5 @@ public class JiraMockArtifact implements IJiraArtifact {
     public String getDescription() {
         return null;
     }
+
 }

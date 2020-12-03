@@ -58,6 +58,6 @@ public class JamaUserArtifact implements IJamaUserArtifact {
 
     @Override
     public String toString() {
-        return jamaUser.toString();
+        return jamaUser == null ? null : jamaUser.toString();
     }
 }
