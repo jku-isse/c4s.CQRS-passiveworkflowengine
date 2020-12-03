@@ -3,6 +3,7 @@ package impactassessment.artifactconnector.jira;
 import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.IssueAgent;
 import impactassessment.api.Commands.UpdateArtifactsCmd;
+import impactassessment.artifactconnector.IArtifact;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -28,7 +29,7 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
 
             String workflowId = entry.getKey();
             Set<String> artifactKeys = entry.getValue();
-            List<IJiraArtifact> affectedArtifacts = new ArrayList<>();
+            List<IArtifact> affectedArtifacts = new ArrayList<>();
 
             for (IssueAgent ia : list) {
                 if (artifactKeys.stream().anyMatch(key -> key.equals(ia.getKey()))) {

@@ -3,8 +3,10 @@ package impactassessment.command;
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
 import impactassessment.api.Sources;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.IArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifactService;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -62,10 +64,10 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
         log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = createWorkflow(cmd.getId(), artifactService, cmd.getInput());
-        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+        List<IArtifact> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
+        WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
@@ -73,13 +75,14 @@ public class WorkflowAggregate {
         }
     }
 
-    private List<IJiraArtifact> createWorkflow(String id, IJiraArtifactService artifactService, Map<String, String> inputs) {
-        List<IJiraArtifact> artifacts = new ArrayList<>();
+    private List<IArtifact> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
+        List<IArtifact> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
             String source = entry.getValue();
             if (source.equals(Sources.JIRA.toString())) {
-                IJiraArtifact a = artifactService.get(key, id);
+                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
+                IArtifact a = artifactRegistry.get(ai, id);
                 if (a != null) {
                     artifacts.add(a);
                 }

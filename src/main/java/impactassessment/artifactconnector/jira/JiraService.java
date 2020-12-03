@@ -9,7 +9,7 @@ import impactassessment.artifactconnector.jama.IJamaArtifact;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JiraService implements IJiraArtifactService, IArtifactService {
+public class JiraService implements IArtifactService {
 
     private static final String TYPE = IJiraArtifact.class.getSimpleName();
 
@@ -31,8 +31,7 @@ public class JiraService implements IJiraArtifactService, IArtifactService {
         return get(id.getId(), workflowId);
     }
 
-    @Override
-    public IJiraArtifact get(String artifactKey, String workflowId) {
+    private IJiraArtifact get(String artifactKey, String workflowId) {
         log.debug("JiraService loads "+artifactKey);
         IssueAgent issueAgent = jira.fetchAndMonitor(artifactKey);
         if (issueAgent == null) {

@@ -12,9 +12,11 @@ public class JamaProjectArtifact implements IJamaProjectArtifact {
     private IJamaUserArtifact userModified;
 
     public JamaProjectArtifact(JamaProject jamaProject) {
-        this.jamaProject = jamaProject;
-        this.userCreated = new JamaUserArtifact(jamaProject.getCreatedBy());
-        this.userModified = new JamaUserArtifact(jamaProject.getModifiedBy());
+        if (jamaProject != null) {
+            this.jamaProject = jamaProject;
+//            this.userCreated = new JamaUserArtifact(jamaProject.getCreatedBy());
+//            this.userModified = new JamaUserArtifact(jamaProject.getModifiedBy());
+        }
     }
 
     @Override
@@ -57,8 +59,4 @@ public class JamaProjectArtifact implements IJamaProjectArtifact {
         return userModified;
     }
 
-    @Override
-    public String toString() {
-        return jamaProject.toString();
-    }
 }

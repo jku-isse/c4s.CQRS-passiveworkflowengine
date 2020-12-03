@@ -2,48 +2,55 @@ package impactassessment.jama;
 
 import c4s.jamaconnector.OfflineHttpClientMock;
 import c4s.jamaconnector.cache.CachedResourcePool;
-import c4s.jamaconnector.cache.CachingJsonHandler;
 import c4s.jamaconnector.cache.CouchDBJamaCache;
 import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.json.SimpleJsonHandler;
 import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jama.IJamaArtifact;
-import impactassessment.artifactconnector.jama.JamaArtifact;
 import impactassessment.artifactconnector.jama.JamaService;
 import org.junit.Before;
 import org.junit.Test;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.Properties;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class FetchJamaArtifactsFromCouchDB {
 
     private JamaService jamaService;
-    @Mock
-    private CachedResourcePool resourcePool;
+    private ArtifactRegistry registry;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         JamaInstance jamaInstance = getJamaInstance();
         jamaService = new JamaService(jamaInstance, (set, correlationTuple) -> {/*do nothing*/});
+        registry = new ArtifactRegistry();
+        registry.register(jamaService);
     }
 
     @Test
     public void fetchJamaArtifact() {
-        ArtifactIdentifier ai = new ArtifactIdentifier("10071184", "IJamaArtifact");
+        ArtifactIdentifier ai = new ArtifactIdentifier("1562790", "IJamaArtifact");
         IArtifact artifact = jamaService.get(ai, "irrelevant for this test");
-        assertTrue(artifact != null);
+        assertNotNull(artifact);
         assertTrue(artifact instanceof IJamaArtifact);
-        System.out.println((JamaArtifact) artifact);
+        System.out.println(artifact);
+    }
+
+    @Test
+    public void fetchJamaArtifactViaRegistry() {
+        ArtifactIdentifier ai = new ArtifactIdentifier("10071184", "IJamaArtifact");
+        IArtifact artifact = registry.get(ai, "irrelevant for this test");
+        assertNotNull(artifact);
+        assertTrue(artifact instanceof IJamaArtifact);
+        System.out.println(artifact);
     }
 
     private CouchDbClient getCouchDbClient() {

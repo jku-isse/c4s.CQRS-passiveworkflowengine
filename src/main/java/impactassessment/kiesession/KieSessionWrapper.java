@@ -1,7 +1,7 @@
 package impactassessment.kiesession;
 
+import impactassessment.artifactconnector.IArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifactService;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -26,11 +26,11 @@ public class KieSessionWrapper {
     private @Getter @Setter boolean isInitialized;
 
     private final CommandGateway commandGateway;
-    private final IJiraArtifactService artifactService;
+    private final IArtifactRegistry artifactRegistry;
 
-    public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
+    public KieSessionWrapper(CommandGateway commandGateway, IArtifactRegistry artifactRegistry) {
         this.commandGateway = commandGateway;
-        this.artifactService = artifactService;
+        this.artifactRegistry = artifactRegistry;
         sessionHandles = new HashMap<>();
         isInitialized = false;
     }
@@ -63,7 +63,7 @@ public class KieSessionWrapper {
 
     private void setGlobals() {
         this.kieSession.setGlobal("commandGateway", commandGateway);
-        this.kieSession.setGlobal("artifactService", artifactService);
+        this.kieSession.setGlobal("artifactRegistry", artifactRegistry);
     }
 
     public void insertOrUpdate(Object o) {

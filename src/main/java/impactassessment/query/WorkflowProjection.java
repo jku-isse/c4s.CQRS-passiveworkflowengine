@@ -2,6 +2,7 @@ package impactassessment.query;
 
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -252,11 +253,11 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
-        for (IJiraArtifact updatedArtifact : evt.getArtifacts()) {
+        for (IArtifact updatedArtifact : evt.getArtifacts()) {
             for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
                 IJiraArtifact presentArtifact = checkIfJiraArtifactInside(input.getArtifact());
-                if (presentArtifact != null && presentArtifact.getKey().equals(updatedArtifact.getKey())) {
-                    input.setArtifact(new ArtifactWrapper(updatedArtifact.getKey(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
+                if (presentArtifact != null && presentArtifact.getKey().equals(updatedArtifact.getArtifactIdentifier().getId())) {
+                    input.setArtifact(new ArtifactWrapper(updatedArtifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
                     if (!status.isReplay()) {
                         kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
                         kieSessions.fire(evt.getId());

@@ -8,10 +8,8 @@ import impactassessment.artifactconnector.ArtifactIdentifier;
 import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
 public class JamaService implements IArtifactService {
 
     private static final String TYPE = IJamaArtifact.class.getSimpleName();

@@ -1,5 +1,6 @@
 package impactassessment;
 
+import c4s.jamaconnector.IJamaChangeSubscriber;
 import c4s.jamaconnector.OfflineHttpClientMock;
 import c4s.jamaconnector.cache.CachedResourcePool;
 import c4s.jamaconnector.cache.CachingJsonHandler;
@@ -9,7 +10,9 @@ import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
-import impactassessment.artifactconnector.jira.IJiraArtifactService;
+import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.IArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
@@ -31,9 +34,16 @@ import java.util.Properties;
 public class SpringConfig {
 
     @Bean
-    @Autowired
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
         return new LocalRegisterService(registry);
+    }
+
+    @Bean
+    public IArtifactRegistry getArtifactRegistry(JamaService jamaService, JiraService jiraService) {
+        IArtifactRegistry registry = new ArtifactRegistry();
+        registry.register(jamaService);
+        registry.register(jiraService);
+        return registry;
     }
 
     // --------------- JIRA ---------------
@@ -45,7 +55,7 @@ public class SpringConfig {
 //    }
 
     @Bean
-    public IJiraArtifactService getJiraArtifactService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
+    public JiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         // connects directly to a Jira server
         return new JiraService(jiraInstance, jiraChangeSubscriber);
     }
@@ -75,6 +85,11 @@ public class SpringConfig {
     }
 
     // --------------- JAMA ---------------
+
+    @Bean
+    public JamaService getJamaService(JamaInstance jamaInstance, IJamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaService(jamaInstance, jamaChangeSubscriber);
+    }
 
     @Bean
     public JamaInstance getJamaInstance(CouchDbClient dbClient) {

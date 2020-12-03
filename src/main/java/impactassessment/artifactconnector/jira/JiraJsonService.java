@@ -2,6 +2,9 @@ package impactassessment.artifactconnector.jira;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -15,9 +18,11 @@ import java.io.InputStream;
 import java.util.Properties;
 
 @Slf4j
-public class JiraJsonService implements IJiraArtifactService {
+public class JiraJsonService implements IArtifactService {
 
     private final String FILENAME;
+    private static final String TYPE = IJiraArtifact.class.getSimpleName();
+
 
     private JiraChangeSubscriber jiraChangeSubscriber;
 
@@ -36,7 +41,6 @@ public class JiraJsonService implements IJiraArtifactService {
         this.FILENAME = props.getProperty("jiraJsonFileName");
     }
 
-    @Override
     public IJiraArtifact get(String artifactKey, String workflowId) {
         log.debug("JiraJsonService loads "+artifactKey);
         Issue issue = null;
@@ -74,4 +78,13 @@ public class JiraJsonService implements IJiraArtifactService {
         return issue;
 	}
 
+    @Override
+    public boolean provides(String type) {
+        return type.equals(TYPE);
+    }
+
+    @Override
+    public IArtifact get(ArtifactIdentifier id, String workflowId) {
+        return get(id.getId(), workflowId);
+    }
 }

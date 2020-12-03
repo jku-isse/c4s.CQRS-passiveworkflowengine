@@ -1,21 +1,20 @@
 package impactassessment.artifactconnector;
 
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.instance.ArtifactWrapper;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Slf4j
 public class ArtifactRegistry implements IArtifactRegistry {
 
-    private Collection<IArtifactService> services;
+    private Collection<IArtifactService> services = new ArrayList<>();
 
     @Override
-    public ArtifactWrapper get(ArtifactIdentifier id, String workflowId) {
+    public IArtifact get(ArtifactIdentifier id, String workflowId) {
         for (IArtifactService service : services) {
             if (service.provides(id.getType())) {
-                IArtifact a = service.get(id, workflowId);
-                return new ArtifactWrapper(id.getId(), id.getType(), null, a);
+                return service.get(id, workflowId);
             }
         }
         log.warn("No service registered that provides artifacts of type {}", id.getType());

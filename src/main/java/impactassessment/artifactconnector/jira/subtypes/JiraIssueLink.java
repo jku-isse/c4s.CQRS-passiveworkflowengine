@@ -2,8 +2,10 @@ package impactassessment.artifactconnector.jira.subtypes;
 
 import com.atlassian.jira.rest.client.api.domain.IssueLink;
 import impactassessment.SpringUtil;
+import impactassessment.artifactconnector.ArtifactIdentifier;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.IArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifactService;
 import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink;
 import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLinkType;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ public class JiraIssueLink implements IJiraIssueLink {
     private IssueLink issueLink;
     private IJiraIssueLinkType jiraIssueLinkType;
 
-    private transient IJiraArtifactService jiraArtifactService = null;
+    private transient IArtifactRegistry artifactRegistry = null;
 
     public JiraIssueLink(IssueLink issueLink) {
         this.issueLink = issueLink;
@@ -45,9 +47,11 @@ public class JiraIssueLink implements IJiraIssueLink {
     @Override
     public IJiraArtifact getTargetIssue(String aggregateId, String corrId) {
         log.info("Artifact fetching linked issue: {}", getTargetIssueKey());
-        if (jiraArtifactService == null)
-            jiraArtifactService = SpringUtil.getBean(IJiraArtifactService.class);
-        return jiraArtifactService.get(issueLink.getTargetIssueKey(), aggregateId);
+        if (artifactRegistry == null)
+            artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
+        ArtifactIdentifier ai = new ArtifactIdentifier(issueLink.getTargetIssueKey(), IJiraArtifact.class.getSimpleName());
+        IArtifact a = artifactRegistry.get(ai, aggregateId);
+        return (IJiraArtifact)a;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class JiraIssueLink implements IJiraIssueLink {
         return "JiraIssueLink{" +
                 "issueLink=" + issueLink +
                 ", jiraIssueLinkType=" + jiraIssueLinkType +
-                ", jiraArtifactService=" + jiraArtifactService +
+                ", jiraArtifactService=" + artifactRegistry +
                 '}';
     }
 }

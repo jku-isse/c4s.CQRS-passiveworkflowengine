@@ -1,6 +1,7 @@
 package impactassessment.query;
 
 import impactassessment.api.Commands.*;
+import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -48,7 +49,7 @@ public class WorkflowHelpers {
     }
 
     static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        List<IJiraArtifact> artifacts = wwti.getInput().stream()
+        List<IArtifact> artifacts = wwti.getInput().stream()
                 .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
                 .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
                 .filter(o -> o instanceof IJiraArtifact)
