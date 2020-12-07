@@ -2,10 +2,10 @@ package impactassessment.command;
 
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
-import impactassessment.api.Sources;
 import impactassessment.artifactconnector.ArtifactIdentifier;
 import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.IArtifactRegistry;
+import impactassessment.artifactconnector.jama.IJamaArtifact;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
@@ -80,8 +80,14 @@ public class WorkflowAggregate {
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
             String source = entry.getValue();
-            if (source.equals(Sources.JIRA.toString())) {
+            if (source.equals("JIRA")) {
                 ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
+                IArtifact a = artifactRegistry.get(ai, id);
+                if (a != null) {
+                    artifacts.add(a);
+                }
+            } else if (source.equals("JAMA")) {
+                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
                 IArtifact a = artifactRegistry.get(ai, id);
                 if (a != null) {
                     artifacts.add(a);

@@ -30,6 +30,8 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
+import impactassessment.artifactconnector.jama.IJamaArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.artifactconnector.jira.JiraPoller;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -407,7 +409,13 @@ public class MainView extends VerticalLayout {
             source.removeAll();
             for (ArtifactType artT : wfdContainer.getWfd().getExpectedInput().values()) {
                 TextField tf = new TextField();
-                tf.setLabel("JIRA"/*artT.getArtifactType()*/); // TODO: remove hardcoded JIRA and set expected ArtifactType according to source
+                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
+                    tf.setLabel("JIRA");
+                } else if (artT.getArtifactType().equals(IJamaArtifact.class.getSimpleName())) {
+                    tf.setLabel("JAMA");
+                } else {
+                    tf.setLabel(artT.getArtifactType());
+                }
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
