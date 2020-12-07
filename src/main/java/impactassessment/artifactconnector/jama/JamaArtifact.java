@@ -24,8 +24,8 @@ public class JamaArtifact implements IJamaArtifact {
     // id for axon application
     private ArtifactIdentifier artifactIdentifier;
     // fields of jama item
-    private int id;
-    private boolean isProject;
+    private Integer id;
+    private Boolean isProject;
     private String name;
     private String globalId;
     private String itemType;
@@ -248,19 +248,19 @@ public class JamaArtifact implements IJamaArtifact {
 
     private Optional<String> getString(JamaFieldValue jfv) {
         if (jfv instanceof CalculatedFieldValue) {
-            return Optional.of((String) jfv.getValue());
+            return Optional.ofNullable((String) jfv.getValue());
         } else if (jfv instanceof TextFieldValue) {
-            return Optional.of(((TextFieldValue) jfv).getValue());
+            return Optional.ofNullable(((TextFieldValue) jfv).getValue());
         } else if (jfv instanceof URLFieldValue) {
-            return Optional.of(((URLFieldValue) jfv).getValue());
+            return Optional.ofNullable(((URLFieldValue) jfv).getValue());
         } else if (jfv instanceof TimeFieldValue) {
-            return Optional.of((String) jfv.getValue());
+            return Optional.ofNullable((String) jfv.getValue());
         } else if (jfv instanceof TextBoxFieldValue) {
-            return Optional.of(((TextBoxFieldValue) jfv).getValue());
+            return Optional.ofNullable(((TextBoxFieldValue) jfv).getValue());
         } else if (jfv instanceof TestCaseStatusFieldValue) {
-            return Optional.of(((TestCaseStatusFieldValue) jfv).getValue());
+            return Optional.ofNullable(((TestCaseStatusFieldValue) jfv).getValue());
         } else if (jfv instanceof RichTextFieldValue) {
-            return Optional.of(((RichTextFieldValue) jfv).getValue().getValue());
+            return Optional.ofNullable(((RichTextFieldValue) jfv).getValue().getValue());
         } else {
             return Optional.empty();
         }
@@ -268,7 +268,7 @@ public class JamaArtifact implements IJamaArtifact {
 
     private Optional<Date> getDate(JamaFieldValue jfv) {
         if (jfv instanceof DateFieldValue) {
-            return Optional.of((Date) jfv.getValue());
+            return Optional.ofNullable((Date) jfv.getValue());
         } else {
             return Optional.empty();
         }
@@ -276,9 +276,9 @@ public class JamaArtifact implements IJamaArtifact {
 
     private Optional<Integer> getInt(JamaFieldValue jfv) {
         if (jfv instanceof IntegerFieldValue) {
-            return Optional.of((Integer) jfv.getValue());
+            return Optional.ofNullable((Integer) jfv.getValue());
         } else if (jfv instanceof RollupFieldValue) {
-            return Optional.of(((RollupFieldValue) jfv).getValue());
+            return Optional.ofNullable(((RollupFieldValue) jfv).getValue());
         } else {
             return Optional.empty();
         }
@@ -286,7 +286,7 @@ public class JamaArtifact implements IJamaArtifact {
 
     private Optional<Boolean> getBoolean(JamaFieldValue jfv) {
         if (jfv instanceof FlagFieldValue) {
-            return Optional.of((Boolean) jfv.getValue());
+            return Optional.ofNullable((Boolean) jfv.getValue());
         } else {
             return Optional.empty();
         }

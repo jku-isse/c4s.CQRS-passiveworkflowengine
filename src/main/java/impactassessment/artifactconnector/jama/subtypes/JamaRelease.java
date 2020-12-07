@@ -12,9 +12,9 @@ public class JamaRelease implements IJamaRelease {
     private String description;
     private IJamaProjectArtifact jamaProjectArtifact;
     private Date releaseDate;
-    private boolean active;
-    private boolean achieved;
-    private int itemCount;
+    private Boolean active;
+    private Boolean achieved;
+    private Integer itemCount;
 
     public JamaRelease(Release release) {
         if (release != null) {

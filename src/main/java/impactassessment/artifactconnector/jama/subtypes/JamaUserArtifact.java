@@ -13,7 +13,7 @@ public class JamaUserArtifact implements IJamaUserArtifact {
     private String title;
     private String location;
     private String licenseType;
-    private boolean active;
+    private Boolean active;
 
     public JamaUserArtifact(JamaUser jamaUser) {
         if (jamaUser != null) {
