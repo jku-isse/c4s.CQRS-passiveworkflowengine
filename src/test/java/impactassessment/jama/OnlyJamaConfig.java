@@ -1,4 +1,4 @@
-package impactassessment;
+package impactassessment.jama;
 
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.*;
@@ -6,92 +6,22 @@ import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.CachedResourcePool;
 import c4s.jamaconnector.cache.CachingJsonHandler;
 import c4s.jamaconnector.cache.CouchDBJamaCache;
-import c4s.jiralightconnector.*;
-import c4s.jiralightconnector.ChangeStreamPoller;
-import c4s.jiralightconnector.InMemoryMonitoringState;
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
+import c4s.jamaconnector.cache.JamaCache;
 import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import impactassessment.artifactconnector.ArtifactRegistry;
-import impactassessment.artifactconnector.IArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
-import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
-import impactassessment.artifactconnector.jira.JiraService;
-import impactassessment.registry.IRegisterService;
-import impactassessment.registry.LocalRegisterService;
-import impactassessment.registry.WorkflowDefinitionRegistry;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 @Configuration
-public class SpringConfig {
-
-    @Bean
-    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
-        return new LocalRegisterService(registry);
-    }
-
-    @Bean
-    public IArtifactRegistry getArtifactRegistry(JamaService jamaService, JiraService jiraService) {
-        IArtifactRegistry registry = new ArtifactRegistry();
-        registry.register(jamaService);
-        registry.register(jiraService);
-        return registry;
-    }
-
-    // --------------- JIRA ---------------
-
-//    @Bean
-//    public IJiraArtifactService getJiraArtifactService(JiraChangeSubscriber jiraChangeSubscriber) {
-//        // uses JSON image of Jira data in resources folder
-//        return new JiraJsonService(jiraChangeSubscriber);
-//    }
-
-    @Bean
-    public JiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
-        // connects directly to a Jira server
-        return new JiraService(jiraInstance, jiraChangeSubscriber);
-    }
-
-    @Bean
-    public ChangeStreamPoller getChangeStreampoller() {
-        return new ChangeStreamPoller(2);
-    }
-
-    @Bean
-    public JiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
-        return new JiraInstance(issueCache, changeSubscriber, monitoringState);
-    }
-
-    @Bean
-    public MonitoringState getMonitoringState() {
-        return new InMemoryMonitoringState();
-    }
-
-    @Bean
-    public JiraRestClient getJiraRestClient() {
-        Properties props = getProps();
-        String uri =  props.getProperty("jiraServerURI");
-        String username =  props.getProperty("jiraConnectorUsername");
-        String pw =  props.getProperty("jiraConnectorPassword");
-        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
-    }
-
-    // --------------- JAMA ---------------
+public class OnlyJamaConfig {
 
     @Bean
     public JamaService getJamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
@@ -123,7 +53,6 @@ public class SpringConfig {
         jamaConf.setPassword("OFFLINE");
         jamaConf.setResourceTimeOut(60);
         jamaConf.setHttpClient(new OfflineHttpClientMock());
-
         JamaInstance jamaInst = new JamaInstance(jamaConf, true);
         cache.setJamaInstance(jamaInst);
         jamaInst.setResourcePool(new CachedResourcePool(cache));
@@ -132,21 +61,25 @@ public class SpringConfig {
 
     @Bean
     public CouchDbClient getCouchDbClient() {
-        Properties props = getProps();
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems2"))
+                .setDbName("jamaitems2")
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
-                .setHost(props.getProperty("couchDBip", "localhost"))
-                .setPort(Integer.parseInt(props.getProperty("couchDBport", "5984")))
-                .setUsername(props.getProperty("jiraCacheCouchDBuser","admin"))
-                .setPassword(props.getProperty("jiraCacheCouchDBpassword","password"))
+                .setHost("localhost")
+                .setPort(Integer.parseInt("5984"))
+                .setUsername("admin")
+                .setPassword("password")
                 .setMaxConnections(100)
                 .setConnectionTimeout(0);
         return new CouchDbClient(dbprops);
     }
 
     // ------------------------- JAMA MOCKS -------------------------
+
+    @Bean
+    public IJamaChangeSubscriber getJamaChangeSubscriber() {
+        return (set, correlationTuple) -> {/* do nothing */};
+    }
 
     @Bean
     public ProjectMonitoringState getProjectMonitoringState() {
@@ -189,7 +122,7 @@ public class SpringConfig {
     }
 
     @Bean
-    public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
+    public JamaUpdateTracingInstrumentation getUpdaeTraceInstrumentation() {
         return new JamaUpdateTracingInstrumentation() {
             @Override
             public void logJamaPollResult(CorrelationTuple correlationTuple, int i, Map<String, Set<Integer>> map) {
@@ -201,18 +134,5 @@ public class SpringConfig {
 
             }
         };
-    }
-
-    private Properties getProps() {
-        Properties props = new Properties();
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("application.properties").getFile());
-            FileReader reader = new FileReader(file);
-            props.load(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return props;
     }
 }

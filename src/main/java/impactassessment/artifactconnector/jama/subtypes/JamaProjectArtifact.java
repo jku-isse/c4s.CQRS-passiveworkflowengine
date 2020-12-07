@@ -7,36 +7,47 @@ import impactassessment.artifactconnector.jama.subinterfaces.IJamaUserArtifact;
 import java.util.Date;
 
 public class JamaProjectArtifact implements IJamaProjectArtifact {
-    private JamaProject jamaProject;
+
+    private String projectKey;
+    private String name;
+    private String description;
+    private boolean folder;
     private IJamaUserArtifact userCreated;
+    private Date createdDate;
+    private Date modifiedDate;
     private IJamaUserArtifact userModified;
 
     public JamaProjectArtifact(JamaProject jamaProject) {
-        if (jamaProject != null) {
-            this.jamaProject = jamaProject;
+//        if (jamaProject != null) {
+//            this.projectKey = jamaProject.getProjectKey();
+//            this.name = jamaProject.getName();
+//            this.description = jamaProject.getDescription();
+//            this.folder = jamaProject.isFolder();
 //            this.userCreated = new JamaUserArtifact(jamaProject.getCreatedBy());
+//            this.createdDate = jamaProject.getCreatedDate();
+//            this.modifiedDate = jamaProject.getModifiedDate();
 //            this.userModified = new JamaUserArtifact(jamaProject.getModifiedBy());
-        }
+//        }
     }
 
     @Override
     public String getProjectKey() {
-        return jamaProject.getProjectKey();
+        return projectKey;
     }
 
     @Override
     public String getName() {
-        return jamaProject.getName();
+        return name;
     }
 
     @Override
     public String getDescription() {
-        return jamaProject.getDescription();
+        return description;
     }
 
     @Override
     public boolean isFolder() {
-        return jamaProject.isFolder();
+        return folder;
     }
 
     @Override
@@ -46,12 +57,12 @@ public class JamaProjectArtifact implements IJamaProjectArtifact {
 
     @Override
     public Date getCreatedDate() {
-        return jamaProject.getCreatedDate();
+        return createdDate;
     }
 
     @Override
     public Date getModifiedDate() {
-        return jamaProject.getModifiedDate();
+        return modifiedDate;
     }
 
     @Override

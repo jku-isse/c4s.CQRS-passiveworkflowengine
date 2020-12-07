@@ -8,22 +8,34 @@ import java.util.Date;
 
 public class JamaRelease implements IJamaRelease {
 
-    private Release release;
+    private String name;
+    private String description;
     private IJamaProjectArtifact jamaProjectArtifact;
+    private Date releaseDate;
+    private boolean active;
+    private boolean achieved;
+    private int itemCount;
 
     public JamaRelease(Release release) {
-        this.release = release;
-        this.jamaProjectArtifact = new JamaProjectArtifact(release.getProject());
+        if (release != null) {
+            this.name = release.getName();
+            this.description = release.getDescription();
+            this.jamaProjectArtifact = new JamaProjectArtifact(release.getProject());
+            this.releaseDate = release.getReleaseDate();
+            this.active = release.isActive();
+            this.achieved = release.isArchived();
+            this.itemCount = release.getItemCount();
+        }
     }
 
     @Override
     public String getName() {
-        return release.getName();
+        return name;
     }
 
     @Override
     public String getDescription() {
-        return release.getDescription();
+        return description;
     }
 
     @Override
@@ -33,26 +45,22 @@ public class JamaRelease implements IJamaRelease {
 
     @Override
     public Date getReleaseDate() {
-        return release.getReleaseDate();
+        return releaseDate;
     }
 
     @Override
     public boolean isActive() {
-        return release.isActive();
+        return active;
     }
 
     @Override
     public boolean isArchived() {
-        return release.isArchived();
+        return achieved;
     }
 
     @Override
     public Integer getItemCount() {
-        return release.getItemCount();
+        return itemCount;
     }
 
-    @Override
-    public String toString() {
-        return release.toString();
-    }
 }

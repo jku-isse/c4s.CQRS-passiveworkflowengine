@@ -35,23 +35,23 @@ public interface IJamaArtifact extends IArtifact {
 
     Date getLastActivityDate();
 
-    List<IJamaArtifact> getChildren() throws RestClientException;
+    List<IJamaArtifact> getChildren(String workflowId);
 
-    List<IJamaArtifact> prefetchDownstreamItems() throws RestClientException;
+    List<IJamaArtifact> prefetchDownstreamItems(String workflowId);
 
-    List<IJamaArtifact> getDownstreamItems();
+    List<IJamaArtifact> getDownstreamItems(String workflowId);
 
-    Optional<String> getStringValue(String fieldName);
+    String getStringValue(String fieldName);
 
-    Optional<Date> getDateValue(String fieldName);
+    Date getDateValue(String fieldName);
 
-    Optional<Boolean> getBooleanValue(String fieldName);
+    Boolean getBooleanValue(String fieldName);
 
-    Optional<Integer> getIntegerValue(String fieldName);
+    Integer getIntegerValue(String fieldName);
 
-    Optional<IJamaProjectArtifact> getJamaProjectValue(String fieldName);
+    IJamaProjectArtifact getJamaProjectValue(String fieldName);
 
-    Optional<IJamaRelease> getJamaReleaseValue(String fieldName);
+    IJamaRelease getJamaReleaseValue(String fieldName);
 
-    Optional<IJamaUserArtifact> getJamaUserValue(String fieldName);
+    IJamaUserArtifact getJamaUserValue(String fieldName);
 }

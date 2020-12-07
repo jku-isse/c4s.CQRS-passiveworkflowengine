@@ -1,6 +1,7 @@
 package impactassessment.artifactconnector.jama;
 
 import c4s.jamaconnector.IJamaChangeSubscriber;
+import c4s.jamaconnector.JamaConnector;
 import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
@@ -14,11 +15,11 @@ public class JamaService implements IArtifactService {
 
     private static final String TYPE = IJamaArtifact.class.getSimpleName();
 
-    private JamaInstance jamaInstance;
+    private JamaConnector jamaConn;
     private IJamaChangeSubscriber jamaChangeSubscriber;
 
-    public JamaService(JamaInstance jamaInstance, IJamaChangeSubscriber jamaChangeSubscriber) {
-        this.jamaInstance = jamaInstance;
+    public JamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
+        this.jamaConn = jamaConn;
         this.jamaChangeSubscriber = jamaChangeSubscriber;
     }
 
@@ -29,13 +30,8 @@ public class JamaService implements IArtifactService {
 
     @Override
     public IArtifact get(ArtifactIdentifier id, String workflowId) {
-        try {
-            JamaItem jamaItem = jamaInstance.getItem(Integer.parseInt(id.getId()));
-            return new JamaArtifact(jamaItem);
-        } catch (RestClientException e) {
-            log.error("RestClientException");
-            return null;
-        }
+        JamaItem jamaItem = jamaConn.getJamaItemAndItsJiraKey(Integer.parseInt(id.getId())).getKey();
+        return new JamaArtifact(jamaItem);
     }
 
 }
