@@ -2,10 +2,10 @@ package impactassessment.artifactconnector.jira.subtypes;
 
 import com.atlassian.jira.rest.client.api.domain.Version;
 import impactassessment.artifactconnector.jira.subinterfaces.IJiraVersion;
-import org.joda.time.DateTime;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Date;
 
 public class JiraVersion implements IJiraVersion {
 
@@ -48,7 +48,7 @@ public class JiraVersion implements IJiraVersion {
 
         @Nullable
         @Override
-        public DateTime getReleaseDate() {
-            return version.getReleaseDate();
+        public Date getReleaseDate() {
+            return version.getReleaseDate().toDate();
         }
 }

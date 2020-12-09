@@ -3,6 +3,7 @@ package impactassessment.artifactconnector.jira.subinterfaces;
 import impactassessment.artifactconnector.jira.IJiraArtifact;
 
 import java.net.URI;
+import java.util.Optional;
 
 public interface IJiraIssueLink {
 
@@ -16,5 +17,5 @@ public interface IJiraIssueLink {
      * New method to directly fetch the target issue
      * @return the target issue
      */
-    IJiraArtifact getTargetIssue(String aggregateId, String corrId);
+    Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId);
 }

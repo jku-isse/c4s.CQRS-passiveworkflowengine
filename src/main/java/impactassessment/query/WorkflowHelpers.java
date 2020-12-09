@@ -67,11 +67,11 @@ public class WorkflowHelpers {
         }
     }
 
-    static IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {
+    static IArtifact checkIfIArtifactInside(Artifact artifact) {
         if (artifact instanceof ArtifactWrapper) {
             ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
-            if (artifactWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-                return (IJiraArtifact) artifactWrapper.getWrappedArtifact();
+            if (artifactWrapper.getWrappedArtifact() instanceof IArtifact) {
+                return (IArtifact) artifactWrapper.getWrappedArtifact();
             }
         }
         return null;

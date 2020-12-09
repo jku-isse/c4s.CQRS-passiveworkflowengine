@@ -5,6 +5,7 @@ import impactassessment.artifactconnector.jira.subinterfaces.*;
 import org.joda.time.DateTime;
 
 import java.net.URI;
+import java.util.Date;
 
 public interface IJiraArtifact extends IArtifact {
 
@@ -44,11 +45,11 @@ public interface IJiraArtifact extends IArtifact {
 
     Iterable<IJiraVersion> getFixVersions();
 
-    DateTime getCreationDate();
+    Date getCreationDate();
 
-    DateTime getUpdateDate();
+    Date getUpdateDate();
 
-    DateTime getDueDate();
+    Date getDueDate();
 
     String getDescription();
 }

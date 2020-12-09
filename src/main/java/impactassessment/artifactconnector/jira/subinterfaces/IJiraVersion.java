@@ -1,9 +1,8 @@
 package impactassessment.artifactconnector.jira.subinterfaces;
 
-import org.joda.time.DateTime;
-
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Date;
 
 public interface IJiraVersion {
 
@@ -21,6 +20,6 @@ public interface IJiraVersion {
     boolean isReleased();
 
     @Nullable
-    DateTime getReleaseDate();
+    Date getReleaseDate();
 
 }

@@ -8,6 +8,8 @@ import impactassessment.artifactconnector.IArtifactService;
 import impactassessment.artifactconnector.jama.IJamaArtifact;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
+
 @Slf4j
 public class JiraService implements IArtifactService {
 
@@ -27,20 +29,18 @@ public class JiraService implements IArtifactService {
     }
 
     @Override
-    public IArtifact get(ArtifactIdentifier id, String workflowId) {
-        return get(id.getId(), workflowId);
-    }
-
-    private IJiraArtifact get(String artifactKey, String workflowId) {
+    public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+        String artifactKey = id.getId();
         log.debug("JiraService loads "+artifactKey);
         IssueAgent issueAgent = jira.fetchAndMonitor(artifactKey);
         if (issueAgent == null) {
             log.debug("Not able to fetch Jira Issue");
-            return null;
+            return Optional.empty();
         } else  {
             log.debug("Successfully fetched Jira Issue");
             jiraChangeSubscriber.addUsage(workflowId, artifactKey);
-            return new JiraArtifact(issueAgent.getIssue());
+            IArtifact artifact = new JiraArtifact(issueAgent.getIssue());
+            return Optional.of(artifact);
         }
     }
 

@@ -2,14 +2,13 @@ package impactassessment.artifactconnector.jira;
 
 import com.atlassian.jira.rest.client.api.domain.*;
 import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.jira.subinterfaces.*;
 import impactassessment.artifactconnector.jira.subtypes.*;
-import org.joda.time.DateTime;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -176,18 +175,18 @@ public class JiraArtifact implements IJiraArtifact {
     }
 
     @Override
-    public DateTime getCreationDate() {
-        return issue.getCreationDate();
+    public Date getCreationDate() {
+        return issue.getCreationDate().toDate();
     }
 
     @Override
-    public DateTime getUpdateDate() {
-        return issue.getUpdateDate();
+    public Date getUpdateDate() {
+        return issue.getUpdateDate().toDate();
     }
 
     @Override
-    public DateTime getDueDate() {
-        return issue.getDueDate();
+    public Date getDueDate() {
+        return issue.getDueDate().toDate();
     }
 
     @Override

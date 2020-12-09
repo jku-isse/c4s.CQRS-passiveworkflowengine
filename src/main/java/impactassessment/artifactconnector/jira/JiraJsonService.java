@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Properties;
 
 @Slf4j
@@ -41,7 +42,9 @@ public class JiraJsonService implements IArtifactService {
         this.FILENAME = props.getProperty("jiraJsonFileName");
     }
 
-    public IJiraArtifact get(String artifactKey, String workflowId) {
+    @Override
+    public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+        String artifactKey = id.getId();
         log.debug("JiraJsonService loads "+artifactKey);
         Issue issue = null;
         try {
@@ -53,8 +56,8 @@ public class JiraJsonService implements IArtifactService {
             return null;
 
         jiraChangeSubscriber.addUsage(workflowId, artifactKey);
-
-        return new JiraArtifact(issue);
+        IArtifact artifact = new JiraArtifact(issue);
+        return Optional.of(artifact);
     }
 
     private Issue loadIssue(String key) throws JSONException, IOException {
@@ -83,8 +86,5 @@ public class JiraJsonService implements IArtifactService {
         return type.equals(TYPE);
     }
 
-    @Override
-    public IArtifact get(ArtifactIdentifier id, String workflowId) {
-        return get(id.getId(), workflowId);
-    }
+
 }

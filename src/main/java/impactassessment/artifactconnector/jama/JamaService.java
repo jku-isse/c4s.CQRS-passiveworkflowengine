@@ -2,13 +2,13 @@ package impactassessment.artifactconnector.jama;
 
 import c4s.jamaconnector.IJamaChangeSubscriber;
 import c4s.jamaconnector.JamaConnector;
-import com.jamasoftware.services.restclient.exception.RestClientException;
-import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactIdentifier;
 import impactassessment.artifactconnector.IArtifact;
 import impactassessment.artifactconnector.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 @Slf4j
 public class JamaService implements IArtifactService {
@@ -29,9 +29,14 @@ public class JamaService implements IArtifactService {
     }
 
     @Override
-    public IArtifact get(ArtifactIdentifier id, String workflowId) {
+    public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
         JamaItem jamaItem = jamaConn.getJamaItemAndItsJiraKey(Integer.parseInt(id.getId())).getKey();
-        return new JamaArtifact(jamaItem);
+        if (jamaItem != null) {
+            // TODO add artifact usage to jamaChangeSubscriber
+            return Optional.of(new JamaArtifact(jamaItem));
+        } else {
+            return Optional.empty();
+        }
     }
 
 }

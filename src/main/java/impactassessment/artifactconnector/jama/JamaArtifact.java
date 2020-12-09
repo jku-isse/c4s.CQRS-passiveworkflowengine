@@ -65,22 +65,22 @@ public class JamaArtifact implements IJamaArtifact {
         this.createdDate = jamaItem.getCreatedDate();
         this.modifiedDate = jamaItem.getModifiedDate();
         this.lastActivityDate = jamaItem.getLastActivityDate();
-//        try {
-//            this.children = jamaItem.getChildren().stream()
-//                    .map(LazyBase::getId)
-//                    .map(String::valueOf)
-//                    .collect(Collectors.toList());
-//            this.prefetchItems = jamaItem.prefetchDownstreamItems().stream()
-//                    .map(LazyBase::getId)
-//                    .map(String::valueOf)
-//                    .collect(Collectors.toList());
-//        } catch (RestClientException e) {
-//            e.printStackTrace();
-//        }
-//        this.downstreamItems = jamaItem.getDownstreamItems().stream()
-//                .map(LazyBase::getId)
-//                .map(String::valueOf)
-//                .collect(Collectors.toList());
+        try {
+            this.children = jamaItem.getChildren().stream()
+                    .map(LazyBase::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
+            this.prefetchItems = jamaItem.prefetchDownstreamItems().stream()
+                    .map(LazyBase::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        this.downstreamItems = jamaItem.getDownstreamItems().stream()
+                .map(LazyBase::getId)
+                .map(String::valueOf)
+                .collect(Collectors.toList());
 
         for (JamaFieldValue jfv : jamaItem.getFieldValues()) {
             // TODO: Performance issue: if value was present once, the remaining checks should be skipped
@@ -98,13 +98,13 @@ public class JamaArtifact implements IJamaArtifact {
         this.userModified = new JamaUserArtifact(jamaItem.getModifiedBy());
     }
 
-    private JamaArtifact fetch(String artifactId, String workflowId) {
+    protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
         log.info("Artifact fetching linked item: {}", artifactId);
         if (artifactRegistry == null)
             artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
         ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());
-        IArtifact a = artifactRegistry.get(ai, workflowId);
-        return (JamaArtifact) a;
+        Optional<IArtifact> a = artifactRegistry.get(ai, workflowId);
+        return a.map(artifact -> (IJamaArtifact) artifact);
     }
 
     @Override
@@ -176,6 +176,8 @@ public class JamaArtifact implements IJamaArtifact {
     public List<IJamaArtifact> getChildren(String workflowId) {
         return children.stream()
                 .map(child -> fetch(child, workflowId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -183,6 +185,8 @@ public class JamaArtifact implements IJamaArtifact {
     public List<IJamaArtifact> prefetchDownstreamItems(String workflowId) {
         return prefetchItems.stream()
                 .map(child -> fetch(child, workflowId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -190,6 +194,8 @@ public class JamaArtifact implements IJamaArtifact {
     public List<IJamaArtifact> getDownstreamItems(String workflowId) {
         return downstreamItems.stream()
                 .map(child -> fetch(child, workflowId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 

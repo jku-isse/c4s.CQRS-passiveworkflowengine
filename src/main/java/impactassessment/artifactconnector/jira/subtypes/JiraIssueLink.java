@@ -11,6 +11,7 @@ import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLinkType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.util.Optional;
 
 @Slf4j
 public class JiraIssueLink implements IJiraIssueLink {
@@ -45,13 +46,13 @@ public class JiraIssueLink implements IJiraIssueLink {
      * @return the target issue
      */
     @Override
-    public IJiraArtifact getTargetIssue(String aggregateId, String corrId) {
+    public Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId) {
         log.info("Artifact fetching linked issue: {}", getTargetIssueKey());
         if (artifactRegistry == null)
             artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
         ArtifactIdentifier ai = new ArtifactIdentifier(issueLink.getTargetIssueKey(), IJiraArtifact.class.getSimpleName());
-        IArtifact a = artifactRegistry.get(ai, aggregateId);
-        return (IJiraArtifact)a;
+        Optional<IArtifact> a = artifactRegistry.get(ai, aggregateId);
+        return a.map(artifact -> (IJiraArtifact)artifact);
     }
 
     @Override

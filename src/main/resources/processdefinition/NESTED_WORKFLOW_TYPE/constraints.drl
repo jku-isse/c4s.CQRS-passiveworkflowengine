@@ -149,10 +149,10 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				n++;
-				resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
+				resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
 				isRelatedToOne = false;
 			}
 		}
@@ -173,14 +173,14 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
-				    resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
+				    resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
 					isRelatedToOne = false;
 				} else {
-				    resources.put(ResourceLinkFactory.get(p), false);
+				    resources.put(ResourceLinkFactory.get(p.get()), false);
 				}
 			}
 		}
@@ -212,9 +212,9 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
-			    resources.put(ResourceLinkFactory.get(p), true);
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Unit Test"))){
+			    resources.put(ResourceLinkFactory.get(p.get()), true);
 				n++;
 			}
 		}
@@ -234,12 +234,12 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		boolean relatedBug = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
-				if (p.getStatus().getName().equals("Closed")) {
-				    resources.put(ResourceLinkFactory.get(p), true);
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && p.get().getIssueType().getName().equals("Bug") ){
+				if (p.get().getStatus().getName().equals("Closed")) {
+				    resources.put(ResourceLinkFactory.get(p.get()), true);
 				} else {
-				    resources.put(ResourceLinkFactory.get(p), false);
+				    resources.put(ResourceLinkFactory.get(p.get()), false);
 				}
 				relatedBug = true;
 			}
@@ -260,11 +260,11 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
-					resources.put(ResourceLinkFactory.get(p), isMitigated);
+					resources.put(ResourceLinkFactory.get(p.get()), isMitigated);
 				}
 			}
 		}

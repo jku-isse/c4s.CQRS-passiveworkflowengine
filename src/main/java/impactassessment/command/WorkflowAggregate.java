@@ -11,6 +11,7 @@ import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -82,20 +84,15 @@ public class WorkflowAggregate {
             String source = entry.getValue();
             if (source.equals("JIRA")) {
                 ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
-                IArtifact a = artifactRegistry.get(ai, id);
-                if (a != null) {
-                    artifacts.add(a);
-                }
+                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
             } else if (source.equals("JAMA")) {
                 ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
-                IArtifact a = artifactRegistry.get(ai, id);
-                if (a != null) {
-                    artifacts.add(a);
-                }
+                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
             } else {
                 log.error("Unsupported Artifact source: "+source);
             }
         }
+        if (inputs.size() != artifacts.size()) throw new CommandExecutionException("One or more required artifacts couldn't be fetched", new IllegalArgumentException());
         return artifacts;
     }
 
