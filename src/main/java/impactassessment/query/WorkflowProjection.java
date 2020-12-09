@@ -255,12 +255,11 @@ public class WorkflowProjection {
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
         for (IArtifact updatedArtifact : evt.getArtifacts()) {
             for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-                IJiraArtifact presentArtifact = checkIfJiraArtifactInside(input.getArtifact());
-                if (presentArtifact != null && presentArtifact.getKey().equals(updatedArtifact.getArtifactIdentifier().getId())) {
+                IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
+                if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {
                     input.setArtifact(new ArtifactWrapper(updatedArtifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
                     if (!status.isReplay()) {
                         kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
-                        kieSessions.fire(evt.getId());
                     }
                 }
             }
@@ -268,13 +267,13 @@ public class WorkflowProjection {
         // TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
         // CheckAllConstraints
-//        if (!status.isReplay()) {
-//            ensureInitializedKB(kieSessions, projection, evt.getId());
-//            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
-//            ct.addConstraint("*");
-//            kieSessions.insertOrUpdate(evt.getId(), ct);
-//            kieSessions.fire(evt.getId());
-//        }
+        if (!status.isReplay()) {
+            ensureInitializedKB(kieSessions, projection, evt.getId());
+            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
+            ct.addConstraint("*");
+            kieSessions.insertOrUpdate(evt.getId(), ct);
+            kieSessions.fire(evt.getId());
+        }
     }
 
     @EventHandler
