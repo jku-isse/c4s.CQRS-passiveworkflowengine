@@ -1,6 +1,6 @@
 package impactassessment.api;
 
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.IArtifact;
 import lombok.Data;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
@@ -11,7 +11,6 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +24,7 @@ public class Events {
     @Data
     public static class CreatedWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final List<IJiraArtifact> artifacts;
+        private final List<IArtifact> artifacts;
         private final String definitionName;
         private final WorkflowDefinition wfd;
     }
@@ -36,7 +35,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
-        private final List<IJiraArtifact> artifacts;
+        private final List<IArtifact> artifacts;
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {
@@ -126,7 +125,7 @@ public class Events {
     @Data
     public static class UpdatedArtifactsEvt implements IdentifiableEvt {
         private final String id;
-        private final List<IJiraArtifact> artifacts;
+        private final List<IArtifact> artifacts;
     }
 }
 

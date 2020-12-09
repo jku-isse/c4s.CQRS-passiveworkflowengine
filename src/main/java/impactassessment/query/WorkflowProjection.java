@@ -2,7 +2,8 @@ package impactassessment.query;
 
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -252,14 +253,13 @@ public class WorkflowProjection {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
-        for (IJiraArtifact updatedArtifact : evt.getArtifacts()) {
+        for (IArtifact updatedArtifact : evt.getArtifacts()) {
             for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-                IJiraArtifact presentArtifact = checkIfJiraArtifactInside(input.getArtifact());
-                if (presentArtifact != null && presentArtifact.getKey().equals(updatedArtifact.getKey())) {
-                    input.setArtifact(new ArtifactWrapper(updatedArtifact.getKey(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
+                IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
+                if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {
+                    input.setArtifact(new ArtifactWrapper(updatedArtifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
                     if (!status.isReplay()) {
                         kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
-                        kieSessions.fire(evt.getId());
                     }
                 }
             }
@@ -267,13 +267,13 @@ public class WorkflowProjection {
         // TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
         // CheckAllConstraints
-//        if (!status.isReplay()) {
-//            ensureInitializedKB(kieSessions, projection, evt.getId());
-//            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
-//            ct.addConstraint("*");
-//            kieSessions.insertOrUpdate(evt.getId(), ct);
-//            kieSessions.fire(evt.getId());
-//        }
+        if (!status.isReplay()) {
+            ensureInitializedKB(kieSessions, projection, evt.getId());
+            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
+            ct.addConstraint("*");
+            kieSessions.insertOrUpdate(evt.getId(), ct);
+            kieSessions.fire(evt.getId());
+        }
     }
 
     @EventHandler

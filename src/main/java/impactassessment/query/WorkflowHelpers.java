@@ -1,25 +1,21 @@
 package impactassessment.query;
 
 import impactassessment.api.Commands.*;
-import impactassessment.jiraartifact.IJiraArtifact;
+import impactassessment.artifactconnector.IArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.kie.api.runtime.KieContainer;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
 import passiveprocessengine.instance.QACheckDocument;
 import passiveprocessengine.instance.RuleEngineBasedConstraint;
 import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,7 +49,7 @@ public class WorkflowHelpers {
     }
 
     static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        List<IJiraArtifact> artifacts = wwti.getInput().stream()
+        List<IArtifact> artifacts = wwti.getInput().stream()
                 .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
                 .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
                 .filter(o -> o instanceof IJiraArtifact)
@@ -71,11 +67,11 @@ public class WorkflowHelpers {
         }
     }
 
-    static IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {
+    static IArtifact checkIfIArtifactInside(Artifact artifact) {
         if (artifact instanceof ArtifactWrapper) {
             ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
-            if (artifactWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-                return (IJiraArtifact) artifactWrapper.getWrappedArtifact();
+            if (artifactWrapper.getWrappedArtifact() instanceof IArtifact) {
+                return (IArtifact) artifactWrapper.getWrappedArtifact();
             }
         }
         return null;

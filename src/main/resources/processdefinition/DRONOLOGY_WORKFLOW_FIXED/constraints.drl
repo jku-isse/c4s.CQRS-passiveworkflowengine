@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit
 import java.util.List
 import java.util.ArrayList
 
-import impactassessment.jiraartifact.IJiraArtifact
-import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
-import impactassessment.jiraartifact.IJiraArtifactService
+import impactassessment.artifactconnector.jira.IJiraArtifact
+import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.IArtifactRegistry
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
@@ -26,10 +26,11 @@ import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
 import impactassessment.passiveprocessengine.ResourceLinkFactory
-import impactassessment.jiraartifact.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink
+import impactassessment.artifactconnector.jira.IJiraArtifact
 
 global CommandGateway commandGateway;
-global IJiraArtifactService artifactService;
+global IArtifactRegistry artifactRegistry;
 
 //constraints for state open
 rule "InsertQAConstraintsStateOpen"
@@ -148,10 +149,10 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				n++;
-				resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
+				resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
 				isRelatedToOne = false;
 			}
 		}
@@ -172,14 +173,14 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Requirement"))){
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
-				    resources.put(ResourceLinkFactory.get(p), isRelatedToOne);
+				    resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
 					isRelatedToOne = false;
 				} else {
-				    resources.put(ResourceLinkFactory.get(p), false);
+				    resources.put(ResourceLinkFactory.get(p.get()), false);
 				}
 			}
 		}
@@ -211,9 +212,9 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Unit Test"))){
-			    resources.put(ResourceLinkFactory.get(p), true);
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Unit Test"))){
+			    resources.put(ResourceLinkFactory.get(p.get()), true);
 				n++;
 			}
 		}
@@ -233,12 +234,12 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 		boolean relatedBug = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && p.getIssueType().getName().equals("Bug") ){
-				if (p.getStatus().getName().equals("Closed")) {
-				    resources.put(ResourceLinkFactory.get(p), true);
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && p.get().getIssueType().getName().equals("Bug") ){
+				if (p.get().getStatus().getName().equals("Closed")) {
+				    resources.put(ResourceLinkFactory.get(p.get()), true);
 				} else {
-				    resources.put(ResourceLinkFactory.get(p), false);
+				    resources.put(ResourceLinkFactory.get(p.get()), false);
 				}
 				relatedBug = true;
 			}
@@ -259,11 +260,11 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-		    IJiraArtifact p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
-			if ((p != null) && (p.getIssueType().getName().equals("Design Definition"))){
+		    Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
-					resources.put(ResourceLinkFactory.get(p), isMitigated);
+					resources.put(ResourceLinkFactory.get(p.get()), isMitigated);
 				}
 			}
 		}

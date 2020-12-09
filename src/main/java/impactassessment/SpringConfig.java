@@ -1,27 +1,59 @@
 package impactassessment;
 
+import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
+import c4s.jamaconnector.*;
+import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
+import c4s.jamaconnector.cache.CachedResourcePool;
+import c4s.jamaconnector.cache.CachingJsonHandler;
+import c4s.jamaconnector.cache.CouchDBJamaCache;
 import c4s.jiralightconnector.*;
+import c4s.jiralightconnector.ChangeStreamPoller;
+import c4s.jiralightconnector.InMemoryMonitoringState;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
-import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.jiraartifact.JiraChangeSubscriber;
-import impactassessment.jiraartifact.JiraService;
+import com.jamasoftware.services.restclient.JamaConfig;
+import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
+import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.IArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.CouchDbProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import passiveprocessengine.definition.WorkflowDefinition;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 @Configuration
 public class SpringConfig {
+
+    @Bean
+    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
+        return new LocalRegisterService(registry);
+    }
+
+    @Bean
+    public IArtifactRegistry getArtifactRegistry(JamaService jamaService, JiraService jiraService) {
+        IArtifactRegistry registry = new ArtifactRegistry();
+        registry.register(jamaService);
+        registry.register(jiraService);
+        return registry;
+    }
+
+    // --------------- JIRA ---------------
 
 //    @Bean
 //    public IJiraArtifactService getJiraArtifactService(JiraChangeSubscriber jiraChangeSubscriber) {
@@ -30,15 +62,9 @@ public class SpringConfig {
 //    }
 
     @Bean
-    public IJiraArtifactService getJiraArtifactService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
+    public JiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         // connects directly to a Jira server
         return new JiraService(jiraInstance, jiraChangeSubscriber);
-    }
-
-    @Bean
-    @Autowired
-    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
-        return new LocalRegisterService(registry);
     }
 
     @Bean
@@ -58,6 +84,126 @@ public class SpringConfig {
 
     @Bean
     public JiraRestClient getJiraRestClient() {
+        Properties props = getProps();
+        String uri =  props.getProperty("jiraServerURI");
+        String username =  props.getProperty("jiraConnectorUsername");
+        String pw =  props.getProperty("jiraConnectorPassword");
+        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+    }
+
+    // --------------- JAMA ---------------
+
+    @Bean
+    public JamaService getJamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaService(jamaConn, jamaChangeSubscriber);
+    }
+
+    @Bean
+    public JamaConnector getJamaConnector(AutowireCapableBeanFactory beanFactory) {
+        JamaConnector jamaConn = new OfflineJamaConnector(1); // pollInterval is not used
+        beanFactory.autowireBean(jamaConn);
+        return jamaConn;
+    }
+
+    @Bean
+    public CouchDBJamaCache getCache(CouchDbClient dbClient) {
+        return new CouchDBJamaCache(dbClient);
+    }
+
+    @Bean
+    public JamaInstance getJamaInstance(CouchDBJamaCache cache) {
+        JamaConfig jamaConf = new JamaConfig();
+        jamaConf.setJson(new CachingJsonHandler(cache));
+        jamaConf.setApiKey("SUPERSECRETKEY");
+        String url = "http://localhost";
+        jamaConf.setBaseUrl(url);
+        jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+        jamaConf.setOpenUrlBase(url);
+        jamaConf.setUsername("OFFLINE");
+        jamaConf.setPassword("OFFLINE");
+        jamaConf.setResourceTimeOut(60);
+        jamaConf.setHttpClient(new OfflineHttpClientMock());
+
+        JamaInstance jamaInst = new JamaInstance(jamaConf, true);
+        cache.setJamaInstance(jamaInst);
+        jamaInst.setResourcePool(new CachedResourcePool(cache));
+        return jamaInst;
+    }
+
+    @Bean
+    public CouchDbClient getCouchDbClient() {
+        Properties props = getProps();
+        CouchDbProperties dbprops = new CouchDbProperties()
+                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems2"))
+                .setCreateDbIfNotExist(true)
+                .setProtocol("http")
+                .setHost(props.getProperty("couchDBip", "localhost"))
+                .setPort(Integer.parseInt(props.getProperty("couchDBport", "5984")))
+                .setUsername(props.getProperty("jiraCacheCouchDBuser","admin"))
+                .setPassword(props.getProperty("jiraCacheCouchDBpassword","password"))
+                .setMaxConnections(100)
+                .setConnectionTimeout(0);
+        return new CouchDbClient(dbprops);
+    }
+
+    // ------------------------- JAMA MOCKS -------------------------
+
+    @Bean
+    public ProjectMonitoringState getProjectMonitoringState() {
+        return new ProjectMonitoringState() {
+            @Override
+            public Set<Integer> getMonitoredProjectIds() {
+                return null;
+            }
+
+            @Override
+            public void removeMonitoredProject(Integer integer) {
+
+            }
+
+            @Override
+            public void addMonitoredProject(Integer integer) {
+
+            }
+        };
+    }
+
+    @Bean
+    public ItemMonitoringState getItemMonitoringState() {
+        return new ItemMonitoringState() {
+            @Override
+            public Set<Integer> getMonitoredItemIds() {
+                return null;
+            }
+
+            @Override
+            public boolean removeMonitoredItem(Integer integer) {
+                return false;
+            }
+
+            @Override
+            public void addMonitoredItem(Integer integer) {
+
+            }
+        };
+    }
+
+    @Bean
+    public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
+        return new JamaUpdateTracingInstrumentation() {
+            @Override
+            public void logJamaPollResult(CorrelationTuple correlationTuple, int i, Map<String, Set<Integer>> map) {
+
+            }
+
+            @Override
+            public void logJamaUpdateResult(CorrelationTuple correlationTuple, int i, Set<JamaItem> set) {
+
+            }
+        };
+    }
+
+    private Properties getProps() {
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -67,10 +213,6 @@ public class SpringConfig {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        String uri =  props.getProperty("jiraServerURI");
-        String username =  props.getProperty("jiraConnectorUsername");
-        String pw =  props.getProperty("jiraConnectorPassword");
-        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+        return props;
     }
 }

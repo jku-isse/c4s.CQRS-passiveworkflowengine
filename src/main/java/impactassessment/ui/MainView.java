@@ -30,8 +30,10 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
-import impactassessment.jiraartifact.JiraPoller;
-import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.artifactconnector.jama.IJamaArtifact;
+import impactassessment.artifactconnector.jira.IJiraArtifact;
+import impactassessment.artifactconnector.jira.JiraPoller;
+import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
@@ -60,6 +62,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
@@ -405,9 +408,17 @@ public class MainView extends VerticalLayout {
         processDefinition.addValueChangeListener( e -> {
             WorkflowDefinitionContainer wfdContainer = registry.get(e.getValue());
             source.removeAll();
-            for (ArtifactType artT : wfdContainer.getWfd().getExpectedInput().values()) {
+            for (Map.Entry<String, ArtifactType> entry : wfdContainer.getWfd().getExpectedInput().entrySet()) {
+                ArtifactType artT = entry.getValue();
+                String role = entry.getKey();
                 TextField tf = new TextField();
-                tf.setLabel("JIRA"/*artT.getArtifactType()*/); // TODO: remove hardcoded JIRA and set expected ArtifactType according to source
+                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
+                    tf.setLabel(role+": JIRA");
+                } else if (artT.getArtifactType().equals(IJamaArtifact.class.getSimpleName())) {
+                    tf.setLabel(role+": JAMA");
+                } else {
+                    tf.setLabel(artT.getArtifactType());
+                }
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
@@ -419,15 +430,23 @@ public class MainView extends VerticalLayout {
             try {
                 // collect all input IDs
                 Map<String, String> inputs = new HashMap<>();
+                AtomicInteger count = new AtomicInteger();
                 source.getChildren()
                         .filter(child -> child instanceof TextField)
-                        .map(child -> (TextField)child)
+                        .map(child -> {
+                            count.getAndIncrement();
+                            return (TextField)child;
+                        })
                         .filter(tf -> !tf.getValue().equals(""))
                         .filter(tf -> !tf.getLabel().equals(""))
-                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
                 // send command
-                commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
-                Notification.show("Success");
+                if (count.get() == inputs.size()) {
+                    commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
+                    Notification.show("Success");
+                } else {
+                    Notification.show("Make sure to fill out all required artifact IDs!");
+                }
             } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                 log.error("CommandExecutionException: "+e.getMessage());
                 Notification.show("Creation failed!");
