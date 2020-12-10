@@ -1,5 +1,6 @@
 package impactassessment;
 
+import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.*;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
@@ -15,7 +16,6 @@ import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
-import impactassessment.artifactconnector.IArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
@@ -24,7 +24,6 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

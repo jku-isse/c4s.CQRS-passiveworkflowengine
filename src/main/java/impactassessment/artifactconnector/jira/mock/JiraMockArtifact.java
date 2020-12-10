@@ -1,13 +1,13 @@
 package impactassessment.artifactconnector.jira.mock;
 
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
-import impactassessment.artifactconnector.jira.subinterfaces.*;
-import org.joda.time.DateTime;
+import artifactapi.ArtifactIdentifier;
+import artifactapi.jira.IJiraArtifact;
+import artifactapi.jira.subtypes.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Date;
 
 public class JiraMockArtifact implements IJiraArtifact {
 
@@ -208,17 +208,17 @@ public class JiraMockArtifact implements IJiraArtifact {
     }
 
     @Override
-    public DateTime getCreationDate() {
+    public Date getCreationDate() {
         return null;
     }
 
     @Override
-    public DateTime getUpdateDate() {
+    public Date getUpdateDate() {
         return null;
     }
 
     @Override
-    public DateTime getDueDate() {
+    public Date getDueDate() {
         return null;
     }
 

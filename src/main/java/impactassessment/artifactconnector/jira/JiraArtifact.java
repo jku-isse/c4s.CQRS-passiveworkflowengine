@@ -1,8 +1,9 @@
 package impactassessment.artifactconnector.jira;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.jira.IJiraArtifact;
+import artifactapi.jira.subtypes.*;
 import com.atlassian.jira.rest.client.api.domain.*;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.jira.subinterfaces.*;
 import impactassessment.artifactconnector.jira.subtypes.*;
 
 import java.net.URI;

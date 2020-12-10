@@ -1,8 +1,8 @@
 package impactassessment.query;
 
+import artifactapi.IArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Commands.*;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class WorkflowHelpers {
     static void ensureInitializedKB(KieSessionService kieSessions, ProjectionModel projection, String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
-            List<IJiraArtifact> artifacts = wfiWrapper.getArtifacts();
+            List<IJiraArtifact> artifacts = wfiWrapper.getArtifacts(); // TODO use generic IArtifact
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
             for (IJiraArtifact artifact : artifacts) {

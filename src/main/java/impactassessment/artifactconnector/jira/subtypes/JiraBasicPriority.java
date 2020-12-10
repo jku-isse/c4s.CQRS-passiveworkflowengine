@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraBasicPriority;
 import com.atlassian.jira.rest.client.api.domain.BasicPriority;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraBasicPriority;
 
 import java.net.URI;
 

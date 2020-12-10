@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jama.subtypes;
 
+import artifactapi.jama.subtypes.IJamaUserArtifact;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaUserArtifact;
 
 public class JamaUserArtifact implements IJamaUserArtifact {
 

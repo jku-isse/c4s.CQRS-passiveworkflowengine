@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraIssueLinkType;
 import com.atlassian.jira.rest.client.api.domain.IssueLinkType;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLinkType;
 
 public class JiraIssueLinkType implements IJiraIssueLinkType {
 

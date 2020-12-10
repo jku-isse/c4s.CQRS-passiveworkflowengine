@@ -1,8 +1,8 @@
 package impactassessment.artifactconnector.jama.subtypes;
 
+import artifactapi.jama.subtypes.IJamaProjectArtifact;
+import artifactapi.jama.subtypes.IJamaRelease;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.Release;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaProjectArtifact;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaRelease;
 
 import java.util.Date;
 

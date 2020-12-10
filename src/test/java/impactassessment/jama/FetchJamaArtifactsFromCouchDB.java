@@ -1,9 +1,9 @@
 package impactassessment.jama;
 
-import impactassessment.artifactconnector.ArtifactIdentifier;
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.jama.IJamaArtifact;
 import impactassessment.artifactconnector.ArtifactRegistry;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.jama.IJamaArtifact;
 import impactassessment.artifactconnector.jama.JamaService;
 import org.junit.Before;
 import org.junit.Test;

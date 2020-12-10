@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraIssueField;
 import com.atlassian.jira.rest.client.api.domain.IssueField;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueField;
 
 public class JiraIssueField implements IJiraIssueField {
 

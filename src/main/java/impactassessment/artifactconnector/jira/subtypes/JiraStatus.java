@@ -1,8 +1,8 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraStatus;
+import artifactapi.jira.subtypes.IJiraStatusCategory;
 import com.atlassian.jira.rest.client.api.domain.Status;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraStatus;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraStatusCategory;
 
 import java.net.URI;
 

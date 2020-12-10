@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraBasicProject;
 import com.atlassian.jira.rest.client.api.domain.BasicProject;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraBasicProject;
 
 import javax.annotation.Nullable;
 import java.net.URI;

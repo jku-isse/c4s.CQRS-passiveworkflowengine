@@ -1,12 +1,12 @@
 package impactassessment.command;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactRegistry;
-import impactassessment.artifactconnector.jama.IJamaArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Profile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;

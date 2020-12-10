@@ -1,9 +1,9 @@
 package impactassessment.artifactconnector.jama;
 
+import artifactapi.ArtifactIdentifier;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.IJamaChangeSubscriber;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import impactassessment.artifactconnector.ArtifactIdentifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;

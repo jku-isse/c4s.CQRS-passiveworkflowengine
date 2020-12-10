@@ -1,7 +1,7 @@
 package impactassessment.kiesession;
 
-import impactassessment.artifactconnector.IArtifactRegistry;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jira.IJiraArtifact;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -67,7 +67,7 @@ public class KieSessionWrapper {
     }
 
     public void insertOrUpdate(Object o) {
-        if (o instanceof IJiraArtifact) {
+        if (o instanceof IJiraArtifact) { // TODO change to IArtifact
             IJiraArtifact a = (IJiraArtifact) o;
             String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
             insertOrUpdate(key, a);

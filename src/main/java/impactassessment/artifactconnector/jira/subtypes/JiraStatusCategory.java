@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraStatusCategory;
 import com.atlassian.jira.rest.client.api.StatusCategory;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraStatusCategory;
 
 import java.net.URI;
 

@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraBasicVotes;
 import com.atlassian.jira.rest.client.api.domain.BasicVotes;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraBasicVotes;
 
 import java.net.URI;
 

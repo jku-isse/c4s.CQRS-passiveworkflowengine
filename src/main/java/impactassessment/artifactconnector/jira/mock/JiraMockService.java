@@ -1,6 +1,6 @@
 package impactassessment.artifactconnector.jira.mock;
 
-import impactassessment.artifactconnector.jira.IJiraArtifact;
+import artifactapi.jira.IJiraArtifact;
 
 public class JiraMockService {
 

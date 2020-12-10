@@ -1,6 +1,6 @@
 package impactassessment.api;
 
-import impactassessment.artifactconnector.IArtifact;
+import artifactapi.IArtifact;
 import lombok.Data;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;

@@ -1,10 +1,11 @@
 package impactassessment.artifactconnector.jira;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactService;
+import artifactapi.jira.IJiraArtifact;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;

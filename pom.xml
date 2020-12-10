@@ -106,6 +106,11 @@
             <artifactId>c4s.passiveprocessengine.v2</artifactId>
             <version>1.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>c4s.artifact.api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
         <!-- Axon -->
         <dependency>
@@ -387,6 +392,20 @@
                             <version>0.5.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.jamaconnector-0.5.0-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install5</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>org.example</groupId>
+                            <artifactId>c4s.artifact.api</artifactId>
+                            <version>1.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.artifact.api-1.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                 </executions>

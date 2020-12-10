@@ -1,7 +1,7 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.jira.subtypes.IJiraVersion;
 import com.atlassian.jira.rest.client.api.domain.Version;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraVersion;
 
 import javax.annotation.Nullable;
 import java.net.URI;

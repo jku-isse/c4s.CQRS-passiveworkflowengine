@@ -1,9 +1,9 @@
 package impactassessment.query;
 
+import artifactapi.IArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -240,7 +240,7 @@ public class WorkflowProjection {
             if (evt.getInput().getArtifact() instanceof ArtifactWrapper) {
                 ArtifactWrapper artWrapper = (ArtifactWrapper) evt.getInput().getArtifact();
                 if (artWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-                    IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact();
+                    IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact(); // TODO use generic IArtifact
                     kieSessions.insertOrUpdate(evt.getId(), iJira);
                     kieSessions.fire(evt.getId());
                 }

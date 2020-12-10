@@ -1,13 +1,13 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jira.IJiraArtifact;
+import artifactapi.jira.subtypes.IJiraIssueLink;
+import artifactapi.jira.subtypes.IJiraIssueLinkType;
 import com.atlassian.jira.rest.client.api.domain.IssueLink;
 import impactassessment.SpringUtil;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactRegistry;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLink;
-import impactassessment.artifactconnector.jira.subinterfaces.IJiraIssueLinkType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;

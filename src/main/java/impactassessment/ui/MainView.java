@@ -1,5 +1,7 @@
 package impactassessment.ui;
 
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import c4s.jiralightconnector.ChangeStreamPoller;
 import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.flow.component.AttachEvent;
@@ -30,8 +32,6 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
-import impactassessment.artifactconnector.jama.IJamaArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
 import impactassessment.artifactconnector.jira.JiraPoller;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;

@@ -1,16 +1,17 @@
 package impactassessment.artifactconnector.jama;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jama.subtypes.IJamaProjectArtifact;
+import artifactapi.jama.subtypes.IJamaRelease;
+import artifactapi.jama.subtypes.IJamaUserArtifact;
 import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.LazyBase;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.SpringUtil;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactRegistry;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaProjectArtifact;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaRelease;
-import impactassessment.artifactconnector.jama.subinterfaces.IJamaUserArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaRelease;
 import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;

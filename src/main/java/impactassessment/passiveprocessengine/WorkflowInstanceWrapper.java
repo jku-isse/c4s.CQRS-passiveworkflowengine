@@ -1,9 +1,9 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.IArtifact;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.jama.IJamaArtifact;
-import impactassessment.artifactconnector.jira.IJiraArtifact;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
@@ -20,7 +20,7 @@ public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
 
-    public List<IJiraArtifact> getArtifacts() {
+    public List<IJiraArtifact> getArtifacts() { // TODO use generic IArtifact
         List<IJiraArtifact> artifacts = new ArrayList<>();
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()

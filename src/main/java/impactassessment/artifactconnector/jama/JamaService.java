@@ -1,11 +1,12 @@
 package impactassessment.artifactconnector.jama;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactService;
+import artifactapi.jama.IJamaArtifact;
 import c4s.jamaconnector.IJamaChangeSubscriber;
 import c4s.jamaconnector.JamaConnector;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

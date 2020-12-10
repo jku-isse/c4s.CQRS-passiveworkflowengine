@@ -1,5 +1,9 @@
 package impactassessment.artifactconnector;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.IArtifactService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

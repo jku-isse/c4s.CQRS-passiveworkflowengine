@@ -1,11 +1,11 @@
 package impactassessment.artifactconnector.jira;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactService;
+import artifactapi.jira.IJiraArtifact;
 import c4s.jiralightconnector.IssueAgent;
 import c4s.jiralightconnector.JiraInstance;
-import impactassessment.artifactconnector.ArtifactIdentifier;
-import impactassessment.artifactconnector.IArtifact;
-import impactassessment.artifactconnector.IArtifactService;
-import impactassessment.artifactconnector.jama.IJamaArtifact;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
