@@ -1,0 +1,259 @@
+{
+  "taskDefinitions": [
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "Open"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "In Progress"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {
+        "OUTPUT_ROLE_TEST": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "id": "Resolved"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "Open"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "In Progress"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_JIRA_TICKET"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {
+        "OUTPUT_ROLE_TEST": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "id": "Resolved"
+    }
+  ],
+  "dnds": [
+    {
+      "inB": [],
+      "outB": [
+        {
+          "name": "OpenIn",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": false,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "workflowKickOff"
+    },
+    {
+      "inB": [
+        {
+          "name": "openOut",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [
+        {
+          "name": "resolvedIn",
+          "task": "Resolved",
+          "hasActivationCondition": true,
+          "hasDataFlow": false
+        },
+        {
+          "name": "inProgressIn",
+          "task": "In Progress",
+          "hasActivationCondition": true,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "ASYNC",
+      "mappings": [],
+      "id": "open2inProgressOrResolved"
+    },
+    {
+      "inB": [
+        {
+          "name": "inProgressOut",
+          "task": "In Progress",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [
+        {
+          "name": "resolvedIn",
+          "task": "Resolved",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "inProgress2resolved"
+    },
+    {
+      "inB": [],
+      "outB": [
+        {
+          "name": "OpenIn",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": false,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "workflowKickOff"
+    },
+    {
+      "inB": [
+        {
+          "name": "openOut",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [
+        {
+          "name": "inProgressIn",
+          "task": "In Progress",
+          "hasActivationCondition": true,
+          "hasDataFlow": false
+        },
+        {
+          "name": "resolvedIn",
+          "task": "Resolved",
+          "hasActivationCondition": true,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "ASYNC",
+      "mappings": [],
+      "id": "open2inProgressOrResolved"
+    },
+    {
+      "inB": [
+        {
+          "name": "inProgressOut",
+          "task": "In Progress",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [
+        {
+          "name": "resolvedIn",
+          "task": "Resolved",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "inProgress2resolved"
+    }
+  ],
+  "expectedInput": {
+    "JIRA": {
+      "id": "IJiraArtifact"
+    }
+  },
+  "expectedOutput": {},
+  "id": "DRONOLOGY_WORKFLOW_TYPE"
+}

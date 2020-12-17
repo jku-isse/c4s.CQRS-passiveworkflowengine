@@ -40,7 +40,7 @@ import java.util.Set;
 @Configuration
 public class SpringConfig {
 
-    private static final int POLL_INTERVAL_IN_MINUTES = 1; // used for both Jira and Jama
+    private static final int POLL_INTERVAL_IN_MINUTES = 10; // used for both Jira and Jama
 
     @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
