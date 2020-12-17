@@ -2,7 +2,9 @@ package impactassessment.ui;
 
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
+import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.ChangeStreamPoller;
+import c4s.jiralightconnector.MonitoringScheduler;
 import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -32,7 +34,6 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
-import impactassessment.artifactconnector.jira.JiraPoller;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
@@ -83,7 +84,8 @@ public class MainView extends VerticalLayout {
     private Replayer replayer;
     private WorkflowDefinitionRegistry registry;
     private FrontendPusher pusher;
-    private JiraPoller jiraPoller;
+    private MonitoringScheduler jiraMonitoringScheduler;
+    private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -112,8 +114,12 @@ public class MainView extends VerticalLayout {
         this.pusher = pusher;
     }
     @Inject
-    public void setJiraPoller(JiraPoller jiraPoller) {
-        this.jiraPoller = jiraPoller;
+    public void setJiraMonitoringScheduler(MonitoringScheduler jiraMonitoringScheduler) {
+        this.jiraMonitoringScheduler = jiraMonitoringScheduler;
+    }
+    @Inject
+    public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
+        this.jamaMonitoringScheduler = jamaMonitoringScheduler;
     }
 
     @Override
@@ -508,37 +514,37 @@ public class MainView extends VerticalLayout {
             Notification.show("Success");
         });
 
-        //---------------------------------------------------------
-        timer.setHeight("20px");
-        timer.addClassName("big-text");
-        timer.setVisible(false);
-        TextField textField = new TextField();
-        textField.setLabel("Update Interval in Minutes");
-        textField.setValue("1");
-
-        Checkbox checkbox = new Checkbox("Enable Automatic updates");
-        checkbox.setValue(false);
-        checkbox.addValueChangeListener(e -> {
-            if (e.getValue()) {
-                try {
-                    int interval = Integer.parseInt(textField.getValue());
-                    textField.setEnabled(false);
-                    timer.setStartTime(new BigDecimal(interval*60));
-                    timer.setVisible(true);
-                    timer.start();
-                    jiraPoller.setInterval(interval);
-                    jiraPoller.start();
-                } catch (NumberFormatException ex) {
-                    Notification.show("Please enter a number");
-                }
-            } else {
-                jiraPoller.interrupt();
-                textField.setEnabled(true);
-                timer.setVisible(false);
-                timer.pause();
-                timer.reset();
-            }
-        });
+        //---------------------------- Jira Poller -----------------------------
+//        timer.setHeight("20px");
+//        timer.addClassName("big-text");
+//        timer.setVisible(false);
+//        TextField textField = new TextField();
+//        textField.setLabel("Update Interval in Minutes");
+//        textField.setValue("1");
+//
+//        Checkbox checkbox = new Checkbox("Enable Automatic updates");
+//        checkbox.setValue(false);
+//        checkbox.addValueChangeListener(e -> {
+//            if (e.getValue()) {
+//                try {
+//                    int interval = Integer.parseInt(textField.getValue());
+//                    textField.setEnabled(false);
+//                    timer.setStartTime(new BigDecimal(interval*60));
+//                    timer.setVisible(true);
+//                    timer.start();
+//                    jiraPoller.setInterval(interval);
+//                    jiraPoller.start();
+//                } catch (NumberFormatException ex) {
+//                    Notification.show("Please enter a number");
+//                }
+//            } else {
+//                jiraPoller.interrupt();
+//                textField.setEnabled(true);
+//                timer.setVisible(false);
+//                timer.pause();
+//                timer.reset();
+//            }
+//        });
         //---------------------------------------------------------
 
         Button jamaPerformancetest1 = new Button("Create All Jama Workflows", e -> {
@@ -549,7 +555,7 @@ public class MainView extends VerticalLayout {
             JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
             service2.replayUpdates();
         });
-        return new VerticalLayout(description, id, print, timer, textField, checkbox, jamaPerformancetest1, jamaPerformancetest2);
+        return new VerticalLayout(description, id, print, timer,/* textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2);
     }
 
     private Component remove() {
@@ -630,14 +636,8 @@ public class MainView extends VerticalLayout {
 
 
         Button update = new Button("Fetch Updates Now", e -> {
-                ChangeStreamPoller changeStreamPoller = SpringUtil.getBean(ChangeStreamPoller.class);
-                Thread t = new Thread(changeStreamPoller);
-                try {
-                    t.start();
-                    t.join();
-                } catch (Exception ex) {
-                    log.error("Update error: " + ex.getMessage());
-                }
+                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow();
+                jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
 
         return new VerticalLayout(update);
