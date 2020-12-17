@@ -16,6 +16,7 @@ import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
@@ -93,8 +94,8 @@ public class SpringConfig {
     // --------------- JAMA ---------------
 
     @Bean
-    public JamaService getJamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
-        return new JamaService(jamaConn, jamaChangeSubscriber);
+    public JamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
@@ -133,7 +134,7 @@ public class SpringConfig {
     public CouchDbClient getCouchDbClient() {
         Properties props = getProps();
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems2"))
+                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems3"))
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
                 .setHost(props.getProperty("couchDBip", "localhost"))

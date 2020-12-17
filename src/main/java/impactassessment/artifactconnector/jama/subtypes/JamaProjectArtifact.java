@@ -18,16 +18,14 @@ public class JamaProjectArtifact implements IJamaProjectArtifact {
     private IJamaUserArtifact userModified;
 
     public JamaProjectArtifact(JamaProject jamaProject) {
-        if (jamaProject != null) {
-            this.projectKey = jamaProject.getProjectKey();
-            this.name = jamaProject.getName();
-            this.description = jamaProject.getDescription();
-            this.folder = jamaProject.isFolder();
-            this.userCreated = new JamaUserArtifact(jamaProject.getCreatedBy());
-            this.createdDate = jamaProject.getCreatedDate();
-            this.modifiedDate = jamaProject.getModifiedDate();
-            this.userModified = new JamaUserArtifact(jamaProject.getModifiedBy());
-        }
+        this.projectKey = jamaProject.getProjectKey();
+        this.name = jamaProject.getName();
+        this.description = jamaProject.getDescription();
+        this.folder = jamaProject.isFolder();
+        this.userCreated = jamaProject.getCreatedBy() != null ? new JamaUserArtifact(jamaProject.getCreatedBy()) : null;
+        this.createdDate = jamaProject.getCreatedDate();
+        this.modifiedDate = jamaProject.getModifiedDate();
+        this.userModified = jamaProject.getModifiedBy() != null ? new JamaUserArtifact(jamaProject.getModifiedBy()) : null;
     }
 
     @Override

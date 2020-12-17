@@ -34,6 +34,8 @@ import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
 import impactassessment.artifactconnector.jira.JiraPoller;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
+import impactassessment.evaluation.JamaUpdatePerformanceService;
+import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
@@ -538,7 +540,16 @@ public class MainView extends VerticalLayout {
             }
         });
         //---------------------------------------------------------
-        return new VerticalLayout(description, id, print, timer, textField, checkbox);
+
+        Button jamaPerformancetest1 = new Button("Create All Jama Workflows", e -> {
+            JamaWorkflowCreationPerformanceService service1 = SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class);
+            service1.createAll();
+        });
+        Button jamaPerformancetest2 = new Button("Replay All Jama Updates", e -> {
+            JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
+            service2.replayUpdates();
+        });
+        return new VerticalLayout(description, id, print, timer, textField, checkbox, jamaPerformancetest1, jamaPerformancetest2);
     }
 
     private Component remove() {

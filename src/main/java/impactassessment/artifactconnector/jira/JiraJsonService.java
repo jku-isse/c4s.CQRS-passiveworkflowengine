@@ -45,18 +45,17 @@ public class JiraJsonService implements IArtifactService {
 
     @Override
     public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
-        String artifactKey = id.getId();
-        log.debug("JiraJsonService loads "+artifactKey);
+        log.debug("JiraJsonService loads "+id.getId());
         Issue issue = null;
         try {
-            issue = loadIssue(artifactKey);
+            issue = loadIssue(id.getId());
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         if (issue == null)
             return null;
 
-        jiraChangeSubscriber.addUsage(workflowId, artifactKey);
+        jiraChangeSubscriber.addUsage(workflowId, id);
         IArtifact artifact = new JiraArtifact(issue);
         return Optional.of(artifact);
     }

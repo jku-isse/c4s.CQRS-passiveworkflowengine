@@ -39,7 +39,7 @@ rule "InsertQAConstraintsStateOpen"
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
 		                        getType().getId().equals("Open") &&
-		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
+		                        getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
@@ -67,7 +67,7 @@ rule "InsertQAConstraintsStateInProgress"
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals("In Progress") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+							            getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
@@ -92,7 +92,7 @@ rule "InsertQAConstraintsStateResolved"
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals("Resolved") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+							            getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
 		//constraints for Tasks and Sub-Taks

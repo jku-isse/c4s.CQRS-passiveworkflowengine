@@ -17,15 +17,13 @@ public class JamaRelease implements IJamaRelease {
     private Integer itemCount;
 
     public JamaRelease(Release release) {
-        if (release != null) {
-            this.name = release.getName();
-            this.description = release.getDescription();
-            this.jamaProjectArtifact = new JamaProjectArtifact(release.getProject());
-            this.releaseDate = release.getReleaseDate();
-            this.active = release.isActive();
-            this.achieved = release.isArchived();
-            this.itemCount = release.getItemCount();
-        }
+        this.name = release.getName();
+        this.description = release.getDescription();
+        this.jamaProjectArtifact = release.getProject() != null ? new JamaProjectArtifact(release.getProject()) : null;
+        this.releaseDate = release.getReleaseDate();
+        this.active = release.isActive();
+        this.achieved = release.isArchived();
+        this.itemCount = release.getItemCount();
     }
 
     @Override

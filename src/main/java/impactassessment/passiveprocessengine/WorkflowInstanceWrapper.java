@@ -20,8 +20,8 @@ public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
 
-    public List<IJiraArtifact> getArtifacts() { // TODO use generic IArtifact
-        List<IJiraArtifact> artifacts = new ArrayList<>();
+    public List<IArtifact> getArtifacts() {
+        List<IArtifact> artifacts = new ArrayList<>();
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()
                     .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
@@ -135,25 +135,24 @@ public class WorkflowInstanceWrapper {
         return awos;
     }
 
-    public List<RuleEngineBasedConstraint> handle(AddedConstraintsEvt evt) {
+    public List<AbstractWorkflowInstanceObject> handle(AddedConstraintsEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        List<RuleEngineBasedConstraint> rebcs = new ArrayList<>();
-        if (wft != null) {
-            QACheckDocument qa = getQACDocOfWft(wft);
-            if (qa == null) {
-                qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-                ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
-                addConstraint(evt, qa, wft, rebcs);
-                wft.addOutput(ao);
-            } else {
-                addConstraint(evt, qa, wft, rebcs);
-            }
+        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
+        QACheckDocument qa = getQACDocOfWft(wft);
+        if (qa == null) {
+            qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
+            ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            addConstraint(evt, qa, wft, awos);
+            wft.addOutput(ao);
+        } else {
+            addConstraint(evt, qa, wft, awos);
         }
+        awos.add((WorkflowTask)wft); // TODO: fix for nested workflow
 
-        return rebcs;
+        return awos;
     }
 
-    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<RuleEngineBasedConstraint> rebcs) {
+    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<AbstractWorkflowInstanceObject> awos) {
         CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
         qa.setLastChangeDueTo(corr);
         Map<String, String> rules = evt.getRules();
@@ -162,7 +161,7 @@ public class WorkflowInstanceWrapper {
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
             rebc.addAs(false, ResourceLinkFactory.getMock());
             qa.addConstraint(rebc);
-            rebcs.add(rebc);
+            awos.add(rebc);
         }
     }
 

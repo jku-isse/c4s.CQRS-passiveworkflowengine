@@ -7,9 +7,9 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import com.jamasoftware.services.restclient.exception.JsonException;
 import com.jamasoftware.services.restclient.exception.RestClientException;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.LazyBase;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.SpringUtil;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
@@ -37,7 +37,8 @@ public class JamaArtifact implements IJamaArtifact {
 
     private List<String> children;
     private List<String> prefetchItems;
-    private List<String> downstreamItems;
+    private List<Integer> downstreamItems;
+    private List<Integer> upstreamItems;
 
     private Map<String, String> stringValues = new HashMap<>();
     private Map<String, Date> dateValues = new HashMap<>();
@@ -66,22 +67,21 @@ public class JamaArtifact implements IJamaArtifact {
         this.createdDate = jamaItem.getCreatedDate();
         this.modifiedDate = jamaItem.getModifiedDate();
         this.lastActivityDate = jamaItem.getLastActivityDate();
-        try {
-            this.children = jamaItem.getChildren().stream()
-                    .map(LazyBase::getId)
-                    .map(String::valueOf)
-                    .collect(Collectors.toList());
-            this.prefetchItems = jamaItem.prefetchDownstreamItems().stream()
-                    .map(LazyBase::getId)
-                    .map(String::valueOf)
-                    .collect(Collectors.toList());
-        } catch (RestClientException e) {
-            e.printStackTrace();
-        }
-        this.downstreamItems = jamaItem.getDownstreamItems().stream()
-                .map(LazyBase::getId)
-                .map(String::valueOf)
-                .collect(Collectors.toList());
+//        try {
+//            this.children = jamaItem.getChildren().stream()
+//                    .map(JamaItem::getDocumentKey)
+//                    .map(String::valueOf)
+//                    .collect(Collectors.toList());
+//            this.prefetchItems = jamaItem.prefetchDownstreamItems().stream()
+//                    .map(JamaItem::getDocumentKey)
+//                    .map(String::valueOf)
+//                    .collect(Collectors.toList());
+//        } catch (RestClientException e) {
+//            e.printStackTrace();
+//        }
+
+        this.downstreamItems = jamaItem.getDownstreamItemIds() == null ? new ArrayList<>() : jamaItem.getDownstreamItemIds();
+        this.upstreamItems = jamaItem.getUpstreamItemIds() == null ? new ArrayList<>() : jamaItem.getUpstreamItemIds();
 
         for (JamaFieldValue jfv : jamaItem.getFieldValues()) {
             // TODO: Performance issue: if value was present once, the remaining checks should be skipped
@@ -94,9 +94,9 @@ public class JamaArtifact implements IJamaArtifact {
             getRelease(jfv).ifPresent(r -> releaseValues.put(jfv.getName(), r));
         }
         // complex field of jama item
-        this.jamaProjectArtifact = new JamaProjectArtifact(jamaItem.getProject());
-        this.userCreated = new JamaUserArtifact(jamaItem.getCreatedBy());
-        this.userModified = new JamaUserArtifact(jamaItem.getModifiedBy());
+        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
+        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
+        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
     }
 
     protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
@@ -173,6 +173,10 @@ public class JamaArtifact implements IJamaArtifact {
         return lastActivityDate;
     }
 
+    public List<String> getChildrenIds() {
+        return children;
+    }
+
     @Override
     public List<IJamaArtifact> getChildren(String workflowId) {
         return children.stream()
@@ -180,6 +184,10 @@ public class JamaArtifact implements IJamaArtifact {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
+    }
+
+    public List<String> getPrefetchItemIds() {
+        return prefetchItems;
     }
 
     @Override
@@ -191,10 +199,26 @@ public class JamaArtifact implements IJamaArtifact {
                 .collect(Collectors.toList());
     }
 
+    public List<Integer> getDownstreamItemIds() {
+        return downstreamItems;
+    }
+
     @Override
     public List<IJamaArtifact> getDownstreamItems(String workflowId) {
         return downstreamItems.stream()
-                .map(child -> fetch(child, workflowId))
+                .map(child -> fetch(String.valueOf(child), workflowId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+    }
+
+    public List<Integer> getUpstreamItemIds() {
+        return upstreamItems;
+    }
+
+    public List<IJamaArtifact> getUpstreamItems(String workflowId) {  // TODO add to interface
+        return upstreamItems.stream()
+                .map(parent -> fetch(String.valueOf(parent), workflowId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
@@ -301,25 +325,31 @@ public class JamaArtifact implements IJamaArtifact {
 
     private Optional<IJamaProjectArtifact> getProject(JamaFieldValue jfv) {
         if (jfv instanceof ProjectFieldValue) {
-            return Optional.of(new JamaProjectArtifact(((ProjectFieldValue) jfv).getValue()));
-        } else {
-            return Optional.empty();
+            JamaProject p = ((ProjectFieldValue) jfv).getValue();
+            if (p != null) {
+                return Optional.of(new JamaProjectArtifact(p));
+            }
         }
+        return Optional.empty();
     }
 
     private Optional<IJamaRelease> getRelease(JamaFieldValue jfv) {
         if (jfv instanceof ReleaseFieldValue) {
-            return Optional.of(new JamaRelease(((ReleaseFieldValue) jfv).getValue()));
-        } else {
-            return Optional.empty();
+            Release r = ((ReleaseFieldValue) jfv).getValue();
+            if (r != null) {
+                return Optional.of(new JamaRelease(r));
+            }
         }
+        return Optional.empty();
     }
 
     private Optional<IJamaUserArtifact> getUser(JamaFieldValue jfv) {
         if (jfv instanceof UserFieldValue) {
-            return Optional.of(new JamaUserArtifact(((UserFieldValue) jfv).getValue()));
-        } else {
-            return Optional.empty();
+            JamaUser u = ((UserFieldValue) jfv).getValue();
+            if (u != null) {
+            return Optional.of(new JamaUserArtifact(u));
+            }
         }
+        return Optional.empty();
     }
 }

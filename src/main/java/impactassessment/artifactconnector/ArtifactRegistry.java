@@ -23,7 +23,7 @@ public class ArtifactRegistry implements IArtifactRegistry {
             }
         }
         log.warn("No service registered that provides artifacts of type {}", id.getType());
-        return null; //TODO Optional
+        return Optional.empty();
     }
 
     @Override

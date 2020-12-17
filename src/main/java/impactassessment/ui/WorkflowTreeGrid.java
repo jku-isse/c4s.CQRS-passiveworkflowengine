@@ -2,6 +2,7 @@ package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dependency.HtmlImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
@@ -39,6 +40,10 @@ import java.util.stream.Stream;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
+@CssImport(
+        value= "./styles/dialog-overlay.css",
+        themeFor = "vaadin-dialog-overlay"
+)
 public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
@@ -305,6 +310,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
         VerticalLayout l = new VerticalLayout();
+        l.setClassName("scrollable");
         l.add(new H3(rebc.getWorkflow().getId()));
         l.add(new H4(rebc.getDescription()));
         // Unsatisfied resources
@@ -350,6 +356,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
         Dialog dialog = new Dialog();
         dialog.add(l);
+        dialog.setMaxHeight("80%");
 
         Icon icon;
         if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
