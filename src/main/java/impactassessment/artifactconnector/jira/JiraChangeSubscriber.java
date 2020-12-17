@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.jira;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.IssueAgent;
@@ -24,31 +25,30 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
     @Override
     public void handleUpdatedIssues(List<IssueAgent> list) {
         log.info("handleUpdateIssues");
-
         for (Map.Entry<String, Set<String>> entry : artifactUsages.entrySet()) {
-
             String workflowId = entry.getKey();
             Set<String> artifactKeys = entry.getValue();
             List<IArtifact> affectedArtifacts = new ArrayList<>();
-
             for (IssueAgent ia : list) {
                 if (artifactKeys.stream().anyMatch(key -> key.equals(ia.getKey()))) {
                     affectedArtifacts.add(new JiraArtifact(ia.getIssue()));
                 }
             }
-            UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(workflowId, affectedArtifacts);
-            commandGateway.sendAndWait(cmd);
+            if (affectedArtifacts.size() > 0) {
+                UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(workflowId, affectedArtifacts);
+                commandGateway.sendAndWait(cmd);
+            }
         }
     }
 
-    public void addUsage(String workflowId, String artifactKey) {
+    public void addUsage(String workflowId, ArtifactIdentifier id) {
         Set<String> artifactKeys = artifactUsages.get(workflowId);
         if (artifactKeys == null) {
             Set<String> newSet = new HashSet<>();
-            newSet.add(artifactKey);
+            newSet.add(id.getId());
             artifactUsages.put(workflowId, newSet);
         } else {
-            artifactKeys.add(artifactKey);
+            artifactKeys.add(id.getId());
         }
         log.debug("Workflow: {} has following usages: {}", workflowId, artifactUsages.get(workflowId).stream().collect(Collectors.joining( ", " )));
     }

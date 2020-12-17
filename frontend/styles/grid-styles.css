@@ -16,3 +16,7 @@
     border-style: solid;
     border-width: thin;
 }
+
+.scrollable {
+    overflow-y: auto;
+}

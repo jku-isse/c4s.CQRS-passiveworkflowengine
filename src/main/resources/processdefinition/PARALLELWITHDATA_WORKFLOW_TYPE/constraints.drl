@@ -38,7 +38,7 @@ rule "InsertQAConstraintsStateOpen"
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
 		                        getType().getId().equals("Prepare Implementation") &&
-		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
+		                        getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
@@ -66,7 +66,7 @@ rule "InsertQAConstraintsStateClosed"
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals("Conduct Implementation") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+							            getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
 		//constraints for Tasks and Sub-Taks

@@ -1,7 +1,6 @@
 package impactassessment.query;
 
 import artifactapi.IArtifact;
-import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Commands.*;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -24,10 +23,10 @@ public class WorkflowHelpers {
     static void ensureInitializedKB(KieSessionService kieSessions, ProjectionModel projection, String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
-            List<IJiraArtifact> artifacts = wfiWrapper.getArtifacts(); // TODO use generic IArtifact
+            List<IArtifact> artifacts = wfiWrapper.getArtifacts();
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
-            for (IJiraArtifact artifact : artifacts) {
+            for (IArtifact artifact : artifacts) {
                 kieSessions.insertOrUpdate(id, artifact);
             }
             wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly()
@@ -52,11 +51,10 @@ public class WorkflowHelpers {
         List<IArtifact> artifacts = wwti.getInput().stream()
                 .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
                 .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
-                .filter(o -> o instanceof IJiraArtifact)
-                .map(o -> (IJiraArtifact)o)
+                .filter(o -> o instanceof IArtifact)
+                .map(o -> (IArtifact)o)
                 .collect(Collectors.toList());
         CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);
-        UpdateArtifactsCmd cmd2 = new UpdateArtifactsCmd(wfiId, artifacts);
         commandGateway.send(cmd);
     }
 

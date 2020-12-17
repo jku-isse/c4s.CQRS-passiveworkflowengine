@@ -4,18 +4,19 @@ import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.*;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
-import c4s.jamaconnector.cache.CachedResourcePool;
-import c4s.jamaconnector.cache.CachingJsonHandler;
-import c4s.jamaconnector.cache.CouchDBJamaCache;
+import c4s.jamaconnector.cache.*;
+import c4s.jamaconnector.cache.CacheStatus;
 import c4s.jiralightconnector.*;
 import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.InMemoryMonitoringState;
+import c4s.jiralightconnector.MonitoringScheduler;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
@@ -38,6 +39,8 @@ import java.util.Set;
 
 @Configuration
 public class SpringConfig {
+
+    private static final int POLL_INTERVAL_IN_MINUTES = 10; // used for both Jira and Jama
 
     @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
@@ -68,7 +71,14 @@ public class SpringConfig {
 
     @Bean
     public ChangeStreamPoller getChangeStreampoller() {
-        return new ChangeStreamPoller(2);
+        return new ChangeStreamPoller(POLL_INTERVAL_IN_MINUTES);
+    }
+
+    @Bean
+    public MonitoringScheduler getJiraMonitoringScheduler(ChangeStreamPoller changeStreamPoller) {
+        MonitoringScheduler scheduler = new MonitoringScheduler();
+        scheduler.registerAndStartTask(changeStreamPoller);
+        return scheduler;
     }
 
     @Bean
@@ -93,16 +103,37 @@ public class SpringConfig {
     // --------------- JAMA ---------------
 
     @Bean
-    public JamaService getJamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
-        return new JamaService(jamaConn, jamaChangeSubscriber);
+    public JamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
-    public JamaConnector getJamaConnector(AutowireCapableBeanFactory beanFactory) {
-        JamaConnector jamaConn = new OfflineJamaConnector(1); // pollInterval is not used
-        beanFactory.autowireBean(jamaConn);
-        return jamaConn;
+    public c4s.jamaconnector.ChangeStreamPoller getJamaChangeStreamPoller(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
+        CacheStatus status = new CacheStatus(cache);
+        c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(123, status); // TODO not sure about project id
+        changeStreamPoller.setJi(jamaInstance);
+        changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
+        return changeStreamPoller;
     }
+
+    @Bean
+    public int intervalInMinutes() {
+        return POLL_INTERVAL_IN_MINUTES;
+    }
+
+    @Bean
+    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(c4s.jamaconnector.ChangeStreamPoller changeStreamPoller) {
+        c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
+        scheduler.registerAndStartTask(changeStreamPoller);
+        return scheduler;
+    }
+
+//    @Bean
+//    public JamaConnector getJamaConnector(AutowireCapableBeanFactory beanFactory) {
+//        JamaConnector jamaConn = new OfflineJamaConnector(1); // pollInterval is not used
+//        beanFactory.autowireBean(jamaConn);
+//        return jamaConn;
+//    }
 
     @Bean
     public CouchDBJamaCache getCache(CouchDbClient dbClient) {
@@ -133,7 +164,7 @@ public class SpringConfig {
     public CouchDbClient getCouchDbClient() {
         Properties props = getProps();
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems2"))
+                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems3"))
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
                 .setHost(props.getProperty("couchDBip", "localhost"))
@@ -147,45 +178,45 @@ public class SpringConfig {
 
     // ------------------------- JAMA MOCKS -------------------------
 
-    @Bean
-    public ProjectMonitoringState getProjectMonitoringState() {
-        return new ProjectMonitoringState() {
-            @Override
-            public Set<Integer> getMonitoredProjectIds() {
-                return null;
-            }
-
-            @Override
-            public void removeMonitoredProject(Integer integer) {
-
-            }
-
-            @Override
-            public void addMonitoredProject(Integer integer) {
-
-            }
-        };
-    }
-
-    @Bean
-    public ItemMonitoringState getItemMonitoringState() {
-        return new ItemMonitoringState() {
-            @Override
-            public Set<Integer> getMonitoredItemIds() {
-                return null;
-            }
-
-            @Override
-            public boolean removeMonitoredItem(Integer integer) {
-                return false;
-            }
-
-            @Override
-            public void addMonitoredItem(Integer integer) {
-
-            }
-        };
-    }
+//    @Bean
+//    public ProjectMonitoringState getProjectMonitoringState() {
+//        return new ProjectMonitoringState() {
+//            @Override
+//            public Set<Integer> getMonitoredProjectIds() {
+//                return null;
+//            }
+//
+//            @Override
+//            public void removeMonitoredProject(Integer integer) {
+//
+//            }
+//
+//            @Override
+//            public void addMonitoredProject(Integer integer) {
+//
+//            }
+//        };
+//    }
+//
+//    @Bean
+//    public ItemMonitoringState getItemMonitoringState() {
+//        return new ItemMonitoringState() {
+//            @Override
+//            public Set<Integer> getMonitoredItemIds() {
+//                return null;
+//            }
+//
+//            @Override
+//            public boolean removeMonitoredItem(Integer integer) {
+//                return false;
+//            }
+//
+//            @Override
+//            public void addMonitoredItem(Integer integer) {
+//
+//            }
+//        };
+//    }
 
     @Bean
     public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {

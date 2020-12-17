@@ -30,15 +30,14 @@ public class JiraService implements IArtifactService {
 
     @Override
     public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
-        String artifactKey = id.getId();
-        log.debug("JiraService loads "+artifactKey);
-        IssueAgent issueAgent = jira.fetchAndMonitor(artifactKey);
+        log.debug("JiraService loads "+id.getId());
+        IssueAgent issueAgent = jira.fetchAndMonitor(id.getId());
         if (issueAgent == null) {
             log.debug("Not able to fetch Jira Issue");
             return Optional.empty();
         } else  {
             log.debug("Successfully fetched Jira Issue");
-            jiraChangeSubscriber.addUsage(workflowId, artifactKey);
+            jiraChangeSubscriber.addUsage(workflowId, id);
             IArtifact artifact = new JiraArtifact(issueAgent.getIssue());
             return Optional.of(artifact);
         }

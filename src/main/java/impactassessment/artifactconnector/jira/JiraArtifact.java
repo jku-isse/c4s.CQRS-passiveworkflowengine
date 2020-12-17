@@ -177,17 +177,17 @@ public class JiraArtifact implements IJiraArtifact {
 
     @Override
     public Date getCreationDate() {
-        return issue.getCreationDate().toDate();
+        return issue.getCreationDate() != null ? issue.getCreationDate().toDate() : null;
     }
 
     @Override
     public Date getUpdateDate() {
-        return issue.getUpdateDate().toDate();
+        return issue.getUpdateDate() != null ? issue.getUpdateDate().toDate() : null;
     }
 
     @Override
     public Date getDueDate() {
-        return issue.getDueDate().toDate();
+        return issue.getDueDate() != null ? issue.getDueDate().toDate() : null;
     }
 
     @Override

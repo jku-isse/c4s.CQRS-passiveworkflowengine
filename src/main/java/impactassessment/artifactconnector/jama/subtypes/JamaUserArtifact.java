@@ -16,17 +16,15 @@ public class JamaUserArtifact implements IJamaUserArtifact {
     private Boolean active;
 
     public JamaUserArtifact(JamaUser jamaUser) {
-        if (jamaUser != null) {
-            this.username = jamaUser.getUsername();
-            this.firstName = jamaUser.getFirstName();
-            this.lastName = jamaUser.getLastName();
-            this.email = jamaUser.getEmail();
-            this.phone = jamaUser.getPhone();
-            this.title = jamaUser.getTitle();
-            this.location = jamaUser.getLocation();
-            this.licenseType = jamaUser.getLicenseType();
-            this.active = jamaUser.isActive();
-        }
+        this.username = jamaUser.getUsername();
+        this.firstName = jamaUser.getFirstName();
+        this.lastName = jamaUser.getLastName();
+        this.email = jamaUser.getEmail();
+        this.phone = jamaUser.getPhone();
+        this.title = jamaUser.getTitle();
+        this.location = jamaUser.getLocation();
+        this.licenseType = jamaUser.getLicenseType();
+        this.active = jamaUser.isActive();
     }
 
     @Override

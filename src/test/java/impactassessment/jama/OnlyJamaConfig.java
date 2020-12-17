@@ -10,7 +10,10 @@ import c4s.jamaconnector.cache.JamaCache;
 import com.jamasoftware.services.restclient.JamaConfig;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
+import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.evaluation.JamaUpdatePerformanceService;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -20,12 +23,16 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 import java.util.Set;
 
-@Configuration
 public class OnlyJamaConfig {
 
     @Bean
-    public JamaService getJamaService(JamaConnector jamaConn, IJamaChangeSubscriber jamaChangeSubscriber) {
-        return new JamaService(jamaConn, jamaChangeSubscriber);
+    public JamaUpdatePerformanceService getJamaUpdatePerformanceService(JamaCache jamaCache, JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaUpdatePerformanceService(jamaCache, jamaInstance, jamaChangeSubscriber);
+    }
+
+    @Bean
+    public JamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+        return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
@@ -62,7 +69,7 @@ public class OnlyJamaConfig {
     @Bean
     public CouchDbClient getCouchDbClient() {
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName("jamaitems2")
+                .setDbName("jamaitems3")
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
                 .setHost("localhost")
@@ -77,8 +84,13 @@ public class OnlyJamaConfig {
     // ------------------------- JAMA MOCKS -------------------------
 
     @Bean
-    public IJamaChangeSubscriber getJamaChangeSubscriber() {
-        return (set, correlationTuple) -> {/* do nothing */};
+    public JamaChangeSubscriber getJamaChangeSubscriber() {
+        return new JamaChangeSubscriber(null){
+            @Override
+            public void handleChangedJamaItems(Set<JamaItem> set, CorrelationTuple correlationTuple) {
+                // do nothing
+            }
+        };
     }
 
     @Bean

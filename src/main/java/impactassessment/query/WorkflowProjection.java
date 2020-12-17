@@ -142,13 +142,15 @@ public class WorkflowProjection {
     public void on(AddedConstraintsEvt evt, ReplayStatus status) {
         log.info("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-        List<RuleEngineBasedConstraint> rebcs = wfiWrapper.handle(evt);
+        List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
-            rebcs.forEach(rebc -> {
-                kieSessions.insertOrUpdate(evt.getId(), rebc);
-                ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(rebc.getId(), "AddConstraintCmd"));
-                ct.addConstraint(rebc.getConstraintType());
-                kieSessions.insertOrUpdate(evt.getId(), ct);
+            awos.forEach(awo -> {
+                kieSessions.insertOrUpdate(evt.getId(), awo);
+                if (awo instanceof RuleEngineBasedConstraint) {
+                    ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(awo.getId(), "AddConstraintCmd"));
+                    ct.addConstraint(((RuleEngineBasedConstraint)awo).getConstraintType());
+                    kieSessions.insertOrUpdate(evt.getId(), ct);
+                }
             });
             kieSessions.fire(evt.getId());
         }
