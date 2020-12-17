@@ -555,7 +555,7 @@ public class MainView extends VerticalLayout {
             JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
             service2.replayUpdates();
         });
-        return new VerticalLayout(description, id, print, timer,/* textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2);
+        return new VerticalLayout(description, id, print, /*timer, textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2);
     }
 
     private Component remove() {
@@ -630,8 +630,8 @@ public class MainView extends VerticalLayout {
         return layout;
     }
 
-    private @Getter
-    SimpleTimer timer = new SimpleTimer(60);
+//    private @Getter
+//    SimpleTimer timer = new SimpleTimer(60);
     private Component updates() {
 
 

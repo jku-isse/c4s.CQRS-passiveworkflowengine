@@ -60,7 +60,7 @@ public class JiraPoller implements Runnable {
                 Thread.currentThread().interrupt();
             }
             if (running.get()) {
-                pusher.updateFetchTimer();
+//                pusher.updateFetchTimer();
             }
         }
         log.info("stopped");

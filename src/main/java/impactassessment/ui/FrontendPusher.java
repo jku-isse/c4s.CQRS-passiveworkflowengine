@@ -25,12 +25,12 @@ public class FrontendPusher {
         }
     }
 
-    public void updateFetchTimer() {
-        if (ui != null && view != null) {
-            ui.access(() -> {
-                view.getTimer().reset();
-                view.getTimer().start();
-            });
-        }
-    }
+//    public void updateFetchTimer() {
+//        if (ui != null && view != null) {
+//            ui.access(() -> {
+//                view.getTimer().reset();
+//                view.getTimer().start();
+//            });
+//        }
+//    }
 }

@@ -40,6 +40,8 @@ import java.util.Set;
 @Configuration
 public class SpringConfig {
 
+    private static final int POLL_INTERVAL_IN_MINUTES = 1; // used for both Jira and Jama
+
     @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
         return new LocalRegisterService(registry);
@@ -69,7 +71,7 @@ public class SpringConfig {
 
     @Bean
     public ChangeStreamPoller getChangeStreampoller() {
-        return new ChangeStreamPoller(1);
+        return new ChangeStreamPoller(POLL_INTERVAL_IN_MINUTES);
     }
 
     @Bean
@@ -116,7 +118,7 @@ public class SpringConfig {
 
     @Bean
     public int intervalInMinutes() {
-        return 1;
+        return POLL_INTERVAL_IN_MINUTES;
     }
 
     @Bean
