@@ -25,13 +25,13 @@ public class WorkflowInstanceWrapper {
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()
                     .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
-                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
+                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
                     .collect(Collectors.toList()));
             artifacts.addAll(wfi.getOutput().stream()
                     .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
-                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
+                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
                     .collect(Collectors.toList()));
         }
         return artifacts;

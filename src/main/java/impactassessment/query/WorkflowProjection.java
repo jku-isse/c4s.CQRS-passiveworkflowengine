@@ -45,7 +45,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -60,7 +60,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -75,19 +75,19 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(CompletedDataflowEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         Map<IWorkflowTask, ArtifactInput> mappedInputs = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
             // TODO remove debug output
-            mappedInputs.forEach((key, value) -> log.info("MappedInputs: WFT=" + key.getId() + " AI=" + value.toString()));
+            mappedInputs.forEach((key, value) -> log.debug("MappedInputs: WFT=" + key.getId() + " AI=" + value.toString()));
             mappedInputs.forEach((wft, ai) -> addToSubWorkflow(commandGateway, wft, ai));
         }
     }
 
     @EventHandler
     public void on(ActivatedInBranchEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -98,7 +98,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(ActivatedOutBranchEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -112,7 +112,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(ActivatedInOutBranchEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -126,7 +126,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(ActivatedInOutBranchesEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -140,7 +140,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedConstraintsEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -158,7 +158,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedEvaluationResultToConstraintEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         Set<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -176,7 +176,7 @@ public class WorkflowProjection {
     @DisallowReplay
     @EventHandler
     public void on(CheckedConstraintEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         if (wfiWrapper != null) {
             RuleEngineBasedConstraint rebc = wfiWrapper.getRebc(evt.getCorrId());
@@ -197,7 +197,7 @@ public class WorkflowProjection {
     @DisallowReplay
     @EventHandler
     public void on(CheckedAllConstraintsEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         if (wfiWrapper != null) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
@@ -210,7 +210,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedInputEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         IWorkflowTask wft = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -223,7 +223,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedOutputEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<IWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -235,7 +235,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(AddedInputToWorkflowEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         projection.handle(evt);
         // if this input is an jira-artifact, insert it into kieSession
         if (!status.isReplay()) {
@@ -252,7 +252,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(UpdatedArtifactsEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
         for (IArtifact updatedArtifact : evt.getArtifacts()) {
@@ -280,7 +280,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(DeletedEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         projection.handle(evt);
         pusher.update(new ArrayList<>(projection.getDb().values()));
         if (!status.isReplay()) {
@@ -290,7 +290,7 @@ public class WorkflowProjection {
 
     @EventHandler
     public void on(IdentifiableEvt evt) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         projection.handle(evt);
     }
 
@@ -316,7 +316,7 @@ public class WorkflowProjection {
                     .append(" ######### ")
                     .append(kieSessions.getNumKieSessions())
                     .append(" #######");
-            log.info(s.toString());
+            log.debug(s.toString());
         }
         return new PrintKBResponse(s.toString());
     }

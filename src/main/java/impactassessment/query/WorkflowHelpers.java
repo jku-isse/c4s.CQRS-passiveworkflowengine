@@ -1,7 +1,11 @@
 package impactassessment.query;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
+import impactassessment.SpringUtil;
 import impactassessment.api.Commands.*;
+import impactassessment.artifactconnector.jama.JamaArtifact;
+import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;

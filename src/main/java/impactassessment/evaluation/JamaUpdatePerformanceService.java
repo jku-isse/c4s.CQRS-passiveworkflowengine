@@ -14,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -85,6 +88,18 @@ public class JamaUpdatePerformanceService {
         long updateCount = 0;
         int failedChanges = 0;
         boolean continueJama = true;
+
+
+//        BufferedWriter writer = null;
+//        try {
+//            writer = new BufferedWriter(new FileWriter("C:\\Users\\stefan\\Desktop\\changes.txt", true));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+        Set<JamaItem> updatedItems = new HashSet<>();
+
+
         while(continueJama) {
             Optional<ZonedDateTime> optTime = jamaRP.getDateOfNextFutureChange();
             if (optTime.isPresent()) {// another change
@@ -112,10 +127,22 @@ public class JamaUpdatePerformanceService {
                 System.out.println("Jama Replay Complete");
             } else {
                 JamaItem jamaItem = allItems.get(jamaChange.getItemId()); //item must exist as otherwise we wouldnt be replaying it
-                changeSubscriber.handleChangedJamaItems(Set.of(jamaItem), new CorrelationTuple());
+
+//                try {
+//                    String s = jamaItem.getId()+": "+jamaItem.getDocumentKey()+"\n";
+//                    writer.append(s);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+
+                updatedItems.add(jamaItem);
+
             }
 
         }
+
+        changeSubscriber.handleChangedJamaItems(updatedItems, new CorrelationTuple());
+
         timeStamps.add(stopW.getTime());
         stopW.stop();
 
