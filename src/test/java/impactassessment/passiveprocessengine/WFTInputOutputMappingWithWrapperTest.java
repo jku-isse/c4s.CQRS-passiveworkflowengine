@@ -1,12 +1,11 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
-import impactassessment.api.Commands.*;
 import impactassessment.exampleworkflows.ComplexWorkflow;
 import impactassessment.exampleworkflows.DronologyWorkflowFixed;
 import impactassessment.exampleworkflows.SimpleWorkflow;
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import org.junit.Before;
 import org.junit.Test;
 import passiveprocessengine.definition.ArtifactType;
@@ -16,7 +15,6 @@ import passiveprocessengine.definition.MappingDefinition;
 import passiveprocessengine.instance.DecisionNodeInstance;
 import passiveprocessengine.instance.ResourceLink;
 import passiveprocessengine.instance.WorkflowInstance;
-import passiveprocessengine.instance.WorkflowTask;
 
 import static impactassessment.exampleworkflows.ComplexWorkflow.*;
 

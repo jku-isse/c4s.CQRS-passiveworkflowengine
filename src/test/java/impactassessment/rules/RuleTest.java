@@ -1,11 +1,11 @@
 package impactassessment.rules;
 
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.SpringApp;
 import impactassessment.api.Events.*;
 import impactassessment.exampleworkflows.DronologyWorkflow;
 import impactassessment.exampleworkflows.DronologyWorkflowFixed;
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.kiesession.KieSessionFactory;
 import org.axonframework.commandhandling.gateway.CommandGateway;

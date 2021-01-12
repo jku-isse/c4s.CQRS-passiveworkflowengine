@@ -1,6 +1,6 @@
 package impactassessment.api;
 
-import impactassessment.jiraartifact.IJiraArtifact;
+import artifactapi.IArtifact;
 import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import passiveprocessengine.definition.Artifact;
@@ -11,7 +11,6 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +39,7 @@ public class Commands {
         private final String parentWfiId;
         private final String parentWftId;
         private final String definitionName;
-        private final List<IJiraArtifact> artifacts;
+        private final List<IArtifact> artifacts;
     }
 
     @Data
@@ -146,7 +145,7 @@ public class Commands {
     public static class UpdateArtifactsCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final List<IJiraArtifact> artifacts;
+        private final List<IArtifact> artifacts;
     }
 }
 

@@ -1,7 +1,7 @@
 package impactassessment.kiesession;
 
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.IJiraArtifactService;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -15,7 +15,9 @@ import passiveprocessengine.definition.AbstractIdentifiableObject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 @Component
 @Scope("prototype")
@@ -26,11 +28,11 @@ public class KieSessionWrapper {
     private @Getter @Setter boolean isInitialized;
 
     private final CommandGateway commandGateway;
-    private final IJiraArtifactService artifactService;
+    private final IArtifactRegistry artifactRegistry;
 
-    public KieSessionWrapper(CommandGateway commandGateway, IJiraArtifactService artifactService) {
+    public KieSessionWrapper(CommandGateway commandGateway, IArtifactRegistry artifactRegistry) {
         this.commandGateway = commandGateway;
-        this.artifactService = artifactService;
+        this.artifactRegistry = artifactRegistry;
         sessionHandles = new HashMap<>();
         isInitialized = false;
     }
@@ -63,13 +65,13 @@ public class KieSessionWrapper {
 
     private void setGlobals() {
         this.kieSession.setGlobal("commandGateway", commandGateway);
-        this.kieSession.setGlobal("artifactService", artifactService);
+        this.kieSession.setGlobal("artifactRegistry", artifactRegistry);
     }
 
     public void insertOrUpdate(Object o) {
-        if (o instanceof IJiraArtifact) {
-            IJiraArtifact a = (IJiraArtifact) o;
-            String key = a.getId() + "[" + a.getClass().getSimpleName() + "]";
+        if (o instanceof IArtifact) { // TODO change to IArtifact
+            IArtifact a = (IArtifact) o;
+            String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
             insertOrUpdate(key, a);
         } else if (o instanceof AbstractIdentifiableObject) {
             AbstractIdentifiableObject idO = (AbstractIdentifiableObject) o;

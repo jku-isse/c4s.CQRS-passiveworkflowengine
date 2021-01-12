@@ -1,25 +1,20 @@
 package impactassessment.query;
 
+import artifactapi.IArtifact;
 import impactassessment.api.Commands.*;
-import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.kie.api.runtime.KieContainer;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.AbstractWorkflowInstanceObject;
 import passiveprocessengine.instance.QACheckDocument;
 import passiveprocessengine.instance.RuleEngineBasedConstraint;
 import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,10 +23,10 @@ public class WorkflowHelpers {
     static void ensureInitializedKB(KieSessionService kieSessions, ProjectionModel projection, String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
-            List<IJiraArtifact> artifacts = wfiWrapper.getArtifacts();
+            List<IArtifact> artifacts = wfiWrapper.getArtifacts();
             log.info(">>INIT KB<<");
             // if kieSession is not initialized, try to add all artifacts
-            for (IJiraArtifact artifact : artifacts) {
+            for (IArtifact artifact : artifacts) {
                 kieSessions.insertOrUpdate(id, artifact);
             }
             wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly()
@@ -53,14 +48,13 @@ public class WorkflowHelpers {
     }
 
     static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        List<IJiraArtifact> artifacts = wwti.getInput().stream()
+        List<IArtifact> artifacts = wwti.getInput().stream()
                 .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
                 .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
-                .filter(o -> o instanceof IJiraArtifact)
-                .map(o -> (IJiraArtifact)o)
+                .filter(o -> o instanceof IArtifact)
+                .map(o -> (IArtifact)o)
                 .collect(Collectors.toList());
         CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);
-        UpdateArtifactsCmd cmd2 = new UpdateArtifactsCmd(wfiId, artifacts);
         commandGateway.send(cmd);
     }
 
@@ -71,11 +65,11 @@ public class WorkflowHelpers {
         }
     }
 
-    static IJiraArtifact checkIfJiraArtifactInside(Artifact artifact) {
+    static IArtifact checkIfIArtifactInside(Artifact artifact) {
         if (artifact instanceof ArtifactWrapper) {
             ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
-            if (artifactWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-                return (IJiraArtifact) artifactWrapper.getWrappedArtifact();
+            if (artifactWrapper.getWrappedArtifact() instanceof IArtifact) {
+                return (IArtifact) artifactWrapper.getWrappedArtifact();
             }
         }
         return null;

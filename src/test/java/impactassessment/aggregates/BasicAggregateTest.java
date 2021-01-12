@@ -1,12 +1,12 @@
 package impactassessment.aggregates;
 
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.SpringApp;
 import impactassessment.api.Events.*;
 import impactassessment.api.Commands.*;
 import impactassessment.command.WorkflowAggregate;
 import impactassessment.exampleworkflows.DronologyWorkflowFixed;
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.kiesession.KieSessionService;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;

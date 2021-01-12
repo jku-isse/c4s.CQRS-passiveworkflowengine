@@ -1,14 +1,17 @@
 package impactassessment.command;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
-import impactassessment.api.Sources;
-import impactassessment.jiraartifact.IJiraArtifact;
-import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.jiraartifact.mock.JiraMockService;
+import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
@@ -62,10 +65,10 @@ public class WorkflowAggregate {
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, IJiraArtifactService artifactService, WorkflowDefinitionRegistry registry) {
+    public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
         log.info("[AGG] handling {}", cmd);
-        List<IJiraArtifact> artifacts = createWorkflow(cmd.getId(), artifactService, cmd.getInput());
-        WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
+        List<IArtifact> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
+        WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
@@ -73,20 +76,22 @@ public class WorkflowAggregate {
         }
     }
 
-    private List<IJiraArtifact> createWorkflow(String id, IJiraArtifactService artifactService, Map<String, String> inputs) {
-        List<IJiraArtifact> artifacts = new ArrayList<>();
+    private List<IArtifact> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
+        List<IArtifact> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
             String source = entry.getValue();
-            if (source.equals(Sources.JIRA.toString())) {
-                IJiraArtifact a = artifactService.get(key, id);
-                if (a != null) {
-                    artifacts.add(a);
-                }
+            if (source.equals("JIRA")) {
+                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
+                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
+            } else if (source.equals("JAMA")) {
+                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
+                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
             } else {
                 log.error("Unsupported Artifact source: "+source);
             }
         }
+        if (inputs.size() != artifacts.size()) throw new CommandExecutionException("One or more required artifacts couldn't be fetched", new IllegalArgumentException());
         return artifacts;
     }
 

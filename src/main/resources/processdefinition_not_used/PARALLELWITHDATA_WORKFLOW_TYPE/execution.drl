@@ -25,8 +25,8 @@ import impactassessment.api.Commands.ActivateOutBranchCmd
 import impactassessment.api.Commands.ActivateInOutBranchCmd
 import impactassessment.api.Commands.ActivateInOutBranchesCmd
 
-import impactassessment.jiraartifact.IJiraArtifact
-import impactassessment.jiraartifact.subinterfaces.IJiraStatus
+import artifactapi.jira.IJiraArtifact
+import artifactapi.jira.subtypes.IJiraStatus
 
 import java.util.List
 import java.util.Set
