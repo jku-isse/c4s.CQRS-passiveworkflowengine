@@ -6,10 +6,8 @@ import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.Text;
+import com.vaadin.componentfactory.ToggleButton;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -78,6 +76,8 @@ import static impactassessment.ui.Helpers.showOutput;
 @CssImport(value="./styles/theme.css")
 public class MainView extends VerticalLayout {
 
+    private boolean devMode = false;
+
     private CommandGateway commandGateway;
     private QueryGateway queryGateway;
     private Snapshotter snapshotter;
@@ -140,7 +140,20 @@ public class MainView extends VerticalLayout {
         header.setPadding(true);
         header.setSizeFull();
         header.setHeight("6%");
-        header.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
+        HorizontalLayout firstPart = new HorizontalLayout();
+        firstPart.setClassName("header-theme");
+        firstPart.setMargin(false);
+        firstPart.setPadding(true);
+        firstPart.setSizeFull();
+        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
+        ToggleButton toggle = new ToggleButton("Dev Mode ");
+        toggle.setClassName("med");
+        toggle.addValueChangeListener(evt -> {
+            devMode = !devMode;
+            initAccordion();
+        });
+        header.add(firstPart, toggle);
+        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
@@ -211,20 +224,26 @@ public class MainView extends VerticalLayout {
         menu.setWidth("35%");
         menu.setFlexGrow(0);
 
-        Accordion accordion = new Accordion();
-        accordion.add("Create Workflow", importArtifact());
-        accordion.add("Mock Workflow", importMocked());
-        accordion.add("Updates", updates());
-//        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
-//        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
-        accordion.add("Backend Queries", backend());
-        accordion.close();
-        accordion.open(0);
-        accordion.setWidthFull();
 
+        initAccordion();
         menu.add(new H2("Controls"), accordion);
 
         return menu;
+    }
+
+    private Accordion accordion = new Accordion();
+
+    private void initAccordion() {
+        accordion.getChildren().forEach(c -> accordion.remove(c));
+        accordion.add("Create Workflow", importArtifact());
+        if (devMode) accordion.add("Mock Workflow", importMocked());
+        accordion.add("Updates", updates());
+//        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
+//        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
+        if (devMode) accordion.add("Backend Queries", backend());
+        accordion.close();
+        accordion.open(0);
+        accordion.setWidthFull();
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {

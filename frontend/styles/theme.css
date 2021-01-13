@@ -5,6 +5,11 @@
     padding-left: 50px;
     align-items: center;
 }
+
+.med {
+    font-size: medium;
+}
+
 .footer-theme {
     background-color: #1565C0;
     color: aliceblue;
