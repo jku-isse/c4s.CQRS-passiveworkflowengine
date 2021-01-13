@@ -26,7 +26,7 @@ public class JamaWorkflowCreationPerformanceService {
         for (Integer id : wpIds) {
             Map<String, String> input = new HashMap<>();
             input.put(String.valueOf(id), "JAMA");
-            commandGateway.sendAndWait(new Commands.CreateWorkflowCmd(getNewId(), input, "JAMA_PERFORMANCE"));
+            commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, "JAMA_PERFORMANCE"));
         }
     }
 }
