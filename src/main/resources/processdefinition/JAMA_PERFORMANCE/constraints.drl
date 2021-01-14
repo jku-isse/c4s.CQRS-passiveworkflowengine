@@ -31,7 +31,10 @@ import passiveprocessengine.instance.ResourceLink;
 import passiveprocessengine.instance.WorkflowTask;
 import impactassessment.passiveprocessengine.ResourceLinkFactory
 import artifactapi.jama.subtypes.IJamaRelease
-import impactassessment.artifactconnector.jama.JamaArtifact;
+import impactassessment.artifactconnector.jama.JamaArtifact
+import artifactapi.ArtifactIdentifier
+import impactassessment.artifactconnector.jira.JiraArtifact
+import artifactapi.IArtifact;
 
 
 global CommandGateway commandGateway;
@@ -42,13 +45,14 @@ rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJamaArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId()) &&
-		                        getType().getId().equals("Open") &&
+		                        getType().getId().equals("Sub WP Execution") &&
 		                        getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null)
 	then
         Map<String, String> constraints = new HashMap<>();
-        constraints.put("CheckJamaArtifactTypeIsFEAT", "Is the work-package type FEAT?");
+        //constraints.put("CheckJamaArtifactTypeIsFEAT", "Is the work-package type FEAT?");
         constraints.put("CheckJamaArtifactHasJiraKey", "Has the work-package a Jira Issue Key defined?");
-        constraints.put("CheckJamaArtifactJiraSyncVersion", "Is the Jira-sync-version of the Jama ticket correct (version 3)?");
+        //constraints.put("CheckJamaArtifactJiraSyncVersion", "Is the Jira-sync-version of the Jama ticket correct (version 3)?");
+        constraints.put("CheckJiraIssueClosed", "Is the Jira issue in state closed?");
         constraints.put("CheckWorkpackageLinkedToSRS", "Is the work-package linked to a SRS?");
         constraints.put("CheckWorkpackageSrsAreReleasedOrDeleted", "Are all linked SRS in status deleted or resolved?");
         constraints.put("CheckWorkpackageSrsHaveRelease", "Do have all linked SRS an active release?");
@@ -155,6 +159,27 @@ rule "CheckJamaArtifactJiraSyncVersion" extends "CheckJiraIssueBase"
 	then
 	    boolean hasCorrectSyncVersion = $a.getIntegerValue("SYS_JIRA_SYNC_VERSION") != null && $a.getIntegerValue("SYS_JIRA_SYNC_VERSION").equals(3);
 		Map<ResourceLink, Boolean> result = Map.of(ResourceLinkFactory.get($a), hasCorrectSyncVersion);
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+end
+
+rule "CheckJiraIssueClosed" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
+											&& getConstraintType().equals( "CheckJiraIssueClosed" )
+											&& isAffectedBy($ct) )
+	then
+	    String jiraKey = $a.getStringValue("SYS_JIRA_KEY");
+	    ArtifactIdentifier ai = new ArtifactIdentifier(jiraKey, IJiraArtifact.class.getSimpleName());
+	    Optional<IArtifact> opt = artifactRegistry.get(ai, $qac.getWorkflow().getId());
+	    Map<ResourceLink, Boolean> result;
+	    if (opt.isPresent()) {
+	        IJiraArtifact jiraArt = (IJiraArtifact) opt.get();
+	        boolean isClosed = jiraArt.getStatus().getName().equals("Closed");
+	        result = Map.of(ResourceLinkFactory.get(jiraArt), isClosed);
+	    } else {
+	        result = Map.of(ResourceLinkFactory.get($a), false);
+	    }
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
