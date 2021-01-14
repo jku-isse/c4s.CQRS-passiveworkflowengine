@@ -13,6 +13,8 @@ import c4s.jiralightconnector.MonitoringScheduler;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.jamasoftware.services.restclient.JamaConfig;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.httpconnection.ApacheHttpClient;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
@@ -23,21 +25,23 @@ import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
+import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 @Configuration
+@Slf4j
 public class SpringConfig {
 
     private static final int POLL_INTERVAL_IN_MINUTES = 10; // used for both Jira and Jama
@@ -140,21 +144,46 @@ public class SpringConfig {
         return new CouchDBJamaCache(dbClient);
     }
 
+//    @Bean
+//    public JamaInstance getOfflineJamaInstance(CouchDBJamaCache cache) {
+//        JamaConfig jamaConf = new JamaConfig();
+//        jamaConf.setJson(new CachingJsonHandler(cache));
+//        jamaConf.setApiKey("SUPERSECRETKEY");
+//        String url = "http://localhost";
+//        jamaConf.setBaseUrl(url);
+//        jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+//        jamaConf.setOpenUrlBase(url);
+//        jamaConf.setUsername("OFFLINE");
+//        jamaConf.setPassword("OFFLINE");
+//        jamaConf.setResourceTimeOut(60);
+//        jamaConf.setHttpClient(new OfflineHttpClientMock());
+//
+//        JamaInstance jamaInst = new JamaInstance(jamaConf, true);
+//        cache.setJamaInstance(jamaInst);
+//        jamaInst.setResourcePool(new CachedResourcePool(cache));
+//        return jamaInst;
+//    }
+
     @Bean
-    public JamaInstance getJamaInstance(CouchDBJamaCache cache) {
+    public JamaInstance getOnlineJamaInstance(CouchDBJamaCache cache) {
+        Properties props = getProps();
         JamaConfig jamaConf = new JamaConfig();
         jamaConf.setJson(new CachingJsonHandler(cache));
-        jamaConf.setApiKey("SUPERSECRETKEY");
-        String url = "http://localhost";
+        jamaConf.setApiKey(props.getProperty("jamaSecretKey"));
+        String url = props.getProperty("jamaUrl");
         jamaConf.setBaseUrl(url);
         jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
         jamaConf.setOpenUrlBase(url);
-        jamaConf.setUsername("OFFLINE");
-        jamaConf.setPassword("OFFLINE");
+        jamaConf.setUsername(props.getProperty("jamaUser"));
+        jamaConf.setPassword(props.getProperty("jamaPassword"));
         jamaConf.setResourceTimeOut(60);
-        jamaConf.setHttpClient(new OfflineHttpClientMock());
+        try {
+            jamaConf.setHttpClient(new ApacheHttpClient());
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
 
-        JamaInstance jamaInst = new JamaInstance(jamaConf, true);
+        JamaInstance jamaInst = new JamaInstance(jamaConf, false);
         cache.setJamaInstance(jamaInst);
         jamaInst.setResourcePool(new CachedResourcePool(cache));
         return jamaInst;
@@ -164,13 +193,13 @@ public class SpringConfig {
     public CouchDbClient getCouchDbClient() {
         Properties props = getProps();
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(props.getProperty("jiraCacheCouchDBname", "jamaitems3"))
+                .setDbName(props.getProperty("jamaCacheCouchDBname", "jamaitems3"))
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
                 .setHost(props.getProperty("couchDBip", "localhost"))
                 .setPort(Integer.parseInt(props.getProperty("couchDBport", "5984")))
-                .setUsername(props.getProperty("jiraCacheCouchDBuser","admin"))
-                .setPassword(props.getProperty("jiraCacheCouchDBpassword","password"))
+                .setUsername(props.getProperty("jamaCacheCouchDBuser","admin"))
+                .setPassword(props.getProperty("jamaCacheCouchDBpassword","password"))
                 .setMaxConnections(100)
                 .setConnectionTimeout(0);
         return new CouchDbClient(dbprops);
@@ -233,15 +262,24 @@ public class SpringConfig {
         };
     }
 
+    // Property File
     private Properties getProps() {
         Properties props = new Properties();
+        // try to use external first
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("application.properties").getFile());
-            FileReader reader = new FileReader(file);
+            FileReader reader = new FileReader(new File("./main.properties"));
             props.load(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
+            return props;
+        } catch (IOException e1) {
+            log.warn("No properties file in default location (same directory as JAR) found! Using default props.");
+            try {
+                InputStream inputStream = new ClassPathResource("application.properties").getInputStream();
+                props.load(inputStream);
+                return props;
+            } catch (IOException e2) {
+                log.error("No properties file found.");
+                e2.printStackTrace();
+            }
         }
         return props;
     }
