@@ -100,7 +100,9 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
+        log.debug("Artifact fetching linked item: {}", artifactId);
         log.info("Artifact fetching linked item: {}", artifactId);
+        log.warn("Artifact fetching linked item: {}", artifactId);
         if (artifactRegistry == null)
             artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
         ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());

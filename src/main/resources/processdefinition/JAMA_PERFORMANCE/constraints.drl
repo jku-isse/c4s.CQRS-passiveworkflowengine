@@ -57,6 +57,9 @@ rule "InsertQAConstraintsStateOpen"
         constraints.put("CheckWorkpackageSrsAreReleasedOrDeleted", "Are all linked SRS in status deleted or resolved?");
         constraints.put("CheckWorkpackageSrsHaveRelease", "Do have all linked SRS an active release?");
         constraints.put("CheckWorkpackageHasOnlySrsWithSssAppendedToThem", "Is every SRS correctly related to at least one SSS?");
+
+        constraints.put("CheckLinkedSSSLinkedToSRS", "Are SSS linked to SRS?");
+
         commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 end
 
@@ -175,7 +178,8 @@ rule "CheckJiraIssueClosed" extends "CheckJiraIssueBase"
 	    Map<ResourceLink, Boolean> result;
 	    if (opt.isPresent()) {
 	        IJiraArtifact jiraArt = (IJiraArtifact) opt.get();
-	        boolean isClosed = jiraArt.getStatus().getName().equals("Closed");
+	        System.out.println("Jira state: "+jiraArt.getStatus().getName());
+	        boolean isClosed = jiraArt.getStatus().getName().equals("Done");
 	        result = Map.of(ResourceLinkFactory.get(jiraArt), isClosed);
 	    } else {
 	        result = Map.of(ResourceLinkFactory.get($a), false);
@@ -195,6 +199,31 @@ rule "CheckWorkpackageLinkedToSRS" extends "CheckJiraIssueBase"
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
                 result.put(ResourceLinkFactory.get(artifact), true);
+            }
+        }
+        if (result.size() == 0) {
+            result.put(ResourceLinkFactory.get($a), false);
+        }
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+end
+
+rule "CheckLinkedSSSLinkedToSRS" extends "CheckJiraIssueBase"
+	no-loop
+	when
+		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
+											&& getConstraintType().equals( "CheckLinkedSSSLinkedToSRS" )
+											&& isAffectedBy($ct) )
+	then
+        List<IJamaArtifact> artifacts = ((JamaArtifact)$a).getUpstreamItems($qac.getWorkflowId());
+        Map<ResourceLink, Boolean> result = new HashMap<>();
+        for (IJamaArtifact artifact : artifacts) {
+            if (artifact.getItemType() != null && artifact.getItemType().equals("SSS")) {
+                List<IJamaArtifact> sssDownstream = artifact.getDownstreamItems($qac.getWorkflowId());
+                for (IJamaArtifact down : sssDownstream) {
+                    if (down.getItemType() != null && down.getItemType().equals("SRS")) {
+                        result.put(ResourceLinkFactory.get(artifact), true);
+                    }
+                }
             }
         }
         if (result.size() == 0) {

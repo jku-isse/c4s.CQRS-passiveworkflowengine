@@ -10,6 +10,7 @@ import c4s.jiralightconnector.*;
 import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.InMemoryMonitoringState;
 import c4s.jiralightconnector.MonitoringScheduler;
+import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.jamasoftware.services.restclient.JamaConfig;
@@ -104,6 +105,21 @@ public class SpringConfig {
         return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
 
+    @Bean
+    public JiraUpdateTracingInstrumentation getJiraUpdateTracingInstrumentation() {
+        return new JiraUpdateTracingInstrumentation() {
+            @Override
+            public void logJiraPollResult(CorrelationTuple correlationTuple, Set<String> set) {
+
+            }
+
+            @Override
+            public void logJiraUpdateResult(CorrelationTuple correlationTuple, Set<String> set) {
+
+            }
+        };
+    }
+
     // --------------- JAMA ---------------
 
     @Bean
@@ -128,7 +144,7 @@ public class SpringConfig {
     @Bean
     public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(c4s.jamaconnector.ChangeStreamPoller changeStreamPoller) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
-        scheduler.registerAndStartTask(changeStreamPoller);
+        scheduler.registerAndStartTask(changeStreamPoller); // TODO create CSP for each project
         return scheduler;
     }
 

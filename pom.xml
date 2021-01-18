@@ -95,12 +95,39 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+
+
 
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jiralightconnector</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
+            <version>0.4.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ISSE.JKU</groupId>
@@ -259,6 +286,12 @@
             <groupId>com.github.oxo42</groupId>
             <artifactId>stateless4j</artifactId>
             <version>2.5.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Testing -->
@@ -311,6 +344,12 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>5.4.0.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -338,7 +377,15 @@
             <groupId>org.lightcouch</groupId>
             <artifactId>lightcouch</artifactId>
             <version>0.2.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+
 
     </dependencies>
 
@@ -363,9 +410,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jiralightconnector</artifactId>
-                            <version>0.0.3-SNAPSHOT</version>
+                            <version>0.4.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jiralightconnector-0.0.3-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.jiralightconnector-0.4.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>

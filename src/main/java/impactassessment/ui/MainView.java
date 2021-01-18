@@ -3,15 +3,15 @@ package impactassessment.ui;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
-import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.MonitoringScheduler;
-import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
@@ -32,6 +32,14 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import impactassessment.SpringUtil;
+import impactassessment.api.Commands.CheckConstraintCmd;
+import impactassessment.api.Commands.CreateMockWorkflowCmd;
+import impactassessment.api.Commands.CreateWorkflowCmd;
+import impactassessment.api.Commands.DeleteCmd;
+import impactassessment.api.Queries.GetStateQuery;
+import impactassessment.api.Queries.GetStateResponse;
+import impactassessment.api.Queries.PrintKBQuery;
+import impactassessment.api.Queries.PrintKBResponse;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
@@ -47,12 +55,9 @@ import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
 import passiveprocessengine.definition.ArtifactType;
-import impactassessment.api.Commands.*;
-import impactassessment.api.Queries.*;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -655,7 +660,7 @@ public class MainView extends VerticalLayout {
 
 
         Button update = new Button("Fetch Updates Now", e -> {
-                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow();
+                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
                 jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
 
