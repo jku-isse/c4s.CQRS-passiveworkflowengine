@@ -123,12 +123,6 @@ public class SpringConfig {
     }
 
     @Bean
-    public int intervalInMinutes() {
-        String minutes =  getProp("pollIntervalInMinutes");
-        return Integer.parseInt(minutes);
-    }
-
-    @Bean
     public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
         CacheStatus status = new CacheStatus(cache);
@@ -136,6 +130,7 @@ public class SpringConfig {
         String[] ids = projectIds.split(",");
         for (String id : ids) {
             c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
+            changeStreamPoller.setInterval(Integer.parseInt(getProp("pollIntervalInMinutes")));
             changeStreamPoller.setJi(jamaInstance);
             changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
             scheduler.registerAndStartTask(changeStreamPoller);
