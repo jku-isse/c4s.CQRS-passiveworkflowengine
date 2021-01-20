@@ -2,6 +2,8 @@ package impactassessment.registry;
 
 import impactassessment.kiesession.KieSessionFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -11,7 +13,10 @@ import passiveprocessengine.definition.WorkflowDefinition;
 import passiveprocessengine.persistance.json.DefinitionSerializer;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -52,6 +57,29 @@ public class LocalRegisterService extends AbstractRegisterService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // external resources (same directory as JAR)
+        try {
+            File[] directories = new File("./workflows/").listFiles(File::isDirectory);
+            for (File dir : directories) {
+                FileFilter fileFilter = new WildcardFileFilter("*.json");
+                File[] jsonFiles = dir.listFiles(fileFilter);
+                if (jsonFiles.length != 1) break;
+                byte[] encoded = Files.readAllBytes(jsonFiles[0].toPath());
+                WorkflowDefinition wfd = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
+
+                FileFilter fileFilter2 = new WildcardFileFilter("*.drl");
+                File[] drlFiles = dir.listFiles(fileFilter2);
+                if (drlFiles.length < 1) break;
+                KieContainer kieContainer = kieSessionFactory.getKieContainer(Arrays.asList(drlFiles));
+
+                registry.register(wfd.getId(), wfd, kieContainer);
+                i++;
+            }
+        } catch (NullPointerException | IOException e) {
+            log.warn("No external WFDs!");
+        }
+
         log.info("LocalRegisterService registered {} process definitions from resources/processdefinition", i);
         return i;
     }

@@ -16,6 +16,7 @@ import static impactassessment.general.IdGenerator.getNewId;
 public class JamaWorkflowCreationPerformanceService {
 
     private final CommandGateway commandGateway;
+    // 14464163
     private List<Integer> wpIds = List.of(14494337,14500058,14500947,14619816,14619817,14619818,14624079,14624080,14624081
         ,15079383,15104162,15104163,15128680,15178841,15178842,15178843,15178845,15178846,15178847,15408422,15539532
         ,15539533,15540718,15540719,15540720,15540721,15550132,15550133,15550134,15551554,15551555,15551556,11539214
@@ -26,7 +27,7 @@ public class JamaWorkflowCreationPerformanceService {
         for (Integer id : wpIds) {
             Map<String, String> input = new HashMap<>();
             input.put(String.valueOf(id), "JAMA");
-            commandGateway.sendAndWait(new Commands.CreateWorkflowCmd(getNewId(), input, "JAMA_PERFORMANCE"));
+            commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, "JAMA_PERFORMANCE"));
         }
     }
 }

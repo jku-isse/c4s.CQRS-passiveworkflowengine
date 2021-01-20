@@ -2,6 +2,7 @@ package impactassessment.artifactconnector.jira;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
+import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.ChangeSubscriber;
 import c4s.jiralightconnector.IssueAgent;
 import impactassessment.api.Commands.UpdateArtifactsCmd;
@@ -23,7 +24,7 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
     private Map<String, Set<String>> artifactUsages = new HashMap<>();
 
     @Override
-    public void handleUpdatedIssues(List<IssueAgent> list) {
+    public void handleUpdatedIssues(List<IssueAgent> list, CorrelationTuple corr) {
         log.info("handleUpdateIssues");
         for (Map.Entry<String, Set<String>> entry : artifactUsages.entrySet()) {
             String workflowId = entry.getKey();

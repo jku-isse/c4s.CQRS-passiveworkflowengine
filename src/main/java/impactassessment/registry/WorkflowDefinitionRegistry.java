@@ -27,8 +27,8 @@ public class WorkflowDefinitionRegistry {
     public void register(String json, Map<String, String> ruleFiles) {
         WorkflowDefinition wfd = serializer.fromJson(json);
         KieContainer kieContainer = kieSessionFactory.getKieContainerFromStrings(ruleFiles.values());
-
-        persist(wfd.getId(), json, ruleFiles);
+        // TODO: persisting won't work in deployment
+        //persist(wfd.getId(), json, ruleFiles);
         register(wfd.getId(), wfd, kieContainer);
     }
 
