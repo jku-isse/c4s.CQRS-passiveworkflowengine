@@ -77,7 +77,7 @@ public class LocalRegisterService extends AbstractRegisterService {
                 i++;
             }
         } catch (NullPointerException | IOException e) {
-            log.error("No external WFDs!");
+            log.warn("No external WFDs!");
         }
 
         log.info("LocalRegisterService registered {} process definitions from resources/processdefinition", i);

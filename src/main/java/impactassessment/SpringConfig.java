@@ -45,7 +45,6 @@ import java.util.Set;
 @Slf4j
 public class SpringConfig {
 
-    private static final int POLL_INTERVAL_IN_MINUTES = 10; // used for both Jira and Jama
 
     @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
@@ -62,12 +61,6 @@ public class SpringConfig {
 
     // --------------- JIRA ---------------
 
-//    @Bean
-//    public IJiraArtifactService getJiraArtifactService(JiraChangeSubscriber jiraChangeSubscriber) {
-//        // uses JSON image of Jira data in resources folder
-//        return new JiraJsonService(jiraChangeSubscriber);
-//    }
-
     @Bean
     public JiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         // connects directly to a Jira server
@@ -75,12 +68,10 @@ public class SpringConfig {
     }
 
     @Bean
-    public ChangeStreamPoller getChangeStreampoller() {
-        return new ChangeStreamPoller(POLL_INTERVAL_IN_MINUTES);
-    }
-
-    @Bean
-    public MonitoringScheduler getJiraMonitoringScheduler(ChangeStreamPoller changeStreamPoller) {
+    public MonitoringScheduler getJiraMonitoringScheduler() {
+        Properties props = getProps();
+        String minutes =  props.getProperty("pollIntervalInMinutes");
+        ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));
         MonitoringScheduler scheduler = new MonitoringScheduler();
         scheduler.registerAndStartTask(changeStreamPoller);
         return scheduler;
@@ -128,23 +119,25 @@ public class SpringConfig {
     }
 
     @Bean
-    public c4s.jamaconnector.ChangeStreamPoller getJamaChangeStreamPoller(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
-        CacheStatus status = new CacheStatus(cache);
-        c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(123, status); // TODO not sure about project id
-        changeStreamPoller.setJi(jamaInstance);
-        changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
-        return changeStreamPoller;
-    }
-
-    @Bean
     public int intervalInMinutes() {
-        return POLL_INTERVAL_IN_MINUTES;
+        Properties props = getProps();
+        String minutes =  props.getProperty("pollIntervalInMinutes");
+        return Integer.parseInt(minutes);
     }
 
     @Bean
-    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(c4s.jamaconnector.ChangeStreamPoller changeStreamPoller) {
+    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
-        scheduler.registerAndStartTask(changeStreamPoller); // TODO create CSP for each project
+        CacheStatus status = new CacheStatus(cache);
+        Properties props = getProps();
+        String projectIds =  props.getProperty("jamaProjectIds");
+        String[] ids = projectIds.split(",");
+        for (String id : ids) {
+            c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
+            changeStreamPoller.setJi(jamaInstance);
+            changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
+            scheduler.registerAndStartTask(changeStreamPoller);
+        }
         return scheduler;
     }
 
