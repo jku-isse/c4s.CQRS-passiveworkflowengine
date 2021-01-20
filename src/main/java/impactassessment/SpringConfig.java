@@ -2,14 +2,10 @@ package impactassessment;
 
 import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
-import c4s.jamaconnector.*;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
-import c4s.jamaconnector.cache.*;
 import c4s.jamaconnector.cache.CacheStatus;
+import c4s.jamaconnector.cache.*;
 import c4s.jiralightconnector.*;
-import c4s.jiralightconnector.ChangeStreamPoller;
-import c4s.jiralightconnector.InMemoryMonitoringState;
-import c4s.jiralightconnector.MonitoringScheduler;
 import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
@@ -29,14 +25,15 @@ import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -45,6 +42,7 @@ import java.util.Set;
 @Slf4j
 public class SpringConfig {
 
+    private Properties props = null;
 
     @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
@@ -69,8 +67,7 @@ public class SpringConfig {
 
     @Bean
     public MonitoringScheduler getJiraMonitoringScheduler() {
-        Properties props = getProps();
-        String minutes =  props.getProperty("pollIntervalInMinutes");
+        String minutes =  getProp("pollIntervalInMinutes");
         ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));
         MonitoringScheduler scheduler = new MonitoringScheduler();
         scheduler.registerAndStartTask(changeStreamPoller);
@@ -89,10 +86,9 @@ public class SpringConfig {
 
     @Bean
     public JiraRestClient getJiraRestClient() {
-        Properties props = getProps();
-        String uri =  props.getProperty("jiraServerURI");
-        String username =  props.getProperty("jiraConnectorUsername");
-        String pw =  props.getProperty("jiraConnectorPassword");
+        String uri =  getProp("jiraServerURI");
+        String username =  getProp("jiraConnectorUsername");
+        String pw =  getProp("jiraConnectorPassword");
         return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
 
@@ -120,8 +116,7 @@ public class SpringConfig {
 
     @Bean
     public int intervalInMinutes() {
-        Properties props = getProps();
-        String minutes =  props.getProperty("pollIntervalInMinutes");
+        String minutes =  getProp("pollIntervalInMinutes");
         return Integer.parseInt(minutes);
     }
 
@@ -129,8 +124,7 @@ public class SpringConfig {
     public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
         CacheStatus status = new CacheStatus(cache);
-        Properties props = getProps();
-        String projectIds =  props.getProperty("jamaProjectIds");
+        String projectIds =  getProp("jamaProjectIds");
         String[] ids = projectIds.split(",");
         for (String id : ids) {
             c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
@@ -175,16 +169,15 @@ public class SpringConfig {
 
     @Bean
     public JamaInstance getOnlineJamaInstance(CouchDBJamaCache cache) {
-        Properties props = getProps();
         JamaConfig jamaConf = new JamaConfig();
         jamaConf.setJson(new CachingJsonHandler(cache));
-        jamaConf.setApiKey(props.getProperty("jamaSecretKey"));
-        String url = props.getProperty("jamaUrl");
+        jamaConf.setApiKey(getProp("jamaSecretKey"));
+        String url = getProp("jamaUrl");
         jamaConf.setBaseUrl(url);
         jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
         jamaConf.setOpenUrlBase(url);
-        jamaConf.setUsername(props.getProperty("jamaUser"));
-        jamaConf.setPassword(props.getProperty("jamaPassword"));
+        jamaConf.setUsername(getProp("jamaUser"));
+        jamaConf.setPassword(getProp("jamaPassword"));
         jamaConf.setResourceTimeOut(60);
         try {
             jamaConf.setHttpClient(new ApacheHttpClient());
@@ -200,15 +193,14 @@ public class SpringConfig {
 
     @Bean
     public CouchDbClient getCouchDbClient() {
-        Properties props = getProps();
         CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(props.getProperty("jamaCacheCouchDBname", "jamaitems3"))
+                .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
                 .setCreateDbIfNotExist(true)
                 .setProtocol("http")
-                .setHost(props.getProperty("couchDBip", "localhost"))
-                .setPort(Integer.parseInt(props.getProperty("couchDBport", "5984")))
-                .setUsername(props.getProperty("jamaCacheCouchDBuser","admin"))
-                .setPassword(props.getProperty("jamaCacheCouchDBpassword","password"))
+                .setHost(getProp("couchDBip", "localhost"))
+                .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
+                .setUsername(getProp("jamaCacheCouchDBuser","admin"))
+                .setPassword(getProp("jamaCacheCouchDBpassword","password"))
                 .setMaxConnections(100)
                 .setConnectionTimeout(0);
         return new CouchDbClient(dbprops);
@@ -272,6 +264,22 @@ public class SpringConfig {
     }
 
     // Property File
+
+    private String getProp(String name) {
+        return getProp(name, null);
+    }
+
+    private String getProp(String name, String defaultValue) {
+        if (props == null) {
+            props = getProps();
+        }
+        String value = props.getProperty(name, defaultValue);
+        if (value == null) {
+            log.error("Required property {} was not found in the application properties!", name);
+        }
+        return value;
+    }
+
     private Properties getProps() {
         Properties props = new Properties();
         // try to use external first
@@ -292,4 +300,6 @@ public class SpringConfig {
         }
         return props;
     }
+
+
 }
