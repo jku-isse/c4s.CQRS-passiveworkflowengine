@@ -111,7 +111,7 @@ public class ComplexWorkflow extends AbstractWorkflowDefinition {
         DecisionNodeDefinition dnd = new DecisionNodeDefinition(
                 DND_OPEN2CLOSED,
                 this,
-                DecisionNodeDefinition.HAVING_EXTERNAL_RULE, // TODO: not sure about this
+                DecisionNodeDefinition.HAVING_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE,
                 DecisionNodeDefinition.NO_EXTERNAL_RULE);
         // incoming

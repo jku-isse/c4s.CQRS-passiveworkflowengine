@@ -79,7 +79,6 @@ public class WorkflowProjection {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         Map<IWorkflowTask, ArtifactInput> mappedInputs = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
-            // TODO remove debug output
             mappedInputs.forEach((key, value) -> log.debug("MappedInputs: WFT=" + key.getId() + " AI=" + value.toString()));
             mappedInputs.forEach((wft, ai) -> addToSubWorkflow(commandGateway, wft, ai));
         }
@@ -242,8 +241,8 @@ public class WorkflowProjection {
             if (evt.getInput().getArtifact() instanceof ArtifactWrapper) {
                 ArtifactWrapper artWrapper = (ArtifactWrapper) evt.getInput().getArtifact();
                 if (artWrapper.getWrappedArtifact() instanceof IJiraArtifact) {
-                    IJiraArtifact iJira = (IJiraArtifact) artWrapper.getWrappedArtifact(); // TODO use generic IArtifact
-                    kieSessions.insertOrUpdate(evt.getId(), iJira);
+                    IArtifact art = (IArtifact) artWrapper.getWrappedArtifact();
+                    kieSessions.insertOrUpdate(evt.getId(), art);
                     kieSessions.fire(evt.getId());
                 }
             }

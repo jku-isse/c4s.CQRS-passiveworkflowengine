@@ -69,7 +69,7 @@ public class KieSessionWrapper {
     }
 
     public void insertOrUpdate(Object o) {
-        if (o instanceof IArtifact) { // TODO change to IArtifact
+        if (o instanceof IArtifact) {
             IArtifact a = (IArtifact) o;
             String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
             insertOrUpdate(key, a);

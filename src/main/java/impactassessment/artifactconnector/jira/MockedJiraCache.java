@@ -2,14 +2,13 @@ package impactassessment.artifactconnector.jira;
 
 import c4s.jiralightconnector.IssueAgent;
 import c4s.jiralightconnector.IssueCache;
-import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-@Component
-public class MockCache implements IssueCache {
+public class MockedJiraCache implements IssueCache {
 
     @Override
     public Optional<IssueAgent> getFromCache(String s) {
@@ -43,6 +42,6 @@ public class MockCache implements IssueCache {
 
     @Override
     public Set<String> getCachedItemIds() {
-        return null;
+        return Collections.emptySet();
     }
 }

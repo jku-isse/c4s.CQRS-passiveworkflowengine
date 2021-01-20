@@ -240,7 +240,7 @@ public class MainView extends VerticalLayout {
 
     private void initAccordion() {
         accordion.getChildren().forEach(c -> accordion.remove(c));
-        accordion.add("Create Workflow", importArtifact());
+        accordion.add("Create Workflow", importArtifact(devMode));
         if (devMode) accordion.add("Mock Workflow", importMocked());
         accordion.add("Updates", updates());
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
@@ -382,7 +382,7 @@ public class MainView extends VerticalLayout {
     }
 
 
-    private Component importArtifact() {
+    private Component importArtifact(boolean devMode) {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setWidth("90%");
@@ -489,9 +489,11 @@ public class MainView extends VerticalLayout {
         layout.add(
                 new H4("1. Select Process Definition"),
                 processDefinition,
-                loadDefinitions,
+                loadDefinitions);
+        if (devMode) layout.add(
                 upload,
-                addDefinition,
+                addDefinition);
+        layout.add(
                 new H4("2. Enter Artifact ID(s)"),
                 source,
                 importOrUpdateArtifactButton);

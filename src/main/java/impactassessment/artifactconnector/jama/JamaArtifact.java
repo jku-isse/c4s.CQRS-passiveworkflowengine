@@ -84,7 +84,6 @@ public class JamaArtifact implements IJamaArtifact {
         this.upstreamItems = jamaItem.getUpstreamItemIds() == null ? new ArrayList<>() : jamaItem.getUpstreamItemIds();
 
         for (JamaFieldValue jfv : jamaItem.getFieldValues()) {
-            // TODO: Performance issue: if value was present once, the remaining checks should be skipped
             getString(jfv).ifPresent(s -> stringValues.put(jfv.getName(), s));
             getInt(jfv).ifPresent(i -> intValues.put(jfv.getName(), i));
             getBoolean(jfv).ifPresent(b -> booleanValues.put(jfv.getName(), b));

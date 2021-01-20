@@ -19,6 +19,7 @@ import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.artifactconnector.jira.MockedJiraCache;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -34,9 +35,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Configuration
 @Slf4j
@@ -66,17 +66,25 @@ public class SpringConfig {
     }
 
     @Bean
-    public MonitoringScheduler getJiraMonitoringScheduler() {
+    public MonitoringScheduler getJiraMonitoringScheduler(JiraInstance jiraInstance, IssueCache issueCache) {
         String minutes =  getProp("pollIntervalInMinutes");
         ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));
+        changeStreamPoller.setJi(jiraInstance);
+        changeStreamPoller.setCache(issueCache);
         MonitoringScheduler scheduler = new MonitoringScheduler();
         scheduler.registerAndStartTask(changeStreamPoller);
         return scheduler;
     }
 
+
     @Bean
     public JiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
         return new JiraInstance(issueCache, changeSubscriber, monitoringState);
+    }
+
+    @Bean
+    public IssueCache getJiraCache() {
+        return new MockedJiraCache();
     }
 
     @Bean
@@ -97,12 +105,12 @@ public class SpringConfig {
         return new JiraUpdateTracingInstrumentation() {
             @Override
             public void logJiraPollResult(CorrelationTuple correlationTuple, Set<String> set) {
-
+                if (set.size() > 0) log.info("Jira poll result: {}", String.join(",", set));
             }
 
             @Override
             public void logJiraUpdateResult(CorrelationTuple correlationTuple, Set<String> set) {
-
+                if (set.size() > 0) log.info("Jira update result: {}", String.join(",", set));
             }
         };
     }
@@ -206,64 +214,22 @@ public class SpringConfig {
         return new CouchDbClient(dbprops);
     }
 
-    // ------------------------- JAMA MOCKS -------------------------
-
-//    @Bean
-//    public ProjectMonitoringState getProjectMonitoringState() {
-//        return new ProjectMonitoringState() {
-//            @Override
-//            public Set<Integer> getMonitoredProjectIds() {
-//                return null;
-//            }
-//
-//            @Override
-//            public void removeMonitoredProject(Integer integer) {
-//
-//            }
-//
-//            @Override
-//            public void addMonitoredProject(Integer integer) {
-//
-//            }
-//        };
-//    }
-//
-//    @Bean
-//    public ItemMonitoringState getItemMonitoringState() {
-//        return new ItemMonitoringState() {
-//            @Override
-//            public Set<Integer> getMonitoredItemIds() {
-//                return null;
-//            }
-//
-//            @Override
-//            public boolean removeMonitoredItem(Integer integer) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void addMonitoredItem(Integer integer) {
-//
-//            }
-//        };
-//    }
-
     @Bean
     public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
         return new JamaUpdateTracingInstrumentation() {
             @Override
             public void logJamaPollResult(CorrelationTuple correlationTuple, int i, Map<String, Set<Integer>> map) {
-
+                if (map.size() > 0) log.info("Jama poll result: {}", String.join(",", map.keySet()));
             }
 
             @Override
             public void logJamaUpdateResult(CorrelationTuple correlationTuple, int i, Set<JamaItem> set) {
-
+                if (set.size() > 0) log.info("Jama update result: {}", set.stream().map(JamaItem::getDocumentKey).collect(Collectors.joining(",")));
             }
         };
     }
 
-    // Property File
+    // ----------------------------- Property Access -----------------------------
 
     private String getProp(String name) {
         return getProp(name, null);
