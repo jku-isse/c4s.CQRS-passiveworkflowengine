@@ -48,4 +48,7 @@ public class JamaService implements IArtifactService {
         }
     }
 
+    public String getJamaServerUrl(JamaItem jamaItem) {
+        return jamaInstance.getOpenUrl(jamaItem);
+    }
 }

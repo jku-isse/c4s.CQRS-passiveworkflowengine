@@ -7,8 +7,6 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
-import com.jamasoftware.services.restclient.exception.JsonException;
-import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.SpringUtil;
@@ -16,6 +14,7 @@ import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaRelease;
 import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,7 +51,9 @@ public class JamaArtifact implements IJamaArtifact {
     private IJamaUserArtifact userCreated;
     private IJamaUserArtifact userModified;
 
-    private transient IArtifactRegistry artifactRegistry = null;
+    private String resourceUrl;
+
+    private transient JamaService jamaService = null;
 
     public JamaArtifact(JamaItem jamaItem) {
         // id for axon application
@@ -96,22 +97,34 @@ public class JamaArtifact implements IJamaArtifact {
         this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
         this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
         this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
+        if (jamaService == null)
+            jamaService = SpringUtil.getBean(JamaService.class);
+        this.resourceUrl = jamaService.getJamaServerUrl(jamaItem);
     }
 
     protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
-        log.debug("Artifact fetching linked item: {}", artifactId);
         log.info("Artifact fetching linked item: {}", artifactId);
-        log.warn("Artifact fetching linked item: {}", artifactId);
-        if (artifactRegistry == null)
-            artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
+        if (jamaService == null)
+            jamaService = SpringUtil.getBean(JamaService.class);
         ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());
-        Optional<IArtifact> a = artifactRegistry.get(ai, workflowId);
+        Optional<IArtifact> a = jamaService.get(ai, workflowId);
         return a.map(artifact -> (IJamaArtifact) artifact);
     }
 
     @Override
     public ArtifactIdentifier getArtifactIdentifier() {
         return artifactIdentifier;
+    }
+
+    @Override
+    public ResourceLink convertToResourceLink() {
+        String context = String.valueOf(getId());
+        String href = resourceUrl;
+        String rel = "self";
+        String as = getName();
+        String linkType = "html";
+        String title = getDocumentKey();
+        return new ResourceLink(context, href, rel, as, linkType, title);
     }
 
     @Override

@@ -27,7 +27,6 @@ import java.util.HashMap
 import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
-import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -134,7 +133,7 @@ rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean hasFixVersion = $a.getFixVersions().iterator().hasNext();
-		Map<ResourceLink, Boolean> result = Map.of(ResourceLinkFactory.get($a), hasFixVersion);
+		Map<ResourceLink, Boolean> result = Map.of($a.convertToResourceLink(), hasFixVersion);
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
@@ -152,12 +151,12 @@ rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				n++;
-				resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
+				resources.put(p.get().convertToResourceLink(), isRelatedToOne);
 				isRelatedToOne = false;
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLinkFactory.get($a), false);
+		    resources.put($a.convertToResourceLink(), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -177,15 +176,15 @@ rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
-				    resources.put(ResourceLinkFactory.get(p.get()), isRelatedToOne);
+				    resources.put(p.get().convertToResourceLink(), isRelatedToOne);
 					isRelatedToOne = false;
 				} else {
-				    resources.put(ResourceLinkFactory.get(p.get()), false);
+				    resources.put(p.get().convertToResourceLink(), false);
 				}
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLinkFactory.get($a), false);
+		    resources.put($a.convertToResourceLink(), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -198,7 +197,7 @@ rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 											&& isAffectedBy($ct) )
 	then
 		boolean hasAssignee = $a.getAssignee() != null;
-		Map<ResourceLink, Boolean> result = Map.of(ResourceLinkFactory.get($a), hasAssignee);
+		Map<ResourceLink, Boolean> result = Map.of($a.convertToResourceLink(), hasAssignee);
         commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
@@ -214,12 +213,12 @@ rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 		for (IJiraIssueLink link : $a.getIssueLinks()){
 			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Unit Test"))){
-			    resources.put(ResourceLinkFactory.get(p.get()), true);
+			    resources.put(p.get().convertToResourceLink(), true);
 				n++;
 			}
 		}
 		if (n == 0) {
-		    resources.put(ResourceLinkFactory.get($a), false);
+		    resources.put($a.convertToResourceLink(), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -237,15 +236,15 @@ rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if (p.isPresent() && p.get().getIssueType().getName().equals("Bug") ){
 				if (p.get().getStatus().getName().equals("Closed")) {
-				    resources.put(ResourceLinkFactory.get(p.get()), true);
+				    resources.put(p.get().convertToResourceLink(), true);
 				} else {
-				    resources.put(ResourceLinkFactory.get(p.get()), false);
+				    resources.put(p.get().convertToResourceLink(), false);
 				}
 				relatedBug = true;
 			}
 		}
 		if (!relatedBug) {
-		    resources.put(ResourceLinkFactory.get($a), true);
+		    resources.put($a.convertToResourceLink(), true);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end
@@ -264,12 +263,12 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
-					resources.put(ResourceLinkFactory.get(p.get()), isMitigated);
+					resources.put(p.get().convertToResourceLink(), isMitigated);
 				}
 			}
 		}
 		if (!isMitigated) {
-		    resources.put(ResourceLinkFactory.get($a), false);
+		    resources.put($a.convertToResourceLink(), false);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
 end

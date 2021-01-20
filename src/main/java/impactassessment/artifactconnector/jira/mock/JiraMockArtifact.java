@@ -3,6 +3,7 @@ package impactassessment.artifactconnector.jira.mock;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,6 +21,12 @@ public class JiraMockArtifact implements IJiraArtifact {
     @Override
     public ArtifactIdentifier getArtifactIdentifier() {
         return new ArtifactIdentifier(id, "Mock");
+    }
+
+    @Override
+    public ResourceLink convertToResourceLink() {
+        String s = "placeholder";
+        return new ResourceLink(s,s,s,s,s,s);
     }
 
     public void setId(String id) {

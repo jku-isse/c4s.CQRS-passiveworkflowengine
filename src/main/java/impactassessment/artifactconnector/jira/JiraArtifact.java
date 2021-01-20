@@ -5,6 +5,7 @@ import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
 import com.atlassian.jira.rest.client.api.domain.*;
 import impactassessment.artifactconnector.jira.subtypes.*;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,6 +64,17 @@ public class JiraArtifact implements IJiraArtifact {
     @Override
     public ArtifactIdentifier getArtifactIdentifier() {
         return artifactIdentifier;
+    }
+
+    @Override
+    public ResourceLink convertToResourceLink() {
+        String context = getSummary();
+        String href = getBrowserLink().toString();
+        String rel = "self";
+        String as = getIssueType().getName();
+        String linkType = "html";
+        String title = getKey();
+        return new ResourceLink(context, href, rel, as, linkType, title);
     }
 
     public Issue getIssue() {
