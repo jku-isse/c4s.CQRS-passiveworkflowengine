@@ -218,7 +218,8 @@ public class JamaArtifact implements IJamaArtifact {
         return upstreamItems;
     }
 
-    public List<IJamaArtifact> getUpstreamItems(String workflowId) {  // TODO add to interface
+    @Override
+    public List<IJamaArtifact> getUpstreamItems(String workflowId) {
         return upstreamItems.stream()
                 .map(parent -> fetch(String.valueOf(parent), workflowId))
                 .filter(Optional::isPresent)
