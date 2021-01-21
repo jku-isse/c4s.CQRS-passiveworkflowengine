@@ -24,19 +24,20 @@ import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
-import impactassessment.artifactconnector.jira.MockedJiraCache;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
-import org.lightcouch.CouchDbClient;
-import org.lightcouch.CouchDbProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -45,6 +46,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.sql.DataSource;
+
 
 @Configuration
 @Slf4j
@@ -65,6 +69,40 @@ public class SpringConfig {
         registry.register(jamaService);
         registry.register(jiraService);
         return registry;
+    }
+    
+    // SETUP TOKEN DB:
+    
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+       LocalContainerEntityManagerFactoryBean em 
+         = new LocalContainerEntityManagerFactoryBean();
+       em.setDataSource(dataSource());
+       em.setPackagesToScan(new String[] { "org.axonframework.eventsourcing.eventstore.jpa", "org.axonframework.eventhandling.tokenstore.jpa" });
+
+       JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+       em.setJpaVendorAdapter(vendorAdapter);
+       em.setJpaProperties(additionalProperties());
+
+       return em;
+    }
+    
+    @Bean
+    public DataSource dataSource(){
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl(getProp("spring.datasource.url"));
+        dataSource.setUsername( getProp("spring.datasource.username") );
+        dataSource.setPassword( getProp("spring.datasource.password") );
+        return dataSource;
+    }
+    
+    Properties additionalProperties() {
+        Properties properties = new Properties();
+        properties.setProperty("hibernate.hbm2ddl.auto", getProp("spring.jpa.hibernate.ddl-auto", "update"));
+     //   properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+           
+        return properties;
     }
 
     // --------------- JIRA ---------------
@@ -97,25 +135,31 @@ public class SpringConfig {
     
     @Bean
     @Scope("singleton")
-    public IssueCache getJiraCache(SessionFactory sf) {
-    	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
-     }
-    
-    @Bean
-    @Scope("singelton")
-    public MonitoringState getJiraMonitoringState(SessionFactory sf) {
-    	return new HibernateBackedMonitoringState(sf);
-    }
-
-    @Bean
-    @Scope("singelton")
-    public SessionFactory getSessionFacory() {
-    	return ConnectionBuilder.createConnection(
+    public IssueCache getJiraCache() {
+    	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
 				getProp("mysqlDBuser"),
 				getProp("mysqlDBpassword"),
 				getProp("mysqlURL")+"jiracache"				
 				);
+    	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
+     }
+    
+    @Bean
+    @Scope("singleton")
+    public MonitoringState getJiraMonitoringState() {
+    	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
+				getProp("mysqlDBuser"),
+				getProp("mysqlDBpassword"),
+				getProp("mysqlURL")+"jiracache"				
+				);
+    	return new HibernateBackedMonitoringState(sf);
     }
+
+//    @Bean
+//    @Scope("singleton")
+//    public SessionFactory getSessionFactory() {
+//    	return 
+//    }
     
     
 //    @Bean
@@ -199,7 +243,7 @@ public class SpringConfig {
     @Bean
     @Scope("singleton")
     public HibernateBackedCache getJamaCache() {
-    	SessionFactory sf = ConnectionBuilder.createConnection(
+    	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
 				getProp("mysqlDBuser"),
 				getProp("mysqlDBpassword"),
 				getProp("mysqlURL")+"jamacache"				
@@ -237,8 +281,8 @@ public class SpringConfig {
     public JamaInstance getOnlineJamaInstance(JamaCache cache) {
         JamaConfig jamaConf = new JamaConfig();
         jamaConf.setJson(new CachingJsonHandler(cache));
-        jamaConf.setApiKey(getProp("jamaSecretKey"));
-        String url = getProp("jamaUrl");
+        jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
+        String url = getProp("jamaServerURI");
         jamaConf.setBaseUrl(url);
         jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
         jamaConf.setOpenUrlBase(url);
