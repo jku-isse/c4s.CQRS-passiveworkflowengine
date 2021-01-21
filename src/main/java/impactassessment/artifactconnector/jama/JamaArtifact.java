@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class JamaArtifact implements IJamaArtifact {
-    public void setArtifactRegistry(IJamaService artifactRegistry) {
-		this.artifactRegistry = artifactRegistry;
+    public void setJamaService(IJamaService jamaService) {
+		this.jamaService = jamaService;
 	}
 
 	// id for axon application
@@ -57,11 +57,11 @@ public class JamaArtifact implements IJamaArtifact {
 
     private String resourceUrl;
 
-    private transient JamaService jamaService = null;
+    private transient IJamaService jamaService;
 
-    public JamaArtifact(JamaItem jamaItem, IJamaService artifactRegistry) {
+    public JamaArtifact(JamaItem jamaItem, IJamaService jamaService) {
         // id for axon application
-    	this.artifactRegistry = artifactRegistry;
+    	this.jamaService = jamaService;
         this.artifactIdentifier = new ArtifactIdentifier(String.valueOf(jamaItem.getId()), IJamaArtifact.class.getSimpleName());
         // simple fields of jama item
         this.id = jamaItem.getId();
@@ -104,11 +104,9 @@ public class JamaArtifact implements IJamaArtifact {
 //        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
 //        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
 //        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
-        this.jamaProjectArtifact = jamaItem.getProject() != null ? artifactRegistry.convertProject(jamaItem.getProject()) : null;
-        this.userCreated = jamaItem.getCreatedBy() != null ? artifactRegistry.convertUser(jamaItem.getCreatedBy()) : null;
-        this.userModified = jamaItem.getModifiedBy() != null ? artifactRegistry.convertUser(jamaItem.getModifiedBy()) : null;
-        if (jamaService == null)
-            jamaService = SpringUtil.getBean(JamaService.class);
+        this.jamaProjectArtifact = jamaItem.getProject() != null ? jamaService.convertProject(jamaItem.getProject()) : null;
+        this.userCreated = jamaItem.getCreatedBy() != null ? jamaService.convertUser(jamaItem.getCreatedBy()) : null;
+        this.userModified = jamaItem.getModifiedBy() != null ? jamaService.convertUser(jamaItem.getModifiedBy()) : null;
         this.resourceUrl = jamaService.getJamaServerUrl(jamaItem);
     }
 
@@ -126,7 +124,7 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
 	protected Optional<IJamaArtifact> fetch(Integer id) {
-    	return artifactRegistry.get(id);
+    	return jamaService.get(id);
     }
 
     @Override
@@ -385,7 +383,7 @@ public class JamaArtifact implements IJamaArtifact {
             JamaUser u = ((UserFieldValue) jfv).getValue();
             if (u != null) {
            // return Optional.of(new JamaUserArtifact(u));
-            	return Optional.ofNullable(artifactRegistry.convertUser(u));
+            	return Optional.ofNullable(jamaService.convertUser(u));
             }
         }
         return Optional.empty();

@@ -49,7 +49,7 @@ public class JamaDataScope implements IJamaService{
 		WeakReference<Object> ref = cache.getOrDefault("JamaItem"+item.getId(), new WeakReference<Object>(null));
 		if (ref.get() == null) {
 			IJamaArtifact opt = new JamaArtifact(item, this); //to have ref to this scope
-			((JamaArtifact) opt).setArtifactRegistry(this);
+			((JamaArtifact) opt).setJamaService(this);
 			cache.put("JamaItem"+item.getId(), new WeakReference<Object>(opt));
 			return opt;
 		} else {
@@ -78,6 +78,11 @@ public class JamaDataScope implements IJamaService{
 		} else {
 			return (IJamaUserArtifact)ref.get();
 		}
+	}
+
+	@Override
+	public String getJamaServerUrl(JamaItem jamaItem) {
+		return origin.getJamaServerUrl(jamaItem);
 	}
 
 	@Override
