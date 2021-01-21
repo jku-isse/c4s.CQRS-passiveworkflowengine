@@ -75,7 +75,7 @@ public class JamaService implements IJamaService, IArtifactService {
         JamaItem jamaItem;
         try {
             jamaItem = jamaInstance.getItem(id);
-        } catch (Exception e) { // FIXME
+        } catch (Exception e) {
             log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
             return Optional.empty();
         }

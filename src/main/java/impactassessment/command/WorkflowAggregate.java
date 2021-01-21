@@ -55,7 +55,7 @@ public class WorkflowAggregate {
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
         Entry<String,IArtifact> a  = new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary()));
         WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
@@ -108,7 +108,7 @@ public class WorkflowAggregate {
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd(), cmd.getArtifacts()));
@@ -119,73 +119,73 @@ public class WorkflowAggregate {
 
     @CommandHandler
     public void handle(CompleteDataflowCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()));
     }
 
     @CommandHandler
     public void handle(ActivateInBranchCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
     }
 
     @CommandHandler
     public void handle(ActivateOutBranchCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
     }
 
     @CommandHandler
     public void handle(ActivateInOutBranchCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()));
     }
 
     @CommandHandler
     public void handle(ActivateInOutBranchesCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new ActivatedInOutBranchesEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchIds()));
     }
 
     @CommandHandler
     public void handle(DeleteCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new DeletedEvt(cmd.getId()));
     }
 
     @CommandHandler
     public void handle(AddConstraintsCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()));
     }
 
     @CommandHandler
     public void handle(AddEvaluationResultToConstraintCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()));
     }
 
     @CommandHandler
     public void handle(CheckConstraintCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new CheckedConstraintEvt(cmd.getId(), cmd.getCorrId()));
     }
 
     @CommandHandler
     public void handle(CheckAllConstraintsCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new CheckedAllConstraintsEvt(cmd.getId()));
     }
 
     @CommandHandler
     public void handle(AddInputCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
     }
 
     @CommandHandler
     public void handle(AddOutputCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
         if (parentWfiId != null && parentWftId != null) {
             apply(new AddedOutputEvt(parentWfiId, parentWftId, cmd.getArtifact(), cmd.getRole(), cmd.getType()));
@@ -194,19 +194,19 @@ public class WorkflowAggregate {
 
     @CommandHandler
     public void handle(AddInputToWorkflowCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedInputToWorkflowEvt(cmd.getId(), cmd.getInput()));
     }
 
     @CommandHandler
     public void handle(AddOutputToWorkflowCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new AddedOutputToWorkflowEvt(cmd.getId(), cmd.getOutput()));
     }
 
     @CommandHandler
     public void handle(UpdateArtifactsCmd cmd) {
-        log.info("[AGG] handling {}", cmd);
+        log.debug("[AGG] handling {}", cmd);
         apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
     }
 

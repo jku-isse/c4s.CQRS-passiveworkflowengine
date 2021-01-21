@@ -13,7 +13,7 @@
         }
       },
       "expectedOutput": {},
-      "id": "Open"
+      "id": "Sub WP Execution"
     },
     {
       "expectedInput": {
@@ -62,7 +62,7 @@
       "outB": [
         {
           "name": "OpenIn",
-          "task": "Open",
+          "task": "Sub WP Execution",
           "hasActivationCondition": false,
           "hasDataFlow": false
         }
@@ -79,7 +79,7 @@
       "inB": [
         {
           "name": "openOut",
-          "task": "Open",
+          "task": "Sub WP Execution",
           "hasActivationCondition": false,
           "hasDataFlow": false
         }
@@ -138,7 +138,7 @@
         {
           "from": [
             {
-              "first": "Open",
+              "first": "Sub WP Execution",
               "second": "JIRA_TICKET"
             }
           ],
@@ -164,5 +164,5 @@
       "id": "ARTIFACT_TYPE_QA_CHECK_DOCUMENT"
     }
   },
-  "id": "JAMA_PERFORMANCE"
+  "id": "WORKFLOW_EXAMPLE"
 }

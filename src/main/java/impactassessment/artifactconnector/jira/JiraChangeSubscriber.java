@@ -23,11 +23,6 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
     // Map<workflowId, Set<artifactKey>>
     private Map<JiraDataScope, Set<String>> artifactUsages = new HashMap<>();
 
-//    @Override
-//    public void handleUpdatedIssues(List<IssueAgent> list) {
-//    	handleU
-//    }
-
     public void addUsage(JiraDataScope workflowId, ArtifactIdentifier id) {
         Set<String> artifactKeys = artifactUsages.get(workflowId);
         if (artifactKeys == null) {

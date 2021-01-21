@@ -89,7 +89,6 @@ public class JamaArtifact implements IJamaArtifact {
         this.upstreamItems = jamaItem.getUpstreamItemIds() == null ? new ArrayList<>() : jamaItem.getUpstreamItemIds();
 
         for (JamaFieldValue jfv : jamaItem.getFieldValues()) {
-            // TODO: Performance issue: if value was present once, the remaining checks should be skipped
             getString(jfv).ifPresent(s -> stringValues.put(jfv.getName(), s));
             getInt(jfv).ifPresent(i -> intValues.put(jfv.getName(), i));
             getBoolean(jfv).ifPresent(b -> booleanValues.put(jfv.getName(), b));
@@ -236,7 +235,8 @@ public class JamaArtifact implements IJamaArtifact {
         return upstreamItems;
     }
 
-    public List<IJamaArtifact> getUpstreamItems(String workflowId) {  // TODO add to interface
+    
+    public List<IJamaArtifact> getUpstreamItems(String workflowId) {
         return upstreamItems.stream()
               //  .map(parent -> fetch(String.valueOf(parent), workflowId))
         		.map(child -> fetch(child))
