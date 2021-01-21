@@ -3,6 +3,8 @@ package impactassessment.artifactconnector.jira;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
+import c4s.jiralightconnector.IssueAgent;
+
 import com.atlassian.jira.rest.client.api.domain.*;
 import impactassessment.artifactconnector.jira.subtypes.*;
 import passiveprocessengine.instance.ResourceLink;
@@ -91,12 +93,21 @@ public class JiraArtifact implements IJiraArtifact {
     public URI getBrowserLink() {
         try {
             //Example: https://passiveprocessengine.atlassian.net/jira/software/c/projects/DEMO/issues/DEMO-8
-            return new URI("https://"+getSelf().getHost()+"/jira/software/c/projects/"+getProject().getKey()+"/issues/"+getKey());
+            //return new URI("https://"+getSelf().getHost()+"/jira/software/c/projects/"+getProject().getKey()+"/issues/"+getKey());
+        	return new URI(getHumanReadableResourceLinkEndpoint());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         return null;
     }
+    
+    private String getHumanReadableResourceLinkEndpoint() {
+		
+		URI uri = getSelf();
+		String port = uri.getPort() == -1 ? "" : uri.getPort()+"";
+		String href = uri.getScheme()+"://"+uri.getHost()+port+"/browse/"+getKey();
+		return href;
+	}
 
     @Override
     public String getKey() {

@@ -4,7 +4,6 @@ import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.CacheStatus;
-import c4s.jamaconnector.cache.hibernate.ConnectionBuilder;
 import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
 import c4s.jamaconnector.cache.hibernate.HibernateCacheStatus;
 import c4s.jamaconnector.cache.*;

@@ -13,10 +13,12 @@ import org.axonframework.messaging.MessageDispatchInterceptor;
 import impactassessment.api.Commands.ActivateInOutBranchCmd;
 import impactassessment.api.Commands.AddConstraintsCmd;
 import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd;
+import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.CompleteDataflowCmd;
 import impactassessment.api.Events.ActivatedInOutBranchEvt;
 import impactassessment.api.Events.AddedConstraintsEvt;
 import impactassessment.api.Events.AddedEvaluationResultToConstraintEvt;
+import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.CompletedDataflowEvt;
 
 public class MockCommandGateway implements CommandGateway {
@@ -74,7 +76,12 @@ public class MockCommandGateway implements CommandGateway {
 		if (command instanceof AddEvaluationResultToConstraintCmd) {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
 			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
-		} else {
+		} 
+		if (command instanceof AddOutputCmd) {
+			AddOutputCmd cmd = (AddOutputCmd)command;
+			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+		}
+		else {
 			System.err.println("Received unsupported command: "+command.toString());
 		}
 			

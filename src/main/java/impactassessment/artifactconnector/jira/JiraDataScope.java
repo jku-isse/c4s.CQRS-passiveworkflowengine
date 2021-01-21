@@ -24,7 +24,7 @@ public class JiraDataScope implements IJiraService{
 		if (ref.get() == null) {
 			Optional<IJiraArtifact> opt = origin.getIssue(id, workflowId);
 			if (opt.isPresent()) {
-				cache.put("JiraIssue"+id, new WeakReference<Object>(opt));
+				cache.put("JiraIssue"+id, new WeakReference<Object>(opt.get()));
 				return opt;
 			} else {
 				return Optional.empty();
