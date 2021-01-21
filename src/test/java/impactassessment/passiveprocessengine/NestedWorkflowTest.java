@@ -1,5 +1,6 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.IArtifact;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.exampleworkflows.DronologyWorkflowFixed;
@@ -11,8 +12,7 @@ import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.ArtifactTypes;
 import passiveprocessengine.instance.ResourceLink;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class NestedWorkflowTest {
 
@@ -29,7 +29,9 @@ public class NestedWorkflowTest {
     @Test
     public void testNestedWorkflow() {
         WorkflowInstanceWrapper wfiWrapper = new WorkflowInstanceWrapper();
-        wfiWrapper.handle(new CreatedWorkflowEvt(ID, List.of(a), "", new NestedWorkflow()));
+        List<Map.Entry<String, IArtifact>> artifacts = new ArrayList<>();
+        artifacts.add(new AbstractMap.SimpleEntry<>("ROLE", a));
+        wfiWrapper.handle(new CreatedWorkflowEvt(ID, artifacts, "", new NestedWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#test", rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new AddedOutputEvt(
                 ID,

@@ -1,8 +1,9 @@
 package impactassessment.projection;
 
+import artifactapi.IArtifact;
+import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
-import impactassessment.jiraartifact.IJiraArtifact;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.query.ProjectionModel;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -141,15 +142,17 @@ public class MockWorkflowProjection {
 
     @EventHandler
     public void on(AddedConstraintsEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-        List<RuleEngineBasedConstraint> rebcs = wfiWrapper.handle(evt);
+        List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
-            rebcs.forEach(rebc -> {
-                kieSessions.insertOrUpdate(evt.getId(), rebc);
-                ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(rebc.getId(), "AddConstraintCmd"));
-                ct.addConstraint(rebc.getConstraintType());
-                kieSessions.insertOrUpdate(evt.getId(), ct);
+            awos.forEach(awo -> {
+                kieSessions.insertOrUpdate(evt.getId(), awo);
+                if (awo instanceof RuleEngineBasedConstraint) {
+                    ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(awo.getId(), "AddConstraintCmd"));
+                    ct.addConstraint(((RuleEngineBasedConstraint)awo).getConstraintType());
+                    kieSessions.insertOrUpdate(evt.getId(), ct);
+                }
             });
             kieSessions.fire(evt.getId());
         }
@@ -251,17 +254,20 @@ public class MockWorkflowProjection {
 
     @EventHandler
     public void on(UpdatedArtifactsEvt evt, ReplayStatus status) {
-        log.info("[PRJ] projecting {}", evt);
+        log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+        if (!status.isReplay()) {
+//            ensureInitializedKB(kieSessions, projection, evt.getId());
+        }
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
-        for (IJiraArtifact updatedArtifact : evt.getArtifacts()) {
+        for (IArtifact updatedArtifact : evt.getArtifacts()) {
+            xxx: //ONly input, why not output????
             for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-                IJiraArtifact presentArtifact = checkIfJiraArtifactInside(input.getArtifact());
-                if (presentArtifact != null && presentArtifact.getKey().equals(updatedArtifact.getKey())) {
-                    input.setArtifact(new ArtifactWrapper(updatedArtifact.getKey(), ArtifactTypes.ARTIFACT_TYPE_JIRA_TICKET, wfiWrapper.getWorkflowInstance(), updatedArtifact));
+                IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
+                if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {
+                    ((ArtifactWrapper) input.getArtifact()).updateWrappedArtifact(updatedArtifact);
                     if (!status.isReplay()) {
                         kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
-                        kieSessions.fire(evt.getId());
                     }
                 }
             }
@@ -269,13 +275,13 @@ public class MockWorkflowProjection {
         // TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
         // CheckAllConstraints
-//        if (!status.isReplay()) {
-//            ensureInitializedKB(kieSessions, projection, evt.getId());
-//            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
-//            ct.addConstraint("*");
-//            kieSessions.insertOrUpdate(evt.getId(), ct);
-//            kieSessions.fire(evt.getId());
-//        }
+        if (!status.isReplay()) {
+            // ensureInitializedKB(kieSessions, projection, evt.getId());
+            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
+            ct.addConstraint("*");
+            kieSessions.insertOrUpdate(evt.getId(), ct);
+            kieSessions.fire(evt.getId());
+        }
     }
 
     @EventHandler
