@@ -4,22 +4,29 @@ import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactService;
 import artifactapi.jama.IJamaArtifact;
-import c4s.jamaconnector.JamaConnector;
-import com.jamasoftware.services.restclient.exception.JsonException;
-import com.jamasoftware.services.restclient.exception.RestClientException;
+import artifactapi.jama.subtypes.IJamaProjectArtifact;
+import artifactapi.jama.subtypes.IJamaUserArtifact;
+import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
+import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
+
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
+
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-public class JamaService implements IArtifactService {
+public class JamaService implements IJamaService, IArtifactService {
 
     private static final String TYPE = IJamaArtifact.class.getSimpleName();
 
     private JamaInstance jamaInstance;
     private JamaChangeSubscriber jamaChangeSubscriber;
+    private HashMap<String, JamaDataScope> perProcessCaches = new HashMap<String, JamaDataScope>();
 
     public JamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
         this.jamaInstance = jamaInstance;
@@ -31,24 +38,74 @@ public class JamaService implements IArtifactService {
         return type.equals(TYPE);
     }
 
+    
+    // redirects to a workflow scope
     @Override
     public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+    	if (workflowId != null) {
+    		//TODO: some method to purge scope entries when workflow is removed
+    		IJamaService scope = perProcessCaches.computeIfAbsent(workflowId, k -> new JamaDataScope(k, this));
+    		Optional<IJamaArtifact> opt = scope.get(Integer.parseInt(id.getId())); // no need to pass the workflow, as scope has that id;
+    		return  opt.map(jArt -> (IArtifact)jArt);
+    	}
+    	else { // 
+    		Optional<IJamaArtifact> opt = get(Integer.parseInt(id.getId())); // local passthrough to backend cache without change tracking
+    		return  opt.map(jArt -> (IArtifact)jArt);
+    	}
+    }
+
+	@Override
+	public Optional<IJamaArtifact> get(Integer id) {
+		JamaItem jamaItem;
+        try {
+            jamaItem = jamaInstance.getItem(id);
+        } catch (Exception e) { // FIXME
+            log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
+            return Optional.empty();
+        }
+        if (jamaItem != null) {
+            return Optional.of(new JamaArtifact(jamaItem, this));
+        } else {
+            return Optional.empty();
+        }
+	}
+    
+	@Override
+	public Optional<IJamaArtifact> get(Integer id, String workflowId) {
         JamaItem jamaItem;
         try {
-            jamaItem = jamaInstance.getItem(Integer.parseInt(id.getId()));
+            jamaItem = jamaInstance.getItem(id);
         } catch (Exception e) {
             log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
             return Optional.empty();
         }
         if (jamaItem != null) {
-            jamaChangeSubscriber.addUsage(workflowId, id);
-            return Optional.of(new JamaArtifact(jamaItem));
+            jamaChangeSubscriber.addUsage(perProcessCaches.get(workflowId), new ArtifactIdentifier(id+"", IJamaArtifact.class.getSimpleName()));
+            IJamaService scope = perProcessCaches.get(workflowId);
+            if (scope == null) scope = this;
+            return Optional.of(new JamaArtifact(jamaItem, scope));
         } else {
             return Optional.empty();
         }
-    }
+	}
+    
+	@Override
+	public IJamaArtifact convert(JamaItem item) {
+		return new JamaArtifact(item, this);
+	}
 
-    public String getJamaServerUrl(JamaItem jamaItem) {
-        return jamaInstance.getOpenUrl(jamaItem);
-    }
+	@Override
+	public IJamaProjectArtifact convertProject(JamaProject proj) {
+		return new JamaProjectArtifact(proj);
+	}
+
+  public String getJamaServerUrl(JamaItem jamaItem) {
+      return jamaInstance.getOpenUrl(jamaItem);
+  }
+
+	@Override
+	public IJamaUserArtifact convertUser(JamaUser user) {
+		return new JamaUserArtifact(user);
+	}
+
 }

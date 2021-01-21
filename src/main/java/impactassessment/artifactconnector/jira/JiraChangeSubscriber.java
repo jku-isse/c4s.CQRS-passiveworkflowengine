@@ -21,28 +21,9 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
 
     private final CommandGateway commandGateway;
     // Map<workflowId, Set<artifactKey>>
-    private Map<String, Set<String>> artifactUsages = new HashMap<>();
+    private Map<JiraDataScope, Set<String>> artifactUsages = new HashMap<>();
 
-    @Override
-    public void handleUpdatedIssues(List<IssueAgent> list, CorrelationTuple corr) {
-        log.info("handleUpdateIssues");
-        for (Map.Entry<String, Set<String>> entry : artifactUsages.entrySet()) {
-            String workflowId = entry.getKey();
-            Set<String> artifactKeys = entry.getValue();
-            List<IArtifact> affectedArtifacts = new ArrayList<>();
-            for (IssueAgent ia : list) {
-                if (artifactKeys.stream().anyMatch(key -> key.equals(ia.getKey()))) {
-                    affectedArtifacts.add(new JiraArtifact(ia.getIssue()));
-                }
-            }
-            if (affectedArtifacts.size() > 0) {
-                UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(workflowId, affectedArtifacts);
-                commandGateway.sendAndWait(cmd);
-            }
-        }
-    }
-
-    public void addUsage(String workflowId, ArtifactIdentifier id) {
+    public void addUsage(JiraDataScope workflowId, ArtifactIdentifier id) {
         Set<String> artifactKeys = artifactUsages.get(workflowId);
         if (artifactKeys == null) {
             Set<String> newSet = new HashSet<>();
@@ -53,4 +34,23 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
         }
         log.debug("Workflow: {} has following usages: {}", workflowId, artifactUsages.get(workflowId).stream().collect(Collectors.joining( ", " )));
     }
+
+	@Override
+	public void handleUpdatedIssues(List<IssueAgent> issues, CorrelationTuple corr) {
+        log.info("handleUpdateIssues");
+        for (Map.Entry<JiraDataScope, Set<String>> entry : artifactUsages.entrySet()) {
+            JiraDataScope scope = entry.getKey();
+            Set<String> artifactKeys = entry.getValue();
+            List<IArtifact> affectedArtifacts = new ArrayList<>();
+            for (IssueAgent ia : issues) {
+                if (artifactKeys.stream().anyMatch(key -> key.equals(ia.getKey()))) {
+                    affectedArtifacts.add(scope.replaceWithUpdate(ia));
+                }
+            }
+            if (affectedArtifacts.size() > 0) {
+                UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(scope.getScopeId(), affectedArtifacts);
+                commandGateway.sendAndWait(cmd);
+            }
+        }
+	}
 }

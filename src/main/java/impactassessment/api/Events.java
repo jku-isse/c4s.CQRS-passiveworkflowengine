@@ -11,9 +11,11 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 public class Events {
 
@@ -24,7 +26,7 @@ public class Events {
     @Data
     public static class CreatedWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final List<IArtifact> artifacts;
+        private final Collection<Entry<String,IArtifact>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
         private final String definitionName;
         private final WorkflowDefinition wfd;
     }
@@ -35,7 +37,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
-        private final List<IArtifact> artifacts;
+        private final Collection<Entry<String,IArtifact>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {

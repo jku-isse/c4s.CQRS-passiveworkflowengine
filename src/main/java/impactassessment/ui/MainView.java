@@ -444,13 +444,16 @@ public class MainView extends VerticalLayout {
                 ArtifactType artT = entry.getValue();
                 String role = entry.getKey();
                 TextField tf = new TextField();
-                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
-                    tf.setLabel(role+": JIRA");
-                } else if (artT.getArtifactType().equals(IJamaArtifact.class.getSimpleName())) {
-                    tf.setLabel(role+": JAMA");
-                } else {
-                    tf.setLabel(artT.getArtifactType());
-                }
+                //xxx // no hardcoded types here, implicit dependency to command handler very ugly!
+//                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
+//                    tf.setLabel(role+": JIRA");
+//                } else if (artT.getArtifactType().equals(IJamaArtifact.class.getSimpleName())) {
+//                    tf.setLabel(role+": JAMA");
+//                } else {
+//                    tf.setLabel(artT.getArtifactType());
+//                }
+                //FIXME: workaround to display type and role
+                tf.setLabel(role+"::"+artT.getArtifactType());
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
@@ -471,7 +474,9 @@ public class MainView extends VerticalLayout {
                         })
                         .filter(tf -> !tf.getValue().equals(""))
                         .filter(tf -> !tf.getLabel().equals(""))
-                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
+                        // to be consistent with changes above
+                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                		//.forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
                 // send command
                 if (count.get() == inputs.size()) {
                     commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
@@ -659,7 +664,6 @@ public class MainView extends VerticalLayout {
 //    private @Getter
 //    SimpleTimer timer = new SimpleTimer(60);
     private Component updates() {
-
 
         Button update = new Button("Fetch Updates Now", e -> {
                 jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?

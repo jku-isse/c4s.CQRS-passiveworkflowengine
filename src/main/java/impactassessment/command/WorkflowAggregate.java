@@ -20,9 +20,12 @@ import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -54,7 +57,7 @@ public class WorkflowAggregate {
     public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.debug("[AGG] handling {}", cmd);
         String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
-        IJiraArtifact a = JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary());
+        Entry<String,IArtifact> a  = new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary()));
         WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), List.of(a), workflowName, wfdContainer.getWfd()));
@@ -66,8 +69,8 @@ public class WorkflowAggregate {
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
-        log.debug("[AGG] handling {}", cmd);
-        List<IArtifact> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
+        log.info("[AGG] handling {}", cmd);
+        Collection<Entry<String,IArtifact>> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
@@ -76,20 +79,27 @@ public class WorkflowAggregate {
         }
     }
 
-    private List<IArtifact> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
-        List<IArtifact> artifacts = new ArrayList<>();
+    private Collection<Entry<String,IArtifact>> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
+        List<Entry<String,IArtifact>> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
             String source = entry.getValue();
-            if (source.equals("JIRA")) {
-                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
-                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
-            } else if (source.equals("JAMA")) {
-                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
-                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
-            } else {
-                log.error("Unsupported Artifact source: "+source);
-            }
+   //        xxx // ugly, implicit dependency, use artifact type directly, as well as role
+//            if (source.equals("JIRA")) {
+//                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
+//                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
+//            } else if (source.equals("JAMA")) {
+//                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
+//                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
+//            } else {
+//                log.error("Unsupported Artifact source: "+source);
+//            }
+           // taking"::" as separator from MainView.java
+           int sepPos = source.lastIndexOf("::");
+           String role =  source.substring(0, sepPos);
+           String type = source.substring(sepPos+2);
+           ArtifactIdentifier ai = new ArtifactIdentifier(key, type);
+           artifactRegistry.get(ai, id).ifPresent(art -> artifacts.add(new AbstractMap.SimpleEntry<String, IArtifact>(role,art)));
         }
         if (inputs.size() != artifacts.size()) throw new CommandExecutionException("One or more required artifacts couldn't be fetched", new IllegalArgumentException());
         return artifacts;

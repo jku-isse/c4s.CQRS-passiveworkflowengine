@@ -1,13 +1,10 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
-import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifact;
-import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.IJiraIssueLink;
 import artifactapi.jira.subtypes.IJiraIssueLinkType;
 import com.atlassian.jira.rest.client.api.domain.IssueLink;
-import impactassessment.SpringUtil;
+import impactassessment.artifactconnector.jira.IJiraService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -18,10 +15,11 @@ public class JiraIssueLink implements IJiraIssueLink {
 
     private IssueLink issueLink;
     private IJiraIssueLinkType jiraIssueLinkType;
+    
+    private transient IJiraService artifactRegistry = null;
 
-    private transient IArtifactRegistry artifactRegistry = null;
-
-    public JiraIssueLink(IssueLink issueLink) {
+    public JiraIssueLink(IssueLink issueLink, IJiraService service) {
+    	this.artifactRegistry = service;
         this.issueLink = issueLink;
         this.jiraIssueLinkType = new JiraIssueLinkType(issueLink.getIssueLinkType());
     }
@@ -47,12 +45,8 @@ public class JiraIssueLink implements IJiraIssueLink {
      */
     @Override
     public Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId) {
-        log.info("Artifact fetching linked issue: {}", getTargetIssueKey());
-        if (artifactRegistry == null)
-            artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
-        ArtifactIdentifier ai = new ArtifactIdentifier(issueLink.getTargetIssueKey(), IJiraArtifact.class.getSimpleName());
-        Optional<IArtifact> a = artifactRegistry.get(ai, aggregateId);
-        return a.map(artifact -> (IJiraArtifact)artifact);
+        log.debug("Artifact fetching linked issue: {}", getTargetIssueKey());
+        return  artifactRegistry.getIssue(issueLink.getTargetIssueKey());
     }
 
     @Override

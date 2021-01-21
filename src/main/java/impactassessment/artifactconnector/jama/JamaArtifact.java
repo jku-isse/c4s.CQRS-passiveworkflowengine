@@ -21,7 +21,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class JamaArtifact implements IJamaArtifact {
-    // id for axon application
+    public void setArtifactRegistry(IJamaService artifactRegistry) {
+		this.artifactRegistry = artifactRegistry;
+	}
+
+	// id for axon application
     private ArtifactIdentifier artifactIdentifier;
     // fields of jama item
     private Integer id;
@@ -55,8 +59,9 @@ public class JamaArtifact implements IJamaArtifact {
 
     private transient JamaService jamaService = null;
 
-    public JamaArtifact(JamaItem jamaItem) {
+    public JamaArtifact(JamaItem jamaItem, IJamaService artifactRegistry) {
         // id for axon application
+    	this.artifactRegistry = artifactRegistry;
         this.artifactIdentifier = new ArtifactIdentifier(String.valueOf(jamaItem.getId()), IJamaArtifact.class.getSimpleName());
         // simple fields of jama item
         this.id = jamaItem.getId();
@@ -93,22 +98,35 @@ public class JamaArtifact implements IJamaArtifact {
             getUser(jfv).ifPresent(u -> userValues.put(jfv.getName(), u));
             getRelease(jfv).ifPresent(r -> releaseValues.put(jfv.getName(), r));
         }
+  
         // complex field of jama item
-        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
-        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
-        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
+
+//        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
+//        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
+//        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
+        this.jamaProjectArtifact = jamaItem.getProject() != null ? artifactRegistry.convertProject(jamaItem.getProject()) : null;
+        this.userCreated = jamaItem.getCreatedBy() != null ? artifactRegistry.convertUser(jamaItem.getCreatedBy()) : null;
+        this.userModified = jamaItem.getModifiedBy() != null ? artifactRegistry.convertUser(jamaItem.getModifiedBy()) : null;
         if (jamaService == null)
             jamaService = SpringUtil.getBean(JamaService.class);
         this.resourceUrl = jamaService.getJamaServerUrl(jamaItem);
     }
 
-    protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
-        log.info("Artifact fetching linked item: {}", artifactId);
-        if (jamaService == null)
-            jamaService = SpringUtil.getBean(JamaService.class);
-        ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());
-        Optional<IArtifact> a = jamaService.get(ai, workflowId);
-        return a.map(artifact -> (IJamaArtifact) artifact);
+//    protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
+//        log.info("Artifact fetching linked item: {}", artifactId);
+//        if (artifactRegistry == null)
+//            artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
+//        ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());
+//        Optional<IArtifact> a = artifactRegistry.get(ai, workflowId);
+//        return a.map(artifact -> (IJamaArtifact) artifact);
+//    }
+
+    public void setArtifactIdentifier(ArtifactIdentifier artifactIdentifier) {
+      this.artifactIdentifier = artifactIdentifier;
+    }
+
+	protected Optional<IJamaArtifact> fetch(Integer id) {
+    	return artifactRegistry.get(id);
     }
 
     @Override
@@ -194,8 +212,9 @@ public class JamaArtifact implements IJamaArtifact {
     @Override
     public List<IJamaArtifact> getChildren(String workflowId) {
         return children.stream()
-                .map(child -> fetch(child, workflowId))
-                .filter(Optional::isPresent)
+         //       .map(child -> fetch(child, workflowId))
+        		.map(child -> fetch(Integer.parseInt(child)))
+        		.filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
     }
@@ -207,7 +226,8 @@ public class JamaArtifact implements IJamaArtifact {
     @Override
     public List<IJamaArtifact> prefetchDownstreamItems(String workflowId) {
         return prefetchItems.stream()
-                .map(child -> fetch(child, workflowId))
+               // .map(child -> fetch(child, workflowId))
+        		.map(child -> fetch(Integer.parseInt(child)))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
@@ -220,7 +240,8 @@ public class JamaArtifact implements IJamaArtifact {
     @Override
     public List<IJamaArtifact> getDownstreamItems(String workflowId) {
         return downstreamItems.stream()
-                .map(child -> fetch(String.valueOf(child), workflowId))
+               // .map(child -> fetch(String.valueOf(child), workflowId))
+        		.map(child -> fetch(child))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
@@ -233,7 +254,8 @@ public class JamaArtifact implements IJamaArtifact {
     @Override
     public List<IJamaArtifact> getUpstreamItems(String workflowId) {
         return upstreamItems.stream()
-                .map(parent -> fetch(String.valueOf(parent), workflowId))
+              //  .map(parent -> fetch(String.valueOf(parent), workflowId))
+        		.map(child -> fetch(child))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
@@ -352,7 +374,7 @@ public class JamaArtifact implements IJamaArtifact {
         if (jfv instanceof ReleaseFieldValue) {
             Release r = ((ReleaseFieldValue) jfv).getValue();
             if (r != null) {
-                return Optional.of(new JamaRelease(r));
+                return Optional.of(new JamaRelease(r)); //TODO: also do caching here
             }
         }
         return Optional.empty();
@@ -362,7 +384,8 @@ public class JamaArtifact implements IJamaArtifact {
         if (jfv instanceof UserFieldValue) {
             JamaUser u = ((UserFieldValue) jfv).getValue();
             if (u != null) {
-            return Optional.of(new JamaUserArtifact(u));
+           // return Optional.of(new JamaUserArtifact(u));
+            	return Optional.ofNullable(artifactRegistry.convertUser(u));
             }
         }
         return Optional.empty();

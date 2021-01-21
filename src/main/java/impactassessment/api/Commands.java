@@ -11,9 +11,11 @@ import passiveprocessengine.instance.CorrelationTuple;
 import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 public class Commands {
     @Data
@@ -39,7 +41,7 @@ public class Commands {
         private final String parentWfiId;
         private final String parentWftId;
         private final String definitionName;
-        private final List<IArtifact> artifacts;
+        private final Collection<Entry<String,IArtifact>> artifacts;
     }
 
     @Data

@@ -35,13 +35,16 @@ public class MockedJiraCache implements IssueCache {
 
     }
 
-    @Override
-    public void removeFromCache(String s) {
+	@Override
+	public void removeFromCache(String key) {
+		// TODO Auto-generated method stub
+		
+	}
 
-    }
+	@Override
+	public Set<String> getCachedItemIds() {
+		// TODO Auto-generated method stub
+		return Collections.emptySet();
+	}
 
-    @Override
-    public Set<String> getCachedItemIds() {
-        return Collections.emptySet();
-    }
 }
