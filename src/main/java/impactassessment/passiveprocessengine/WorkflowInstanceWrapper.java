@@ -4,6 +4,7 @@ import artifactapi.IArtifact;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
+import impactassessment.artifactconnector.jira.mock.JiraMockArtifact;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
@@ -170,7 +171,7 @@ public class WorkflowInstanceWrapper {
         for (Map.Entry<String, String> e : rules.entrySet()) {
             String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
-            rebc.addAs(false, ResourceLinkFactory.getMock());
+            rebc.addAs(false, (new JiraMockArtifact()).convertToResourceLink());
             qa.addConstraint(rebc);
             awos.add(rebc);
         }

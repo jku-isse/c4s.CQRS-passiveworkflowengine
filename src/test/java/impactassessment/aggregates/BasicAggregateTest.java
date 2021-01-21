@@ -1,5 +1,6 @@
 package impactassessment.aggregates;
 
+import artifactapi.IArtifact;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.SpringApp;
 import impactassessment.api.Events.*;
@@ -18,7 +19,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import passiveprocessengine.instance.ResourceLink;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = SpringApp.class)
@@ -52,7 +56,9 @@ public class BasicAggregateTest {
     @Test
     public void testAddCompleteActivate() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new CreatedWorkflowEvt(id, List.of(a), "test", new DronologyWorkflowFixed()))
+        List<Map.Entry<String, IArtifact>> artifacts = new ArrayList<>();
+        artifacts.add(new AbstractMap.SimpleEntry<>("ROLE", a));
+        fixture.given(new CreatedWorkflowEvt(id, artifacts, "test", new DronologyWorkflowFixed()))
                 .andGiven(new CompletedDataflowEvt(id,"workflowKickOff#"+id, new ResourceLink("test", "test", "test", "test", "test", "test")))
                 .when(new ActivateInOutBranchCmd(id, "open2inProgressOrResolved#"+id, "Open#"+id, "resolvedIn"))
                 .expectSuccessfulHandlerExecution();
@@ -61,7 +67,9 @@ public class BasicAggregateTest {
     @Test
     public void testDelete() {
         IJiraArtifact a = JiraMockService.mockArtifact(id);
-        fixture.given(new CreatedWorkflowEvt(id, List.of(a), "test", new DronologyWorkflowFixed()))
+        List<Map.Entry<String, IArtifact>> artifacts = new ArrayList<>();
+        artifacts.add(new AbstractMap.SimpleEntry<>("ROLE", a));
+        fixture.given(new CreatedWorkflowEvt(id, artifacts, "test", new DronologyWorkflowFixed()))
                 .when(new DeleteCmd(id))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new DeletedEvt(id))

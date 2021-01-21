@@ -31,7 +31,6 @@ import java.util.Set
 import java.util.ArrayList
 import java.util.stream.Collectors
 import passiveprocessengine.instance.ResourceLink
-import impactassessment.passiveprocessengine.ResourceLinkFactory
 
 
 global CommandGateway commandGateway;
@@ -46,7 +45,7 @@ rule "AddWPTicketAsInputToNewTasks"
 									 , $wfi : getWorkflow() )
 									 	@watch ( state )
     then      // creates the task and adds the ticket as input
-        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), ResourceLinkFactory.get($a)));
+        commandGateway.send(new CompleteDataflowCmd($wfi.getId(), $dni.getId(), $a.convertToResourceLink()));
 
 end
 

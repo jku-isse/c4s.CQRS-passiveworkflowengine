@@ -7,8 +7,6 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
-import com.jamasoftware.services.restclient.exception.JsonException;
-import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.SpringUtil;
@@ -16,14 +14,15 @@ import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaRelease;
 import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.instance.ResourceLink;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class JamaArtifact implements IJamaArtifact {
-    public void setArtifactRegistry(IJamaService artifactRegistry) {
-		this.artifactRegistry = artifactRegistry;
+    public void setJamaService(IJamaService jamaService) {
+		this.jamaService = jamaService;
 	}
 
 	// id for axon application
@@ -56,11 +55,13 @@ public class JamaArtifact implements IJamaArtifact {
     private IJamaUserArtifact userCreated;
     private IJamaUserArtifact userModified;
 
-    private transient IJamaService artifactRegistry = null;
+    private String resourceUrl;
 
-    public JamaArtifact(JamaItem jamaItem, IJamaService artifactRegistry) {
+    private transient IJamaService jamaService;
+
+    public JamaArtifact(JamaItem jamaItem, IJamaService jamaService) {
         // id for axon application
-    	this.artifactRegistry = artifactRegistry;
+    	this.jamaService = jamaService;
         this.artifactIdentifier = new ArtifactIdentifier(String.valueOf(jamaItem.getId()), IJamaArtifact.class.getSimpleName());
         // simple fields of jama item
         this.id = jamaItem.getId();
@@ -97,14 +98,16 @@ public class JamaArtifact implements IJamaArtifact {
             getUser(jfv).ifPresent(u -> userValues.put(jfv.getName(), u));
             getRelease(jfv).ifPresent(r -> releaseValues.put(jfv.getName(), r));
         }
+  
         // complex field of jama item
+
 //        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
 //        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
 //        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
-        this.jamaProjectArtifact = jamaItem.getProject() != null ? artifactRegistry.convertProject(jamaItem.getProject()) : null;
-        this.userCreated = jamaItem.getCreatedBy() != null ? artifactRegistry.convertUser(jamaItem.getCreatedBy()) : null;
-        this.userModified = jamaItem.getModifiedBy() != null ? artifactRegistry.convertUser(jamaItem.getModifiedBy()) : null;
-   
+        this.jamaProjectArtifact = jamaItem.getProject() != null ? jamaService.convertProject(jamaItem.getProject()) : null;
+        this.userCreated = jamaItem.getCreatedBy() != null ? jamaService.convertUser(jamaItem.getCreatedBy()) : null;
+        this.userModified = jamaItem.getModifiedBy() != null ? jamaService.convertUser(jamaItem.getModifiedBy()) : null;
+        this.resourceUrl = jamaService.getJamaServerUrl(jamaItem);
     }
 
 //    protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
@@ -117,16 +120,27 @@ public class JamaArtifact implements IJamaArtifact {
 //    }
 
     public void setArtifactIdentifier(ArtifactIdentifier artifactIdentifier) {
-		this.artifactIdentifier = artifactIdentifier;
-	}
+      this.artifactIdentifier = artifactIdentifier;
+    }
 
 	protected Optional<IJamaArtifact> fetch(Integer id) {
-    	return artifactRegistry.get(id);
+    	return jamaService.get(id);
     }
-    
+
     @Override
     public ArtifactIdentifier getArtifactIdentifier() {
         return artifactIdentifier;
+    }
+
+    @Override
+    public ResourceLink convertToResourceLink() {
+        String context = String.valueOf(getId());
+        String href = resourceUrl;
+        String rel = "self";
+        String as = getName();
+        String linkType = "html";
+        String title = getDocumentKey();
+        return new ResourceLink(context, href, rel, as, linkType, title);
     }
 
     @Override
@@ -369,7 +383,7 @@ public class JamaArtifact implements IJamaArtifact {
             JamaUser u = ((UserFieldValue) jfv).getValue();
             if (u != null) {
            // return Optional.of(new JamaUserArtifact(u));
-            	return Optional.ofNullable(artifactRegistry.convertUser(u));
+            	return Optional.ofNullable(jamaService.convertUser(u));
             }
         }
         return Optional.empty();

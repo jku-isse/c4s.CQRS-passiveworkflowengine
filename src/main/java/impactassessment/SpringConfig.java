@@ -146,6 +146,7 @@ public class SpringConfig {
     
     @Bean
     @Scope("singleton")
+
     public MonitoringState getJiraMonitoringState() {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
 				getProp("mysqlDBuser"),

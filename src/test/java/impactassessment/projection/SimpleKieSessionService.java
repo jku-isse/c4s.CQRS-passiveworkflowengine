@@ -1,12 +1,13 @@
 package impactassessment.projection;
 
+import artifactapi.IArtifactRegistry;
+import impactassessment.artifactconnector.jira.IJiraService;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import impactassessment.jiraartifact.IJiraArtifactService;
 import impactassessment.kiesession.KieSessionWrapper;
 
 import java.util.HashMap;
@@ -16,14 +17,16 @@ import java.util.Map;
 public class SimpleKieSessionService {
 
 	CommandGateway cg;
-	IJiraArtifactService aService;
+	IArtifactRegistry artifactRegistry;
 
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public SimpleKieSessionService(CommandGateway cg, IJiraArtifactService aService) {
+    public SimpleKieSessionService(CommandGateway cg, IArtifactRegistry aRegistry) {
         kieSessions = new HashMap<>();
         this.cg = cg;
-        this.aService = aService;
+
+        this.artifactRegistry = aRegistry;
+
     }
 
 
@@ -33,7 +36,7 @@ public class SimpleKieSessionService {
     }
 
     public void create(String id, KieContainer kieContainer) {
-        KieSessionWrapper kieSessionWrapper = new KieSessionWrapper(cg, aService);
+        KieSessionWrapper kieSessionWrapper = new KieSessionWrapper(cg, artifactRegistry);
         if (kieContainer == null) {
             kieSessionWrapper.create();
         } else {

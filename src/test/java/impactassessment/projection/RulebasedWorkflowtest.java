@@ -2,13 +2,16 @@ package impactassessment.projection;
 
 import java.util.Collections;
 
+import artifactapi.IArtifactRegistry;
+import artifactapi.IArtifactService;
+import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jira.IJiraService;
+import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.artifactconnector.jira.JiraJsonService;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.jupiter.api.Test;
 
 import impactassessment.api.Events.CreatedWorkflowEvt;
-import impactassessment.jiraartifact.IJiraArtifactService;
-import impactassessment.jiraartifact.JiraChangeSubscriber;
-import impactassessment.jiraartifact.JiraJsonService;
 import impactassessment.kiesession.KieSessionService;
 import impactassessment.query.ProjectionModel;
 import impactassessment.registry.LocalRegisterService;
@@ -24,8 +27,10 @@ class RulebasedWorkflowtest {
 		
 		ProjectionModel pModel = new ProjectionModel();
 		MockCommandGateway gw = new MockCommandGateway();
-		IJiraArtifactService aService = new JiraJsonService(new JiraChangeSubscriber(gw));
-		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aService);
+		IArtifactService aService = new JiraJsonService(new JiraChangeSubscriber(gw));
+		IArtifactRegistry aRegistry = new ArtifactRegistry();
+		aRegistry.register(aService);
+		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();

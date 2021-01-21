@@ -25,5 +25,7 @@ public interface IJamaService{
 	public IJamaProjectArtifact convertProject(JamaProject proj);
 	
 	public IJamaUserArtifact convertUser(JamaUser user);
+
+	public String getJamaServerUrl(JamaItem jamaItem);
 	
 }

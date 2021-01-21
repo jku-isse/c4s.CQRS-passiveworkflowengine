@@ -100,7 +100,13 @@ public class JamaService implements IJamaService, IArtifactService {
 	}
 
 	@Override
+    public String getJamaServerUrl(JamaItem jamaItem) {
+      return jamaInstance.getOpenUrl(jamaItem);
+  }
+
+	@Override
 	public IJamaUserArtifact convertUser(JamaUser user) {
 		return new JamaUserArtifact(user);
 	}
+
 }
