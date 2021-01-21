@@ -20,17 +20,18 @@ import java.util.Optional;
 import java.util.Properties;
 
 @Slf4j
-public class JiraJsonService implements IArtifactService {
+public class JiraJsonService implements IArtifactService, IJiraService {
 
     private final String FILENAME;
     private static final String TYPE = IJiraArtifact.class.getSimpleName();
 
+    private JiraDataScope jds;
 
     private JiraChangeSubscriber jiraChangeSubscriber;
 
     public JiraJsonService(JiraChangeSubscriber jiraChangeSubscriber) {
         this.jiraChangeSubscriber = jiraChangeSubscriber;
-
+        this.jds = new JiraDataScope("mock", this);
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -55,8 +56,8 @@ public class JiraJsonService implements IArtifactService {
         if (issue == null)
             return null;
 
-        jiraChangeSubscriber.addUsage(workflowId, id);
-        IArtifact artifact = new JiraArtifact(issue);
+        jiraChangeSubscriber.addUsage(jds, id);
+        IArtifact artifact = new JiraArtifact(issue, jds);
         return Optional.of(artifact);
     }
 
@@ -85,6 +86,20 @@ public class JiraJsonService implements IArtifactService {
     public boolean provides(String type) {
         return type.equals(TYPE);
     }
+
+	@Override
+	public Optional<IJiraArtifact> getIssue(String id, String workflow) {
+		Optional<IArtifact> opt = get(new ArtifactIdentifier(id, ""), workflow);
+		if (opt.isPresent()) 
+			return Optional.ofNullable((IJiraArtifact)opt.get());
+		else 
+			return Optional.empty();
+	}
+
+	@Override
+	public Optional<IJiraArtifact> getIssue(String key) {
+		return getIssue(key, "mock");
+	}
 
 
 }

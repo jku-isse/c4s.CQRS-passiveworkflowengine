@@ -13,6 +13,7 @@ import passiveprocessengine.definition.WorkflowDefinition;
 import passiveprocessengine.instance.*;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,25 +26,35 @@ public class WorkflowInstanceWrapper {
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()
                     .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
-                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
+                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
                     .collect(Collectors.toList()));
             artifacts.addAll(wfi.getOutput().stream()
                     .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IJiraArtifact)
-                    .map(j -> (IJiraArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
+                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
                     .collect(Collectors.toList()));
         }
         return artifacts;
     }
 
-    private void setArtifact(Collection<IArtifact> artifacts) {
-        if (wfi != null) {
-            for (IArtifact artifact : artifacts) {
-                ArtifactWrapper aw = new ArtifactWrapper(artifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, wfi, artifact);
-                wfi.addInput(new ArtifactInput(aw, "ROLE_WPTICKET", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
-            }
-        }
+//    private void setArtifact(Collection<IArtifact> artifacts) {
+//        if (wfi != null) {
+//            for (IArtifact artifact : artifacts) {
+//               xxx // why is that? why and resource link, why this role?
+//               ArtifactWrapper aw = new ArtifactWrapper(artifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, wfi, artifact);
+//                wfi.addInput(new ArtifactInput(aw, "ROLE_WPTICKET", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
+//            }
+//        }
+//    }
+    
+    private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
+    	if (wfi != null) {
+    		inputs.stream().forEach(in -> { 
+    			ArtifactWrapper aw = new ArtifactWrapper(in.getValue().getArtifactIdentifier().getId(), in.getValue().getArtifactIdentifier().getType(), wfi, in.getValue());
+    			wfi.addInput(new ArtifactInput(aw, in.getKey(), aw.getType()));
+    		}); 
+    	}
     }
 
     public WorkflowInstance getWorkflowInstance() {
@@ -60,13 +71,13 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<IArtifact> artifacts) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<Entry<String,IArtifact>> artifacts) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
-        setArtifact(artifacts);
-        for (IArtifact artifact : artifacts) {
-            setWfProps(artifact);
-        }
+        setInputArtifacts(artifacts);
+        artifacts.stream()
+        	.map(entry -> entry.getValue())
+        	.forEach(art -> setWfProps(art));
         List<AbstractWorkflowInstanceObject> awos = wfi.enableWorkflowTasksAndDecisionNodes();
         return awos;
     }
@@ -141,7 +152,7 @@ public class WorkflowInstanceWrapper {
         QACheckDocument qa = getQACDocOfWft(wft);
         if (qa == null) {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            ArtifactOutput ao = new ArtifactOutput(qa, "ROLE_DOCUMENTATION", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             addConstraint(evt, qa, wft, awos);
             wft.addOutput(ao);
         } else {

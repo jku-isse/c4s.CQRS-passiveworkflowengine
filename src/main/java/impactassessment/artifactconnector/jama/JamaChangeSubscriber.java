@@ -21,34 +21,34 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JamaChangeSubscriber implements IJamaChangeSubscriber {
 
-    private Map<String, Set<Integer>> artifactUsages = new HashMap<>();
+    private Map<JamaDataScope, Set<Integer>> artifactUsages = new HashMap<>();
     private final CommandGateway commandGateway;
 
     @Override
     public void handleChangedJamaItems(Set<JamaItem> set, CorrelationTuple correlationTuple) {
-        for (Map.Entry<String, Set<Integer>> entry : artifactUsages.entrySet()) {
-            String workflowId = entry.getKey();
+        for (Map.Entry<JamaDataScope, Set<Integer>> entry : artifactUsages.entrySet()) {
+        	JamaDataScope scope = entry.getKey();
             Set<Integer> artifactKeys = entry.getValue();
             List<IArtifact> affectedArtifacts = new ArrayList<>();
             for (JamaItem j : set) {
                 if (artifactKeys.stream().anyMatch(key -> key.equals(j.getId()))) {
-                    affectedArtifacts.add(new JamaArtifact(j));
+                    affectedArtifacts.add(scope.replaceWithUpdate(j));
                 }
             }
             if (affectedArtifacts.size() > 0) {
-                Commands.UpdateArtifactsCmd cmd = new Commands.UpdateArtifactsCmd(workflowId, affectedArtifacts);
-                System.out.println("send changes to " + workflowId);
+                Commands.UpdateArtifactsCmd cmd = new Commands.UpdateArtifactsCmd(scope.getScopeId(), affectedArtifacts);
+                System.out.println("send changes to " + scope.getScopeId());
                 commandGateway.sendAndWait(cmd);
             }
         }
     }
 
-    public void addUsage(String workflowId, ArtifactIdentifier id) {
-        Set<Integer> artifactKeys = artifactUsages.get(workflowId);
+    public void addUsage(JamaDataScope scope, ArtifactIdentifier id) {
+        Set<Integer> artifactKeys = artifactUsages.get(scope);
         if (artifactKeys == null) {
             Set<Integer> newSet = new HashSet<>();
             newSet.add(Integer.parseInt(id.getId()));
-            artifactUsages.put(workflowId, newSet);
+            artifactUsages.put(scope, newSet);
         } else {
             artifactKeys.add(Integer.parseInt(id.getId()));
         }

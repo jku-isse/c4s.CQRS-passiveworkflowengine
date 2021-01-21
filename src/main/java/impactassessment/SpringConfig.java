@@ -6,6 +6,8 @@ import c4s.jamaconnector.*;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.*;
 import c4s.jamaconnector.cache.CacheStatus;
+import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
+import c4s.jamaconnector.cache.hibernate.HibernateCacheStatus;
 import c4s.jiralightconnector.*;
 import c4s.jiralightconnector.ChangeStreamPoller;
 import c4s.jiralightconnector.InMemoryMonitoringState;
@@ -108,8 +110,8 @@ public class SpringConfig {
     }
 
     @Bean
-    public c4s.jamaconnector.ChangeStreamPoller getJamaChangeStreamPoller(JamaCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
-        CacheStatus status = new CacheStatus(cache);
+    public c4s.jamaconnector.ChangeStreamPoller getJamaChangeStreamPoller(HibernateBackedCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
+        CacheStatus status = new HibernateCacheStatus(cache);
         c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(123, status); // TODO not sure about project id
         changeStreamPoller.setJi(jamaInstance);
         changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);

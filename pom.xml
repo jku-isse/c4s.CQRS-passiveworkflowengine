@@ -89,12 +89,12 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jiralightconnector</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
+            <version>0.4.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jamaconnector</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>0.7.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ISSE.JKU</groupId>
@@ -299,7 +299,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.13</version>
+            <version>8.0.22</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -347,9 +347,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jiralightconnector</artifactId>
-                            <version>0.0.3-SNAPSHOT</version>
+                            <version>0.4.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jiralightconnector-0.0.3-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.jiralightconnector-0.4.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -389,9 +389,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jamaconnector</artifactId>
-                            <version>0.6.0-SNAPSHOT</version>
+                            <version>0.7.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jamaconnector-0.6.0-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.jamaconnector-0.7.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>

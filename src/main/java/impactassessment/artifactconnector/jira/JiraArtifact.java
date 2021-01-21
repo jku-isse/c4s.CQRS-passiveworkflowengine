@@ -30,8 +30,9 @@ public class JiraArtifact implements IJiraArtifact {
     private List<IJiraIssueField> issueFields = new ArrayList<>();
     private List<IJiraVersion> versions = new ArrayList<>();
 
-    public JiraArtifact(Issue issue) {
-
+   
+    
+    public JiraArtifact(Issue issue, IJiraService service) {
         this.artifactIdentifier = new ArtifactIdentifier(issue.getKey(), IJiraArtifact.class.getSimpleName());
 
         this.issue = issue;
@@ -44,11 +45,11 @@ public class JiraArtifact implements IJiraArtifact {
         this.basicVotes = new JiraBasicVotes(issue.getVotes());
         if (issue.getIssueLinks() != null) // null-check necessary because field is marked as @Nullable by atlassian
             for (IssueLink il : issue.getIssueLinks()) {
-                issueLinks.add(new JiraIssueLink(il));
+                issueLinks.add(new JiraIssueLink(il, service));
             }
         if (issue.getSubtasks() != null)
             for (Subtask t : issue.getSubtasks()) {
-                subTasks.add(new JiraSubtask(t));
+                subTasks.add(new JiraSubtask(t, service));
             }
         if (issue.getFields() != null)
             for (IssueField t : issue.getFields()) {

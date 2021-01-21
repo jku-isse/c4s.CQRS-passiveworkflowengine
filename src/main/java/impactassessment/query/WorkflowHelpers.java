@@ -14,7 +14,11 @@ import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
+import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,15 +52,33 @@ public class WorkflowHelpers {
     }
 
     static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        List<IArtifact> artifacts = wwti.getInput().stream()
-                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
-                .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
-                .filter(o -> o instanceof IArtifact)
-                .map(o -> (IArtifact)o)
-                .collect(Collectors.toList());
+//        List<IArtifact> artifacts = wwti.getInput().stream()
+//                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
+//                .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
+//                .filter(o -> o instanceof IArtifact)
+//                .map(o -> (IArtifact)o)
+//                .collect(Collectors.toList());
+        
+        Collection<Entry<String,IArtifact>> artifacts = wwti.getInput().stream()
+        		.map(in -> { 	
+        			if (in.getArtifact() instanceof IArtifact)
+        				return new AbstractMap.SimpleEntry<String, IArtifact>(in.getRole(), (IArtifact)in.getArtifact());
+        			if (in.getArtifact() instanceof ArtifactWrapper) {
+        				Object wa = ((ArtifactWrapper) in.getArtifact()).getWrappedArtifact();
+        				if (wa instanceof IArtifact)
+        					return new AbstractMap.SimpleEntry<String, IArtifact>(in.getRole(), (IArtifact)wa);
+        			}
+        			return null;
+        		})
+        		.filter(Objects::nonNull)
+        		.collect(Collectors.toList());
+        // THis approach is not quite ok, as the artifact could be set/updated later and the datamapping among different role names is not considered
+        // FIXME: proper subwp handling, i.e. input and output mapping propagation
         CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);
         commandGateway.send(cmd);
     }
+    
+    
 
     static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, ArtifactInput ai) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
