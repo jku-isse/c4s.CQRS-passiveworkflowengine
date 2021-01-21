@@ -55,7 +55,7 @@ public class WorkflowHelpers {
         }
     }
 
-    static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
+    public static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
 //        List<IArtifact> artifacts = wwti.getInput().stream()
 //                .filter(ai -> ai.getArtifact() instanceof ArtifactWrapper)
 //                .map(ai -> ((ArtifactWrapper)ai.getArtifact()).getWrappedArtifact())
@@ -84,14 +84,14 @@ public class WorkflowHelpers {
     
     
 
-    static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, ArtifactInput ai) {
+    public static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, ArtifactInput ai) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
             commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), ai));
         }
     }
 
-    static IArtifact checkIfIArtifactInside(Artifact artifact) {
+    public static IArtifact checkIfIArtifactInside(Artifact artifact) {
         if (artifact instanceof ArtifactWrapper) {
             ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
             if (artifactWrapper.getWrappedArtifact() instanceof IArtifact) {
