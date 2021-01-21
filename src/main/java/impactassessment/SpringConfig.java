@@ -102,13 +102,13 @@ public class SpringConfig {
      }
     
     @Bean
-    @Scope("singelton")
+    @Scope("singleton")
     public MonitoringState getJiraMonitoringState(SessionFactory sf) {
     	return new HibernateBackedMonitoringState(sf);
     }
 
     @Bean
-    @Scope("singelton")
+    @Scope("singleton")
     public SessionFactory getSessionFacory() {
     	return ConnectionBuilder.createConnection(
 				getProp("mysqlDBuser"),
