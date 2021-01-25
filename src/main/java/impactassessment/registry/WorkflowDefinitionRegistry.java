@@ -27,23 +27,20 @@ public class WorkflowDefinitionRegistry {
     public void register(String json, Map<String, String> ruleFiles) {
         WorkflowDefinition wfd = serializer.fromJson(json);
         KieContainer kieContainer = kieSessionFactory.getKieContainerFromStrings(ruleFiles.values());
-        // TODO: persisting won't work in deployment
-        //persist(wfd.getId(), json, ruleFiles);
+        persist(wfd.getId(), json, ruleFiles);
         register(wfd.getId(), wfd, kieContainer);
     }
 
     private void persist(String name, String json, Map<String, String> ruleFiles) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL definitionsURL = classLoader.getResource("processdefinition");
         try {
-            File file = new File(definitionsURL.getPath()+name+"/"+name+".json");
+            File file = new File("./workflows/"+name+"/"+name+".json");
             file.getParentFile().mkdirs();
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(json);
             writer.close();
 
             for (Map.Entry<String, String> entry : ruleFiles.entrySet()) {
-                BufferedWriter drlWriter = new BufferedWriter(new FileWriter(definitionsURL.getPath()+name+"/"+entry.getKey()));
+                BufferedWriter drlWriter = new BufferedWriter(new FileWriter("./workflows/"+name+"/"+entry.getKey()));
                 drlWriter.write(entry.getValue());
                 drlWriter.close();
             }

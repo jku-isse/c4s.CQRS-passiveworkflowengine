@@ -27,6 +27,7 @@ import java.util.HashMap
 import impactassessment.api.Commands.AddConstraintsCmd
 import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
+import passiveprocessengine.definition.ArtifactTypes;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -37,7 +38,7 @@ rule "InsertQAConstraintsStateOpen"
 	    $a : IJiraArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
 		                        getType().getId().equals("Open") &&
-		                        getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null)
+		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
@@ -65,7 +66,7 @@ rule "InsertQAConstraintsStateInProgress"
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals("In Progress") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+							            getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints for Tasks and Sub-Taks
@@ -90,7 +91,7 @@ rule "InsertQAConstraintsStateResolved"
 		$a : IJiraArtifact(  )
         		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
         		                        getType().getId().equals("Resolved") &&
-							            getAnyOneOutputByRole("QA_PROCESS_CONSTRAINTS_CHECK") == null) // when first created, thus no assocated QADocument
+							            getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
 		//constraints for Tasks and Sub-Taks
@@ -259,7 +260,7 @@ rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+		    Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;
