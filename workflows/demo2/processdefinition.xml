@@ -1,0 +1,46 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="un05j[MTL.X~5saKuk$9">jama</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="at~j*m?B.ZfAgF!wd~{L" x="-13" y="-138">
+    <field name="NAME">DemoProcess2</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="VVy2033d2S:.W`M=$tzC">
+        <field name="VAR" id="un05j[MTL.X~5saKuk$9">jama</field>
+        <value name="VALUE">
+          <block type="artifact" id="xws6bj#uNd~BrDN{#$dV">
+            <field name="Type">IJamaArtifact</field>
+          </block>
+        </value>
+        <next>
+          <block type="step" id=")6;WIiAqXS[ds_r~dUdB">
+            <field name="StepId">DemoTask2</field>
+            <statement name="Input">
+              <block type="artuse" id="NYpAmw=_01cqA.6XJ?6]">
+                <field name="roletext">Role</field>
+                <field name="NAME">jama</field>
+                <value name="NAME">
+                  <block type="variables_get" id="TLdTr8p)B;oze25T*K.U">
+                    <field name="VAR" id="un05j[MTL.X~5saKuk$9">jama</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <statement name="Output">
+              <block type="artuse" id="=OCn/U$b)GwUoEO`=t{?">
+                <field name="roletext">Role</field>
+                <field name="NAME">jira</field>
+                <value name="NAME">
+                  <block type="artifact" id="SgDYC#.b!%8$kMA5@5r!">
+                    <field name="Type">IJiraArtifact</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

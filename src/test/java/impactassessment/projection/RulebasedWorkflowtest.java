@@ -9,10 +9,17 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
+import impactassessment.artifactconnector.jira.JiraService;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.jupiter.api.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Events.CreatedWorkflowEvt;
@@ -33,12 +40,13 @@ class RulebasedWorkflowtest {
 	
 	@Test
 	void test() {
-		
+		Injector injector = TestConfig.getInjector();
+		MockCommandGateway gw = injector.getInstance(MockCommandGateway.class);
 		ProjectionModel pModel = new ProjectionModel();
-		MockCommandGateway gw = new MockCommandGateway();
-		IArtifactService aService = new JiraJsonService(new JiraChangeSubscriber(gw));
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
-		aRegistry.register(aService);
+		JiraService jiraS = TestConfig.getJiraService();
+		aRegistry.register(jiraS);
+		aRegistry.register(injector.getInstance(JamaService.class));
 		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
@@ -49,8 +57,8 @@ class RulebasedWorkflowtest {
 		String id = "TestId1";
 		//new AddOutputCmd(id, id, null, "outDoc", new ArtifactType("IJiraArtifact") );
 		
-		IJiraArtifact jiraArt = (IJiraArtifact) aService.get(new ArtifactIdentifier("UAV-1292", "IJiraArtifact"), id).get();
-		wfp.on(new CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jirawp",jiraArt)), "DemoProcess", registry.get("DemoProcess").getWfd()), status);
+		IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("PVCSG-9", "IJiraArtifact"), id).get();
+		wfp.on(new CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jira",jiraArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(id));
 	}
