@@ -103,7 +103,7 @@ public class WorkflowAggregate {
 			artifactRegistry.get(ai, id).ifPresent(art -> artifacts.add(new AbstractMap.SimpleEntry<String, IArtifact>(role,art)));
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new CommandExecutionException("Error fetching artifactd"+key, e);
+			throw new CommandExecutionException("Error fetching artifact: "+key, e);
 		}
         }
         if (inputs.size() != artifacts.size()) throw new CommandExecutionException("One or more required artifacts couldn't be fetched", new IllegalArgumentException());

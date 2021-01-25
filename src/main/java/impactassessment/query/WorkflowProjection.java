@@ -53,7 +53,7 @@ public class WorkflowProjection {
         if (!status.isReplay()) {
             kieSessions.setInitialized(evt.getId());
             awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-            evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art));
+            evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
             kieSessions.fire(evt.getId());
         }
     }
