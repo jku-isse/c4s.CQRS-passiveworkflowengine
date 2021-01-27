@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.IJiraIssueLink;
 import artifactapi.jira.subtypes.IJiraIssueLinkType;
@@ -47,6 +48,12 @@ public class JiraIssueLink implements IJiraIssueLink {
     public Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId) {
         log.debug("Artifact fetching linked issue: {}", getTargetIssueKey());
         return  jiraService.getIssue(issueLink.getTargetIssueKey());
+    }
+
+    @Override
+    public void injectArtifactService(IArtifactService iArtifactService) {
+        if (iArtifactService instanceof IJiraService) // will be always the case
+            jiraService = (IJiraService)iArtifactService;
     }
 
     @Override

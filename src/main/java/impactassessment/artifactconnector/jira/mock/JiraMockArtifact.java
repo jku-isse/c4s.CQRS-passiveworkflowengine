@@ -1,6 +1,7 @@
 package impactassessment.artifactconnector.jira.mock;
 
 import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
 import passiveprocessengine.instance.ResourceLink;
@@ -27,6 +28,11 @@ public class JiraMockArtifact implements IJiraArtifact {
     public ResourceLink convertToResourceLink() {
         String s = "placeholder";
         return new ResourceLink(s,s,s,s,s,s);
+    }
+
+    @Override
+    public void injectArtifactService(IArtifactService iArtifactService) {
+        // no op
     }
 
     public void setId(String id) {

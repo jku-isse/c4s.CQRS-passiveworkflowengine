@@ -2,6 +2,7 @@ package impactassessment.artifactconnector.jama;
 
 import java.util.Optional;
 
+import artifactapi.IArtifactService;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
@@ -10,7 +11,7 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
 
-public interface IJamaService{
+public interface IJamaService extends IArtifactService {
 
 	public Optional<IJamaArtifact> get(Integer id, String workflow);
 	

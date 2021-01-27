@@ -1,6 +1,7 @@
 package impactassessment.query;
 
 import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
@@ -40,12 +41,15 @@ public class WorkflowProjection {
     private final CommandGateway commandGateway;
     private final WorkflowDefinitionRegistry registry;
     private final FrontendPusher pusher;
+    private final IArtifactRegistry artifactRegistry;
 
     // Event Handlers
 
     @EventHandler
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
+        if (!status.isReplay())
+            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), e.getKey()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -61,6 +65,8 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
+        if (!status.isReplay())
+            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), e.getKey()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -254,6 +260,7 @@ public class WorkflowProjection {
         log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         if (!status.isReplay()) {
+            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e, evt.getId()));
             ensureInitializedKB(kieSessions, projection, evt.getId());
         }
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession

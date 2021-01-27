@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-public class JiraService implements IJiraService, IArtifactService {
+public class JiraService implements IJiraService {
 
     private static final String TYPE = IJiraArtifact.class.getSimpleName();
 
@@ -46,6 +46,15 @@ public class JiraService implements IJiraService, IArtifactService {
     		Optional<IJiraArtifact> opt = getIssue(id.getId()); // local passthrough to backend cache without change tracking
     		return  opt.map(jArt -> (IArtifact)jArt);
     	}
+    }
+
+    @Override
+    public void injectArtifactService(IArtifact artifact, String workflowId) {
+        if (perProcessCaches.containsKey(workflowId)) {
+            artifact.injectArtifactService(perProcessCaches.get(workflowId));
+        } else {
+            artifact.injectArtifactService(this);
+        }
     }
 
 	@Override

@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>CQRS-Passiveprocessengine</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>CQRS-Passiveprocessengine</name>
@@ -148,7 +148,7 @@
         <dependency>
             <groupId>org.example</groupId>
             <artifactId>c4s.artifact.api</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>3.0-SNAPSHOT</version>
         </dependency>
 
         <!-- Axon -->
@@ -467,9 +467,9 @@
                         <configuration>
                             <groupId>org.example</groupId>
                             <artifactId>c4s.artifact.api</artifactId>
-                            <version>2.0-SNAPSHOT</version>
+                            <version>3.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.artifact.api-2.0-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.artifact.api-3.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                 </executions>

@@ -3,6 +3,7 @@ package impactassessment.artifactconnector.jama;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
+import artifactapi.IArtifactService;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
@@ -141,6 +142,15 @@ public class JamaArtifact implements IJamaArtifact {
         String linkType = "html";
         String title = getDocumentKey();
         return new ResourceLink(context, href, rel, as, linkType, title);
+    }
+
+    @Override
+    public void injectArtifactService(IArtifactService service) {
+        if (service instanceof IJamaService) {
+            jamaService = (IJamaService) service;
+        } else {
+            log.warn("Injection of {} into JamaArtifact not possible.", service.getClass().getSimpleName());
+        }
     }
 
     @Override

@@ -4,9 +4,13 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Optional;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
 import artifactapi.jira.IJiraArtifact;
 import c4s.jiralightconnector.IssueAgent;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JiraDataScope implements IJiraService{
 
 	private IJiraService origin;
@@ -81,5 +85,23 @@ public class JiraDataScope implements IJiraService{
 			return false;
 		return true;
 	}
- 
+
+	@Override
+	public boolean provides(String s) {
+		return origin.provides(s);
+	}
+
+	@Override
+	public Optional<IArtifact> get(ArtifactIdentifier artifactIdentifier, String s) {
+		return origin.get(artifactIdentifier, s);
+	}
+
+	@Override
+	public void injectArtifactService(IArtifact iArtifact, String s) {
+		if (scopeId.equals(s)) {
+			iArtifact.injectArtifactService(this);
+		} else {
+			log.warn("Coudn't inject this DataScope because scope id ({}) doesn't match workflow id ({})", scopeId, s);
+		}
+	}
 }

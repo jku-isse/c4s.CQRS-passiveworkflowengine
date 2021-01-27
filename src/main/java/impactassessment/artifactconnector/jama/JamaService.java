@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-public class JamaService implements IJamaService, IArtifactService {
+public class JamaService implements IJamaService {
 
     private static final String TYPE = IJamaArtifact.class.getSimpleName();
 
@@ -52,6 +52,15 @@ public class JamaService implements IJamaService, IArtifactService {
     		Optional<IJamaArtifact> opt = get(Integer.parseInt(id.getId())); // local passthrough to backend cache without change tracking
     		return  opt.map(jArt -> (IArtifact)jArt);
     	}
+    }
+
+    @Override
+    public void injectArtifactService(IArtifact artifact, String workflowId) {
+        if (perProcessCaches.containsKey(workflowId)) {
+            artifact.injectArtifactService(perProcessCaches.get(workflowId));
+        } else {
+            artifact.injectArtifactService(this);
+        }
     }
 
 	@Override

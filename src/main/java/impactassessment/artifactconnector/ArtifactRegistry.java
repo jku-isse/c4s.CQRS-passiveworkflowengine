@@ -31,4 +31,14 @@ public class ArtifactRegistry implements IArtifactRegistry {
         services.add(service);
     }
 
+    @Override
+    public void injectArtifactService(IArtifact artifact, String workflowId) {
+        for (IArtifactService service : services) {
+            if (service.provides(artifact.getArtifactIdentifier().getType())) {
+                service.injectArtifactService(artifact, workflowId);
+                return;
+            }
+        }
+    }
+
 }
