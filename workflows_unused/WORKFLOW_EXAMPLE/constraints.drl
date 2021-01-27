@@ -34,7 +34,7 @@ import impactassessment.artifactconnector.jama.JamaArtifact
 import artifactapi.ArtifactIdentifier
 import impactassessment.artifactconnector.jira.JiraArtifact
 import artifactapi.IArtifact;
-
+import passiveprocessengine.definition.ArtifactTypes;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -45,7 +45,7 @@ rule "InsertQAConstraintsStateOpen"
 	    $a : IJamaArtifact(  )
 		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId()) &&
 		                        getType().getId().equals("Sub WP Execution") &&
-		                        getAnyOneOutputByRole("ROLE_DOCUMENTATION") == null)
+		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
         //constraints.put("CheckJamaArtifactTypeIsFEAT", "Is the work-package type FEAT?");
