@@ -1,4 +1,4 @@
-package impactassessment.projection;
+package impactassessment.command;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +20,7 @@ import impactassessment.api.Events.AddedConstraintsEvt;
 import impactassessment.api.Events.AddedEvaluationResultToConstraintEvt;
 import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.CompletedDataflowEvt;
+import impactassessment.query.MockWorkflowProjection;
 
 public class MockCommandGateway implements CommandGateway {
 

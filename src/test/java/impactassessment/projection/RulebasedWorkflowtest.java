@@ -1,37 +1,30 @@
 package impactassessment.projection;
 
 import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.List;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifactRegistry;
-import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
-import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
-import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.command.MockCommandGateway;
 
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.jupiter.api.Test;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import impactassessment.api.Commands.AddOutputCmd;
+import impactassessment.DevelopmentConfig;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
-import impactassessment.api.Events.AddedInputToWorkflowEvt;
 import impactassessment.kiesession.KieSessionService;
+import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.MockWorkflowProjection;
 import impactassessment.query.ProjectionModel;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
-import passiveprocessengine.definition.ArtifactType;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactWrapper;
 
 class RulebasedWorkflowtest {
 
@@ -40,11 +33,11 @@ class RulebasedWorkflowtest {
 	
 	@Test
 	void test() {
-		Injector injector = TestConfig.getInjector();
+		Injector injector = DevelopmentConfig.getInjector();
 		MockCommandGateway gw = injector.getInstance(MockCommandGateway.class);
 		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
-		JiraService jiraS = TestConfig.getJiraService();
+		JiraService jiraS = DevelopmentConfig.getJiraService();
 		aRegistry.register(jiraS);
 		aRegistry.register(injector.getInstance(JamaService.class));
 		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);

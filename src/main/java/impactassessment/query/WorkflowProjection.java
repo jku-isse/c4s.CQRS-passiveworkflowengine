@@ -258,7 +258,7 @@ public class WorkflowProjection {
         }
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
         for (IArtifact updatedArtifact : evt.getArtifacts()) {
-            xxx: //ONly input, why not output????
+         //FIXME  xxx: //ONly input, why not output????
         	for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
                 IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
                 if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {	
