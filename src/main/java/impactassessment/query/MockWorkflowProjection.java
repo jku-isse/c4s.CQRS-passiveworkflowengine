@@ -1,11 +1,11 @@
-package impactassessment.projection;
+package impactassessment.query;
 
 import artifactapi.IArtifact;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
+import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
-import impactassessment.query.ProjectionModel;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -261,7 +261,7 @@ public class MockWorkflowProjection {
         }
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
         for (IArtifact updatedArtifact : evt.getArtifacts()) {
-            xxx: //ONly input, why not output????
+        //    xxx: //ONly input, why not output????
             for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
                 IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
                 if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {

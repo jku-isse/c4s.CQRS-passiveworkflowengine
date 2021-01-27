@@ -11,6 +11,19 @@
           "id": "IJiraArtifact"
         }
       },
+      "id": "DemoTask1"
+    },
+    {
+      "expectedInput": {
+        "jira": {
+          "id": "IJiraArtifact"
+        }
+      },
+      "expectedOutput": {
+        "review": {
+          "id": "IJamaArtifact"
+        }
+      },
       "id": "DemoTask2"
     }
   ],
@@ -19,8 +32,8 @@
       "inB": [],
       "outB": [
         {
-          "name": "outTo-DemoTask2",
-          "task": "DemoTask2",
+          "name": "outTo-DemoTask1",
+          "task": "DemoTask1",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -40,7 +53,7 @@
           ],
           "to": [
             {
-              "first": "DemoTask2",
+              "first": "DemoTask1",
               "second": "jama"
             }
           ],
@@ -66,6 +79,47 @@
       "outBranchingType": "SYNC",
       "mappings": [],
       "id": "1"
+    },
+    {
+      "inB": [
+        {
+          "name": "inFrom-DemoTask1",
+          "task": "DemoTask1",
+          "hasActivationCondition": false,
+          "hasDataFlow": true
+        }
+      ],
+      "outB": [
+        {
+          "name": "outTo-DemoTask2",
+          "task": "DemoTask2",
+          "hasActivationCondition": false,
+          "hasDataFlow": true
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": false,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "DemoTask1",
+              "second": "jira"
+            }
+          ],
+          "to": [
+            {
+              "first": "DemoTask2",
+              "second": "jira"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "2"
     }
   ],
   "expectedInput": {

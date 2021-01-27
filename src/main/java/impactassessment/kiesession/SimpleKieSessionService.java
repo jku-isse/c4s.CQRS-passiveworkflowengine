@@ -1,4 +1,4 @@
-package impactassessment.projection;
+package impactassessment.kiesession;
 
 import artifactapi.IArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraService;
@@ -7,8 +7,6 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import impactassessment.kiesession.KieSessionWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
