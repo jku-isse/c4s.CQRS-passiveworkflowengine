@@ -1,8 +1,10 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <variables>
     <variable id="un05j[MTL.X~5saKuk$9">jama</variable>
+    <variable id="17YF_pk)h8IaQ}gmU$}B">review</variable>
+    <variable id="4=^jB.SLUY75hwB+AQke">jira</variable>
   </variables>
-  <block type="procedures_defnoreturn" id="at~j*m?B.ZfAgF!wd~{L" x="-13" y="-138">
+  <block type="procedures_defnoreturn" id="at~j*m?B.ZfAgF!wd~{L" x="-12" y="-87">
     <field name="NAME">DemoProcess2</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
@@ -15,7 +17,7 @@
         </value>
         <next>
           <block type="step" id=")6;WIiAqXS[ds_r~dUdB">
-            <field name="StepId">DemoTask2</field>
+            <field name="StepId">DemoTask1</field>
             <statement name="Input">
               <block type="artuse" id="NYpAmw=_01cqA.6XJ?6]">
                 <field name="roletext">Role</field>
@@ -28,16 +30,111 @@
               </block>
             </statement>
             <statement name="Output">
-              <block type="artuse" id="=OCn/U$b)GwUoEO`=t{?">
-                <field name="roletext">Role</field>
-                <field name="NAME">jira</field>
-                <value name="NAME">
-                  <block type="artifact" id="SgDYC#.b!%8$kMA5@5r!">
-                    <field name="Type">IJiraArtifact</field>
+              <block type="qacheck" id="[-hyF!26cUrdZh9,-]/Z">
+                <field name="isHardConstraint">TRUE</field>
+                <value name="constraint">
+                  <block type="logic_compare" id="~wRzcU~~$K2cN$gP!#-P">
+                    <field name="OP">EQ</field>
+                    <value name="A">
+                      <block type="fieldaccessor" id="/v+fL7-@(A$HKiA,82iN">
+                        <field name="NAME">status</field>
+                        <value name="var">
+                          <block type="variables_get" id="-HE:J[YzL61Uexh|?v7u">
+                            <field name="VAR" id="un05j[MTL.X~5saKuk$9">jama</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="text" id="t3mK=i:t^=}wFbKl7;pB">
+                        <field name="TEXT">released</field>
+                      </block>
+                    </value>
                   </block>
                 </value>
+                <next>
+                  <block type="qacheck" id="{a3L_*^jak5$uY;Z6Za[">
+                    <field name="isHardConstraint">TRUE</field>
+                    <value name="constraint">
+                      <block type="logic_compare" id="nog3-Phv`1rrF5@PJj0I">
+                        <field name="OP">NEQ</field>
+                        <value name="A">
+                          <block type="fieldaccessor" id="z2yi5RLIgR;/?vB:n43]">
+                            <field name="NAME">fixVersion</field>
+                            <value name="var">
+                              <block type="variables_get" id="oxAJ}hCDBgL+f_EB|=R-">
+                                <field name="VAR" id="4=^jB.SLUY75hwB+AQke">jira</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="logic_null" id="T%5!J.F;TjoSfR7]2n:r"></block>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="K]a.14I2I+=|pVubf02y">
+                        <field name="VAR" id="4=^jB.SLUY75hwB+AQke">jira</field>
+                        <value name="VALUE">
+                          <block type="artifact" id="SgDYC#.b!%8$kMA5@5r!">
+                            <field name="Type">IJiraArtifact</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="%(!(K?K;fJ}kaVWtOw,J">
+                            <field name="roletext">Role</field>
+                            <field name="NAME">jira</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="{^3}nY:i^)x7s9^si+ZW">
+                                <field name="VAR" id="4=^jB.SLUY75hwB+AQke">jira</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
               </block>
             </statement>
+            <next>
+              <block type="step" id="D@JRc=+l.-kI=b5WTVQy">
+                <field name="StepId">DemoTask2</field>
+                <statement name="Input">
+                  <block type="artuse" id="=OCn/U$b)GwUoEO`=t{?">
+                    <field name="roletext">Role</field>
+                    <field name="NAME">jira</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="yzJl`JX5]~ds0_`4vaJR">
+                        <field name="VAR" id="4=^jB.SLUY75hwB+AQke">jira</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="A{_RsR`R-s{e*mlgnbM`">
+                    <field name="VAR" id="17YF_pk)h8IaQ}gmU$}B">review</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="iK}[zI[1]L^xs8#;$]|M">
+                        <field name="Type">IJamaArtifact</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="3n$HK.FtQnsMh@pUPqwf">
+                        <field name="roletext">Role</field>
+                        <field name="NAME">review</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="yS+!uz;C^o-[ERhOdJPq">
+                            <field name="VAR" id="17YF_pk)h8IaQ}gmU$}B">review</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
           </block>
         </next>
       </block>

@@ -1,4 +1,4 @@
-package impactassessment.projection;
+package impactassessment;
 
 import java.io.File;
 import java.io.FileReader;
@@ -50,10 +50,11 @@ import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.command.MockCommandGateway;
 
-public class TestConfig extends AbstractModule {
+public class DevelopmentConfig extends AbstractModule {
 
-	protected Logger log = LogManager.getLogger(TestConfig.class);
+	protected Logger log = LogManager.getLogger(DevelopmentConfig.class);
 	
 	
 	HibernateBackedCache jamaCache;
@@ -76,7 +77,7 @@ public class TestConfig extends AbstractModule {
 
 
 	
-	public TestConfig() {
+	public DevelopmentConfig() {
 		gw = new MockCommandGateway();
 		jrc = setupJiraRestClient();
 		jiraCache = configJiraCache();
@@ -115,7 +116,7 @@ public class TestConfig extends AbstractModule {
 	
 	public static Injector getInjector() {
 		if (inj == null)
-			inj = Guice.createInjector(new TestConfig());
+			inj = Guice.createInjector(new DevelopmentConfig());
 		return inj;
 	}
 	
