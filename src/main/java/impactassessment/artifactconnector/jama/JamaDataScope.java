@@ -4,6 +4,8 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Optional;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
@@ -11,8 +13,10 @@ import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import lombok.extern.slf4j.Slf4j;
 
-public class JamaDataScope implements IJamaService{
+@Slf4j
+public class JamaDataScope implements IJamaService {
 
 
 	private String scopeId;
@@ -132,4 +136,22 @@ public class JamaDataScope implements IJamaService{
 	}
 
 
+	@Override
+	public boolean provides(String s) {
+		return origin.provides(s);
+	}
+
+	@Override
+	public Optional<IArtifact> get(ArtifactIdentifier artifactIdentifier, String s) {
+		return origin.get(artifactIdentifier, s);
+	}
+
+	@Override
+	public void injectArtifactService(IArtifact iArtifact, String s) {
+		if (scopeId.equals(s)) {
+			iArtifact.injectArtifactService(this);
+		} else {
+			log.warn("Coudn't inject this DataScope because scope id ({}) doesn't match workflow id ({})", scopeId, s);
+		}
+	}
 }

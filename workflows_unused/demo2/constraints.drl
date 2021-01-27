@@ -51,45 +51,58 @@ global IArtifactRegistry artifactRegistry;
 //constraints for state open
 rule "InsertQAConstraintsDemo"
 	when
-		$wft : WorkflowTask(    getType().getId().equals("DemoTask") &&
+		$wft : WorkflowTask(    getType().getId().equals("DemoTask2") &&
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
-        constraints.put("CheckJiraName", "Does Jira issue have the right name ?");
+        constraints.put("CheckJiraExists", "Is there a jira artifact linked ?");
         commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 end
 
 
-rule "CheckJiraName" 
+rule "CheckJiraExists" 
 	no-loop
 	when
 		$ct : ConstraintTrigger()
-		$qac : RuleEngineBasedConstraint( isAffectedBy($ct) && getConstraintType().equals( "CheckJiraName" ))
-		$wft : WorkflowTask( getType().getId().equals("DemoTask") , $jira : getAnyOneInputByRole("root") )
-		eval ($jira != null)
+		$qac : RuleEngineBasedConstraint( isAffectedBy($ct) && getConstraintType().equals( "CheckJiraExists" ))
+		$wft : WorkflowTask( getType().getId().equals("DemoTask2") 
+		, $jira : getAnyOneOutputByRole("jira") 
+		,  $jama : getAnyOneInputByRole("jama")
+		)
+		eval ($jama != null)
 	then
 		System.out.println("Checking: "+$qac.getId() +" in workflow " +$wft.getWorkflow().getId());
-		IJiraArtifact ja = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
-		boolean hasName = ja.getIssueType().getName().equalsIgnoreCase("Design Definition");
-		Map<ResourceLink, Boolean> result = Map.of(ja.convertToResourceLink(), hasName);
+		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		boolean doesExist = ($jira != null);
+		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
+		if (!doesExist)
+			result.put(ja.convertToResourceLink(), doesExist);
+		else {
+			IJiraArtifact jira = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+			result.put(jira.convertToResourceLink(), doesExist);
+		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 
 
 
-rule "CompleteDemoTask"
+rule "ExtractDemoTask"
 	when
-		$wft : WorkflowTask (   getType().getId().equals("DemoTask") &&
+		$wft : WorkflowTask (   getType().getId().equals("DemoTask2") &&
 								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
-								 getAnyOneOutputByRole("outDoc") == null 
-								 , $jira : getAnyOneInputByRole("root") 								
+								 getAnyOneOutputByRole("jira") == null 
+								 , $jama : getAnyOneInputByRole("jama") 								
 							 ) @watch( lifecycleState )
-		eval ($jira != null )					 //"UAV-1196"
+		eval ($jama != null )					 //"UAV-1196"
 	then
-		IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier("PVCSG-3409", "IJiraArtifact"), $wft.getWorkflow().getId()).get();
-		Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
-		commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "outDoc", new ArtifactType("IJiraArtifact") ));
+		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		String jiraKey = ja.getStringValue("SYS_JIRA_KEY");
+		if (!(jiraKey == null || jiraKey.equals("") )){
+			IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier(jiraKey, "IJiraArtifact"), $wft.getWorkflow().getId()).get();
+			Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
+			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "jira", new ArtifactType("IJiraArtifact") ));
+		}
 end
 
 

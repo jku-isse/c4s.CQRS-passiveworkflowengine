@@ -34,29 +34,29 @@ public class LocalRegisterService extends AbstractRegisterService {
     @Override
     public int registerAll() {
         int i = 0;
-        try {
-            ClassLoader cl = this.getClass().getClassLoader();
-            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
-            Resource[] folders = resolver.getResources("classpath:processdefinition/*") ;
-            for (Resource res : folders) {
-                Resource[] jsonResources = resolver.getResources(res.getURL()+"/*.json");
-                if (jsonResources.length != 1) continue;
-                WorkflowDefinition wfd = serializer.fromJson(asString(jsonResources[0]));
-
-                Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
-                if (drlResources.length < 1) continue;
-                List<File> files = new ArrayList<>();
-                for (Resource drl : drlResources) {
-                    files.add(drl.getFile());
-                }
-                KieContainer kieContainer = kieSessionFactory.getKieContainer(files);
-
-                registry.register(wfd.getId(), wfd, kieContainer);
-                i++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            ClassLoader cl = this.getClass().getClassLoader();
+//            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+//            Resource[] folders = resolver.getResources("classpath:processdefinition/*") ;
+//            for (Resource res : folders) {
+//                Resource[] jsonResources = resolver.getResources(res.getURL()+"/*.json");
+//                if (jsonResources.length != 1) continue;
+//                WorkflowDefinition wfd = serializer.fromJson(asString(jsonResources[0]));
+//
+//                Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
+//                if (drlResources.length < 1) continue;
+//                List<File> files = new ArrayList<>();
+//                for (Resource drl : drlResources) {
+//                    files.add(drl.getFile());
+//                }
+//                KieContainer kieContainer = kieSessionFactory.getKieContainer(files);
+//
+//                registry.register(wfd.getId(), wfd, kieContainer);
+//                i++;
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // external resources (same directory as JAR)
         try {

@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.IJiraIssueLink;
 import artifactapi.jira.subtypes.IJiraIssueLinkType;
@@ -16,10 +17,10 @@ public class JiraIssueLink implements IJiraIssueLink {
     private IssueLink issueLink;
     private IJiraIssueLinkType jiraIssueLinkType;
     
-    private transient IJiraService artifactRegistry = null;
+    private transient IJiraService jiraService = null;
 
     public JiraIssueLink(IssueLink issueLink, IJiraService service) {
-    	this.artifactRegistry = service;
+    	this.jiraService = service;
         this.issueLink = issueLink;
         this.jiraIssueLinkType = new JiraIssueLinkType(issueLink.getIssueLinkType());
     }
@@ -46,7 +47,13 @@ public class JiraIssueLink implements IJiraIssueLink {
     @Override
     public Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId) {
         log.debug("Artifact fetching linked issue: {}", getTargetIssueKey());
-        return  artifactRegistry.getIssue(issueLink.getTargetIssueKey());
+        return  jiraService.getIssue(issueLink.getTargetIssueKey());
+    }
+
+    @Override
+    public void injectArtifactService(IArtifactService iArtifactService) {
+        if (iArtifactService instanceof IJiraService) // will be always the case
+            jiraService = (IJiraService)iArtifactService;
     }
 
     @Override
@@ -54,7 +61,7 @@ public class JiraIssueLink implements IJiraIssueLink {
         return "JiraIssueLink{" +
                 "issueLink=" + issueLink +
                 ", jiraIssueLinkType=" + jiraIssueLinkType +
-                ", jiraArtifactService=" + artifactRegistry +
+                ", jiraArtifactService=" + jiraService +
                 '}';
     }
 }

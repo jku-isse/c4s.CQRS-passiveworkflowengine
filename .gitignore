@@ -44,3 +44,4 @@ webpack.generated.js
 
 # confidential properties file
 application.properties
+main.properties

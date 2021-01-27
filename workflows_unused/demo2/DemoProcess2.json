@@ -2,16 +2,16 @@
   "taskDefinitions": [
     {
       "expectedInput": {
-        "root": {
-          "id": "IJiraArtifact"
+        "jama": {
+          "id": "IJamaArtifact"
         }
       },
       "expectedOutput": {
-        "outDoc": {
+        "jira": {
           "id": "IJiraArtifact"
         }
       },
-      "id": "DemoTask"
+      "id": "DemoTask2"
     }
   ],
   "dnds": [
@@ -19,8 +19,8 @@
       "inB": [],
       "outB": [
         {
-          "name": "outTo-DemoTask",
-          "task": "DemoTask",
+          "name": "outTo-DemoTask2",
+          "task": "DemoTask2",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -34,14 +34,14 @@
         {
           "from": [
             {
-              "first": "DemoProcess",
-              "second": "jirawp"
+              "first": "DemoProcess2",
+              "second": "jama"
             }
           ],
           "to": [
             {
-              "first": "DemoTask",
-              "second": "root"
+              "first": "DemoTask2",
+              "second": "jama"
             }
           ],
           "mappingType": "ANY"
@@ -52,8 +52,8 @@
     {
       "inB": [
         {
-          "name": "inFrom-DemoTask",
-          "task": "DemoTask",
+          "name": "inFrom-DemoTask2",
+          "task": "DemoTask2",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -69,17 +69,10 @@
     }
   ],
   "expectedInput": {
-    "jirawp": {
-      "id": "IJiraArtifact"
-    },
-    "jamawp": {
+    "jama": {
       "id": "IJamaArtifact"
     }
   },
-  "expectedOutput": {
-    "jirawp": {
-      "id": "IJiraArtifact"
-    }
-  },
-  "id": "DemoProcess"
+  "expectedOutput": {},
+  "id": "DemoProcess2"
 }

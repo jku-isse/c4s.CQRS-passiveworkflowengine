@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.jira.subtypes;
 
+import artifactapi.IArtifactService;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.IJiraIssueType;
 import artifactapi.jira.subtypes.IJiraStatus;
@@ -16,10 +17,10 @@ public class JiraSubtask implements IJiraSubtask {
     private Subtask task;
     private IJiraStatus status;
     private IJiraIssueType issueType;
-    private transient IJiraService artifactRegistry = null;
+    private transient IJiraService jiraService = null;
 
     public JiraSubtask(Subtask task, IJiraService service) {
-    	this.artifactRegistry = service;
+    	this.jiraService = service;
         this.task = task;
         this.status = new JiraStatus(task.getStatus());
         this.issueType = new JiraIssueType(task.getIssueType());
@@ -49,9 +50,15 @@ public class JiraSubtask implements IJiraSubtask {
     public IJiraStatus getStatus() {
         return status;
     }
-    
+
+    @Override
+    public void injectArtifactService(IArtifactService iArtifactService) {
+        if (iArtifactService instanceof IJiraService) // will be always the case
+            jiraService = (IJiraService)iArtifactService;
+    }
+
     //@Override
     public Optional<IJiraArtifact> getSubtask() {
-    	return  artifactRegistry.getIssue(task.getIssueKey());
+    	return  jiraService.getIssue(task.getIssueKey());
     }
 }

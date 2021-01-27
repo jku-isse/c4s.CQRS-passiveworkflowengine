@@ -357,15 +357,7 @@ public class SpringConfig {
             props.load(reader);
             return props;
         } catch (IOException e1) {
-            log.warn("No properties file in default location (same directory as JAR) found! Using default props.");
-            try {
-                InputStream inputStream = new ClassPathResource("application.properties").getInputStream();
-                props.load(inputStream);
-                return props;
-            } catch (IOException e2) {
-                log.error("No properties file found.");
-                e2.printStackTrace();
-            }
+            log.error("No properties file found.");
         }
         return props;
     }

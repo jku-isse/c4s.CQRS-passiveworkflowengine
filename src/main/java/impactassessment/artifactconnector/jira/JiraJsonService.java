@@ -61,6 +61,11 @@ public class JiraJsonService implements IArtifactService, IJiraService {
         return Optional.of(artifact);
     }
 
+    @Override
+    public void injectArtifactService(IArtifact iArtifact, String s) {
+        // TODO not implemented
+    }
+
     private Issue loadIssue(String key) throws JSONException, IOException {
 		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
         String body = IOUtils.toString(is, "UTF-8");
