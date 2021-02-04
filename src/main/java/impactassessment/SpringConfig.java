@@ -28,6 +28,9 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
+import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
+import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
+import org.axonframework.eventsourcing.Snapshotter;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +57,11 @@ import javax.sql.DataSource;
 public class SpringConfig {
 
     private Properties props = null;
+
+    @Bean
+    public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
+        return new EventCountSnapshotTriggerDefinition(snapshotter, 30);
+    }
 
     @Bean
     @Scope("singleton")
