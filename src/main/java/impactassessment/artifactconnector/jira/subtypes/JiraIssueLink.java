@@ -52,8 +52,10 @@ public class JiraIssueLink implements IJiraIssueLink {
 
     @Override
     public void injectArtifactService(IArtifactService iArtifactService) {
-        if (iArtifactService instanceof IJiraService) // will be always the case
-            jiraService = (IJiraService)iArtifactService;
+        if (jiraService == null) {
+            if (iArtifactService instanceof IJiraService) // will be always the case
+                jiraService = (IJiraService) iArtifactService;
+        }
     }
 
     @Override

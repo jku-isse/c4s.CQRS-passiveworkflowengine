@@ -9,6 +9,7 @@ import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 
@@ -46,11 +47,14 @@ public class WFTInputOutputMappingTest {
         List<TaskDefinition> taskDefinitionsOpen = dniKickoff.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         taskDefinitionsOpen.stream()
                 .forEach(td -> {
-                    WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.addOutput(new ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
-                    wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
-                    wfi.activateDecisionNodesFromTask(wft);
-                    dniKickoff.consumeTaskForUnconnectedOutBranch(wft);
+                    Optional<WorkflowTask> opt = wfi.instantiateTaskIfNotExist(td);
+                    if (opt.isPresent()) {
+                        WorkflowTask wft = opt.get();
+                        wft.addOutput(new ArtifactOutput(rl, SimpleWorkflow.ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
+                        wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
+                        wfi.activateDecisionNodesFromTask(wft);
+                        dniKickoff.consumeTaskForUnconnectedOutBranch(wft);
+                    }
                 });
 
         // get second (and last) decision node (open2closed)
@@ -63,10 +67,13 @@ public class WFTInputOutputMappingTest {
         List<TaskDefinition> taskDefinitionsClosed = dniOpen2Closed.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
         taskDefinitionsClosed.stream()
                 .forEach(td -> {
-                    WorkflowTask wft = wfi.instantiateTask(td);
-                    wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
-                    wfi.activateDecisionNodesFromTask(wft);
-                    dniOpen2Closed.consumeTaskForUnconnectedOutBranch(wft);
+                    Optional<WorkflowTask> opt = wfi.instantiateTaskIfNotExist(td);
+                    if (opt.isPresent()) {
+                        WorkflowTask wft = opt.get();
+                        wft.signalEvent(TaskLifecycle.Events.INPUTCONDITIONS_FULFILLED);
+                        wfi.activateDecisionNodesFromTask(wft);
+                        dniOpen2Closed.consumeTaskForUnconnectedOutBranch(wft);
+                    }
                 });
 
         IWorkflowTask wftClosed = wfi.getWorkflowTask("Closed#"+ID);

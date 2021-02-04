@@ -8,7 +8,7 @@ import impactassessment.api.Commands.*;
 import impactassessment.command.WorkflowAggregate;
 import impactassessment.exampleworkflows.DronologyWorkflowFixed;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
-import impactassessment.kiesession.KieSessionService;
+import impactassessment.kiesession.IKieSessionService;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -38,7 +38,7 @@ public class BasicAggregateTest {
      */
     FixtureConfiguration<WorkflowAggregate> fixture;
     @Mock
-    KieSessionService kieSessionService;
+    IKieSessionService kieSessionService;
     String id;
 
     @Before

@@ -121,7 +121,7 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jiralightconnector</artifactId>
-            <version>0.5.1-SNAPSHOT</version>
+            <version>0.6.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
@@ -133,7 +133,7 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.jamaconnector</artifactId>
-            <version>0.7.1-SNAPSHOT</version>
+            <version>0.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ISSE.JKU</groupId>
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.passiveprocessengine.v2</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.example</groupId>
@@ -411,9 +411,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jiralightconnector</artifactId>
-                            <version>0.5.1-SNAPSHOT</version>
+                            <version>0.6.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jiralightconnector-0.5.1-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.jiralightconnector-0.6.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -439,9 +439,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.passiveprocessengine.v2</artifactId>
-                            <version>1.1-SNAPSHOT</version>
+                            <version>1.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-1.1-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-1.2-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -453,9 +453,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.jamaconnector</artifactId>
-                            <version>0.7.1-SNAPSHOT</version>
+                            <version>0.7.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jamaconnector-0.7.1-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.jamaconnector-0.7.2-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>

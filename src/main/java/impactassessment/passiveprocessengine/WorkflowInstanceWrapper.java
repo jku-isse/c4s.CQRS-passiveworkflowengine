@@ -245,6 +245,27 @@ public class WorkflowInstanceWrapper {
         wfi.addOutput(evt.getOutput());
     }
 
+    public void handle(StateMachineTriggerEvt evt) {
+        switch (evt.getEvent()) {
+            case ADD_OUTPUT:
+            case OUTPUT_REMOVED:
+            case IGNORE_FOR_PROGRESS:
+            case PARTIALLY_COMPLETE:
+                log.warn("Invalid state machine trigger event {}, the allowed ones are: " +
+                        "ACTIVATE, DONT_WORK_ON_TASK, INPUTCONDITIONS_NO_LONGER_HOLD, INPUTCONDITIONS_FULFILLED, OUTPUTCONDITIONS_FULFILLED", evt.getEvent());
+                break;
+            default:
+                Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
+                        .filter(wft -> wft.getId().equals(evt.getWftId()))
+                        .findAny();
+                if (opt.isPresent()) {
+                    opt.get().trigger(evt.getEvent());
+                } else {
+                    log.warn("Handling StateMachineTriggerEvt coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getWftId(), evt.getId());
+                }
+        }
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
@@ -272,6 +293,8 @@ public class WorkflowInstanceWrapper {
             handle((AddedInputToWorkflowEvt) evt);
         } else if (evt instanceof AddedOutputToWorkflowEvt) {
             handle((AddedOutputToWorkflowEvt) evt);
+        } else if (evt instanceof StateMachineTriggerEvt) {
+            handle((StateMachineTriggerEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

@@ -146,10 +146,12 @@ public class JamaArtifact implements IJamaArtifact {
 
     @Override
     public void injectArtifactService(IArtifactService service) {
-        if (service instanceof IJamaService) {
-            jamaService = (IJamaService) service;
-        } else {
-            log.warn("Injection of {} into JamaArtifact not possible.", service.getClass().getSimpleName());
+        if (jamaService == null) {
+            if (service instanceof IJamaService) {
+                jamaService = (IJamaService) service;
+            } else {
+                log.warn("Injection of {} into JamaArtifact not possible.", service.getClass().getSimpleName());
+            }
         }
     }
 

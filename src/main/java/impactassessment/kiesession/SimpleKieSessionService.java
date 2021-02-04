@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
-public class SimpleKieSessionService {
+public class SimpleKieSessionService implements IKieSessionService {
 
 	CommandGateway cg;
 	IArtifactRegistry artifactRegistry;
@@ -27,12 +26,13 @@ public class SimpleKieSessionService {
 
     }
 
-
+    @Override
     public void insertOrUpdate(String id, Object o) {
 
         kieSessions.get(id).insertOrUpdate(o);
     }
 
+    @Override
     public void create(String id, KieContainer kieContainer) {
         KieSessionWrapper kieSessionWrapper = new KieSessionWrapper(cg, artifactRegistry);
         if (kieContainer == null) {
@@ -43,10 +43,12 @@ public class SimpleKieSessionService {
         kieSessions.put(id, kieSessionWrapper);
     }
 
+    @Override
     public void fire(String id) {
         kieSessions.get(id).fire();
     }
 
+    @Override
     public void dispose(String id) {
         if (kieSessions.containsKey(id)) {
             kieSessions.get(id).dispose();
@@ -54,6 +56,7 @@ public class SimpleKieSessionService {
         }
     }
 
+    @Override
     public boolean isInitialized(String id) {
         if (kieSessions.containsKey(id)) {
             return kieSessions.get(id).isInitialized();
@@ -62,15 +65,18 @@ public class SimpleKieSessionService {
         }
     }
 
+    @Override
     public void setInitialized(String id) {
         kieSessions.get(id).setInitialized(true);
     }
 
+    @Override
     public KieSession getKieSession(String id) {
         KieSessionWrapper wrappedKB = kieSessions.get(id);
         return wrappedKB == null ? null : wrappedKB.getKieSession();
     }
 
+    @Override
     public int getNumKieSessions() {
         return kieSessions.size();
     }
