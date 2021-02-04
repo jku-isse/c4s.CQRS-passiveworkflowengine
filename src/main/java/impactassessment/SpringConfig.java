@@ -28,7 +28,12 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
+import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
+import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
+import org.axonframework.eventsourcing.Snapshotter;
 import org.hibernate.SessionFactory;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.CouchDbProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -54,6 +59,11 @@ import javax.sql.DataSource;
 public class SpringConfig {
 
     private Properties props = null;
+
+    @Bean
+    public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
+        return new EventCountSnapshotTriggerDefinition(snapshotter, 30);
+    }
 
     @Bean
     @Scope("singleton")
@@ -127,8 +137,8 @@ public class SpringConfig {
 
 
     @Bean 
-    public JiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {   	
-    	return new JiraInstance(issueCache, changeSubscriber, monitoringState);
+    public JiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
+        return new JiraInstance(issueCache, changeSubscriber, monitoringState);
     }
 
     
@@ -233,7 +243,7 @@ public class SpringConfig {
 //        return jamaConn;
 //    }
 
-    @Bean 
+    @Bean
     @Scope("singleton")
     public CacheStatus getJamaCacheStatus(HibernateBackedCache cache) {
     	HibernateCacheStatus status = new HibernateCacheStatus(cache);
@@ -246,7 +256,7 @@ public class SpringConfig {
     	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
 				getProp("mysqlDBuser"),
 				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jamacache"				
+				getProp("mysqlURL")+"jamacache"
 				);
 		return new HibernateBackedCache(sf);
      }
@@ -254,6 +264,13 @@ public class SpringConfig {
 //    @Bean
 //    public CouchDBJamaCache getJamaCache(CouchDbClient dbClient) {
 //        return new CouchDBJamaCache(dbClient);
+//    }
+
+//    @Bean
+//    @Scope("singleton")
+//    public CacheStatus getJamaCacheStatus(CouchDBJamaCache cache) {
+//        CouchDBCacheStatus status = new CouchDBCacheStatus(cache);
+//    	return status;
 //    }
 
 //    @Bean
@@ -298,6 +315,7 @@ public class SpringConfig {
         JamaInstance jamaInst = new JamaInstance(jamaConf, false);
         cache.setJamaInstance(jamaInst);
         jamaInst.setResourcePool(new CachedResourcePool(cache));
+        jamaInst.enableAnonymizing();
         return jamaInst;
     }
     

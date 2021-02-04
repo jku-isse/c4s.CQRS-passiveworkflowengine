@@ -20,6 +20,7 @@ import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,10 +31,10 @@ import java.util.Map.Entry;
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
 
-@Aggregate
+@Aggregate(snapshotTriggerDefinition="workflowSnapshotTrigger")
 @Profile("command")
 @Slf4j
-public class WorkflowAggregate {
+public class WorkflowAggregate implements Serializable {
 
     @AggregateIdentifier
     String id;
