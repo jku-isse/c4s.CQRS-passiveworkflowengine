@@ -143,7 +143,7 @@
         <dependency>
             <groupId>ISSE.JKU</groupId>
             <artifactId>c4s.passiveprocessengine.v2</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.example</groupId>
@@ -439,9 +439,9 @@
                         <configuration>
                             <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.passiveprocessengine.v2</artifactId>
-                            <version>1.1-SNAPSHOT</version>
+                            <version>1.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-1.1-SNAPSHOT.jar</file>
+                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-1.2-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
