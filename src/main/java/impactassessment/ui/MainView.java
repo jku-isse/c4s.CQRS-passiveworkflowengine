@@ -1,7 +1,5 @@
 package impactassessment.ui;
 
-import artifactapi.jama.IJamaArtifact;
-import artifactapi.jira.IJiraArtifact;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.vaadin.componentfactory.ToggleButton;
@@ -88,7 +86,7 @@ public class MainView extends VerticalLayout {
     private Snapshotter snapshotter;
     private Replayer replayer;
     private WorkflowDefinitionRegistry registry;
-    private FrontendPusher pusher;
+    private IFrontendPusher pusher;
     private MonitoringScheduler jiraMonitoringScheduler;
     private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
 
@@ -115,7 +113,7 @@ public class MainView extends VerticalLayout {
         this.registry = registry;
     }
     @Inject
-    public void setPusher(FrontendPusher pusher) {
+    public void setPusher(IFrontendPusher pusher) {
         this.pusher = pusher;
     }
     @Inject

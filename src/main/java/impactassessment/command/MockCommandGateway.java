@@ -3,6 +3,7 @@ package impactassessment.command;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import impactassessment.query.WorkflowProjection;
 import org.axonframework.commandhandling.CommandCallback;
 import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -20,17 +21,16 @@ import impactassessment.api.Events.AddedConstraintsEvt;
 import impactassessment.api.Events.AddedEvaluationResultToConstraintEvt;
 import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.CompletedDataflowEvt;
-import impactassessment.query.MockWorkflowProjection;
 
 public class MockCommandGateway implements CommandGateway {
 
-	MockWorkflowProjection proj;
+	WorkflowProjection proj;
 	
 	public MockCommandGateway() {
 		
 	}
 	
-	public void setWorkflowProjection(MockWorkflowProjection proj) {
+	public void setWorkflowProjection(WorkflowProjection proj) {
 		this.proj = proj;
 	}
 	

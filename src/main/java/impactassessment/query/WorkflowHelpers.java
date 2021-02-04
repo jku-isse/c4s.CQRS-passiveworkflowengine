@@ -1,12 +1,8 @@
 package impactassessment.query;
 
-import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
-import impactassessment.SpringUtil;
 import impactassessment.api.Commands.*;
-import impactassessment.artifactconnector.jama.JamaArtifact;
-import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
-import impactassessment.kiesession.KieSessionService;
+import impactassessment.kiesession.IKieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -28,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WorkflowHelpers {
 
-    static void ensureInitializedKB(KieSessionService kieSessions, ProjectionModel projection, String id) {
+    static void ensureInitializedKB(IKieSessionService kieSessions, ProjectionModel projection, String id) {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
             List<IArtifact> artifacts = wfiWrapper.getArtifacts();

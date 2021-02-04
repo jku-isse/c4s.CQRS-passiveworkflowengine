@@ -12,11 +12,12 @@ import java.util.List;
 @Component
 @Scope("singleton")
 @NoArgsConstructor
-public class FrontendPusher {
+public class FrontendPusher implements IFrontendPusher {
 
     private @Setter UI ui;
     private @Setter MainView view;
 
+    @Override
     public void update(List<WorkflowInstanceWrapper> state) {
         if (ui != null && view != null) {
             ui.access(() -> view.getGrids().stream()

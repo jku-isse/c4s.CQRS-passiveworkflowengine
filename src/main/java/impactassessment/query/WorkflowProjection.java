@@ -5,10 +5,10 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
-import impactassessment.kiesession.KieSessionService;
+import impactassessment.kiesession.IKieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import impactassessment.registry.WorkflowDefinitionRegistry;
-import impactassessment.ui.FrontendPusher;
+import impactassessment.ui.IFrontendPusher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -21,7 +21,6 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import passiveprocessengine.definition.ArtifactTypes;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.*;
 
@@ -37,10 +36,10 @@ import static impactassessment.query.WorkflowHelpers.*;
 public class WorkflowProjection {
 
     private final ProjectionModel projection;
-    private final KieSessionService kieSessions;
+    private final IKieSessionService kieSessions;
     private final CommandGateway commandGateway;
     private final WorkflowDefinitionRegistry registry;
-    private final FrontendPusher pusher;
+    private final IFrontendPusher pusher;
     private final IArtifactRegistry artifactRegistry;
 
     // Event Handlers
@@ -49,7 +48,7 @@ public class WorkflowProjection {
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
         if (!status.isReplay())
-            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), e.getKey()));
+            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -66,7 +65,7 @@ public class WorkflowProjection {
     public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
         if (!status.isReplay())
-            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), e.getKey()));
+            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);

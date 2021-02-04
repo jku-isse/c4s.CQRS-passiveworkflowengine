@@ -11,6 +11,9 @@ import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
 
+import impactassessment.kiesession.IKieSessionService;
+import impactassessment.query.WorkflowProjection;
+import impactassessment.ui.SimpleFrontendPusher;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.jupiter.api.Test;
 
@@ -19,16 +22,14 @@ import com.google.inject.Injector;
 import impactassessment.DevelopmentConfig;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
-import impactassessment.kiesession.KieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
-import impactassessment.query.MockWorkflowProjection;
 import impactassessment.query.ProjectionModel;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 
 class RulebasedWorkflowtest {
 
-	KieSessionService kieS;
+	IKieSessionService kieS;
 	
 	
 	@Test
@@ -44,7 +45,8 @@ class RulebasedWorkflowtest {
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
-		MockWorkflowProjection wfp = new MockWorkflowProjection(pModel, kieS,  gw, registry);
+		SimpleFrontendPusher fp = new SimpleFrontendPusher();
+		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
 		gw.setWorkflowProjection(wfp);
 		ReplayStatus status = ReplayStatus.REGULAR;
 		String id = "TestId1";
