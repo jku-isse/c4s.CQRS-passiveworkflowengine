@@ -5,6 +5,7 @@ import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.TaskLifecycle;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
@@ -148,6 +149,13 @@ public class Commands {
         @TargetAggregateIdentifier
         private final String id;
         private final List<IArtifact> artifacts;
+    }
+    @Data
+    public static class StateMachineTriggerCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final TaskLifecycle.Events event;
     }
 }
 

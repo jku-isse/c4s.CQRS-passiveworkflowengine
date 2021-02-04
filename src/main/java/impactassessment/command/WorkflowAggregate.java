@@ -216,6 +216,11 @@ public class WorkflowAggregate implements Serializable {
         apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
     }
 
+    @CommandHandler
+    public void handle(StateMachineTriggerCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getEvent()));
+    }
     // -------------------------------- Event Handlers --------------------------------
 
     @EventSourcingHandler
