@@ -68,7 +68,7 @@ public class JamaDataScope implements IJamaService {
 			cache.put("JamaProject"+proj.getId(), new WeakReference<Object>(opt));
 			return opt;
 		} else {
-			return (IJamaProjectArtifact)ref;
+			return (IJamaProjectArtifact)ref.get();
 		}
 	}
 
@@ -95,7 +95,7 @@ public class JamaDataScope implements IJamaService {
 		if (ref.get() == null) {
 			Optional<IJamaArtifact> opt = origin.get(id, workflow);
 			if (opt.isPresent()) {
-				cache.put("JamaItem"+id, new WeakReference<Object>(opt));
+				cache.put("JamaItem"+id, new WeakReference<Object>(opt.get()));
 				return opt;
 			} else {
 				return Optional.empty();
