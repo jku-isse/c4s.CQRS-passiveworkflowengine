@@ -3,6 +3,8 @@ package impactassessment.artifactconnector.jama;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
@@ -21,7 +23,7 @@ public class JamaDataScope implements IJamaService {
 
 	private String scopeId;
 	private IJamaService origin;
-	private HashMap<String, WeakReference<Object>> cache = new HashMap<String, WeakReference<Object>>();
+	private ConcurrentMap<String, WeakReference<Object>> cache = new ConcurrentHashMap<>();
 	
 	public JamaDataScope(String scopeId, IJamaService origin) {
 		this.scopeId = scopeId;

@@ -3,6 +3,8 @@ package impactassessment.artifactconnector.jira;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
@@ -15,7 +17,7 @@ public class JiraDataScope implements IJiraService{
 
 	private IJiraService origin;
 	private String scopeId;
-	private HashMap<String, WeakReference<Object>> cache = new HashMap<String, WeakReference<Object>>();
+	private ConcurrentMap<String, WeakReference<Object>> cache = new ConcurrentHashMap<>();
 	
 	JiraDataScope(String scopeId, IJiraService origin) {
 		this.scopeId = scopeId;

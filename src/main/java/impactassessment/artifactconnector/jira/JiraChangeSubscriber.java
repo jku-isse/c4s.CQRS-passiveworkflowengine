@@ -12,6 +12,8 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,7 +23,7 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
 
     private final CommandGateway commandGateway;
     // Map<workflowId, Set<artifactKey>>
-    private Map<JiraDataScope, Set<String>> artifactUsages = new HashMap<>();
+    private ConcurrentMap<JiraDataScope, Set<String>> artifactUsages = new ConcurrentHashMap<>();
 
     public void addUsage(JiraDataScope workflowId, ArtifactIdentifier id) {
         Set<String> artifactKeys = artifactUsages.get(workflowId);
