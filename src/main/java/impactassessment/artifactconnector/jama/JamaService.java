@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class JamaService implements IJamaService {
@@ -26,7 +28,7 @@ public class JamaService implements IJamaService {
 
     private JamaInstance jamaInstance;
     private JamaChangeSubscriber jamaChangeSubscriber;
-    private HashMap<String, JamaDataScope> perProcessCaches = new HashMap<String, JamaDataScope>();
+    private ConcurrentMap<String, JamaDataScope> perProcessCaches = new ConcurrentHashMap<>();
 
     public JamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
         this.jamaInstance = jamaInstance;
@@ -86,6 +88,7 @@ public class JamaService implements IJamaService {
             jamaItem = jamaInstance.getItem(id);
         } catch (Exception e) {
             log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
+            e.printStackTrace();
             return Optional.empty();
         }
         if (jamaItem != null) {

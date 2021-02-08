@@ -3,8 +3,6 @@ package impactassessment.command;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
-import artifactapi.jama.IJamaArtifact;
-import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
@@ -221,6 +219,25 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] handling {}", cmd);
         apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getEvent()));
     }
+
+    @CommandHandler
+    public void handle(SetPreConditionsFulfillmentCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+    }
+
+    @CommandHandler
+    public void handle(SetPostConditionsFulfillmentCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+    }
+
+    @CommandHandler
+    public void handle(ActivateTaskCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new ActivatedTaskEvt(cmd.getId(), cmd.getWftId()));
+    }
+
     // -------------------------------- Event Handlers --------------------------------
 
     @EventSourcingHandler

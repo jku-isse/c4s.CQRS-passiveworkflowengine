@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class JiraService implements IJiraService {
@@ -21,7 +23,7 @@ public class JiraService implements IJiraService {
 
     private JiraInstance jira;
     private JiraChangeSubscriber jiraChangeSubscriber;
-    private HashMap<String, JiraDataScope> perProcessCaches = new HashMap<String, JiraDataScope>();
+    private ConcurrentMap<String, JiraDataScope> perProcessCaches = new ConcurrentHashMap<>();
 
     
     public JiraService(JiraInstance jira, JiraChangeSubscriber jiraChangeSubscriber) {

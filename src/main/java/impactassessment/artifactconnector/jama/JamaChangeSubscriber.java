@@ -14,6 +14,8 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JamaChangeSubscriber implements IJamaChangeSubscriber {
 
-    private Map<JamaDataScope, Set<Integer>> artifactUsages = new HashMap<>();
+    private ConcurrentMap<JamaDataScope, Set<Integer>> artifactUsages = new ConcurrentHashMap<>();
     private final CommandGateway commandGateway;
 
     @Override
