@@ -137,5 +137,22 @@ public class Events {
         private final String wftId;
         private final TaskLifecycle.Events event;
     }
+    @Data
+    public static class SetPreConditionsFulfillmentEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+        private final boolean isFulfilled;
+    }
+    @Data
+    public static class SetPostConditionsFulfillmentEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+        private final boolean isFulfilled;
+    }
+    @Data
+    public static class ActivatedTaskEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+    }
 }
 

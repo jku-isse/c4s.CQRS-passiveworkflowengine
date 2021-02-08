@@ -6,11 +6,7 @@ import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.artifactconnector.jira.mock.JiraMockArtifact;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.definition.Artifact;
-import passiveprocessengine.definition.ArtifactType;
-import passiveprocessengine.definition.ArtifactTypes;
-import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 
 import java.util.*;
@@ -259,11 +255,26 @@ public class WorkflowInstanceWrapper {
                         .filter(wft -> wft.getId().equals(evt.getWftId()))
                         .findAny();
                 if (opt.isPresent()) {
-                    opt.get().trigger(evt.getEvent());
+                    opt.get().signalEvent(evt.getEvent());
                 } else {
-                    log.warn("Handling StateMachineTriggerEvt coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getWftId(), evt.getId());
+                    log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
                 }
         }
+    }
+
+    public void handle(SetPreConditionsFulfillmentEvt evt) {
+        // TODO
+        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
+    }
+
+    public void handle(SetPostConditionsFulfillmentEvt evt) {
+        // TODO
+        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
+    }
+
+    public void handle(ActivatedTaskEvt evt) {
+        // TODO
+        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
     public void handle(IdentifiableEvt evt) {
@@ -295,6 +306,12 @@ public class WorkflowInstanceWrapper {
             handle((AddedOutputToWorkflowEvt) evt);
         } else if (evt instanceof StateMachineTriggerEvt) {
             handle((StateMachineTriggerEvt) evt);
+        } else if (evt instanceof SetPreConditionsFulfillmentEvt) {
+            handle((SetPreConditionsFulfillmentEvt) evt);
+        } else if (evt instanceof SetPostConditionsFulfillmentEvt) {
+            handle((SetPostConditionsFulfillmentEvt) evt);
+        } else if (evt instanceof ActivatedTaskEvt) {
+            handle((ActivatedTaskEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

@@ -157,5 +157,25 @@ public class Commands {
         private final String wftId;
         private final TaskLifecycle.Events event;
     }
+    @Data
+    public static class SetPreConditionsFulfillmentCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final boolean isFulfilled;
+    }
+    @Data
+    public static class SetPostConditionsFulfillmentCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final boolean isFulfilled;
+    }
+    @Data
+    public static class ActivateTaskCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+    }
 }
 
