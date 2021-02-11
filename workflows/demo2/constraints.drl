@@ -16,6 +16,7 @@ import passiveprocessengine.instance.ArtifactWrapper;
 import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd;
 import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddConstraintsCmd;
+import impactassessment.api.Commands.SetTaskPropertyCmd;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ global IArtifactRegistry artifactRegistry;
 //constraints for state open
 rule "InsertQAConstraintsDemo"
 	when
-		$wft : WorkflowTask(    getType().getId().equals("DemoTask2") &&
+		$wft : WorkflowTask(    getType().getId().equals("DemoTask1") &&
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -59,13 +60,21 @@ rule "InsertQAConstraintsDemo"
         commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 end
 
+rule "SetDemo1TaskName"
+	when
+		$wft : WorkflowTask (   getType().getId().equals("DemoTask1") )
+	then
+	    Map<String, String> properties = new HashMap<>();
+	    properties.put("name", "First Task in the process");
+		commandGateway.send(new SetTaskPropertyCmd($wft.getWorkflow().getId(), $wft.getId(), properties));
+end
 
-rule "CheckJiraExists" 
+rule "CheckJiraExists"
 	no-loop
 	when
 		$ct : ConstraintTrigger()
 		$qac : RuleEngineBasedConstraint( isAffectedBy($ct) && getConstraintType().equals( "CheckJiraExists" ))
-		$wft : WorkflowTask( getType().getId().equals("DemoTask2") 
+		$wft : WorkflowTask( getType().getId().equals("DemoTask1")
 		, $jira : getAnyOneOutputByRole("jira") 
 		,  $jama : getAnyOneInputByRole("jama")
 		)
@@ -89,10 +98,10 @@ end
 
 rule "ExtractDemoTask"
 	when
-		$wft : WorkflowTask (   getType().getId().equals("DemoTask2") &&
+		$wft : WorkflowTask (   getType().getId().equals("DemoTask1") &&
 								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
-								 getAnyOneOutputByRole("jira") == null 
-								 , $jama : getAnyOneInputByRole("jama") 								
+								 getAnyOneOutputByRole("jira") == null
+								 , $jama : getAnyOneInputByRole("jama")
 							 ) @watch( lifecycleState )
 		eval ($jama != null )					 //"UAV-1196"
 	then

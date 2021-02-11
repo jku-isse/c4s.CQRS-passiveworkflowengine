@@ -135,19 +135,19 @@ public class JamaUpdatePerformanceService {
 //                }
 
                 updatedItems.add(jamaItem);
-
+                changeSubscriber.handleChangedJamaItems(Set.of(jamaItem), new CorrelationTuple());
             }
 
         }
 
-        changeSubscriber.handleChangedJamaItems(updatedItems, new CorrelationTuple());
+//        changeSubscriber.handleChangedJamaItems(updatedItems, new CorrelationTuple());
 
         timeStamps.add(stopW.getTime());
         stopW.stop();
 
-        System.out.println("UpdateCount: "+updateCount);
-        System.out.println("FailedChangeCount: "+failedChanges);
-        System.out.println(timeStamps);
+        log.info("UpdateCount: "+updateCount);
+        log.info("FailedChangeCount: "+failedChanges);
+        log.info(timeStamps+"");
 
         firstLastDates.forEach((key, value) -> System.out.println(key + " " + value.toString()));
     }

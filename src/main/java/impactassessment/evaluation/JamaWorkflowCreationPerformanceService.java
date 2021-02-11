@@ -23,11 +23,33 @@ public class JamaWorkflowCreationPerformanceService {
         ,11539215,11539217,11591733,13348823,13348824,13373299,13373300,13373301,13422794,14359309,14360397
         ,14464163,14464164,14464165,14464166);
 
+//    public void createAll() {
+//        Thread t = new Thread(new CreationWorker());
+//        t.start();
+//    }
+
     public void createAll() {
         for (Integer id : wpIds) {
             Map<String, String> input = new HashMap<>();
-            input.put(String.valueOf(id), "JAMA");
-            commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, "JAMA_PERFORMANCE"));
+            input.put(String.valueOf(id), "jama::IJamaArtifact");
+            commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, "WORKFLOW_EXAMPLE"));
+        }
+    }
+
+    private class CreationWorker implements Runnable {
+
+        @Override
+        public void run() {
+            for (Integer id : wpIds) {
+                Map<String, String> input = new HashMap<>();
+                input.put(String.valueOf(id), "jama::IJamaArtifact");
+                commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, "WORKFLOW_EXAMPLE"));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

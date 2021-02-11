@@ -277,6 +277,25 @@ public class WorkflowInstanceWrapper {
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
+    public void handle(SetTaskPropertyEvt evt) {
+        Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
+                .filter(wft -> wft.getId().equals(evt.getWftId()))
+                .findAny();
+        if (opt.isPresent()) {
+            for (Entry<String, String> entry : evt.getProperties().entrySet()) {
+                switch (entry.getKey()) {
+                    case "name":
+                        opt.get().setName(entry.getValue());
+                        break;
+                    default:
+                        log.warn("Property {} is not supported and cannot be set!", entry.getKey());
+                }
+            }
+        } else {
+            log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
+        }
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
@@ -312,6 +331,8 @@ public class WorkflowInstanceWrapper {
             handle((SetPostConditionsFulfillmentEvt) evt);
         } else if (evt instanceof ActivatedTaskEvt) {
             handle((ActivatedTaskEvt) evt);
+        } else if (evt instanceof SetTaskPropertyEvt) {
+            handle((SetTaskPropertyEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

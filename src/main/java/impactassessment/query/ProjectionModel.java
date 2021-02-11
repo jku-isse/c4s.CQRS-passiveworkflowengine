@@ -41,12 +41,12 @@ public class ProjectionModel {
         return db.containsKey(id);
     }
 
-    public WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
-        db.put(id, new WorkflowInstanceWrapper());
+    public synchronized WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
+        WorkflowInstanceWrapper suc = db.put(id, new WorkflowInstanceWrapper());
         return db.get(id);
     }
 
-    public WorkflowInstanceWrapper delete(String id) {
+    public synchronized WorkflowInstanceWrapper delete(String id) {
         return db.remove(id);
     }
 

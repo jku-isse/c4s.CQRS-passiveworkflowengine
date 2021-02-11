@@ -67,7 +67,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 return wfi.getType().getId() + " (" + id + ")";
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
-                return wft.getType().getId();
+                if (wft.getName() != null) {
+                    return wft.getName();
+                } else {
+                    return wft.getType().getId();
+                }
             } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
                 return rebc.getDescription();

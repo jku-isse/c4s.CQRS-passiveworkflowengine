@@ -177,5 +177,12 @@ public class Commands {
         private final String id;
         private final String wftId;
     }
+    @Data
+    public static class SetTaskPropertyCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final Map<String, String> properties;
+    }
 }
 
