@@ -339,7 +339,9 @@ public class JamaArtifact implements IJamaArtifact {
             return Optional.ofNullable(((TestCaseStatusFieldValue) jfv).getValue());
         } else if (jfv instanceof RichTextFieldValue) {
             return Optional.ofNullable(((RichTextFieldValue) jfv).getValue().getValue());
-        } else {
+        } else if (jfv instanceof PickListFieldValue) {
+            return Optional.ofNullable(((PickListFieldValue) jfv).getValue().getName());
+        }else {
             return Optional.empty();
         }
     }

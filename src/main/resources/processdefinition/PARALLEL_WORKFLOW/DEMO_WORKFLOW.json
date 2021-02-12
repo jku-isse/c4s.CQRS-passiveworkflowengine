@@ -1,0 +1,220 @@
+{
+  "taskDefinitions": [
+    {
+      "expectedInput": {
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_QA_CHECK_DOCUMENT"
+        }
+      },
+      "expectedOutput": {},
+      "id": "Open"
+    },
+    {
+      "expectedInput": {
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {
+        "ROLE_DOCUMENTATION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "id": "Doc"
+    },
+    {
+      "expectedInput": {
+        "ROLE_DOCUMENTATION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "Reported"
+    },
+    {
+      "expectedInput": {
+        "ROLE_WPTICKET": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "id": "Closed"
+    }
+  ],
+  "dnds": [
+    {
+      "inB": [],
+      "outB": [
+        {
+          "name": "openIn",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        },
+        {
+          "name": "docIn",
+          "task": "Doc",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": false,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "LINEARWITHDATA_WORKFLOW_TYPE",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "to": [
+            {
+              "first": "Open",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "mappingType": "ANY"
+        },
+        {
+          "from": [
+            {
+              "first": "LINEARWITHDATA_WORKFLOW_TYPE",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "to": [
+            {
+              "first": "Doc",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "workflowKickOff"
+    },
+    {
+      "inB": [
+        {
+          "name": "openOut",
+          "task": "Open",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        },
+        {
+          "name": "docOut",
+          "task": "Doc",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [
+        {
+          "name": "closedIn",
+          "task": "Closed",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        },
+        {
+          "name": "repIn",
+          "task": "Reported",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "OR",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "LINEARWITHDATA_WORKFLOW_TYPE",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "to": [
+            {
+              "first": "Closed",
+              "second": "ROLE_WPTICKET"
+            }
+          ],
+          "mappingType": "ANY"
+        },
+        {
+          "from": [
+            {
+              "first": "Doc",
+              "second": "ROLE_DOCUMENTATION"
+            }
+          ],
+          "to": [
+            {
+              "first": "Reported",
+              "second": "ROLE_DOCUMENTATION"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "open2closed"
+    },
+    {
+      "inB": [
+        {
+          "name": "repOut",
+          "task": "Reported",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        },
+        {
+          "name": "closedOut",
+          "task": "Closed",
+          "hasActivationCondition": false,
+          "hasDataFlow": false
+        }
+      ],
+      "outB": [],
+      "hasExternalContextRules": false,
+      "hasExternalInBranchRules": true,
+      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "Reported",
+              "second": "ROLE_DOCUMENTATION"
+            }
+          ],
+          "to": [
+            {
+              "first": "LINEARWITHDATA_WORKFLOW_TYPE",
+              "second": "ROLE_DOCUMENTATION"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "closed2end"
+    }
+  ],
+  "expectedInput": {
+    "ROLE_WPTICKET": {
+      "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+    }
+  },
+  "expectedOutput": {
+    "ROLE_DOCUMENTATION": {
+      "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+    }
+  },
+  "id": "LINEARWITHDATA_WORKFLOW_TYPE"
+}
