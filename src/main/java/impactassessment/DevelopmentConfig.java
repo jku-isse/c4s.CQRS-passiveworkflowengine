@@ -43,6 +43,8 @@ import c4s.jiralightconnector.IssueCache;
 import c4s.jiralightconnector.JiraInstance;
 import c4s.jiralightconnector.MonitoringState;
 import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
+import c4s.jiralightconnector.anonymizer.AnonymizingAsyncJiraRestClientFactory;
+import c4s.jiralightconnector.anonymizer.AnonymizingJiraInstance;
 import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
 import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
@@ -102,7 +104,7 @@ public class DevelopmentConfig extends AbstractModule {
 		bind(ChangeSubscriber.class).toInstance(jiraCS);
 		bind(MonitoringState.class).toInstance(jiraM);
 		bind(IssueCache.class).toInstance(jiraCache);
-		bind(JiraInstance.class).asEagerSingleton();
+		bind(AnonymizingJiraInstance.class).asEagerSingleton();
 		bind(JamaService.class).toInstance(jamaS);
 	}
 	
@@ -132,7 +134,8 @@ public class DevelopmentConfig extends AbstractModule {
         String uri =  getProp("jiraServerURI");
         String username =  getProp("jiraConnectorUsername");
         String pw =  getProp("jiraConnectorPassword");
-        return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+        return new AnonymizingAsyncJiraRestClientFactory()
+			      .createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
     
    private JiraUpdateTracingInstrumentation setupJiraUpdateTracingInstrumentation() {
@@ -218,8 +221,10 @@ public class DevelopmentConfig extends AbstractModule {
         }
 
         JamaInstance jamaInst = new JamaInstance(jamaConf, false);
+        jamaInst.enableAnonymizing();
         jamaCache.setJamaInstance(jamaInst);
         jamaInst.setResourcePool(new CachedResourcePool(jamaCache));
+        
         return jamaInst;
     }
 	

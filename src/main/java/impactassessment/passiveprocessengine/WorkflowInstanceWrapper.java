@@ -193,8 +193,12 @@ public class WorkflowInstanceWrapper {
             rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
 
             // output state may change because QA constraints may be all fulfilled now
-            wfi.getWorkflowTasksReadonly()
-                    .forEach(wft -> awos.addAll(wft.recalcOutputState().getValue()));
+            wfi.getWorkflowTasksReadonly().stream()
+                .map(wft -> {
+                	awos.addAll(wft.tryTriggerProgess());
+                	return wft;
+                })    
+            	.forEach(wft -> awos.addAll(wft.recalcOutputState().getValue()));
         }
         return awos;
     }

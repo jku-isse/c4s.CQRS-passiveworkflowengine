@@ -9,22 +9,24 @@
       "expectedOutput": {
         "jira": {
           "id": "IJiraArtifact"
+        },
+        "checkissue": {
+          "id": "IJiraArtifact"
         }
       },
-      "id": "DemoTask1"
+      "id": "Evaluate"
     },
     {
       "expectedInput": {
         "jira": {
           "id": "IJiraArtifact"
+        },
+        "checkissue": {
+          "id": "IJiraArtifact"
         }
       },
-      "expectedOutput": {
-        "review": {
-          "id": "IJamaArtifact"
-        }
-      },
-      "id": "DemoTask2"
+      "expectedOutput": {},
+      "id": "Execute"
     }
   ],
   "dnds": [
@@ -32,8 +34,8 @@
       "inB": [],
       "outB": [
         {
-          "name": "outTo-DemoTask1",
-          "task": "DemoTask1",
+          "name": "outTo-Evaluate",
+          "task": "Evaluate",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -53,7 +55,7 @@
           ],
           "to": [
             {
-              "first": "DemoTask1",
+              "first": "Evaluate",
               "second": "jama"
             }
           ],
@@ -65,8 +67,8 @@
     {
       "inB": [
         {
-          "name": "inFrom-DemoTask2",
-          "task": "DemoTask2",
+          "name": "inFrom-Execute",
+          "task": "Execute",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -83,16 +85,16 @@
     {
       "inB": [
         {
-          "name": "inFrom-DemoTask1",
-          "task": "DemoTask1",
+          "name": "inFrom-Evaluate",
+          "task": "Evaluate",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
       ],
       "outB": [
         {
-          "name": "outTo-DemoTask2",
-          "task": "DemoTask2",
+          "name": "outTo-Execute",
+          "task": "Execute",
           "hasActivationCondition": false,
           "hasDataFlow": true
         }
@@ -106,14 +108,29 @@
         {
           "from": [
             {
-              "first": "DemoTask1",
+              "first": "Evaluate",
               "second": "jira"
             }
           ],
           "to": [
             {
-              "first": "DemoTask2",
+              "first": "Execute",
               "second": "jira"
+            }
+          ],
+          "mappingType": "ANY"
+        },
+        {
+          "from": [
+            {
+              "first": "Evaluate",
+              "second": "checkissue"
+            }
+          ],
+          "to": [
+            {
+              "first": "Execute",
+              "second": "checkissue"
             }
           ],
           "mappingType": "ANY"
