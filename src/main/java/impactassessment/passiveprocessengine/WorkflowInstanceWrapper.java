@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -177,16 +178,25 @@ public class WorkflowInstanceWrapper {
         RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
         Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
         if (rebc != null) {
+            boolean hasChanged = false;
+            Instant oldTime = rebc.getLastChanged();
+            for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
+                if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
+                        (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
+                    hasChanged = true;
+                    break;
+                }
+            }
             rebc.removeAllResourceLinks();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
-                if (!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) {
+                if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
+                        (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
                     rebc.addAs(entry.getValue(), entry.getKey());
                     rebc.setLastChanged(evt.getTime());
                 }
-                if (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey())) {
-                    rebc.addAs(entry.getValue(), entry.getKey());
-                    rebc.setLastChanged(evt.getTime());
-                }
+            }
+            if (!hasChanged) {
+                rebc.setLastChanged(oldTime);
             }
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
