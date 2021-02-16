@@ -276,7 +276,27 @@ public class JamaArtifact implements IJamaArtifact {
 
     @Override
     public String getStringValue(String fieldName) {
-        return stringValues.get(fieldName);
+        String s = stringValues.get(fieldName);
+        if (s == null) {
+            Date d = dateValues.get(fieldName);
+            if (d == null) {
+                Integer i = intValues.get(fieldName);
+                if (i == null) {
+                    Boolean b = booleanValues.get(fieldName);
+                    if (b == null) {
+                        return null;
+                    } else {
+                        return String.valueOf(b);
+                    }
+                } else {
+                    return String.valueOf(i);
+                }
+            } else {
+                return d.toString();
+            }
+        } else {
+            return s;
+        }
     }
 
     @Override
