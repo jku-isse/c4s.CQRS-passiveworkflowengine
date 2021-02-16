@@ -105,6 +105,7 @@ public class DevelopmentConfig extends AbstractModule {
 		bind(MonitoringState.class).toInstance(jiraM);
 		bind(IssueCache.class).toInstance(jiraCache);
 		bind(AnonymizingJiraInstance.class).asEagerSingleton();
+		bind(JamaInstance.class).toInstance(jamaI);
 		bind(JamaService.class).toInstance(jamaS);
 	}
 	

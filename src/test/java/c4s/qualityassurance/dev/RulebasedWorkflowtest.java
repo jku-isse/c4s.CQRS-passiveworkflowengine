@@ -1,18 +1,10 @@
 package c4s.qualityassurance.dev;
 
 import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifactRegistry;
 import artifactapi.jama.IJamaArtifact;
-import artifactapi.jira.IJiraArtifact;
-import artifactapi.jira.subtypes.IJiraSubtask;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.JiraService;
@@ -33,7 +25,6 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.ui.IFrontendPusher;
 import impactassessment.ui.SimpleFrontendPusher;
-import passiveprocessengine.instance.ResourceLink;
 
 class RulebasedWorkflowtest {
 
