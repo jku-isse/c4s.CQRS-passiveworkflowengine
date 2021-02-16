@@ -53,9 +53,14 @@ class RulebasedWorkflowtest {
 //		IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("PVCSG-9", "IJiraArtifact"), workflowId).get();
 //		IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("7230585", "IJamaArtifact"), workflowId).get();
 		//jamaArt.getDownstreamItems("").stream().anyMatch(dsi -> dsi.getItemType().equals(""));
-		IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("7801212", "IJamaArtifact"), workflowId).get();
+		IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("18001185", "IJamaArtifact"), workflowId).get();
+		jamaArt.getDownstreamItems(workflowId).stream().forEach(dsi ->
+				System.out.println(dsi.getItemType().toString())
+				);
+		
+		
 //		
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess3", registry.get("DemoProcess3").getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(workflowId));

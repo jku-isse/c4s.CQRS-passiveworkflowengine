@@ -8,6 +8,7 @@ import impactassessment.artifactconnector.jira.mock.JiraMockArtifact;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
+import passiveprocessengine.instance.QACheckDocument.QAConstraint.EvaluationState;
 
 import java.time.Instant;
 import java.util.*;
@@ -168,7 +169,8 @@ public class WorkflowInstanceWrapper {
         for (Map.Entry<String, String> e : rules.entrySet()) {
             String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
-            rebc.addAs(false, (new JiraMockArtifact()).convertToResourceLink());
+            //rebc.addAs(false, (new JiraMockArtifact()).convertToResourceLink());
+            rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
             qa.addConstraint(rebc);
             awos.add(rebc);
         }
@@ -200,8 +202,11 @@ public class WorkflowInstanceWrapper {
             }
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
-            rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
-
+            if (evt.getRes().isEmpty()) {
+            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE);
+            } else {
+            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+            }
             // output state may change because QA constraints may be all fulfilled now
             wfi.getWorkflowTasksReadonly().stream()
                 .map(wft -> {
