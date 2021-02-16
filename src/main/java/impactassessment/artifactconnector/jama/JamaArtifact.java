@@ -280,7 +280,7 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     @Override
-    public List<String> getStringListValue(List<String> fieldName) {
+    public List<String> getStringListValue(String fieldName) {
         return stringListValues.get(fieldName);
     }
 
