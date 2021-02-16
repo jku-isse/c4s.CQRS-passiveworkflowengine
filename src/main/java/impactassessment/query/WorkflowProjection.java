@@ -47,8 +47,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        if (!status.isReplay())
-            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
+        evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -64,8 +63,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        if (!status.isReplay())
-            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
+        evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);

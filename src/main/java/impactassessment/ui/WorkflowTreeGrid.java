@@ -363,7 +363,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         dialog.setMaxHeight("80%");
 
         Icon icon;
-        if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
+        if (!rebc.getEvaluationStatus().equals(QACheckDocument.QAConstraint.EvaluationState.SUCCESS)) {
+            icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+            icon.setColor("#1565C0");
+            return icon;
+        } else if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
             icon = new Icon(VaadinIcon.WARNING);
             icon.setColor("#E24C00");
         } else if (fulfilledLinks.size() > 0) {
