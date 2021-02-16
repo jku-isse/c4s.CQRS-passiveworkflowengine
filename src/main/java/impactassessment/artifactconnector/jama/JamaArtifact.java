@@ -8,6 +8,7 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import com.jamasoftware.services.restclient.jamadomain.TestCaseStep;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
 import impactassessment.SpringUtil;
@@ -45,6 +46,7 @@ public class JamaArtifact implements IJamaArtifact {
     private List<Integer> upstreamItems;
 
     private Map<String, String> stringValues = new HashMap<>();
+    private Map<String, List<String>> stringListValues = new HashMap<>();
     private Map<String, Date> dateValues = new HashMap<>();
     private Map<String, Integer> intValues = new HashMap<>();
     private Map<String, Boolean> booleanValues = new HashMap<>();
@@ -92,6 +94,7 @@ public class JamaArtifact implements IJamaArtifact {
 
         for (JamaFieldValue jfv : jamaItem.getFieldValues()) {
             getString(jfv).ifPresent(s -> stringValues.put(jfv.getName(), s));
+            getStringList(jfv).ifPresent(sl -> stringListValues.put(jfv.getName(), sl));
             getInt(jfv).ifPresent(i -> intValues.put(jfv.getName(), i));
             getBoolean(jfv).ifPresent(b -> booleanValues.put(jfv.getName(), b));
             getDate(jfv).ifPresent(d -> dateValues.put(jfv.getName(), d));
@@ -277,6 +280,11 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     @Override
+    public List<String> getStringListValue(List<String> fieldName) {
+        return stringListValues.get(fieldName);
+    }
+
+    @Override
     public Date getDateValue(String fieldName) {
         return dateValues.get(fieldName);
     }
@@ -340,11 +348,34 @@ public class JamaArtifact implements IJamaArtifact {
         } else if (jfv instanceof RichTextFieldValue) {
             return Optional.ofNullable(((RichTextFieldValue) jfv).getValue().getValue());
         } else if (jfv instanceof PickListFieldValue) {
-           PickListOption opt = ((PickListFieldValue) jfv).getValue();
+            PickListOption opt = ((PickListFieldValue) jfv).getValue();
         	return Optional.ofNullable(opt != null ? opt.getName() : null);
-        }else {
+        } else {
             return Optional.empty();
         }
+    }
+
+    private Optional<List<String>> getStringList(JamaFieldValue jfv) {
+         if (jfv instanceof TestCaseStepsFieldValue) {
+            List<TestCaseStep> list = ((TestCaseStepsFieldValue) jfv).getValue();
+            if (list != null) {
+                List<String> strList = list.stream().map(TestCaseStep::getAction).collect(Collectors.toList());
+                return Optional.of(strList);
+            } else {
+                return Optional.empty();
+            }
+        } else if (jfv instanceof MultiSelectFieldValue) {
+             List<PickListOption> list = ((MultiSelectFieldValue) jfv).getValue();
+             if (list != null) {
+                 List<String> strList = list.stream().map(PickListOption::getName).collect(Collectors.toList());
+                 return Optional.of(strList);
+             } else {
+                 return Optional.empty();
+             }
+         } else {
+             return Optional.empty();
+         }
+
     }
 
     private Optional<Date> getDate(JamaFieldValue jfv) {
