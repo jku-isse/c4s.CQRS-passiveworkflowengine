@@ -165,6 +165,9 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         toggle.setClassName("med");
         toggle.addValueChangeListener(evt -> {
             devMode = !devMode;
+            if (devMode) {
+                Notification.show("Development mode enabled! Additional features activated.");
+            }
             initAccordion();
             content();
         });
@@ -288,8 +291,8 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
             }
         });
         Button replay = new Button("Replay All Events", evt -> {
-            replayer.replay("projection");
             Notification.show("Replay of Current State initiated. Replay gets executed..");
+            replayer.replay("projection");
         });
 
         controlButtonLayout.add(getState, replay);
@@ -531,7 +534,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
         if (wfdKeys.isEmpty()) {
-            Paragraph par = new Paragraph("Fetch available definitions or add new ones (switch on 'dev mode') to continue.");
+            Paragraph par = new Paragraph("fetch available definitions/add new ones (adding requires 'dev mode' switched on)");
             layout.add(
                     new H4("1. Select Process Definition"),
                     par,

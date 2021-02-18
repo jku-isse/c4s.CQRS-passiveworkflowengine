@@ -23,6 +23,15 @@ vaadin-grid-cell-content {
     margin: 0px 0px 0.5em;
 }
 
+.upload-background {
+    /*border-radius: 15px;*/
+    background-color: aliceblue;
+    border-radius: 5px;
+    align-items: baseline;
+    padding: 0.5em;
+    width: 100%;
+}
+
 .scrollable {
     overflow-y: auto;
 }

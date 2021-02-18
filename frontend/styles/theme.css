@@ -11,12 +11,8 @@
     width: 150px;
 }
 
-.no-margin {
+.const-margin {
     margin: 0.5em;
-}
-
-.left-margin {
-    margin: 0.5em 0.5em 0.5em 1.5em;
 }
 
 .info-header {
@@ -47,13 +43,21 @@
 
 .line {
     width: 100%;
-    align-items: center;
-    margin: 0.5em 0px;
-    padding: 0px;
+    align-items: baseline;
+    margin: 0 0 -1em;
+    padding: 0;
 }
 
 .italic {
     font-style: italic;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.red {
+    color: red;
 }
 
 body, html {

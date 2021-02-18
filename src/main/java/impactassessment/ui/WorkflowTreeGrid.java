@@ -1,9 +1,12 @@
 package impactassessment.ui;
 
+import artifactapi.IArtifact;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.HtmlImport;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
@@ -12,7 +15,11 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.Commands.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -20,14 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
 import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.NoOpTaskDefinition;
-import passiveprocessengine.instance.ArtifactIO;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
-import passiveprocessengine.instance.QACheckDocument;
-import passiveprocessengine.instance.ResourceLink;
-import passiveprocessengine.instance.RuleEngineBasedConstraint;
-import passiveprocessengine.instance.WorkflowInstance;
-import passiveprocessengine.instance.WorkflowTask;
+import passiveprocessengine.instance.*;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
@@ -39,6 +39,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static impactassessment.ui.Helpers.createComponent;
+import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
@@ -256,7 +259,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         l.add(h3);
         if (wfi.getPropertiesReadOnly().size() > 0) {
             H4 h4 = new H4("Properties");
-            h4.setClassName("no-margin");
+            h4.setClassName("const-margin");
             l.add(h4);
             UnorderedList list = new UnorderedList();
             for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
@@ -308,84 +311,122 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return icon;
     }
 
-    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
-        HorizontalLayout line = new HorizontalLayout();
-        line.setClassName("line");
-        Button addInput = new Button("Add Input", evt -> {
-            Notification.show("coming soon");
-        });
-        H4 h4 = new H4("Inputs");
-        h4.setClassName("left-margin");
-        line.add(h4, addInput);
-        l.add(line);
-        VerticalLayout inLayout = new VerticalLayout();
-        inLayout.setClassName("card-border");
-        inLayout.add(new H5("Expected"));
-        UnorderedList list = new UnorderedList();
-        list.setClassName("no-margin");
-        if (expectedInput.size() > 0) {
-            for (Map.Entry<String, ArtifactType> entry : expectedInput.entrySet()) {
-                list.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-            }
-        } else {
-            ListItem li = new ListItem("no input expected");
-            li.setClassName("italic");
-            list.add(li);
-        }
-        inLayout.add(list);
-        inLayout.add(new H5("Present"));
-        UnorderedList list2 = new UnorderedList();
-        list2.setClassName("no-margin");
-        if (inputs.size() > 0) {
-            for (ArtifactInput ai : inputs) {
-                list2.add(new ListItem(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
-            }
-        } else {
-            ListItem li = new ListItem("no input present");
-            li.setClassName("italic");
-            list2.add(li);
-        }
-        inLayout.add(list2);
-        l.add(inLayout);
+    private Component addInOut(String title) {
+        HorizontalLayout hLayout = new HorizontalLayout();
+        hLayout.setClassName("upload-background");
 
-        HorizontalLayout line2 = new HorizontalLayout();
-        line2.setClassName("line");
-        Button addOutput = new Button("Add Output", evt -> {
+        TextField id = new TextField();
+        id.setPlaceholder("Artifact ID");
+
+        Button submit = new Button(title, evt -> {
             Notification.show("coming soon");
         });
+
+        hLayout.add(id, submit);
+        Details details = new Details(title, hLayout);
+        details.addThemeVariants(DetailsVariant.SMALL);
+        return details;
+    }
+
+    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
+        H4 h4 = new H4("Inputs");
+        inOut(l, h4, expectedInOut(expectedInput, inputs), otherInOut(expectedInput, inputs), outputs, expectedInput);
+
         H4 h41 = new H4("Outputs");
-        h41.setClassName("left-margin");
-        line2.add(h41, addOutput);
-        l.add(line2);
+        inOut(l, h41, expectedInOut(expectedOutput, outputs), otherInOut(expectedOutput, outputs), outputs, expectedOutput);
+    }
+
+    private void inOut(VerticalLayout l, H4 h41, Component expectedInOut, Component otherInOut, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedOutput) {
+        h41.setClassName("const-margin");
+        l.add(h41);
         VerticalLayout outLayout = new VerticalLayout();
         outLayout.setClassName("card-border");
         outLayout.add(new H5("Expected"));
-        UnorderedList list3 = new UnorderedList();
-        list3.setClassName("no-margin");
-        if (expectedOutput.size() > 0) {
-            for (Map.Entry<String, ArtifactType> entry : expectedOutput.entrySet()) {
-                list3.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-            }
-        } else {
-            ListItem li = new ListItem("no output expected");
-            li.setClassName("italic");
-            list3.add(li);
+        outLayout.add(expectedInOut);
+        if (otherInOut != null) {
+            outLayout.add(new H5("Other"));
+            outLayout.add(otherInOut);
         }
-        outLayout.add(list3);
-        outLayout.add(new H5("Present"));
-        UnorderedList list4 = new UnorderedList();
-        list4.setClassName("no-margin");
-        if (outputs.size() > 0) {
-            for (ArtifactOutput ao : outputs) {
-                list4.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
-            }
-        } else {
-            ListItem li = new ListItem("no output present");
-            li.setClassName("italic");
-            list4.add(li);
-        }
-        outLayout.add(list4);
         l.add(outLayout);
+    }
+
+    private <T  extends ArtifactIO> Component expectedInOut(Map<String, ArtifactType> expected, List<T> present) {
+        UnorderedList list = new UnorderedList();
+        list.setClassName("const-margin");
+        if (expected.size() > 0) {
+            for (Map.Entry<String, ArtifactType> entry : expected.entrySet()) {
+                HorizontalLayout line = new HorizontalLayout();
+                line.setClassName("line");
+                line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+                Optional<T> opt = present.stream()
+                        .filter(aio -> entry.getKey().equals(aio.getRole()))
+                        .filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType()))
+                        .findAny();
+                if (opt.isPresent()) {
+                    Optional<Component> rl = tryToConvertToResourceLink(opt.get());
+                    if (rl.isPresent()) {
+                        line.add(rl.get());
+                    } else {
+                        Paragraph p = new Paragraph(opt.get().getArtifact().getId());
+                        p.setClassName("bold");
+                        line.add(p);
+                    }
+                    line.add(addInOut("Replace"));
+                } else {
+                    Paragraph p = new Paragraph("missing");
+                    p.setClassName("red");
+                    line.add(p);
+                    line.add(addInOut("Add"));
+                }
+                list.add(line);
+            }
+        } else {
+            ListItem li = new ListItem("nothing expected");
+            li.setClassName("italic");
+            list.add(li);
+        }
+        return list;
+    }
+
+    private Optional<Component> tryToConvertToResourceLink(ArtifactIO artifactIO) {
+        if (artifactIO.getArtifact() instanceof ArtifactWrapper) {
+            if (((ArtifactWrapper)artifactIO.getArtifact()).getWrappedArtifact() instanceof IArtifact) {
+                IArtifact artifact = (IArtifact)((ArtifactWrapper)artifactIO.getArtifact()).getWrappedArtifact();
+                ResourceLink rl = artifact.convertToResourceLink();
+                Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+                a.setTarget("_blank");
+                return Optional.of(a);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private <T extends ArtifactIO> Component otherInOut(Map<String, ArtifactType> expected, List<T> present) {
+        UnorderedList list = new UnorderedList();
+        list.setClassName("const-margin");
+        boolean existOthers = false;
+        for (ArtifactIO ao : present) {
+            if (expected.entrySet().stream()
+                    .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType()))) {
+                existOthers = true;
+                HorizontalLayout line = new HorizontalLayout();
+                line.setClassName("line");
+                line.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + ")"));
+                Optional<Component> rl = tryToConvertToResourceLink(ao);
+                if (rl.isPresent()) {
+                    line.add(rl.get());
+                } else {
+                    Paragraph p = new Paragraph(ao.getArtifact().getId());
+                    p.setClassName("bold");
+                    line.add(p);
+                }
+                list.add(line);
+            }
+        }
+        if (!existOthers) {
+            return null;
+        }
+        return list;
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
