@@ -1,6 +1,7 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.HtmlImport;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -8,6 +9,7 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -100,7 +102,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 try {
                     return formatter.format(rebc.getLastEvaluated());
                 } catch (DateTimeException e) {
-                    return "invalid time";
+                    return "not available";
                 }
             } else {
                 return "";
@@ -115,7 +117,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 try {
                     return formatter.format(rebc.getLastChanged());
                 } catch (DateTimeException e) {
-                    return "invalid time";
+                    return "not available";
                 }
             } else {
                 return "";
@@ -245,13 +247,27 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component infoDialog(WorkflowInstance wfi) {
         VerticalLayout l = new VerticalLayout();
-        l.add(new H3(wfi.getId()));
-        l.add(new H4("Properties"));
-        for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
-            l.add(new Paragraph(e.getKey() + ": " + e.getValue()));
+        l.setClassName("scrollable");
+        Paragraph p = new Paragraph("Process Instance ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(wfi.getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+        if (wfi.getPropertiesReadOnly().size() > 0) {
+            H4 h4 = new H4("Properties");
+            h4.setClassName("no-margin");
+            l.add(h4);
+            UnorderedList list = new UnorderedList();
+            for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
+                list.add(new ListItem(e.getKey() + ": " + e.getValue()));
+            }
+            l.add(list);
         }
         infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput());
         Dialog dialog = new Dialog();
+        dialog.setWidth("80%");
+        dialog.setMaxHeight("80%");
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
         icon.setColor("#1565C0");
@@ -266,12 +282,20 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component infoDialog(WorkflowTask wft) {
         VerticalLayout l = new VerticalLayout();
-        l.add(new H3(wft.getId()));
-        l.add(new H4("Properties"));
+        l.setClassName("scrollable");
+        Paragraph p = new Paragraph("Process Step ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(wft.getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+
         if (wft.getLifecycleState() != null)
-            l.add(new Paragraph(wft.getLifecycleState().name()));
+            l.add(new Paragraph("Process Step Lifecycle State: "+wft.getLifecycleState().name()));
         infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput());
         Dialog dialog = new Dialog();
+        dialog.setMaxHeight("80%");
+        dialog.setWidth("80%");
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
         icon.setColor("#1565C0");
@@ -285,37 +309,97 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     }
 
     private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
-        l.add(new H4("Inputs"));
+        HorizontalLayout line = new HorizontalLayout();
+        line.setClassName("line");
+        Button addInput = new Button("Add Input", evt -> {
+            Notification.show("coming soon");
+        });
+        H4 h4 = new H4("Inputs");
+        h4.setClassName("left-margin");
+        line.add(h4, addInput);
+        l.add(line);
         VerticalLayout inLayout = new VerticalLayout();
         inLayout.setClassName("card-border");
         inLayout.add(new H5("Expected"));
-        for (Map.Entry<String, ArtifactType> entry : expectedInput.entrySet()) {
-            inLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+        UnorderedList list = new UnorderedList();
+        list.setClassName("no-margin");
+        if (expectedInput.size() > 0) {
+            for (Map.Entry<String, ArtifactType> entry : expectedInput.entrySet()) {
+                list.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+            }
+        } else {
+            ListItem li = new ListItem("no input expected");
+            li.setClassName("italic");
+            list.add(li);
         }
+        inLayout.add(list);
         inLayout.add(new H5("Present"));
-        for (ArtifactInput ai : inputs) {
-            inLayout.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+        UnorderedList list2 = new UnorderedList();
+        list2.setClassName("no-margin");
+        if (inputs.size() > 0) {
+            for (ArtifactInput ai : inputs) {
+                list2.add(new ListItem(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
+            }
+        } else {
+            ListItem li = new ListItem("no input present");
+            li.setClassName("italic");
+            list2.add(li);
         }
+        inLayout.add(list2);
         l.add(inLayout);
 
-        l.add(new H4("Outputs"));
+        HorizontalLayout line2 = new HorizontalLayout();
+        line2.setClassName("line");
+        Button addOutput = new Button("Add Output", evt -> {
+            Notification.show("coming soon");
+        });
+        H4 h41 = new H4("Outputs");
+        h41.setClassName("left-margin");
+        line2.add(h41, addOutput);
+        l.add(line2);
         VerticalLayout outLayout = new VerticalLayout();
         outLayout.setClassName("card-border");
         outLayout.add(new H5("Expected"));
-        for (Map.Entry<String, ArtifactType> entry : expectedOutput.entrySet()) {
-            outLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+        UnorderedList list3 = new UnorderedList();
+        list3.setClassName("no-margin");
+        if (expectedOutput.size() > 0) {
+            for (Map.Entry<String, ArtifactType> entry : expectedOutput.entrySet()) {
+                list3.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+            }
+        } else {
+            ListItem li = new ListItem("no output expected");
+            li.setClassName("italic");
+            list3.add(li);
         }
+        outLayout.add(list3);
         outLayout.add(new H5("Present"));
-        for (ArtifactOutput ao : outputs) {
-            outLayout.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        UnorderedList list4 = new UnorderedList();
+        list4.setClassName("no-margin");
+        if (outputs.size() > 0) {
+            for (ArtifactOutput ao : outputs) {
+                list4.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+            }
+        } else {
+            ListItem li = new ListItem("no output present");
+            li.setClassName("italic");
+            list4.add(li);
         }
+        outLayout.add(list4);
         l.add(outLayout);
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
         VerticalLayout l = new VerticalLayout();
         l.setClassName("scrollable");
-        l.add(new H3(rebc.getWorkflow().getId()));
+
+        Paragraph p = new Paragraph("Quality Assurance Document ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(rebc.getParentArtifact().getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+
+        l.add(h3);
         l.add(new H4(rebc.getDescription()));
         // Unsatisfied resources
         List<Anchor> unsatisfiedLinks = new ArrayList<>();
@@ -361,6 +445,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         Dialog dialog = new Dialog();
         dialog.add(l);
         dialog.setMaxHeight("80%");
+        dialog.setMaxWidth("80%");
 
         Icon icon;
         if (!rebc.getEvaluationStatus().equals(QACheckDocument.QAConstraint.EvaluationState.SUCCESS)) {

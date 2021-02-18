@@ -1,5 +1,5 @@
 .header-theme {
-    background-color: #1565C0;
+    background-color: #0f4d94;
     color: aliceblue;
     font-size: x-large;
     padding-left: 50px;
@@ -8,10 +8,24 @@
 
 .med {
     font-size: medium;
+    width: 150px;
+}
+
+.no-margin {
+    margin: 0.5em;
+}
+
+.left-margin {
+    margin: 0.5em 0.5em 0.5em 1.5em;
+}
+
+.info-header {
+    margin: 0px;
+    align-self: center;
 }
 
 .footer-theme {
-    background-color: #1565C0;
+    background-color: #0f4d94;
     color: aliceblue;
     padding-right: 20px;
     margin: 0;
@@ -29,6 +43,17 @@
 .big-text {
     font-size: x-large;
     margin: 0;
+}
+
+.line {
+    width: 100%;
+    align-items: center;
+    margin: 0.5em 0px;
+    padding: 0px;
+}
+
+.italic {
+    font-style: italic;
 }
 
 body, html {

@@ -8,6 +8,11 @@
 
 .column-center {
     text-align: center;
+    text-overflow: clip;
+}
+
+vaadin-grid-cell-content {
+    text-overflow: clip;
 }
 
 .card-border {
@@ -15,6 +20,7 @@
     border-radius: 15px;
     border-style: solid;
     border-width: thin;
+    margin: 0px 0px 0.5em;
 }
 
 .scrollable {
