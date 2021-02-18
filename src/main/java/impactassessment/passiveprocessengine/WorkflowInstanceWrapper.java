@@ -180,25 +180,12 @@ public class WorkflowInstanceWrapper {
         RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
         Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
         if (rebc != null) {
-            boolean hasChanged = false;
-            Instant oldTime = rebc.getLastChanged();
-            for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
-                if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
-                        (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
-                    hasChanged = true;
-                    break;
-                }
-            }
-            rebc.removeAllResourceLinks();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
                 if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
                         (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
                     rebc.addAs(entry.getValue(), entry.getKey());
                     rebc.setLastChanged(evt.getTime());
                 }
-            }
-            if (!hasChanged) {
-                rebc.setLastChanged(oldTime);
             }
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
@@ -209,10 +196,7 @@ public class WorkflowInstanceWrapper {
             }
             // output state may change because QA constraints may be all fulfilled now
             wfi.getWorkflowTasksReadonly().stream()
-                .map(wft -> {
-                	awos.addAll(wft.tryTriggerProgess());
-                	return wft;
-                })    
+                .peek(wft -> awos.addAll(wft.tryTriggerProgess()))
             	.forEach(wft -> awos.addAll(wft.recalcOutputState().getValue()));
         }
         return awos;
