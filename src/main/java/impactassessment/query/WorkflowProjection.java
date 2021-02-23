@@ -59,6 +59,7 @@ public class WorkflowProjection {
             evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
             kieSessions.fire(evt.getId());
         }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler
@@ -185,9 +186,7 @@ public class WorkflowProjection {
             RuleEngineBasedConstraint rebc = wfiWrapper.getRebc(evt.getCorrId());
             if (rebc != null) {
                 ensureInitializedKB(kieSessions, projection, evt.getId());
-                ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getCorrId(), "CheckConstraintCmd"));
-                ct.addConstraint(rebc.getConstraintType());
-                kieSessions.insertOrUpdate(evt.getId(), ct);
+                insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), rebc.getConstraintType(), "CheckedConstraintEvt");
                 kieSessions.fire(evt.getId());
             } else {
                 log.warn("Concerned RuleEngineBasedConstraint wasn't found");
@@ -204,9 +203,7 @@ public class WorkflowProjection {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         if (wfiWrapper != null) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
-            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
-            ct.addConstraint("*");
-            kieSessions.insertOrUpdate(evt.getId(), ct);
+            insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "CheckedAllConstraintsEvt");
             kieSessions.fire(evt.getId());
         }
     }
@@ -220,6 +217,7 @@ public class WorkflowProjection {
         if (!status.isReplay()) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
             kieSessions.insertOrUpdate(evt.getId(), wft);
+            insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputEvt");
             kieSessions.fire(evt.getId());
             addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
         }
@@ -235,6 +233,7 @@ public class WorkflowProjection {
         if (!status.isReplay()) {
             ensureInitializedKB(kieSessions, projection, evt.getId());
             wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
+            insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
             kieSessions.fire(evt.getId());
         }
         pusher.update(new ArrayList<>(projection.getDb().values()));
@@ -256,6 +255,7 @@ public class WorkflowProjection {
                         kieSessions.remove(evt.getId(), evt.getArtifact()); // TODO what if the artifact is used twice in the workflow?
                     });
             kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
+            insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputToWorkflowEvt");
             kieSessions.fire(evt.getId());
         }
         pusher.update(new ArrayList<>(projection.getDb().values()));
@@ -295,9 +295,7 @@ public class WorkflowProjection {
         // CheckAllConstraints
         if (!status.isReplay()) {
            // ensureInitializedKB(kieSessions, projection, evt.getId());
-            ConstraintTrigger ct = new ConstraintTrigger(wfiWrapper.getWorkflowInstance(), new CorrelationTuple(evt.getId(), "CheckAllConstraintsCmd"));
-            ct.addConstraint("*");
-            kieSessions.insertOrUpdate(evt.getId(), ct);
+            insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
             kieSessions.fire(evt.getId());
         }
     }
@@ -353,4 +351,9 @@ public class WorkflowProjection {
         projection.reset();
     }
 
+    private void insertConstraintTrigger(String id, WorkflowInstance wfi, String constraintType, String correlationObjectType) {
+        ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(id, correlationObjectType));
+        ct.addConstraint(constraintType);
+        kieSessions.insertOrUpdate(id, ct);
+    }
 }

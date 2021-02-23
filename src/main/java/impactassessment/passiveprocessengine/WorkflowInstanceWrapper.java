@@ -3,15 +3,16 @@ package impactassessment.passiveprocessengine;
 import artifactapi.IArtifact;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
-import impactassessment.api.Events;
 import impactassessment.api.Events.*;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 import passiveprocessengine.instance.QACheckDocument.QAConstraint.EvaluationState;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -181,12 +182,26 @@ public class WorkflowInstanceWrapper {
         RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
         Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
         if (rebc != null) {
+            boolean hasChanged = false;
+            Instant oldTime = rebc.getLastChanged();
+            for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
+                if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
+                        (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
+                    hasChanged = true;
+                    break;
+                }
+            }
+            rebc.removeAllResourceLinks();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
                 if ((!entry.getValue() && !rebc.getUnsatisfiedForReadOnly().contains(entry.getKey())) ||
                         (entry.getValue() && !rebc.getFulfilledForReadOnly().contains(entry.getKey()))) {
                     rebc.addAs(entry.getValue(), entry.getKey());
-                    rebc.setLastChanged(evt.getTime());
                 }
+            }
+            if (hasChanged) {
+                rebc.setLastChanged(evt.getTime());
+            } else {
+                rebc.setLastChanged(oldTime);
             }
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
