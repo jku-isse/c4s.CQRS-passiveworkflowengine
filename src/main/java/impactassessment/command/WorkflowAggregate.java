@@ -19,11 +19,7 @@ import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
@@ -83,29 +79,19 @@ public class WorkflowAggregate implements Serializable {
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
             String source = entry.getValue();
-   //        xxx // ugly, implicit dependency, use artifact type directly, as well as role
-//            if (source.equals("JIRA")) {
-//                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJiraArtifact.class.getSimpleName());
-//                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
-//            } else if (source.equals("JAMA")) {
-//                ArtifactIdentifier ai = new ArtifactIdentifier(key, IJamaArtifact.class.getSimpleName());
-//                artifactRegistry.get(ai, id).ifPresent(artifacts::add);
-//            } else {
-//                log.error("Unsupported Artifact source: "+source);
-//            }
-           // taking"::" as separator from MainView.java
-           int sepPos = source.lastIndexOf("::");
-           String role =  source.substring(0, sepPos);
-           String type = source.substring(sepPos+2);
-           ArtifactIdentifier ai = new ArtifactIdentifier(key, type);
-           try {
-			artifactRegistry.get(ai, id).ifPresent(art -> artifacts.add(new AbstractMap.SimpleEntry<String, IArtifact>(role,art)));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new CommandExecutionException("Error fetching artifact: "+key, e);
-		}
+            // taking"::" as separator from MainView.java
+            int sepPos = source.lastIndexOf("::");
+            String role =  source.substring(0, sepPos);
+            String type = source.substring(sepPos+2);
+            ArtifactIdentifier ai = new ArtifactIdentifier(key, type);
+            try {
+			    artifactRegistry.get(ai, id).ifPresent(art -> artifacts.add(new AbstractMap.SimpleEntry<String, IArtifact>(role,art)));
+            } catch (Exception e) {
+                log.warn("Artifact {} couldn't be fetched due to {}", key, e.getClass().getSimpleName());
+            }
         }
-        if (inputs.size() != artifacts.size()) throw new CommandExecutionException("One or more required artifacts couldn't be fetched", new IllegalArgumentException());
+        if (inputs.size() != artifacts.size())
+            log.warn("One or more required artifacts couldn't be fetched on creation of {}", id);
         return artifacts;
     }
 
@@ -121,35 +107,35 @@ public class WorkflowAggregate implements Serializable {
         }
     }
 
-    @CommandHandler
-    public void handle(CompleteDataflowCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()));
-    }
-
-    @CommandHandler
-    public void handle(ActivateInBranchCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
-    }
-
-    @CommandHandler
-    public void handle(ActivateOutBranchCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
-    }
-
-    @CommandHandler
-    public void handle(ActivateInOutBranchCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()));
-    }
-
-    @CommandHandler
-    public void handle(ActivateInOutBranchesCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new ActivatedInOutBranchesEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchIds()));
-    }
+//    @CommandHandler
+//    public void handle(CompleteDataflowCmd cmd) {
+//        log.debug("[AGG] handling {}", cmd);
+//        apply(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()));
+//    }
+//
+//    @CommandHandler
+//    public void handle(ActivateInBranchCmd cmd) {
+//        log.debug("[AGG] handling {}", cmd);
+//        apply(new ActivatedInBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId()));
+//    }
+//
+//    @CommandHandler
+//    public void handle(ActivateOutBranchCmd cmd) {
+//        log.debug("[AGG] handling {}", cmd);
+//        apply(new ActivatedOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getBranchId()));
+//    }
+//
+//    @CommandHandler
+//    public void handle(ActivateInOutBranchCmd cmd) {
+//        log.debug("[AGG] handling {}", cmd);
+//        apply(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()));
+//    }
+//
+//    @CommandHandler
+//    public void handle(ActivateInOutBranchesCmd cmd) {
+//        log.debug("[AGG] handling {}", cmd);
+//        apply(new ActivatedInOutBranchesEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchIds()));
+//    }
 
     @CommandHandler
     public void handle(DeleteCmd cmd) {
@@ -182,30 +168,46 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(AddInputCmd cmd) {
+    public void handle(AddInputCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
-    }
-
-    @CommandHandler
-    public void handle(AddOutputCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()));
-        if (parentWfiId != null && parentWftId != null) {
-            apply(new AddedOutputEvt(parentWfiId, parentWftId, cmd.getArtifact(), cmd.getRole(), cmd.getType()));
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        if (opt.isPresent()) {
+            apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+        } else {
+            log.warn("Artifact {} was not found.", cmd.getArtifactId());
         }
     }
 
     @CommandHandler
-    public void handle(AddInputToWorkflowCmd cmd) {
+    public void handle(AddOutputCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new AddedInputToWorkflowEvt(cmd.getId(), cmd.getInput()));
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        if (opt.isPresent()) {
+            apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+            if (parentWfiId != null && parentWftId != null) {
+                apply(new AddedOutputEvt(parentWfiId, parentWftId, opt.get(), cmd.getRole(), cmd.getType()));
+            }
+        } else {
+            log.warn("Artifact {} was not found.", cmd.getArtifactId());
+        }
     }
 
     @CommandHandler
-    public void handle(AddOutputToWorkflowCmd cmd) {
+    public void handle(AddInputToWorkflowCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new AddedOutputToWorkflowEvt(cmd.getId(), cmd.getOutput()));
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        opt.ifPresent(artifact -> apply(new AddedInputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+    }
+
+    @CommandHandler
+    public void handle(AddOutputToWorkflowCmd cmd, IArtifactRegistry artifactRegistry) {
+        log.debug("[AGG] handling {}", cmd);
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        opt.ifPresent(artifact -> apply(new AddedOutputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
     }
 
     @CommandHandler

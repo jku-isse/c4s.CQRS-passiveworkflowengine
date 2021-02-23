@@ -104,27 +104,31 @@ public class Events {
     public static class AddedInputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final IArtifact artifact;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddedOutputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final IArtifact artifact;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddedInputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final ArtifactInput input;
+        private final IArtifact artifact;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class AddedOutputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final ArtifactOutput output;
+        private final IArtifact artifact;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class UpdatedArtifactsEvt implements IdentifiableEvt {

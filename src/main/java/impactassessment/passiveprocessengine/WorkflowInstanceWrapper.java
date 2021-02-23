@@ -75,10 +75,9 @@ public class WorkflowInstanceWrapper {
         wfi = wfd.createInstance(id);
         setInputArtifacts(artifacts);
         artifacts.stream()
-        	.map(entry -> entry.getValue())
-        	.forEach(art -> setWfProps(art));
-        List<AbstractWorkflowInstanceObject> awos = wfi.enableWorkflowTasksAndDecisionNodes();
-        return awos;
+        	.map(Entry::getValue)
+        	.forEach(this::setWfProps);
+        return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
     private void setWfProps(IArtifact artifact) {
@@ -91,36 +90,36 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
-        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        if (dni != null) {
-            dni.completedDataflowInvolvingActivationPropagation();
-            return dni.executeMapping();
-        } else {
-            log.error("{} caused an error. Couldn't be found in current WFI (present DNIs: {})", evt, wfi.getDecisionNodeInstancesReadonly().stream().map(DecisionNodeInstance::toString).collect(Collectors.joining( "," )));
-            return Collections.emptyMap();
-        }
+//    public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
+//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+//        if (dni != null) {
+//            dni.completedDataflowInvolvingActivationPropagation();
+//            return dni.executeMapping();
+//        } else {
+//            log.error("{} caused an error. Couldn't be found in current WFI (present DNIs: {})", evt, wfi.getDecisionNodeInstancesReadonly().stream().map(DecisionNodeInstance::toString).collect(Collectors.joining( "," )));
+//            return Collections.emptyMap();
+//        }
+//
+//    }
 
-    }
+//    public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
+//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+//        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
+//        if (dni != null && wft != null) {
+//            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
+//        }
+//        return awos;
+//    }
 
-    public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
-        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-        if (dni != null && wft != null) {
-            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
-        }
-        return awos;
-    }
-
-    public List<AbstractWorkflowInstanceObject> handle(ActivatedOutBranchEvt evt) {
-        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-        if (dni != null) {
-            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
-        }
-        return awos;
-    }
+//    public List<AbstractWorkflowInstanceObject> handle(ActivatedOutBranchEvt evt) {
+//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
+//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
+//        if (dni != null) {
+//            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
+//        }
+//        return awos;
+//    }
 
     public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchEvt evt) {
         DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
@@ -203,45 +202,53 @@ public class WorkflowInstanceWrapper {
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
-        setWfi(evt.getArtifact());
+        ArtifactWrapper artWrapper = new ArtifactWrapper(evt.getArtifact().getArtifactIdentifier().getId(), evt.getType(), wfi, evt.getArtifact());
+        ArtifactInput input = new ArtifactInput(artWrapper, evt.getRole(), new ArtifactType(evt.getType()));
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactInput input = new ArtifactInput(evt.getArtifact(), evt.getRole(), evt.getType());
-        // TODO check if input is expected
+        wft.getInput().stream()
+                .filter(o -> o.getRole().equals(evt.getRole()))
+                .filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
+                .findAny()
+                .ifPresent(wft::removeInput);
         wft.addInput(input);
         return wft;
     }
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
-        List<IWorkflowInstanceObject> awos = new ArrayList<>();
-        setWfi(evt.getArtifact());
+        ArtifactWrapper artWrapper = new ArtifactWrapper(evt.getArtifact().getArtifactIdentifier().getId(), evt.getType(), wfi, evt.getArtifact());
+        ArtifactOutput output = new ArtifactOutput(artWrapper, evt.getRole(), new ArtifactType(evt.getType()));
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactOutput output = new ArtifactOutput(evt.getArtifact(), evt.getRole(), evt.getType());
+        wft.getOutput().stream()
+                .filter(o -> o.getRole().equals(evt.getRole()))
+                .filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
+                .findAny()
+                .ifPresent(wft::removeOutput);
+        List<IWorkflowInstanceObject> awos = new ArrayList<>();
         awos.addAll(wft.addOutput(output));
         awos.add(wft);
         return awos;
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
-        if (wfi == null) return;
-        setWfi(evt.getInput().getArtifact());
-//        wfi.getInput().stream()
-//                .filter(in -> in.getArtifact().getId().equals(evt.getInput().getArtifact().getId()))
-//                .forEach(in -> in.setArtifact(evt.getInput().getArtifact()));
-        wfi.addInput(evt.getInput());
-    }
-
-    private void setWfi(Artifact a) {
-        if (a instanceof ArtifactWrapper) {
-            if (((ArtifactWrapper)a).getWorkflow() == null) {
-                ((ArtifactWrapper)a).setWorkflow(wfi);
-            }
-        }
+        ArtifactWrapper artWrapper = new ArtifactWrapper(evt.getArtifact().getArtifactIdentifier().getId(), evt.getType(), wfi, evt.getArtifact());
+        ArtifactInput input = new ArtifactInput(artWrapper, evt.getRole(), new ArtifactType(evt.getType()));
+        wfi.getInput().stream()
+                .filter(o -> o.getRole().equals(evt.getRole()))
+                .filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
+                .findAny()
+                .ifPresent(wfi::removeInput);
+        wfi.addInput(input);
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        if (wfi == null) return;
-        setWfi(evt.getOutput().getArtifact());
-        wfi.addOutput(evt.getOutput());
+        ArtifactWrapper artWrapper = new ArtifactWrapper(evt.getArtifact().getArtifactIdentifier().getId(), evt.getType(), wfi, evt.getArtifact());
+        ArtifactOutput output = new ArtifactOutput(artWrapper, evt.getRole(), new ArtifactType(evt.getType()));
+        wfi.getOutput().stream()
+                .filter(o -> o.getRole().equals(evt.getRole()))
+                .filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
+                .findAny()
+                .ifPresent(wfi::removeOutput);
+        wfi.addOutput(output);
     }
 
     public void handle(StateMachineTriggerEvt evt) {
@@ -304,12 +311,12 @@ public class WorkflowInstanceWrapper {
             handle((CreatedWorkflowEvt) evt);
         } else if (evt instanceof CreatedSubWorkflowEvt) {
             handle((CreatedSubWorkflowEvt) evt);
-        } else if (evt instanceof CompletedDataflowEvt) {
-            handle((CompletedDataflowEvt) evt);
-        } else if (evt instanceof ActivatedInBranchEvt) {
-            handle((ActivatedInBranchEvt) evt);
-        } else if (evt instanceof ActivatedOutBranchEvt) {
-            handle((ActivatedOutBranchEvt) evt);
+//        } else if (evt instanceof CompletedDataflowEvt) {
+//            handle((CompletedDataflowEvt) evt);
+//        } else if (evt instanceof ActivatedInBranchEvt) {
+//            handle((ActivatedInBranchEvt) evt);
+//        } else if (evt instanceof ActivatedOutBranchEvt) {
+//            handle((ActivatedOutBranchEvt) evt);
         } else if (evt instanceof ActivatedInOutBranchEvt) {
             handle((ActivatedInOutBranchEvt) evt);
         } else if (evt instanceof ActivatedInOutBranchesEvt) {

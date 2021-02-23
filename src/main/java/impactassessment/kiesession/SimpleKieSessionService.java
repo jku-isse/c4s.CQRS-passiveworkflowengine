@@ -81,4 +81,9 @@ public class SimpleKieSessionService implements IKieSessionService {
         return kieSessions.size();
     }
 
+    @Override
+    public void remove(String id, Object o) {
+        kieSessions.get(id).remove(o);
+    }
+
 }

@@ -62,7 +62,7 @@ public class WFTInputOutputMappingWithWrapperTest {
         wfiWrapper.handle(new CreatedWorkflowEvt(ID, artifacts, "", new SimpleWorkflow()));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "workflowKickOff#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
         wfiWrapper.handle(new ActivatedInOutBranchEvt(ID, "open2closed#"+ID, "Open#test", "openOut"));
-        wfiWrapper.handle(new AddedOutputEvt(ID, "Open#test", new ResourceLink("test", "test", "test", "test", "test", "test"), ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
+//        wfiWrapper.handle(new AddedOutputEvt(ID, "Open#test", new ResourceLink("test", "test", "test", "test", "test", "test"), ROLE_WPTICKET, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT)));
         wfiWrapper.handle(new CompletedDataflowEvt(ID, "open2closed#"+ID, rl)); // this adds an output (ResourceLink) to all WFTs created from this DNI
 
         IWorkflowTask wftClosed = wfiWrapper.getWorkflowInstance().getWorkflowTask("Closed#"+ID);

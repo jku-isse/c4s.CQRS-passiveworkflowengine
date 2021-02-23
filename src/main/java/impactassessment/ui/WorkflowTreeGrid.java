@@ -26,6 +26,7 @@ import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
 import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.definition.NoOpTaskDefinition;
 import passiveprocessengine.instance.*;
 
@@ -267,7 +268,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             }
             l.add(list);
         }
-        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput());
+        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput(), wfi);
         Dialog dialog = new Dialog();
         dialog.setWidth("80%");
         dialog.setMaxHeight("80%");
@@ -295,7 +296,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
         if (wft.getLifecycleState() != null)
             l.add(new Paragraph("Process Step Lifecycle State: "+wft.getLifecycleState().name()));
-        infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput());
+        infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput(), wft);
         Dialog dialog = new Dialog();
         dialog.setMaxHeight("80%");
         dialog.setWidth("80%");
@@ -311,7 +312,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return icon;
     }
 
-    private Component addInOut(String title) {
+    private Component addInOut(String title, IWorkflowTask wft, boolean isIn, String role, String type) {
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setClassName("upload-background");
 
@@ -319,7 +320,23 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         id.setPlaceholder("Artifact ID");
 
         Button submit = new Button(title, evt -> {
-            Notification.show("coming soon");
+            if (wft instanceof WorkflowTask) {
+                if (isIn) {
+                    f.apply(new AddInputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
+                } else {
+                    f.apply(new AddOutputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
+                }
+            } else if (wft instanceof WorkflowInstance) {
+                if (isIn) {
+                    f.apply(new AddInputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
+                } else {
+                    f.apply(new AddOutputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
+                }
+            }
         });
 
         hLayout.add(id, submit);
@@ -328,12 +345,12 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return details;
     }
 
-    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
+    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput, IWorkflowTask wft) {
         H4 h4 = new H4("Inputs");
-        inOut(l, h4, expectedInOut(expectedInput, inputs), otherInOut(expectedInput, inputs), outputs, expectedInput);
+        inOut(l, h4, expectedInOut(expectedInput, inputs, wft, true), otherInOut(expectedInput, inputs), outputs, expectedInput);
 
         H4 h41 = new H4("Outputs");
-        inOut(l, h41, expectedInOut(expectedOutput, outputs), otherInOut(expectedOutput, outputs), outputs, expectedOutput);
+        inOut(l, h41, expectedInOut(expectedOutput, outputs, wft, false), otherInOut(expectedOutput, outputs), outputs, expectedOutput);
     }
 
     private void inOut(VerticalLayout l, H4 h41, Component expectedInOut, Component otherInOut, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedOutput) {
@@ -350,7 +367,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         l.add(outLayout);
     }
 
-    private <T  extends ArtifactIO> Component expectedInOut(Map<String, ArtifactType> expected, List<T> present) {
+    private <T  extends ArtifactIO> Component expectedInOut(Map<String, ArtifactType> expected, List<T> present, IWorkflowTask wft, boolean isIn) {
         UnorderedList list = new UnorderedList();
         list.setClassName("const-margin");
         if (expected.size() > 0) {
@@ -371,12 +388,12 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                         p.setClassName("bold");
                         line.add(p);
                     }
-                    line.add(addInOut("Replace"));
+                    line.add(addInOut("Replace", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
                 } else {
                     Paragraph p = new Paragraph("missing");
                     p.setClassName("red");
                     line.add(p);
-                    line.add(addInOut("Add"));
+                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
                 }
                 list.add(line);
             }

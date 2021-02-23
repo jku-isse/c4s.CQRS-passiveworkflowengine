@@ -119,30 +119,34 @@ public class Commands {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final String artifactId;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddOutputCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final String artifactId;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddInputToWorkflowCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final ArtifactInput input;
+        private final String artifactId;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class AddOutputToWorkflowCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final ArtifactOutput output;
+        private final String artifactId;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class UpdateArtifactsCmd {

@@ -83,6 +83,22 @@ public class KieSessionWrapper {
         }
     }
 
+    public void remove(Object o) {
+        if (o instanceof IArtifact) {
+            IArtifact a = (IArtifact) o;
+            String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
+            FactHandle handle = sessionHandles.remove(key);
+            if (handle != null)
+                kieSession.delete(handle);
+        } else if (o instanceof AbstractIdentifiableObject) {
+            AbstractIdentifiableObject idO = (AbstractIdentifiableObject) o;
+            String key = idO.getId() + "[" + idO.getClass().getSimpleName() + "]";
+            FactHandle handle = sessionHandles.remove(key);
+            if (handle != null)
+                kieSession.delete(handle);
+        }
+    }
+
     private void insertOrUpdate(String key, Object o) {
         if (sessionHandles.containsKey(key)) {
             kieSession.update(sessionHandles.get(key), o);

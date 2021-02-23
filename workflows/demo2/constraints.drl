@@ -495,9 +495,7 @@ rule "ExtractLinkedTask"
 		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
 		String jiraKey = ja.getStringValue("SYS_JIRA_KEY");
 		if (!(jiraKey == null || jiraKey.equals("") )){
-			IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier(jiraKey, "IJiraArtifact"), $wft.getWorkflow().getId()).get();
-			Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
-			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "jira", new ArtifactType("IJiraArtifact") ));
+			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jiraKey, "jira", "IJiraArtifact"));
 		}
 end
 
@@ -520,9 +518,7 @@ rule "ExtractSubtask"
 				System.out.println("Found Review Subtask");
 				String jiraKey = st.getIssueKey();
 				if (!(jiraKey == null || jiraKey.equals("") )){
-					IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier(jiraKey, "IJiraArtifact"), $wft.getWorkflow().getId()).get();
-					Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
-					commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "checkissue", new ArtifactType("IJiraArtifact") ));
+					commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jiraKey, "checkissue", "IJiraArtifact"));
 				}
 				break;
 			}

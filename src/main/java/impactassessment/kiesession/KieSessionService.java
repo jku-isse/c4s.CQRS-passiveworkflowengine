@@ -23,7 +23,6 @@ public class KieSessionService implements IKieSessionService {
 
     @Override
     public void insertOrUpdate(String id, Object o) {
-
         kieSessions.get(id).insertOrUpdate(o);
     }
 
@@ -76,4 +75,8 @@ public class KieSessionService implements IKieSessionService {
         return kieSessions.size();
     }
 
+    @Override
+    public void remove(String id, Object o) {
+        kieSessions.get(id).remove(o);
+    }
 }
