@@ -223,6 +223,7 @@ public class WorkflowProjection {
             kieSessions.fire(evt.getId());
             addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
         }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler
@@ -236,6 +237,7 @@ public class WorkflowProjection {
             wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
             kieSessions.fire(evt.getId());
         }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler
@@ -256,6 +258,7 @@ public class WorkflowProjection {
             kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
             kieSessions.fire(evt.getId());
         }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler
@@ -263,6 +266,7 @@ public class WorkflowProjection {
         log.debug("[PRJ] projecting {}", evt);
         artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
         projection.handle(evt);
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler
