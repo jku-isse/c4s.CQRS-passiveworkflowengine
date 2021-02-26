@@ -39,7 +39,7 @@ public class JamaChangeSubscriber implements IJamaChangeSubscriber {
             }
             if (affectedArtifacts.size() > 0) {
                 Commands.UpdateArtifactsCmd cmd = new Commands.UpdateArtifactsCmd(scope.getScopeId(), affectedArtifacts);
-                System.out.println("send changes to " + scope.getScopeId());
+                log.debug("send changes to {}", scope.getScopeId());
                 commandGateway.sendAndWait(cmd);
             }
         }
@@ -54,8 +54,8 @@ public class JamaChangeSubscriber implements IJamaChangeSubscriber {
         } else {
             artifactKeys.add(Integer.parseInt(id.getId()));
         }
-//        log.debug("Workflow: {} has following usages: {}", workflowId, artifactUsages.get(workflowId).stream()
-//                .map(String::valueOf)
-//                .collect(Collectors.joining( ", " )));
+        log.debug("Workflow: {} has following usages: {}", scope, artifactUsages.get(scope).stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining( ", " )));
     }
 }
