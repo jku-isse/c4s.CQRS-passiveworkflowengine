@@ -1,137 +1,58 @@
 {
-  "taskDefinitions": [
-    {
-      "expectedInput": {
-        "INPUT_ROLE_REQUIREMENT": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        },
-        "ROLE_WPTICKET": {
-          "id": "ARTIFACT_TYPE_JIRA_TICKET"
-        },
-        "INPUT_ROLE_DESIGN_DEFINITION": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        }
-      },
-      "expectedOutput": {},
-      "id": "Open"
-    },
-    {
-      "expectedInput": {
-        "INPUT_ROLE_REQUIREMENT": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        },
-        "ROLE_WPTICKET": {
-          "id": "ARTIFACT_TYPE_JIRA_TICKET"
-        },
-        "INPUT_ROLE_DESIGN_DEFINITION": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        }
-      },
-      "expectedOutput": {},
-      "id": "In Progress"
-    },
-    {
-      "expectedInput": {
-        "INPUT_ROLE_REQUIREMENT": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        },
-        "ROLE_WPTICKET": {
-          "id": "ARTIFACT_TYPE_JIRA_TICKET"
-        },
-        "INPUT_ROLE_DESIGN_DEFINITION": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        }
-      },
-      "expectedOutput": {
-        "OUTPUT_ROLE_TEST": {
-          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
-        }
-      },
-      "id": "Resolved"
-    },
-    {
-      "isNoOp": true,
-      "expectedInput": {},
-      "expectedOutput": {},
-      "id": "NoOp"
-    }
-  ],
   "dnds": [
     {
-      "inB": [],
-      "outB": [
-        {
-          "name": "OpenIn",
-          "task": "Open",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        }
-      ],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": false,
-      "hasExternalOutBranchRules": false,
       "inBranchingType": "AND",
       "outBranchingType": "SYNC",
       "mappings": [],
       "id": "workflowKickOff"
     },
     {
-      "inB": [
-        {
-          "name": "openOut",
-          "task": "Open",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        }
-      ],
-      "outB": [
-        {
-          "name": "resolvedIn",
-          "task": "NoOp",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        },
-        {
-          "name": "inProgressIn",
-          "task": "In Progress",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        }
-      ],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": true,
-      "hasExternalOutBranchRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "workflowEnd"
+    },
+    {
+      "hasExternalContextRules": false,
       "inBranchingType": "AND",
       "outBranchingType": "ASYNC",
       "mappings": [],
       "id": "open2inProgressOrResolved"
     },
     {
-      "inB": [
-        {
-          "name": "inProgressOut",
-          "task": "In Progress",
-          "hasActivationCondition": false,
-          "hasDataFlow": true
-        },
-        {
-          "name": "noopOut",
-          "task": "NoOp",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        }
-      ],
-      "outB": [
-        {
-          "name": "resolvedIn2",
-          "task": "Resolved",
-          "hasActivationCondition": false,
-          "hasDataFlow": false
-        }
-      ],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": true,
-      "hasExternalOutBranchRules": false,
+      "inBranchingType": "OR",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "Open",
+              "second": "JIRA_TICKET"
+            }
+          ],
+          "to": [
+            {
+              "first": "Resolved",
+              "second": "JIRA_TICKET"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "inProgress2resolved"
+    },
+    {
+      "hasExternalContextRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "ASYNC",
+      "mappings": [],
+      "id": "open2inProgressOrResolved"
+    },
+    {
+      "hasExternalContextRules": false,
       "inBranchingType": "OR",
       "outBranchingType": "SYNC",
       "mappings": [
@@ -154,6 +75,81 @@
       "id": "inProgress2resolved"
     }
   ],
+  "taskDefinitions": [
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "IJiraArtifact"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "workflowKickOff",
+      "outDND": "open2inProgressOrResolved",
+      "id": "Open"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "IJiraArtifact"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {},
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "open2inProgressOrResolved",
+      "outDND": "inProgress2resolved",
+      "id": "In Progress"
+    },
+    {
+      "expectedInput": {
+        "INPUT_ROLE_REQUIREMENT": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        },
+        "ROLE_WPTICKET": {
+          "id": "IJiraArtifact"
+        },
+        "INPUT_ROLE_DESIGN_DEFINITION": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "expectedOutput": {
+        "OUTPUT_ROLE_TEST": {
+          "id": "ARTIFACT_TYPE_RESOURCE_LINK"
+        }
+      },
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "inProgress2resolved",
+      "outDND": "workflowEnd",
+      "id": "Resolved"
+    },
+    {
+      "isNoOp": true,
+      "expectedInput": {},
+      "expectedOutput": {},
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "open2inProgressOrResolved",
+      "outDND": "inProgress2resolved",
+      "id": "NoOp"
+    }
+  ],
+  "hasPreCondition": false,
+  "hasPostCondition": false,
   "expectedInput": {
     "ROLE_WPTICKET": {
       "id": "IJiraArtifact"

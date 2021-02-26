@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import c4s.impactassessment.workflowmodel.TaskLifecycle.*;
 import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd;
 import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddConstraintsCmd;
+import passiveprocessengine.definition.TaskLifecycle.State;
 
 
 import artifactapi.IArtifact;
@@ -26,7 +26,8 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.*;
-import artifactapi.jira.subtypes.*;
+import artifactapi.jira.subtypes.*
+import artifactapi.ResourceLink;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -485,10 +486,10 @@ end
 rule "ExtractLinkedTask"
 	when
 		$wft : WorkflowTask (   getType().getId().equals("Evaluate") &&
-								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
 								 getAnyOneOutputByRole("jira") == null 
 								 , $jama : getAnyOneInputByRole("jama") 								
-							 ) @watch( lifecycleState )
+							 )
 		eval ($jama != null )					 
 	then
 		System.out.println("Extracting jira key from jama issue");
@@ -502,10 +503,10 @@ end
 rule "ExtractSubtask"
 	when
 		$wft : WorkflowTask (   getType().getId().equals("Evaluate") &&
-								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
 								 getAnyOneOutputByRole("checkissue") == null 
 								 , $jira : getAnyOneOutputByRole("jira") 								
-							 ) @watch( lifecycleState )
+							 )
 		eval ($jira != null )					 
 	then
 		System.out.println("Obtaining subtask from jira");
