@@ -25,35 +25,18 @@ public class WorkflowInstanceWrapper {
         List<IArtifact> artifacts = new ArrayList<>();
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()
-                    .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
-                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .map(ArtifactIO::getArtifact)
                     .collect(Collectors.toList()));
             artifacts.addAll(wfi.getOutput().stream()
-                    .filter(i -> i.getArtifact() instanceof ArtifactWrapper)
-                    .filter(aw -> ((ArtifactWrapper)aw.getArtifact()).getWrappedArtifact() instanceof IArtifact)
-                    .map(j -> (IArtifact)((ArtifactWrapper)j.getArtifact()).getWrappedArtifact())
+                    .map(ArtifactIO::getArtifact)
                     .collect(Collectors.toList()));
         }
         return artifacts;
     }
-
-//    private void setArtifact(Collection<IArtifact> artifacts) {
-//        if (wfi != null) {
-//            for (IArtifact artifact : artifacts) {
-//               xxx // why is that? why and resource link, why this role?
-//               ArtifactWrapper aw = new ArtifactWrapper(artifact.getArtifactIdentifier().getId(), ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK, wfi, artifact);
-//                wfi.addInput(new ArtifactInput(aw, "ROLE_WPTICKET", new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_RESOURCE_LINK)));
-//            }
-//        }
-//    }
     
     private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
     	if (wfi != null) {
-    		inputs.stream().forEach(in -> { 
-    			ArtifactWrapper aw = new ArtifactWrapper(in.getValue().getArtifactIdentifier().getId(), in.getValue().getArtifactIdentifier().getType(), wfi, in.getValue());
-    			wfi.addInput(new ArtifactInput(aw, in.getKey(), aw.getType()));
-    		}); 
+    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(in.getValue(), in.getKey(), new ArtifactType(in.getValue().getArtifactIdentifier().getType()))));
     	}
     }
 
@@ -161,7 +144,6 @@ public class WorkflowInstanceWrapper {
             addConstraint(evt, qa, wft, awos);
         }
         awos.add((WorkflowTask)wft); // TODO: fix for nested workflow
-
         return awos;
     }
 
@@ -172,7 +154,6 @@ public class WorkflowInstanceWrapper {
         for (Map.Entry<String, String> e : rules.entrySet()) {
             String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
-            //rebc.addAs(false, (new JiraMockArtifact()).convertToResourceLink());
             rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
             qa.addConstraint(rebc);
             awos.add(rebc);
@@ -212,22 +193,21 @@ public class WorkflowInstanceWrapper {
             	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
             }
             // output state may change because QA constraints may be all fulfilled now
-            wfi.getWorkflowTasksReadonly().stream()
-                .peek(wft -> awos.addAll(wft.tryTriggerProgess()))
-            	.forEach(wft -> awos.addAll(wft.recalcOutputState().getValue()));
+            wfi.getWorkflowTasksReadonly()
+                .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
         }
         return awos;
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        wrapAndReplaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
         return wft;
     }
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactOutput output = wrapAndReplaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
         awos.addAll(wft.addOutput(output));
         awos.add(wft);
@@ -235,18 +215,17 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
-        wrapAndReplaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
         addWorkflowInputsToWfProps(List.of(evt.getArtifact()));
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        ArtifactOutput output = wrapAndReplaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
         wfi.addOutput(output);
     }
 
-    private void wrapAndReplaceInput(IArtifact artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactWrapper artWrapper = new ArtifactWrapper(artifact.getArtifactIdentifier().getId(), type, wfi, artifact);
-        ArtifactInput input = new ArtifactInput(artWrapper, role, new ArtifactType(type));
+    private void replaceInput(IArtifact artifact, String type, String role, IWorkflowTask iwft) {
+        ArtifactInput input = new ArtifactInput(artifact, role, new ArtifactType(type));
         iwft.getInput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .filter(o -> o.getArtifactType().getArtifactType().equals(type))
@@ -255,9 +234,8 @@ public class WorkflowInstanceWrapper {
         iwft.addInput(input);
     }
 
-    private ArtifactOutput wrapAndReplaceOutput(IArtifact artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactWrapper artWrapper = new ArtifactWrapper(artifact.getArtifactIdentifier().getId(), type, wfi, artifact);
-        ArtifactOutput output = new ArtifactOutput(artWrapper, role, new ArtifactType(type));
+    private ArtifactOutput replaceOutput(IArtifact artifact, String type, String role, IWorkflowTask iwft) {
+        ArtifactOutput output = new ArtifactOutput(artifact, role, new ArtifactType(type));
         iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .filter(o -> o.getArtifactType().getArtifactType().equals(type))
@@ -266,12 +244,13 @@ public class WorkflowInstanceWrapper {
         return output;
     }
 
+    // TODO make new cmd/evts
     public void handle(StateMachineTriggerEvt evt) {
         Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
                 .filter(wft -> wft.getId().equals(evt.getWftId()))
                 .findAny();
         if (opt.isPresent()) {
-            opt.get().signalEvent(evt.getTrigger());
+//            opt.get().signalEvent(evt.getTrigger());
         } else {
             log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
         }

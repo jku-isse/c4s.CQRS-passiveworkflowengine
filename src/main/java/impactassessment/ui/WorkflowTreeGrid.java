@@ -3,6 +3,8 @@ package impactassessment.ui;
 import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -407,16 +409,14 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     }
 
     private Optional<Component> tryToConvertToResourceLink(ArtifactIO artifactIO) {
-        if (artifactIO.getArtifact() instanceof ArtifactWrapper) {
-            if (((ArtifactWrapper)artifactIO.getArtifact()).getWrappedArtifact() instanceof IArtifact) {
-                IArtifact artifact = (IArtifact)((ArtifactWrapper)artifactIO.getArtifact()).getWrappedArtifact();
-                ResourceLink rl = artifact.convertToResourceLink();
-                Anchor a = new Anchor(rl.getHref(), rl.getTitle());
-                a.setTarget("_blank");
-                return Optional.of(a);
-            }
+        // TODO for now only jira and jama artifacts have a web resource
+        if (artifactIO.getArtifact() instanceof IJamaArtifact || artifactIO.getArtifact() instanceof IJiraArtifact) {
+            ResourceLink rl = artifactIO.getArtifact().convertToResourceLink();
+            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+            a.setTarget("_blank");
+            return Optional.of(a);
         }
-        return Optional.empty();
+        return Optional.empty(); // artifact id will be shown in the frontend
     }
 
     private <T extends ArtifactIO> Component otherInOut(Map<String, ArtifactType> expected, List<T> present) {
