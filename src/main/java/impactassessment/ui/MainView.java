@@ -33,6 +33,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.InitialPageSettings;
 import com.vaadin.flow.server.PageConfigurator;
+import impactassessment.SpringApp;
 import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateMockWorkflowCmd;
@@ -161,6 +162,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         firstPart.setPadding(true);
         firstPart.setSizeFull();
         firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
+
         ToggleButton toggle = new ToggleButton("Dev Mode ");
         toggle.setClassName("med");
         toggle.addValueChangeListener(evt -> {
@@ -171,7 +173,14 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
             initAccordion();
             content();
         });
-        header.add(firstPart, toggle);
+
+        Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
+        shutdown.setColor("red");
+        shutdown.getStyle().set("cursor", "pointer");
+        shutdown.addClickListener(e -> SpringApp.shutdown());
+        shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
+
+        header.add(firstPart, toggle, shutdown);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         HorizontalLayout footer = new HorizontalLayout();
