@@ -386,6 +386,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <version>3.0.0-M1</version>
+            <type>maven-plugin</type>
+        </dependency>
 
 
     </dependencies>
@@ -400,7 +406,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
                         <id>install1</id>
@@ -465,7 +471,7 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <groupId>JKU.ISSE</groupId>
+                            <groupId>ISSE.JKU</groupId>
                             <artifactId>c4s.artifact.api</artifactId>
                             <version>4.0.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
