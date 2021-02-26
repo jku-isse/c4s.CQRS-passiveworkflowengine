@@ -9,7 +9,6 @@ import impactassessment.artifactconnector.jira.mock.JiraMockService;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
@@ -219,7 +218,7 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(StateMachineTriggerCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getEvent()));
+        apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getTrigger()));
     }
 
     @CommandHandler

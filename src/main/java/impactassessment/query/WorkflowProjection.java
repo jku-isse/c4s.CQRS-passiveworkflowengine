@@ -2,7 +2,6 @@ package impactassessment.query;
 
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
-import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.*;
 import impactassessment.kiesession.IKieSessionService;
@@ -21,7 +20,6 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.*;
 
@@ -281,7 +279,7 @@ public class WorkflowProjection {
         for (IArtifact updatedArtifact : evt.getArtifacts()) {
          //FIXME  xxx: //ONly input, why not output????
         	for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-                IArtifact presentArtifact = checkIfIArtifactInside(input.getArtifact());
+                IArtifact presentArtifact = input.getArtifact();
                 if (presentArtifact != null && presentArtifact.getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {	
                 	((ArtifactWrapper) input.getArtifact()).updateWrappedArtifact(updatedArtifact);
                 	if (!status.isReplay()) {

@@ -6,12 +6,10 @@ import impactassessment.kiesession.IKieSessionService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import passiveprocessengine.definition.Artifact;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.QACheckDocument;
 import passiveprocessengine.instance.RuleEngineBasedConstraint;
 import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
-import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactWrapper;
 
 import java.util.AbstractMap;
@@ -87,13 +85,4 @@ public class WorkflowHelpers {
         }
     }
 
-    public static IArtifact checkIfIArtifactInside(Artifact artifact) {
-        if (artifact instanceof ArtifactWrapper) {
-            ArtifactWrapper artifactWrapper = (ArtifactWrapper) artifact;
-            if (artifactWrapper.getWrappedArtifact() instanceof IArtifact) {
-                return (IArtifact) artifactWrapper.getWrappedArtifact();
-            }
-        }
-        return null;
-    }
 }

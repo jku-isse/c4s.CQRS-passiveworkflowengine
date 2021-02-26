@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import artifactapi.ArtifactType;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.vaadin.componentfactory.ToggleButton;
@@ -57,7 +58,6 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import passiveprocessengine.definition.ArtifactType;
 
 import javax.inject.Inject;
 import java.io.IOException;

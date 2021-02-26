@@ -1,6 +1,8 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
+import artifactapi.ResourceLink;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.api.Events.*;
@@ -12,7 +14,6 @@ import passiveprocessengine.instance.QACheckDocument.QAConstraint.EvaluationStat
 import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -266,23 +267,13 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(StateMachineTriggerEvt evt) {
-        switch (evt.getEvent()) {
-            case ADD_OUTPUT:
-            case OUTPUT_REMOVED:
-            case IGNORE_FOR_PROGRESS:
-            case PARTIALLY_COMPLETE:
-                log.warn("Invalid state machine trigger event {}, the allowed ones are: " +
-                        "ACTIVATE, DONT_WORK_ON_TASK, INPUTCONDITIONS_NO_LONGER_HOLD, INPUTCONDITIONS_FULFILLED, OUTPUTCONDITIONS_FULFILLED", evt.getEvent());
-                break;
-            default:
-                Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
-                        .filter(wft -> wft.getId().equals(evt.getWftId()))
-                        .findAny();
-                if (opt.isPresent()) {
-                    opt.get().signalEvent(evt.getEvent());
-                } else {
-                    log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
-                }
+        Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
+                .filter(wft -> wft.getId().equals(evt.getWftId()))
+                .findAny();
+        if (opt.isPresent()) {
+            opt.get().signalEvent(evt.getTrigger());
+        } else {
+            log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
         }
     }
 

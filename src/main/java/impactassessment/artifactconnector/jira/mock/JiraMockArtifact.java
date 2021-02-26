@@ -1,10 +1,8 @@
 package impactassessment.artifactconnector.jira.mock;
 
-import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifactService;
+import artifactapi.*;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
-import passiveprocessengine.instance.ResourceLink;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,6 +31,29 @@ public class JiraMockArtifact implements IJiraArtifact {
     @Override
     public void injectArtifactService(IArtifactService iArtifactService) {
         // no op
+    }
+
+    @Override
+    public ArtifactType getType() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public IArtifact getParentArtifact() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public void setRemovedAtOriginFlag() {
+        // TODO auto-generated
+    }
+
+    @Override
+    public boolean isRemovedAtOrigin() {
+        // TODO auto-generated
+        return false;
     }
 
     public void setId(String id) {

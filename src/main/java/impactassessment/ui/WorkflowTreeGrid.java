@@ -1,6 +1,8 @@
 package impactassessment.ui;
 
+import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
+import artifactapi.ResourceLink;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -25,7 +27,6 @@ import impactassessment.api.Commands.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
-import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.definition.NoOpTaskDefinition;
 import passiveprocessengine.instance.*;
@@ -294,8 +295,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         h3.setClassName("info-header");
         l.add(h3);
 
-        if (wft.getLifecycleState() != null)
-            l.add(new Paragraph("Process Step Lifecycle State: "+wft.getLifecycleState().name()));
+        if (wft.getActualLifecycleState() != null)
+            l.add(new Paragraph("Process Step Lifecycle State: "+wft.getActualLifecycleState().name()));
         infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput(), wft);
         Dialog dialog = new Dialog();
         dialog.setMaxHeight("80%");
@@ -384,7 +385,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                     if (rl.isPresent()) {
                         line.add(rl.get());
                     } else {
-                        Paragraph p = new Paragraph(opt.get().getArtifact().getId());
+                        Paragraph p = new Paragraph(opt.get().getArtifact().getArtifactIdentifier().getId());
                         p.setClassName("bold");
                         line.add(p);
                     }
@@ -433,7 +434,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 if (rl.isPresent()) {
                     line.add(rl.get());
                 } else {
-                    Paragraph p = new Paragraph(ao.getArtifact().getId());
+                    Paragraph p = new Paragraph(ao.getArtifact().getArtifactIdentifier().getId());
                     p.setClassName("bold");
                     line.add(p);
                 }
@@ -453,7 +454,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         Paragraph p = new Paragraph("Quality Assurance Document ID:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(rebc.getParentArtifact().getId());
+        H3 h3 = new H3(rebc.getParentArtifact().getArtifactIdentifier().getId());
         h3.setClassName("info-header");
         l.add(h3);
 
