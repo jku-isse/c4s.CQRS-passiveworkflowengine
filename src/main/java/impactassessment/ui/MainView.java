@@ -185,11 +185,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
-        footer.setMargin(false);
-        footer.setSizeFull();
-        footer.setHeight("3%");
         footer.add(new Text("JKU - Institute for Software Systems Engineering"));
-        footer.setJustifyContentMode(JustifyContentMode.END);
 
         add(
                 header,
