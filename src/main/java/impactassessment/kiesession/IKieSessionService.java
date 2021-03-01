@@ -19,4 +19,6 @@ public interface IKieSessionService {
     KieSession getKieSession(String id);
 
     int getNumKieSessions();
+
+    void remove(String id, Object o);
 }

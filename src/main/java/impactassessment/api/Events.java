@@ -1,16 +1,11 @@
 package impactassessment.api;
 
 import artifactapi.IArtifact;
+import artifactapi.ResourceLink;
 import lombok.Data;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
-import passiveprocessengine.definition.Artifact;
-import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.TaskLifecycle;
 import passiveprocessengine.definition.WorkflowDefinition;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
-import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -104,27 +99,31 @@ public class Events {
     public static class AddedInputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final IArtifact artifact;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddedOutputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final IArtifact artifact;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddedInputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final ArtifactInput input;
+        private final IArtifact artifact;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class AddedOutputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final ArtifactOutput output;
+        private final IArtifact artifact;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class UpdatedArtifactsEvt implements IdentifiableEvt {
@@ -135,7 +134,7 @@ public class Events {
     public static class StateMachineTriggerEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final TaskLifecycle.Events event;
+        private final TaskLifecycle.Triggers trigger;
     }
     @Data
     public static class SetPreConditionsFulfillmentEvt implements IdentifiableEvt {

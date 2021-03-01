@@ -51,6 +51,7 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
             }
             if (affectedArtifacts.size() > 0) {
                 UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(scope.getScopeId(), affectedArtifacts);
+                log.debug("send changes to {}", scope.getScopeId());
                 commandGateway.sendAndWait(cmd);
             }
         }

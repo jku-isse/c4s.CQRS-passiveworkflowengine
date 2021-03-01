@@ -1,16 +1,12 @@
 package impactassessment.artifactconnector.jira;
 
-import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifactService;
+import artifactapi.*;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jira.subtypes.*;
-import c4s.jiralightconnector.IssueAgent;
 
 import com.atlassian.jira.rest.client.api.domain.*;
-import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jira.subtypes.*;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.instance.ResourceLink;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -95,6 +91,29 @@ public class JiraArtifact implements IJiraArtifact {
         } else {
             log.warn("Injection of {} into JiraArtifact not possible.", service.getClass().getSimpleName());
         }
+    }
+
+    @Override
+    public ArtifactType getType() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public IArtifact getParentArtifact() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public void setRemovedAtOriginFlag() {
+        // TODO auto-generated
+    }
+
+    @Override
+    public boolean isRemovedAtOrigin() {
+        // TODO auto-generated
+        return false;
     }
 
     public Issue getIssue() {

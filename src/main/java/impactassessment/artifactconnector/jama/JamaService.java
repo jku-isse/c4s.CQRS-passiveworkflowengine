@@ -58,11 +58,9 @@ public class JamaService implements IJamaService {
 
     @Override
     public void injectArtifactService(IArtifact artifact, String workflowId) {
-        if (perProcessCaches.containsKey(workflowId)) {
-            artifact.injectArtifactService(perProcessCaches.get(workflowId));
-        } else {
-            artifact.injectArtifactService(this);
-        }
+        IJamaService scope = perProcessCaches.computeIfAbsent(workflowId, k -> new JamaDataScope(k, this));
+        jamaChangeSubscriber.addUsage(perProcessCaches.get(workflowId), new ArtifactIdentifier(((IJamaArtifact)artifact).getId()+"", IJamaArtifact.class.getSimpleName()));
+        artifact.injectArtifactService(scope);
     }
 
 	@Override

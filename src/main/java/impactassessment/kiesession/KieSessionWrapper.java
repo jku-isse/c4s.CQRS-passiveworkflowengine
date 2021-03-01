@@ -69,17 +69,33 @@ public class KieSessionWrapper {
     }
 
     public void insertOrUpdate(Object o) {
-        if (o instanceof IArtifact) {
-            IArtifact a = (IArtifact) o;
-            String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
-            insertOrUpdate(key, a);
-        } else if (o instanceof AbstractIdentifiableObject) {
+        if (o instanceof AbstractIdentifiableObject) {
             AbstractIdentifiableObject idO = (AbstractIdentifiableObject) o;
             String key = idO.getId() + "[" + idO.getClass().getSimpleName() + "]";
             insertOrUpdate(key, idO);
+        } else if (o instanceof IArtifact) {
+            IArtifact a = (IArtifact) o;
+            String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
+            insertOrUpdate(key, a);
         } else {
             // unmanaged objects
             kieSession.insert(o);
+        }
+    }
+
+    public void remove(Object o) {
+        if (o instanceof AbstractIdentifiableObject) {
+            AbstractIdentifiableObject idO = (AbstractIdentifiableObject) o;
+            String key = idO.getId() + "[" + idO.getClass().getSimpleName() + "]";
+            FactHandle handle = sessionHandles.remove(key);
+            if (handle != null)
+                kieSession.delete(handle);
+        } else if (o instanceof IArtifact) {
+            IArtifact a = (IArtifact) o;
+            String key = a.getArtifactIdentifier().getId() + "[" + a.getClass().getSimpleName() + "]";
+            FactHandle handle = sessionHandles.remove(key);
+            if (handle != null)
+                kieSession.delete(handle);
         }
     }
 

@@ -62,14 +62,14 @@ public class MockCommandGateway implements CommandGateway {
 	@Override
 	public <R> CompletableFuture<R> send(Object command) {
 		
-		if (command instanceof CompleteDataflowCmd) {
-			CompleteDataflowCmd cmd = (CompleteDataflowCmd)command;
-			proj.on(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()), ReplayStatus.REGULAR);
-		} else 
-		if (command instanceof ActivateInOutBranchCmd) {
-			ActivateInOutBranchCmd cmd = (ActivateInOutBranchCmd)command;
-			proj.on(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()), ReplayStatus.REGULAR);
-		} else
+//		if (command instanceof CompleteDataflowCmd) {
+//			CompleteDataflowCmd cmd = (CompleteDataflowCmd)command;
+//			proj.on(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()), ReplayStatus.REGULAR);
+//		} else
+//		if (command instanceof ActivateInOutBranchCmd) {
+//			ActivateInOutBranchCmd cmd = (ActivateInOutBranchCmd)command;
+//			proj.on(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()), ReplayStatus.REGULAR);
+//		} else
 		if (command instanceof AddConstraintsCmd) {
 			AddConstraintsCmd cmd = (AddConstraintsCmd)command;
 			proj.on(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()), ReplayStatus.REGULAR);
@@ -77,12 +77,11 @@ public class MockCommandGateway implements CommandGateway {
 		if (command instanceof AddEvaluationResultToConstraintCmd) {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
 			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
-		} else
-		if (command instanceof AddOutputCmd) {
-			AddOutputCmd cmd = (AddOutputCmd)command;
-			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
-		}
-		else {
+//		} else
+//		if (command instanceof AddOutputCmd) {
+//			AddOutputCmd cmd = (AddOutputCmd)command;
+//			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+		} else {
 			System.err.println("Received unsupported command: "+command.toString());
 		}
 			

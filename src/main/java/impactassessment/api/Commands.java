@@ -1,15 +1,11 @@
 package impactassessment.api;
 
 import artifactapi.IArtifact;
+import artifactapi.ResourceLink;
 import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
-import passiveprocessengine.definition.Artifact;
-import passiveprocessengine.definition.ArtifactType;
 import passiveprocessengine.definition.TaskLifecycle;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
-import passiveprocessengine.instance.ResourceLink;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -119,30 +115,34 @@ public class Commands {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final String artifactId;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddOutputCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final Artifact artifact;
+        private final String artifactId;
         private final String role;
-        private final ArtifactType type;
+        private final String type;
     }
     @Data
     public static class AddInputToWorkflowCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final ArtifactInput input;
+        private final String artifactId;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class AddOutputToWorkflowCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final ArtifactOutput output;
+        private final String artifactId;
+        private final String role;
+        private final String type;
     }
     @Data
     public static class UpdateArtifactsCmd {
@@ -155,7 +155,7 @@ public class Commands {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final TaskLifecycle.Events event;
+        private final TaskLifecycle.Triggers trigger;
     }
     @Data
     public static class SetPreConditionsFulfillmentCmd {

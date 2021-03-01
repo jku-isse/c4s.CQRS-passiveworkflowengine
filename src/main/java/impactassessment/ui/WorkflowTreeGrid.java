@@ -1,31 +1,37 @@
 package impactassessment.ui;
 
+import artifactapi.ArtifactType;
+import artifactapi.IArtifact;
+import artifactapi.ResourceLink;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.HtmlImport;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.Commands.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
-import passiveprocessengine.definition.ArtifactType;
+import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.definition.NoOpTaskDefinition;
-import passiveprocessengine.instance.ArtifactIO;
-import passiveprocessengine.instance.ArtifactInput;
-import passiveprocessengine.instance.ArtifactOutput;
-import passiveprocessengine.instance.QACheckDocument;
-import passiveprocessengine.instance.ResourceLink;
-import passiveprocessengine.instance.RuleEngineBasedConstraint;
-import passiveprocessengine.instance.WorkflowInstance;
-import passiveprocessengine.instance.WorkflowTask;
+import passiveprocessengine.instance.*;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
@@ -37,6 +43,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static impactassessment.ui.Helpers.createComponent;
+import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
@@ -100,7 +109,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 try {
                     return formatter.format(rebc.getLastEvaluated());
                 } catch (DateTimeException e) {
-                    return "invalid time";
+                    return "not available";
                 }
             } else {
                 return "";
@@ -115,7 +124,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 try {
                     return formatter.format(rebc.getLastChanged());
                 } catch (DateTimeException e) {
-                    return "invalid time";
+                    return "not available";
                 }
             } else {
                 return "";
@@ -245,13 +254,27 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component infoDialog(WorkflowInstance wfi) {
         VerticalLayout l = new VerticalLayout();
-        l.add(new H3(wfi.getId()));
-        l.add(new H4("Properties"));
-        for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
-            l.add(new Paragraph(e.getKey() + ": " + e.getValue()));
+        l.setClassName("scrollable");
+        Paragraph p = new Paragraph("Process Instance ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(wfi.getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+        if (wfi.getPropertiesReadOnly().size() > 0) {
+            H4 h4 = new H4("Properties");
+            h4.setClassName("const-margin");
+            l.add(h4);
+            UnorderedList list = new UnorderedList();
+            for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
+                list.add(new ListItem(e.getKey() + ": " + e.getValue()));
+            }
+            l.add(list);
         }
-        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput());
+        infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getType().getExpectedInput(), wfi.getType().getExpectedOutput(), wfi);
         Dialog dialog = new Dialog();
+        dialog.setWidth("80%");
+        dialog.setMaxHeight("80%");
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
         icon.setColor("#1565C0");
@@ -266,12 +289,20 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component infoDialog(WorkflowTask wft) {
         VerticalLayout l = new VerticalLayout();
-        l.add(new H3(wft.getId()));
-        l.add(new H4("Properties"));
-        if (wft.getLifecycleState() != null)
-            l.add(new Paragraph(wft.getLifecycleState().name()));
-        infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput());
+        l.setClassName("scrollable");
+        Paragraph p = new Paragraph("Process Step ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(wft.getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+
+        if (wft.getActualLifecycleState() != null)
+            l.add(new Paragraph("Process Step Lifecycle State: "+wft.getActualLifecycleState().name()));
+        infoDialogInputOutput(l, wft.getInput(), wft.getOutput(), wft.getType().getExpectedInput(), wft.getType().getExpectedOutput(), wft);
         Dialog dialog = new Dialog();
+        dialog.setMaxHeight("80%");
+        dialog.setWidth("80%");
 
         Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
         icon.setColor("#1565C0");
@@ -284,38 +315,150 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return icon;
     }
 
-    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput) {
-        l.add(new H4("Inputs"));
-        VerticalLayout inLayout = new VerticalLayout();
-        inLayout.setClassName("card-border");
-        inLayout.add(new H5("Expected"));
-        for (Map.Entry<String, ArtifactType> entry : expectedInput.entrySet()) {
-            inLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-        }
-        inLayout.add(new H5("Present"));
-        for (ArtifactInput ai : inputs) {
-            inLayout.add(new Paragraph(ai.getRole() + " (" + ai.getArtifactType().getArtifactType() + "): " + ai.getArtifact().getId()));
-        }
-        l.add(inLayout);
+    private Component addInOut(String title, IWorkflowTask wft, boolean isIn, String role, String type) {
+        HorizontalLayout hLayout = new HorizontalLayout();
+        hLayout.setClassName("upload-background");
 
-        l.add(new H4("Outputs"));
+        TextField id = new TextField();
+        id.setPlaceholder("Artifact ID");
+
+        Button submit = new Button(title, evt -> {
+            if (wft instanceof WorkflowTask) {
+                if (isIn) {
+                    f.apply(new AddInputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
+                } else {
+                    f.apply(new AddOutputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
+                }
+            } else if (wft instanceof WorkflowInstance) {
+                if (isIn) {
+                    f.apply(new AddInputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
+                } else {
+                    f.apply(new AddOutputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
+                }
+            }
+        });
+
+        hLayout.add(id, submit);
+        Details details = new Details(title, hLayout);
+        details.addThemeVariants(DetailsVariant.SMALL);
+        return details;
+    }
+
+    private void infoDialogInputOutput(VerticalLayout l, List<ArtifactInput> inputs, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedInput, Map<String, ArtifactType> expectedOutput, IWorkflowTask wft) {
+        H4 h4 = new H4("Inputs");
+        inOut(l, h4, expectedInOut(expectedInput, inputs, wft, true), otherInOut(expectedInput, inputs), outputs, expectedInput);
+
+        H4 h41 = new H4("Outputs");
+        inOut(l, h41, expectedInOut(expectedOutput, outputs, wft, false), otherInOut(expectedOutput, outputs), outputs, expectedOutput);
+    }
+
+    private void inOut(VerticalLayout l, H4 h41, Component expectedInOut, Component otherInOut, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedOutput) {
+        h41.setClassName("const-margin");
+        l.add(h41);
         VerticalLayout outLayout = new VerticalLayout();
         outLayout.setClassName("card-border");
         outLayout.add(new H5("Expected"));
-        for (Map.Entry<String, ArtifactType> entry : expectedOutput.entrySet()) {
-            outLayout.add(new Paragraph(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-        }
-        outLayout.add(new H5("Present"));
-        for (ArtifactOutput ao : outputs) {
-            outLayout.add(new Paragraph(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + "): " + ao.getArtifact().getId()));
+        outLayout.add(expectedInOut);
+        if (otherInOut != null) {
+            outLayout.add(new H5("Other"));
+            outLayout.add(otherInOut);
         }
         l.add(outLayout);
+    }
+
+    private <T  extends ArtifactIO> Component expectedInOut(Map<String, ArtifactType> expected, List<T> present, IWorkflowTask wft, boolean isIn) {
+        UnorderedList list = new UnorderedList();
+        list.setClassName("const-margin");
+        if (expected.size() > 0) {
+            for (Map.Entry<String, ArtifactType> entry : expected.entrySet()) {
+                HorizontalLayout line = new HorizontalLayout();
+                line.setClassName("line");
+                line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
+                Optional<T> opt = present.stream()
+                        .filter(aio -> entry.getKey().equals(aio.getRole()))
+                        .filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType()))
+                        .findAny();
+                if (opt.isPresent()) {
+                    Optional<Component> rl = tryToConvertToResourceLink(opt.get());
+                    if (rl.isPresent()) {
+                        line.add(rl.get());
+                    } else {
+                        Paragraph p = new Paragraph(opt.get().getArtifact().getArtifactIdentifier().getId());
+                        p.setClassName("bold");
+                        line.add(p);
+                    }
+                    line.add(addInOut("Replace", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                } else {
+                    Paragraph p = new Paragraph("missing");
+                    p.setClassName("red");
+                    line.add(p);
+                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                }
+                list.add(line);
+            }
+        } else {
+            ListItem li = new ListItem("nothing expected");
+            li.setClassName("italic");
+            list.add(li);
+        }
+        return list;
+    }
+
+    private Optional<Component> tryToConvertToResourceLink(ArtifactIO artifactIO) {
+        // TODO for now only jira and jama artifacts have a web resource
+        if (artifactIO.getArtifact() instanceof IJamaArtifact || artifactIO.getArtifact() instanceof IJiraArtifact) {
+            ResourceLink rl = artifactIO.getArtifact().convertToResourceLink();
+            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+            a.setTarget("_blank");
+            return Optional.of(a);
+        }
+        return Optional.empty(); // artifact id will be shown in the frontend
+    }
+
+    private <T extends ArtifactIO> Component otherInOut(Map<String, ArtifactType> expected, List<T> present) {
+        UnorderedList list = new UnorderedList();
+        list.setClassName("const-margin");
+        boolean existOthers = false;
+        for (ArtifactIO ao : present) {
+            if (expected.entrySet().stream()
+                    .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType()))) {
+                existOthers = true;
+                HorizontalLayout line = new HorizontalLayout();
+                line.setClassName("line");
+                line.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + ")"));
+                Optional<Component> rl = tryToConvertToResourceLink(ao);
+                if (rl.isPresent()) {
+                    line.add(rl.get());
+                } else {
+                    Paragraph p = new Paragraph(ao.getArtifact().getArtifactIdentifier().getId());
+                    p.setClassName("bold");
+                    line.add(p);
+                }
+                list.add(line);
+            }
+        }
+        if (!existOthers) {
+            return null;
+        }
+        return list;
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
         VerticalLayout l = new VerticalLayout();
         l.setClassName("scrollable");
-        l.add(new H3(rebc.getWorkflow().getId()));
+
+        Paragraph p = new Paragraph("Quality Assurance Document ID:");
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3 = new H3(rebc.getParentArtifact().getArtifactIdentifier().getId());
+        h3.setClassName("info-header");
+        l.add(h3);
+
+        l.add(h3);
         l.add(new H4(rebc.getDescription()));
         // Unsatisfied resources
         List<Anchor> unsatisfiedLinks = new ArrayList<>();
@@ -361,6 +504,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         Dialog dialog = new Dialog();
         dialog.add(l);
         dialog.setMaxHeight("80%");
+        dialog.setMaxWidth("80%");
 
         Icon icon;
         if (!rebc.getEvaluationStatus().equals(QACheckDocument.QAConstraint.EvaluationState.SUCCESS)) {

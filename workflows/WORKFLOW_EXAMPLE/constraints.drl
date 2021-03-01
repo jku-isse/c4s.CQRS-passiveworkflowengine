@@ -4,7 +4,6 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import passiveprocessengine.instance.QACheckDocument;
 import passiveprocessengine.instance.WorkflowTask;
-import passiveprocessengine.instance.ResourceLink;
 import java.util.Optional;
 import passiveprocessengine.instance.RuleEngineBasedConstraint;
 import java.time.Instant;
@@ -27,14 +26,14 @@ import impactassessment.kiesession.KieSessionUtils;
 import java.util.Map;
 import java.util.HashMap;
 import impactassessment.api.Commands.AddConstraintsCmd;
-import passiveprocessengine.instance.ResourceLink;
 import passiveprocessengine.instance.WorkflowTask;
 import artifactapi.jama.subtypes.IJamaRelease
 import impactassessment.artifactconnector.jama.JamaArtifact
 import artifactapi.ArtifactIdentifier
 import impactassessment.artifactconnector.jira.JiraArtifact
 import artifactapi.IArtifact;
-import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.definition.ArtifactTypes
+import artifactapi.ResourceLink;
 
 
 global CommandGateway commandGateway;
@@ -44,8 +43,7 @@ global IArtifactRegistry artifactRegistry;
 rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJamaArtifact(  )
-		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId()) &&
-		                        getType().getId().equals("Sub WP Execution") &&
+		$wft : WorkflowTask( getType().getId().equals("Sub WP Execution") &&
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -125,15 +123,14 @@ rule "CheckJiraIssueBase"
 	no-loop
 	when
 		$a : IJamaArtifact ( )
-		$ct : ConstraintTrigger ( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId()) )
+		$ct : ConstraintTrigger ( )
 	then
 end
 
 rule "CheckJamaArtifactTypeIsFEAT" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckJamaArtifactTypeIsFEAT" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJamaArtifactTypeIsFEAT" )
 											&& isAffectedBy($ct) )
 	then
 		boolean isFEAT = $a.getItemType() != null && $a.getItemType().equals("FEAT");
@@ -144,8 +141,7 @@ end
 rule "CheckJamaArtifactHasJiraKey" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckJamaArtifactHasJiraKey" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJamaArtifactHasJiraKey" )
 											&& isAffectedBy($ct) )
 	then
 		boolean hasJiraKey = $a.getStringValue("SYS_JIRA_KEY") != null;
@@ -156,8 +152,7 @@ end
 rule "CheckJamaArtifactJiraSyncVersion" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckJamaArtifactJiraSyncVersion" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJamaArtifactJiraSyncVersion" )
 											&& isAffectedBy($ct) )
 	then
 	    boolean hasCorrectSyncVersion = $a.getIntegerValue("SYS_JIRA_SYNC_VERSION") != null && $a.getIntegerValue("SYS_JIRA_SYNC_VERSION").equals(3);
@@ -168,8 +163,7 @@ end
 rule "CheckJiraIssueClosed" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckJiraIssueClosed" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJiraIssueClosed" )
 											&& isAffectedBy($ct) )
 	then
 	    String jiraKey = $a.getStringValue("SYS_JIRA_KEY");
@@ -190,11 +184,10 @@ end
 rule "CheckWorkpackageLinkedToSRS" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckWorkpackageLinkedToSRS" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageLinkedToSRS" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflowId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -210,15 +203,14 @@ end
 rule "CheckLinkedSSSLinkedToSRS" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckLinkedSSSLinkedToSRS" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckLinkedSSSLinkedToSRS" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = ((JamaArtifact)$a).getUpstreamItems($qac.getWorkflowId());
+        List<IJamaArtifact> artifacts = ((JamaArtifact)$a).getUpstreamItems($qac.getWorkflow().getId());
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SSS")) {
-                List<IJamaArtifact> sssDownstream = artifact.getDownstreamItems($qac.getWorkflowId());
+                List<IJamaArtifact> sssDownstream = artifact.getDownstreamItems($qac.getWorkflow().getId());
                 for (IJamaArtifact down : sssDownstream) {
                     if (down.getItemType() != null && down.getItemType().equals("SRS")) {
                         result.put(artifact.convertToResourceLink(), true);
@@ -235,11 +227,10 @@ end
 rule "CheckWorkpackageSrsAreReleasedOrDeleted" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckWorkpackageSrsAreReleasedOrDeleted" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageSrsAreReleasedOrDeleted" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflowId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -260,11 +251,10 @@ end
 rule "CheckWorkpackageSrsHaveRelease" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckWorkpackageSrsHaveRelease" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageSrsHaveRelease" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflowId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -286,17 +276,16 @@ end
 rule "CheckWorkpackageHasOnlySrsWithSssAppendedToThem" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getArtifactIdentifier().getId())
-											&& getConstraintType().equals( "CheckWorkpackageHasOnlySrsWithSssAppendedToThem" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageHasOnlySrsWithSssAppendedToThem" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflowId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
                 JamaArtifact srs = (JamaArtifact) artifact;
                 boolean srsHasSss = false;
-                for (IJamaArtifact sss : srs.getUpstreamItems($qac.getWorkflowId())) {
+                for (IJamaArtifact sss : srs.getUpstreamItems($qac.getWorkflow().getId())) {
                     if (sss.getItemType() != null && sss.getItemType().equals("SSS")) {
                         String status = sss.getStringValue("status") != null ? sss.getStringValue("status") : "";
                         if (!status.toLowerCase().equals("deleted")) {

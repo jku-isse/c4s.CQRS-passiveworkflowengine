@@ -62,7 +62,7 @@ public class SpringConfig {
 
     @Bean
     public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
-        return new EventCountSnapshotTriggerDefinition(snapshotter, 30);
+        return new EventCountSnapshotTriggerDefinition(snapshotter, 10);
     }
 
     @Bean
@@ -112,6 +112,11 @@ public class SpringConfig {
      //   properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
            
         return properties;
+    }
+
+    @Bean(name="pollIntervalInMinutes")
+    public String pollInterval() {
+        return getProp("pollIntervalInMinutes");
     }
 
     // --------------- JIRA ---------------
@@ -265,7 +270,7 @@ public class SpringConfig {
 //    public CouchDBJamaCache getJamaCache(CouchDbClient dbClient) {
 //        return new CouchDBJamaCache(dbClient);
 //    }
-
+//
 //    @Bean
 //    @Scope("singleton")
 //    public CacheStatus getJamaCacheStatus(CouchDBJamaCache cache) {

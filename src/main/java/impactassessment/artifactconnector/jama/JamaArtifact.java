@@ -1,9 +1,6 @@
 package impactassessment.artifactconnector.jama;
 
-import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifact;
-import artifactapi.IArtifactRegistry;
-import artifactapi.IArtifactService;
+import artifactapi.*;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaRelease;
@@ -11,12 +8,9 @@ import artifactapi.jama.subtypes.IJamaUserArtifact;
 import com.jamasoftware.services.restclient.jamadomain.TestCaseStep;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 import com.jamasoftware.services.restclient.jamadomain.values.*;
-import impactassessment.SpringUtil;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaRelease;
-import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.instance.ResourceLink;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -156,6 +150,29 @@ public class JamaArtifact implements IJamaArtifact {
                 log.warn("Injection of {} into JamaArtifact not possible.", service.getClass().getSimpleName());
             }
         }
+    }
+
+    @Override
+    public ArtifactType getType() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public IArtifact getParentArtifact() {
+        // TODO auto-generated
+        return null;
+    }
+
+    @Override
+    public void setRemovedAtOriginFlag() {
+        // TODO auto-generated
+    }
+
+    @Override
+    public boolean isRemovedAtOrigin() {
+        // TODO auto-generated
+        return false;
     }
 
     @Override

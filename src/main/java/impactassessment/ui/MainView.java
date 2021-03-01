@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import artifactapi.ArtifactType;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.vaadin.componentfactory.ToggleButton;
@@ -28,7 +29,12 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
+import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.InitialPageSettings;
+import com.vaadin.flow.server.PageConfigurator;
+import impactassessment.SpringApp;
 import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateMockWorkflowCmd;
@@ -52,7 +58,6 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import passiveprocessengine.definition.ArtifactType;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -77,7 +82,8 @@ import static impactassessment.ui.Helpers.showOutput;
 @Push
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
-public class MainView extends VerticalLayout {
+@PageTitle("Process Dashboard")
+public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
 
     private boolean devMode = false;
 
@@ -132,6 +138,13 @@ public class MainView extends VerticalLayout {
         pusher.setView(this);
     }
 
+//    @Override
+//    public void configurePage(InitialPageSettings settings) {
+//        HashMap<String, String> attributes = new HashMap<>();
+//        attributes.put("rel", "shortcut icon");
+//        settings.addLink("icons/favicon.ico", attributes);
+//    }
+
     public MainView() {
         setSizeFull();
         setMargin(false);
@@ -149,22 +162,30 @@ public class MainView extends VerticalLayout {
         firstPart.setPadding(true);
         firstPart.setSizeFull();
         firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
+
         ToggleButton toggle = new ToggleButton("Dev Mode ");
         toggle.setClassName("med");
         toggle.addValueChangeListener(evt -> {
             devMode = !devMode;
+            if (devMode) {
+                Notification.show("Development mode enabled! Additional features activated.");
+            }
             initAccordion();
+            content();
         });
-        header.add(firstPart, toggle);
+
+        Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
+        shutdown.setColor("red");
+        shutdown.getStyle().set("cursor", "pointer");
+        shutdown.addClickListener(e -> SpringApp.shutdown());
+        shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
+
+        header.add(firstPart, toggle, shutdown);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
-        footer.setMargin(false);
-        footer.setSizeFull();
-        footer.setHeight("2%");
-        footer.add(new Text("JKU ISSE - Stefan Bichler"));
-        footer.setJustifyContentMode(JustifyContentMode.END);
+        footer.add(new Text("JKU - Institute for Software Systems Engineering"));
 
         add(
                 header,
@@ -176,11 +197,12 @@ public class MainView extends VerticalLayout {
     private Component main() {
         HorizontalLayout main = new HorizontalLayout();
         main.setClassName("layout-style");
-        main.setHeight("92%");
+        main.setHeight("91%");
         main.add(menu(), content());
         return main;
     }
 
+    VerticalLayout pageContent = new VerticalLayout();
     private Component content() {
         Tab tab1 = new Tab("Current State");
         VerticalLayout cur = statePanel(false);
@@ -188,11 +210,13 @@ public class MainView extends VerticalLayout {
 
 
         Tab tab2 = new Tab("Snapshot State");
+        tab2.setEnabled(devMode);
         VerticalLayout snap = snapshotPanel(false);
         snap.setHeight("100%");
         snap.setVisible(false);
 
         Tab tab3 = new Tab("Compare");
+        tab3.setEnabled(devMode);
         VerticalLayout split = new VerticalLayout();
         split.setClassName("layout-style");
         split.add(statePanel(true), snapshotPanel(true));
@@ -213,15 +237,16 @@ public class MainView extends VerticalLayout {
             selectedPage.setVisible(true);
         });
 
-        VerticalLayout content = new VerticalLayout();
-        content.setClassName("layout-style");
-        content.add(tabs, pages);
-        return  content;
+        pageContent.removeAll();
+        pageContent.setClassName("layout-style");
+        pageContent.add(tabs, pages);
+        return pageContent;
     }
 
     private Component menu() {
         VerticalLayout menu = new VerticalLayout();
         menu.addClassName("light-theme");
+        menu.addClassName("scrollable");
         menu.setPadding(true);
         menu.setMargin(false);
         menu.setWidth("35%");
@@ -238,9 +263,9 @@ public class MainView extends VerticalLayout {
 
     private void initAccordion() {
         accordion.getChildren().forEach(c -> accordion.remove(c));
-        accordion.add("Create Workflow", importArtifact(devMode));
-        if (devMode) accordion.add("Mock Workflow", importMocked());
-        accordion.add("Updates", updates());
+        accordion.add("Create Process Instance", importArtifact(devMode));
+        if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
+        accordion.add("Fetch Updates", updates());
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
 //        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         if (devMode) accordion.add("Backend Queries", backend());
@@ -259,18 +284,20 @@ public class MainView extends VerticalLayout {
         getState.addClickListener(evt -> {
             CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
             try {
+                Notification.show("Current State refreshing requested");
                 List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).getState();
                 grid.updateTreeGrid(response);
+                Notification.show("Refresh successful!");
             } catch (TimeoutException e1) {
                 log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
-                Notification.show("Timeout: Replay all Events first..");
+                Notification.show("TimeoutException: Either projection is out of sync ('Replay All Events' might help) or a server exception occurred.");
             } catch (InterruptedException | ExecutionException e2) {
                 log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
             }
         });
         Button replay = new Button("Replay All Events", evt -> {
+            Notification.show("Replay of Current State initiated. Replay gets executed..");
             replayer.replay("projection");
-            Notification.show("Replaying..");
         });
 
         controlButtonLayout.add(getState, replay);
@@ -278,6 +305,15 @@ public class MainView extends VerticalLayout {
     }
 
     private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {
+        VerticalLayout layoutV = new VerticalLayout();
+        layoutV.setWidthFull();
+        layoutV.setMargin(false);
+        layoutV.setPadding(false);
+        HorizontalLayout layout2 = new HorizontalLayout();
+        layout2.setWidthFull();
+        layout2.setMargin(false);
+        layout2.setPadding(false);
+        layout2.setAlignItems(Alignment.BASELINE);
         HorizontalLayout layout = new HorizontalLayout();
         layout.setWidthFull();
         layout.setMargin(false);
@@ -308,7 +344,6 @@ public class MainView extends VerticalLayout {
         sec.setMin(0);
         sec.setMax(59);
         sec.setLabel("Second");
-        layout.add(valueDatePicker);
         layout.add(hour, min, sec);
 
         // Buttons
@@ -374,9 +409,10 @@ public class MainView extends VerticalLayout {
             }
         });
 
-        layout.add(valueDatePicker, snapshotButton, step, jump, stop);
-
-        return layout;
+        layout.add(valueDatePicker);
+        layout2.add(snapshotButton, step, jump, stop);
+        layoutV.add(layout, layout2);
+        return layoutV;
     }
 
 
@@ -386,13 +422,19 @@ public class MainView extends VerticalLayout {
         layout.setWidth("90%");
 
         // Process Definition
+        Set<String> wfdKeys;
+        if (registry != null) {
+            wfdKeys = registry.getAll().keySet();
+        } else {
+            wfdKeys = Collections.emptySet();
+        }
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
-        processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
+        processDefinition.setItems(wfdKeys);
         processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
 
 
         Button loadDefinitions = new Button("Fetch Available Definitions", e -> {
-            processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
+            initAccordion();
         });
 
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
@@ -435,6 +477,8 @@ public class MainView extends VerticalLayout {
         VerticalLayout source = new VerticalLayout();
         source.setMargin(false);
         source.setPadding(false);
+        source.setWidthFull();
+        source.add(new Paragraph("select a process definition"));
         processDefinition.addValueChangeListener( e -> {
             WorkflowDefinitionContainer wfdContainer = registry.get(e.getValue());
             source.removeAll();
@@ -442,6 +486,7 @@ public class MainView extends VerticalLayout {
                 ArtifactType artT = entry.getValue();
                 String role = entry.getKey();
                 TextField tf = new TextField();
+                tf.setWidthFull();
                 //xxx // no hardcoded types here, implicit dependency to command handler very ugly!
 //                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
 //                    tf.setLabel(role+": JIRA");
@@ -455,44 +500,56 @@ public class MainView extends VerticalLayout {
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
-                source.add(new Paragraph("no input artifacts are expected for this workflow.."));
+                source.add(new Paragraph("no inputs expected"));
             }
         });
 
         Button importOrUpdateArtifactButton = new Button("Create", evt -> {
-            try {
-                // collect all input IDs
-                Map<String, String> inputs = new HashMap<>();
-                AtomicInteger count = new AtomicInteger();
-                source.getChildren()
-                        .filter(child -> child instanceof TextField)
-                        .map(child -> {
-                            count.getAndIncrement();
-                            return (TextField)child;
-                        })
-                        .filter(tf -> !tf.getValue().equals(""))
-                        .filter(tf -> !tf.getLabel().equals(""))
-                        // to be consistent with changes above
-                        .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
-                		//.forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
-                // send command
-                if (count.get() == inputs.size()) {
-                    commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
-                    Notification.show("Success");
-                } else {
-                    Notification.show("Make sure to fill out all required artifact IDs!");
+            if (processDefinition.getValue() == null) {
+                Notification.show("Select a Process Definition first!");
+            } else {
+                try {
+                    // collect all input IDs
+                    Map<String, String> inputs = new HashMap<>();
+                    AtomicInteger count = new AtomicInteger();
+                    source.getChildren()
+                            .filter(child -> child instanceof TextField)
+                            .map(child -> {
+                                count.getAndIncrement();
+                                return (TextField) child;
+                            })
+                            .filter(tf -> !tf.getValue().equals(""))
+                            .filter(tf -> !tf.getLabel().equals(""))
+                            // to be consistent with changes above
+                            .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                    //.forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
+                    // send command
+                    if (count.get() == inputs.size()) {
+                        commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
+                        Notification.show("Success");
+                    } else {
+                        Notification.show("Make sure to fill out all required artifact IDs!");
+                    }
+                } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                    log.error("CommandExecutionException: " + e.getMessage());
+                    Notification.show("Creation failed!");
                 }
-            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-                log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Creation failed!");
             }
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
-        layout.add(
-                new H4("1. Select Process Definition"),
-                processDefinition,
-                loadDefinitions);
+        if (wfdKeys.isEmpty()) {
+            Paragraph par = new Paragraph("fetch available definitions/add new ones (adding requires 'dev mode' switched on)");
+            layout.add(
+                    new H4("1. Select Process Definition"),
+                    par,
+                    loadDefinitions);
+        } else {
+            layout.add(
+                    new H4("1. Select Process Definition"),
+                    processDefinition,
+                    loadDefinitions);
+        }
         if (devMode) layout.add(
                 upload,
                 addDefinition);
@@ -537,7 +594,7 @@ public class MainView extends VerticalLayout {
         TextField id = new TextField("ID");
         id.setValue("A3");
 
-        Button print = new Button("PrintKBQuery");
+        Button print = new Button("Log KB-Content to Console");
         print.addClickListener(evt -> {
             queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
             Notification.show("Success");
@@ -576,11 +633,11 @@ public class MainView extends VerticalLayout {
 //        });
         //---------------------------------------------------------
 
-        Button jamaPerformancetest1 = new Button("Create All Jama Workflows", e -> {
+        Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
             JamaWorkflowCreationPerformanceService service1 = SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class);
             service1.createAll();
         });
-        Button jamaPerformancetest2 = new Button("Replay All Jama Updates", e -> {
+        Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
             JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
             service2.replayUpdates();
         });
@@ -625,7 +682,7 @@ public class MainView extends VerticalLayout {
         summary.setValue(JiraMockService.DEFAULT_SUMMARY);
         summary.setWidthFull();
 
-        Button importOrUpdateArtifactButton = new Button("Create Mock-Workflow", evt -> {
+        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
             try {
                 commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
                 Notification.show("Success");
@@ -655,7 +712,7 @@ public class MainView extends VerticalLayout {
         row2.setPadding(false);
         row2.add(summary, importOrUpdateArtifactButton);
 
-        layout.add(row1, row2);
+        layout.add(new Paragraph("No actual artifact will be fetched, but a mocked version as specified below will be used."), row1, row2);
         return layout;
     }
 
@@ -667,8 +724,8 @@ public class MainView extends VerticalLayout {
                 jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
                 jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
-
-        return new VerticalLayout(update);
+        String pollTime = SpringUtil.getBean(String.class, "pollIntervalInMinutes");
+        return new VerticalLayout(new Paragraph("Updates are fetched every "+pollTime+" minutes automatically. Additionally you can fetch updates manually."), update);
     }
 
     private VerticalLayout snapshotPanel(boolean addHeader) {
@@ -678,7 +735,7 @@ public class MainView extends VerticalLayout {
         layout.setClassName("big-text");
         layout.setMargin(false);
         layout.setHeight("50%");
-
+        layout.setWidthFull();
         layout.setFlexGrow(0);
         if (addHeader)
             layout.add(new Text("Snapshot State"));

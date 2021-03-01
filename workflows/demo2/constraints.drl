@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import c4s.impactassessment.workflowmodel.TaskLifecycle.*;
 import passiveprocessengine.definition.*;
 import passiveprocessengine.instance.*;
 import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd;
 import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddConstraintsCmd;
+import passiveprocessengine.definition.TaskLifecycle.State;
 
 
 import artifactapi.IArtifact;
@@ -26,7 +26,8 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.*;
-import artifactapi.jira.subtypes.*;
+import artifactapi.jira.subtypes.*
+import artifactapi.ResourceLink;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -485,29 +486,27 @@ end
 rule "ExtractLinkedTask"
 	when
 		$wft : WorkflowTask (   getType().getId().equals("Evaluate") &&
-								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
 								 getAnyOneOutputByRole("jira") == null 
 								 , $jama : getAnyOneInputByRole("jama") 								
-							 ) @watch( lifecycleState )
+							 )
 		eval ($jama != null )					 
 	then
 		System.out.println("Extracting jira key from jama issue");
 		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
 		String jiraKey = ja.getStringValue("SYS_JIRA_KEY");
 		if (!(jiraKey == null || jiraKey.equals("") )){
-			IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier(jiraKey, "IJiraArtifact"), $wft.getWorkflow().getId()).get();
-			Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
-			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "jira", new ArtifactType("IJiraArtifact") ));
+			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jiraKey, "jira", "IJiraArtifact"));
 		}
 end
 
 rule "ExtractSubtask"
 	when
 		$wft : WorkflowTask (   getType().getId().equals("Evaluate") &&
-								!(getLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
 								 getAnyOneOutputByRole("checkissue") == null 
 								 , $jira : getAnyOneOutputByRole("jira") 								
-							 ) @watch( lifecycleState )
+							 )
 		eval ($jira != null )					 
 	then
 		System.out.println("Obtaining subtask from jira");
@@ -520,9 +519,7 @@ rule "ExtractSubtask"
 				System.out.println("Found Review Subtask");
 				String jiraKey = st.getIssueKey();
 				if (!(jiraKey == null || jiraKey.equals("") )){
-					IJiraArtifact artOut = (IJiraArtifact) artifactRegistry.get(new ArtifactIdentifier(jiraKey, "IJiraArtifact"), $wft.getWorkflow().getId()).get();
-					Artifact art = new ArtifactWrapper(artOut.getKey(), "IJiraArtifact", $wft.getWorkflow(), artOut);
-					commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), art, "checkissue", new ArtifactType("IJiraArtifact") ));
+					commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jiraKey, "checkissue", "IJiraArtifact"));
 				}
 				break;
 			}

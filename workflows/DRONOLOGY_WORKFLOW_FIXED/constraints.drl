@@ -4,7 +4,6 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 
 import passiveprocessengine.instance.QACheckDocument
 import passiveprocessengine.instance.WorkflowTask
-import passiveprocessengine.instance.ResourceLink
 import java.util.Optional
 import passiveprocessengine.instance.RuleEngineBasedConstraint
 import java.time.Instant
@@ -25,9 +24,9 @@ import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
 import impactassessment.api.Commands.AddConstraintsCmd
-import passiveprocessengine.instance.ResourceLink
 import passiveprocessengine.instance.WorkflowTask
-import passiveprocessengine.definition.ArtifactTypes;
+import passiveprocessengine.definition.ArtifactTypes
+import artifactapi.ResourceLink;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -36,8 +35,7 @@ global IArtifactRegistry artifactRegistry;
 rule "InsertQAConstraintsStateOpen"
 	when
 	    $a : IJiraArtifact(  )
-		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-		                        getType().getId().equals("Open") &&
+		$wft : WorkflowTask( getType().getId().equals("Open") &&
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -64,8 +62,7 @@ end
 rule "InsertQAConstraintsStateInProgress"
 	when
 		$a : IJiraArtifact(  )
-        		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals("In Progress") &&
+        		$wft : WorkflowTask( getType().getId().equals("In Progress") &&
 							            getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -89,8 +86,7 @@ end
 rule "InsertQAConstraintsStateResolved"
 	when
 		$a : IJiraArtifact(  )
-        		$wft : WorkflowTask( getWorkflow().containsInputOrOutput($a.getKey()) &&
-        		                        getType().getId().equals("Resolved") &&
+        		$wft : WorkflowTask( getType().getId().equals("Resolved") &&
 							            getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
         Map<String, String> constraints = new HashMap<>();
@@ -122,15 +118,14 @@ rule "CheckJiraIssueBase"
 	no-loop
 	when
 		$a : IJiraArtifact ( )
-		$ct : ConstraintTrigger ( getWorkflow().containsInputOrOutput($a.getKey()) )
+		$ct : ConstraintTrigger ( )
 	then
 end
 
 rule "CheckJiraIssueHasFixVersion" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJiraIssueHasFixVersion" )
 											&& isAffectedBy($ct) )
 	then
 		boolean hasFixVersion = $a.getFixVersions().iterator().hasNext();
@@ -141,15 +136,14 @@ end
 rule "CheckJiraIssueRelatedToDesignDefinition" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJiraIssueRelatedToDesignDefinition" )
 											&& isAffectedBy($ct) )
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				n++;
 				resources.put(p.get().convertToResourceLink(), isRelatedToOne);
@@ -165,15 +159,14 @@ end
 rule "CheckDesignDefinitionRelatedToRequirement" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckDesignDefinitionRelatedToRequirement" )
 											&& isAffectedBy($ct) )
 	then
 		boolean isRelatedToOne = true;
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Requirement"))){
 				n++;
 				if (link.getIssueLinkType().getName().equals("Realizes")){
@@ -193,8 +186,7 @@ end
 rule "CheckJiraIssueHasAssignee" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckJiraIssueHasAssignee" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJiraIssueHasAssignee" )
 											&& isAffectedBy($ct) )
 	then
 		boolean hasAssignee = $a.getAssignee() != null;
@@ -205,14 +197,13 @@ end
 rule "CheckJiraIssueRelatedToUnitTest" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckJiraIssueRelatedToUnitTest" )
 											&& isAffectedBy($ct) )
 	then
 		int n = 0;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Unit Test"))){
 			    resources.put(p.get().convertToResourceLink(), true);
 				n++;
@@ -227,14 +218,13 @@ end
 rule "CheckAllRelatedBugsClosed" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckAllRelatedBugsClosed" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckAllRelatedBugsClosed" )
 											&& isAffectedBy($ct) )
 	then
 		boolean relatedBug = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
 			if (p.isPresent() && p.get().getIssueType().getName().equals("Bug") ){
 				if (p.get().getStatus().getName().equals("Closed")) {
 				    resources.put(p.get().convertToResourceLink(), true);
@@ -253,14 +243,13 @@ end
 rule "CheckHazardIsMitigated" extends "CheckJiraIssueBase"
 	no-loop
 	when
-		$qac : RuleEngineBasedConstraint( getWorkflow().containsInputOrOutput($a.getKey())
-											&& getConstraintType().equals( "CheckHazardIsMitigated" )
+		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckHazardIsMitigated" )
 											&& isAffectedBy($ct) )
 	then
 		boolean isMitigated = false;
 		Map<ResourceLink, Boolean> resources = new HashMap<>();
 		for (IJiraIssueLink link : $a.getIssueLinks()){
-		    Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+		    Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflow().getId(), $qac.getId());
 			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 				if (link.getIssueLinkType().getName().equals("Mitigates")){
 					isMitigated = true;

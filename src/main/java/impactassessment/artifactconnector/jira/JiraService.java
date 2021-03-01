@@ -52,11 +52,9 @@ public class JiraService implements IJiraService {
 
     @Override
     public void injectArtifactService(IArtifact artifact, String workflowId) {
-        if (perProcessCaches.containsKey(workflowId)) {
-            artifact.injectArtifactService(perProcessCaches.get(workflowId));
-        } else {
-            artifact.injectArtifactService(this);
-        }
+        IJiraService scope = perProcessCaches.computeIfAbsent(workflowId, k -> new JiraDataScope(k, this));
+        jiraChangeSubscriber.addUsage(perProcessCaches.get(workflowId), new ArtifactIdentifier(((IJiraArtifact)artifact).getKey(), IJiraArtifact.class.getSimpleName()));
+        artifact.injectArtifactService(scope);
     }
 
 	@Override
