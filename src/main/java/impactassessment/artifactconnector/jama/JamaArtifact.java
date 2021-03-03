@@ -34,8 +34,6 @@ public class JamaArtifact implements IJamaArtifact {
     private Date modifiedDate;
     private Date lastActivityDate;
 
-    private List<String> children;
-    private List<String> prefetchItems;
     private List<Integer> downstreamItems;
     private List<Integer> upstreamItems;
 
@@ -60,6 +58,7 @@ public class JamaArtifact implements IJamaArtifact {
         // id for axon application
     	this.jamaService = jamaService;
         this.artifactIdentifier = new ArtifactIdentifier(String.valueOf(jamaItem.getId()), IJamaArtifact.class.getSimpleName());
+
         // simple fields of jama item
         this.id = jamaItem.getId();
         this.isProject = jamaItem.isProject();
@@ -70,18 +69,6 @@ public class JamaArtifact implements IJamaArtifact {
         this.createdDate = jamaItem.getCreatedDate();
         this.modifiedDate = jamaItem.getModifiedDate();
         this.lastActivityDate = jamaItem.getLastActivityDate();
-//        try {
-//            this.children = jamaItem.getChildren().stream()
-//                    .map(JamaItem::getDocumentKey)
-//                    .map(String::valueOf)
-//                    .collect(Collectors.toList());
-//            this.prefetchItems = jamaItem.prefetchDownstreamItems().stream()
-//                    .map(JamaItem::getDocumentKey)
-//                    .map(String::valueOf)
-//                    .collect(Collectors.toList());
-//        } catch (RestClientException e) {
-//            e.printStackTrace();
-//        }
 
         this.downstreamItems = jamaItem.getDownstreamItemIds() == null ? new ArrayList<>() : jamaItem.getDownstreamItemIds();
         this.upstreamItems = jamaItem.getUpstreamItemIds() == null ? new ArrayList<>() : jamaItem.getUpstreamItemIds();
@@ -98,24 +85,11 @@ public class JamaArtifact implements IJamaArtifact {
         }
   
         // complex field of jama item
-
-//        this.jamaProjectArtifact = jamaItem.getProject() != null ? new JamaProjectArtifact(jamaItem.getProject()) : null;
-//        this.userCreated = jamaItem.getCreatedBy() != null ? new JamaUserArtifact(jamaItem.getCreatedBy()) : null;
-//        this.userModified = jamaItem.getModifiedBy() != null ? new JamaUserArtifact(jamaItem.getModifiedBy()) : null;
         this.jamaProjectArtifact = jamaItem.getProject() != null ? jamaService.convertProject(jamaItem.getProject()) : null;
         this.userCreated = jamaItem.getCreatedBy() != null ? jamaService.convertUser(jamaItem.getCreatedBy()) : null;
         this.userModified = jamaItem.getModifiedBy() != null ? jamaService.convertUser(jamaItem.getModifiedBy()) : null;
         this.resourceUrl = jamaService.getJamaServerUrl(jamaItem);
     }
-
-//    protected Optional<IJamaArtifact> fetch(String artifactId, String workflowId) {
-//        log.info("Artifact fetching linked item: {}", artifactId);
-//        if (artifactRegistry == null)
-//            artifactRegistry = SpringUtil.getBean(IArtifactRegistry.class);
-//        ArtifactIdentifier ai = new ArtifactIdentifier(artifactId, IJamaArtifact.class.getSimpleName());
-//        Optional<IArtifact> a = artifactRegistry.get(ai, workflowId);
-//        return a.map(artifact -> (IJamaArtifact) artifact);
-//    }
 
     public void setArtifactIdentifier(ArtifactIdentifier artifactIdentifier) {
       this.artifactIdentifier = artifactIdentifier;
@@ -234,43 +208,14 @@ public class JamaArtifact implements IJamaArtifact {
         return lastActivityDate;
     }
 
-    public List<String> getChildrenIds() {
-        return children;
-    }
-
-    @Override
-    public List<IJamaArtifact> getChildren(String workflowId) {
-        return children.stream()
-         //       .map(child -> fetch(child, workflowId))
-        		.map(child -> fetch(Integer.parseInt(child)))
-        		.filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-    }
-
-    public List<String> getPrefetchItemIds() {
-        return prefetchItems;
-    }
-
-    @Override
-    public List<IJamaArtifact> prefetchDownstreamItems(String workflowId) {
-        return prefetchItems.stream()
-               // .map(child -> fetch(child, workflowId))
-        		.map(child -> fetch(Integer.parseInt(child)))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-    }
-
     public List<Integer> getDownstreamItemIds() {
         return downstreamItems;
     }
 
     @Override
-    public List<IJamaArtifact> getDownstreamItems(String workflowId) {
+    public List<IJamaArtifact> getDownstreamItems() {
         return downstreamItems.stream()
-               // .map(child -> fetch(String.valueOf(child), workflowId))
-        		.map(child -> fetch(child))
+                .map(child -> fetch(child))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
@@ -281,10 +226,9 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     @Override
-    public List<IJamaArtifact> getUpstreamItems(String workflowId) {
+    public List<IJamaArtifact> getUpstreamItems() {
         return upstreamItems.stream()
-              //  .map(parent -> fetch(String.valueOf(parent), workflowId))
-        		.map(child -> fetch(child))
+                .map(child -> fetch(child))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());

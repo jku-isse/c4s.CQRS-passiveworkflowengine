@@ -54,7 +54,7 @@ class RulebasedWorkflowtest {
 //		IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("7230585", "IJamaArtifact"), workflowId).get();
 		//jamaArt.getDownstreamItems("").stream().anyMatch(dsi -> dsi.getItemType().equals(""));
 		IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("18001185", "IJamaArtifact"), workflowId).get();
-		jamaArt.getDownstreamItems(workflowId).stream().forEach(dsi ->
+		jamaArt.getDownstreamItems().stream().forEach(dsi ->
 				System.out.println(dsi.getItemType().toString())
 				);
 		
