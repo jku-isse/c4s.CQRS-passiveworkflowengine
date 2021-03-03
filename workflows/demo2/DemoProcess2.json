@@ -1,48 +1,7 @@
 {
-  "taskDefinitions": [
-    {
-      "expectedInput": {
-        "jama": {
-          "id": "IJamaArtifact"
-        }
-      },
-      "expectedOutput": {
-        "jira": {
-          "id": "IJiraArtifact"
-        },
-        "checkissue": {
-          "id": "IJiraArtifact"
-        }
-      },
-      "id": "Evaluate"
-    },
-    {
-      "expectedInput": {
-        "jira": {
-          "id": "IJiraArtifact"
-        },
-        "checkissue": {
-          "id": "IJiraArtifact"
-        }
-      },
-      "expectedOutput": {},
-      "id": "Execute"
-    }
-  ],
   "dnds": [
     {
-      "inB": [],
-      "outB": [
-        {
-          "name": "outTo-Evaluate",
-          "task": "Evaluate",
-          "hasActivationCondition": false,
-          "hasDataFlow": true
-        }
-      ],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": false,
-      "hasExternalOutBranchRules": false,
       "inBranchingType": "AND",
       "outBranchingType": "SYNC",
       "mappings": [
@@ -65,46 +24,32 @@
       "id": "0"
     },
     {
-      "inB": [
-        {
-          "name": "inFrom-Execute",
-          "task": "Execute",
-          "hasActivationCondition": false,
-          "hasDataFlow": true
-        }
-      ],
-      "outB": [],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": false,
-      "hasExternalOutBranchRules": false,
       "inBranchingType": "AND",
       "outBranchingType": "SYNC",
       "mappings": [],
       "id": "1"
     },
     {
-      "inB": [
-        {
-          "name": "inFrom-Evaluate",
-          "task": "Evaluate",
-          "hasActivationCondition": false,
-          "hasDataFlow": true
-        }
-      ],
-      "outB": [
-        {
-          "name": "outTo-Execute",
-          "task": "Execute",
-          "hasActivationCondition": false,
-          "hasDataFlow": true
-        }
-      ],
       "hasExternalContextRules": false,
-      "hasExternalInBranchRules": false,
-      "hasExternalOutBranchRules": false,
       "inBranchingType": "AND",
       "outBranchingType": "SYNC",
       "mappings": [
+        {
+          "from": [
+            {
+              "first": "DemoProcess2",
+              "second": "jama"
+            }
+          ],
+          "to": [
+            {
+              "first": "Execute",
+              "second": "jama"
+            }
+          ],
+          "mappingType": "ANY"
+        },
         {
           "from": [
             {
@@ -139,6 +84,49 @@
       "id": "2"
     }
   ],
+  "taskDefinitions": [
+    {
+      "expectedInput": {
+        "jama": {
+          "id": "IJamaArtifact"
+        }
+      },
+      "expectedOutput": {
+        "checkissue": {
+          "id": "IJiraArtifact"
+        },
+        "jira": {
+          "id": "IJiraArtifact"
+        }
+      },
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "0",
+      "outDND": "2",
+      "id": "Evaluate"
+    },
+    {
+      "expectedInput": {
+        "checkissue": {
+          "id": "IJiraArtifact"
+        },
+        "jama": {
+          "id": "IJamaArtifact"
+        },
+        "jira": {
+          "id": "IJiraArtifact"
+        }
+      },
+      "expectedOutput": {},
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "2",
+      "outDND": "1",
+      "id": "Execute"
+    }
+  ],
+  "hasPreCondition": false,
+  "hasPostCondition": false,
   "expectedInput": {
     "jama": {
       "id": "IJamaArtifact"

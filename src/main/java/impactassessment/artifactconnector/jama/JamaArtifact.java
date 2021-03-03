@@ -154,8 +154,7 @@ public class JamaArtifact implements IJamaArtifact {
 
     @Override
     public ArtifactType getType() {
-        // TODO auto-generated
-        return null;
+        return new ArtifactType(artifactIdentifier.getType());
     }
 
     @Override

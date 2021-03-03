@@ -41,7 +41,7 @@ rule "InsertQAConstraintsEvaluateTask"
         System.out.println("Adding Constraints to Task: Evaluate");
         Map<String, String> constraints = new HashMap<>();
         constraints.put("CheckJiraExists", "Is there a Jira issue linked?");
-        constraints.put("ReviewDone", "Has the design review been completed (Subask with status 'closed')?");
+        constraints.put("ReviewDone", "Has the design review been completed (Subtask with status 'closed')?");
         
         commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
 end
@@ -115,7 +115,7 @@ rule "CheckJamaDownstreamSRS"
 		)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		boolean success = ja.getDownstreamItems($wft.getWorkflow().getId()).stream()
 			.anyMatch(dsi -> dsi.getItemType().equals("SRS"));
 			
@@ -134,7 +134,7 @@ rule "CheckJamaDownstreamSSS"
 		)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		boolean success = ja.getDownstreamItems($wft.getWorkflow().getId()).stream()
 			.anyMatch(dsi -> dsi.getItemType().equals("SSS"));
 			
@@ -153,7 +153,7 @@ rule "CheckSSSupSUSY"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -180,7 +180,7 @@ rule "CheckSSSupCSC"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -207,7 +207,7 @@ rule "CheckSSSdownFCSC"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -236,7 +236,7 @@ rule "CheckSSSdownTC"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -263,7 +263,7 @@ rule "CheckSRSdownTC"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SRS")) {
@@ -291,7 +291,7 @@ rule "CheckSSSreleased"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -312,7 +312,7 @@ rule "CheckSRSreleased"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SRS")) {
@@ -333,7 +333,7 @@ rule "CheckSSShasRelease"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SSS")) {
@@ -355,7 +355,7 @@ rule "CheckSRShasRelease"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
 			if (dsi.getItemType().equals("SRS")) {
@@ -378,7 +378,7 @@ rule "CheckSSSupCSC"
 			)
 		eval ($jama != null)
 	then
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 	//	commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 		
@@ -404,7 +404,7 @@ rule "CheckJiraSubtasksAllClosed"
 		eval ($jira != null)
 	then
 		System.out.println("Checking: "+$qac.getId() +" in workflow " +$wft.getWorkflow().getId());
-		IJiraArtifact ja = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+		IJiraArtifact ja = (IJiraArtifact) $jira;
 	
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		ja.getSubtasks()
@@ -433,13 +433,13 @@ rule "CheckJiraExists"
 		eval ($jama != null)
 	then
 		System.out.println("Checking: "+$qac.getId() +" in workflow " +$wft.getWorkflow().getId());
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		boolean doesExist = ($jira != null);
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		if (!doesExist)
 			result.put(ja.convertToResourceLink(), doesExist);
 		else {
-			IJiraArtifact jira = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+			IJiraArtifact jira = (IJiraArtifact) $jira;
 			result.put(jira.convertToResourceLink(), doesExist);
 		}
 		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
@@ -456,7 +456,7 @@ rule "CheckCheckIssueClosed"
 		eval ($jira != null)
 	then
 		System.out.println("Checking: "+$qac.getId() +" in workflow " +$wft.getWorkflow().getId());
-		IJiraArtifact ja = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+		IJiraArtifact ja = (IJiraArtifact) $jira;
 	
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		boolean success = ja.getStatus().getName().equals("Closed");
@@ -475,7 +475,7 @@ rule "CheckJiraClosed"
 		eval ($jira != null)
 	then
 		System.out.println("Checking: "+$qac.getId() +" in workflow " +$wft.getWorkflow().getId());
-		IJiraArtifact ja = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+		IJiraArtifact ja = (IJiraArtifact) $jira;
 	
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		boolean success = ja.getStatus().getName().equals("Closed");
@@ -493,7 +493,7 @@ rule "ExtractLinkedTask"
 		eval ($jama != null )					 
 	then
 		System.out.println("Extracting jira key from jama issue");
-		IJamaArtifact ja = (IJamaArtifact) ((ArtifactWrapper)$jama).getWrappedArtifact();
+		IJamaArtifact ja = (IJamaArtifact) $jama;
 		String jiraKey = ja.getStringValue("SYS_JIRA_KEY");
 		if (!(jiraKey == null || jiraKey.equals("") )){
 			commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jiraKey, "jira", "IJiraArtifact"));
@@ -510,7 +510,7 @@ rule "ExtractSubtask"
 		eval ($jira != null )					 
 	then
 		System.out.println("Obtaining subtask from jira");
-		IJiraArtifact ja = (IJiraArtifact) ((ArtifactWrapper)$jira).getWrappedArtifact();
+		IJiraArtifact ja = (IJiraArtifact) $jira;
 		// iterate through subtask as find the one containing "Review" or other text as desired
 		Iterator<IJiraSubtask> subtasks = ja.getSubtasks().iterator();
 		while (subtasks.hasNext()) {

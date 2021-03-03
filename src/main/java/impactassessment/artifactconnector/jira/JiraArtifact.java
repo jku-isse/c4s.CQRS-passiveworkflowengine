@@ -95,8 +95,7 @@ public class JiraArtifact implements IJiraArtifact {
 
     @Override
     public ArtifactType getType() {
-        // TODO auto-generated
-        return null;
+        return new ArtifactType(artifactIdentifier.getType());
     }
 
     @Override
