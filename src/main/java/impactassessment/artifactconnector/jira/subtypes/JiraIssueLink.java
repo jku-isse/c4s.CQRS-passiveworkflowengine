@@ -45,7 +45,7 @@ public class JiraIssueLink implements IJiraIssueLink {
      * @return the target issue
      */
     @Override
-    public Optional<IJiraArtifact> getTargetIssue(String aggregateId, String corrId) {
+    public Optional<IJiraArtifact> getTargetIssue() {
         log.debug("Artifact fetching linked issue: {}", getTargetIssueKey());
         return  jiraService.getIssue(issueLink.getTargetIssueKey());
     }

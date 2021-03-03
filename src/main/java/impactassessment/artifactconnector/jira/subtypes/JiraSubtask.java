@@ -59,8 +59,9 @@ public class JiraSubtask implements IJiraSubtask {
         }
     }
 
-    //@Override
+    @Override
     public Optional<IJiraArtifact> getSubtask() {
     	return  jiraService.getIssue(task.getIssueKey());
     }
+
 }

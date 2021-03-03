@@ -116,7 +116,7 @@ rule "CheckJamaDownstreamSRS"
 		eval ($jama != null)
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
-		boolean success = ja.getDownstreamItems($wft.getWorkflow().getId()).stream()
+		boolean success = ja.getDownstreamItems().stream()
 			.anyMatch(dsi -> dsi.getItemType().equals("SRS"));
 			
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
@@ -135,7 +135,7 @@ rule "CheckJamaDownstreamSSS"
 		eval ($jama != null)
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
-		boolean success = ja.getDownstreamItems($wft.getWorkflow().getId()).stream()
+		boolean success = ja.getDownstreamItems().stream()
 			.anyMatch(dsi -> dsi.getItemType().equals("SSS"));
 			
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
@@ -155,10 +155,10 @@ rule "CheckSSSupSUSY"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					boolean success = false;
-					for (IJamaArtifact usi : dsi.getUpstreamItems($wft.getWorkflow().getId())) {
+					for (IJamaArtifact usi : dsi.getUpstreamItems()) {
 						if (usi.getItemType().equals("SUSY")) {
 							success = true;
 							break;
@@ -182,10 +182,10 @@ rule "CheckSSSupCSC"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					boolean success = false;
-					for (IJamaArtifact usi : dsi.getUpstreamItems($wft.getWorkflow().getId())) {
+					for (IJamaArtifact usi : dsi.getUpstreamItems()) {
 						if (usi.getItemType().equals("CSC")) {
 							success = true;
 							break;
@@ -209,10 +209,10 @@ rule "CheckSSSdownFCSC"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					boolean success = false;
-					for (IJamaArtifact usi : dsi.getDownstreamItems($wft.getWorkflow().getId())) {
+					for (IJamaArtifact usi : dsi.getDownstreamItems()) {
 						if (usi.getItemType().equals("F-CSC")) {
 							success = true;
 							break;
@@ -238,10 +238,10 @@ rule "CheckSSSdownTC"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					boolean success = false;
-					for (IJamaArtifact usi : dsi.getDownstreamItems($wft.getWorkflow().getId())) {
+					for (IJamaArtifact usi : dsi.getDownstreamItems()) {
 						if (usi.getItemType().equals("TC")) {
 							success = true;
 							break;
@@ -265,10 +265,10 @@ rule "CheckSRSdownTC"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SRS")) {
 					boolean success = false;
-					for (IJamaArtifact usi : dsi.getDownstreamItems($wft.getWorkflow().getId())) {
+					for (IJamaArtifact usi : dsi.getDownstreamItems()) {
 						if (usi.getItemType().equals("TC")) {
 							success = true;
 							break;
@@ -293,7 +293,7 @@ rule "CheckSSSreleased"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					boolean success = dsi.getStringValue("status").equals("Released");
 					result.put(dsi.convertToResourceLink(), success);	
@@ -314,7 +314,7 @@ rule "CheckSRSreleased"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SRS")) {
 					boolean success = dsi.getStringValue("status").equals("Released");
 					result.put(dsi.convertToResourceLink(), success);	
@@ -335,7 +335,7 @@ rule "CheckSSShasRelease"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SSS")) {
 					IJamaRelease release = dsi.getJamaReleaseValue("release");
 					boolean success = ( release != null && release.getName() != null && release.getReleaseDate() != null) ;
@@ -357,7 +357,7 @@ rule "CheckSRShasRelease"
 	then
 		IJamaArtifact ja = (IJamaArtifact) $jama;
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
-		for (IJamaArtifact dsi : ja.getDownstreamItems($wft.getWorkflow().getId())) {
+		for (IJamaArtifact dsi : ja.getDownstreamItems()) {
 			if (dsi.getItemType().equals("SRS")) {
 					IJamaRelease release = dsi.getJamaReleaseValue("release");
 					boolean success = ( release != null && release.getName() != null && release.getReleaseDate() != null) ;
@@ -382,7 +382,7 @@ rule "CheckSSSupCSC"
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 	//	commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 		
-		long count = ja.getDownstreamItems($wft.getWorkflow().getId()).stream()
+		long count = ja.getDownstreamItems().stream()
 			.filter(dsi -> dsi.getItemType().equals("SSS"))
 			.map(dsi -> {String type = dsi.getItemType(); 
 				return type; })

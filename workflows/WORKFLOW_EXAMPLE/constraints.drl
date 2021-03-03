@@ -187,7 +187,7 @@ rule "CheckWorkpackageLinkedToSRS" extends "CheckJiraIssueBase"
 		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageLinkedToSRS" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems();
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -206,11 +206,11 @@ rule "CheckLinkedSSSLinkedToSRS" extends "CheckJiraIssueBase"
 		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckLinkedSSSLinkedToSRS" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = ((JamaArtifact)$a).getUpstreamItems($qac.getWorkflow().getId());
+        List<IJamaArtifact> artifacts = ((JamaArtifact)$a).getUpstreamItems();
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SSS")) {
-                List<IJamaArtifact> sssDownstream = artifact.getDownstreamItems($qac.getWorkflow().getId());
+                List<IJamaArtifact> sssDownstream = artifact.getDownstreamItems();
                 for (IJamaArtifact down : sssDownstream) {
                     if (down.getItemType() != null && down.getItemType().equals("SRS")) {
                         result.put(artifact.convertToResourceLink(), true);
@@ -230,7 +230,7 @@ rule "CheckWorkpackageSrsAreReleasedOrDeleted" extends "CheckJiraIssueBase"
 		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageSrsAreReleasedOrDeleted" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems();
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -254,7 +254,7 @@ rule "CheckWorkpackageSrsHaveRelease" extends "CheckJiraIssueBase"
 		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageSrsHaveRelease" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems();
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
@@ -279,13 +279,13 @@ rule "CheckWorkpackageHasOnlySrsWithSssAppendedToThem" extends "CheckJiraIssueBa
 		$qac : RuleEngineBasedConstraint( getConstraintType().equals( "CheckWorkpackageHasOnlySrsWithSssAppendedToThem" )
 											&& isAffectedBy($ct) )
 	then
-        List<IJamaArtifact> artifacts = $a.getDownstreamItems($qac.getWorkflow().getId());
+        List<IJamaArtifact> artifacts = $a.getDownstreamItems();
         Map<ResourceLink, Boolean> result = new HashMap<>();
         for (IJamaArtifact artifact : artifacts) {
             if (artifact.getItemType() != null && artifact.getItemType().equals("SRS")) {
                 JamaArtifact srs = (JamaArtifact) artifact;
                 boolean srsHasSss = false;
-                for (IJamaArtifact sss : srs.getUpstreamItems($qac.getWorkflow().getId())) {
+                for (IJamaArtifact sss : srs.getUpstreamItems()) {
                     if (sss.getItemType() != null && sss.getItemType().equals("SSS")) {
                         String status = sss.getStringValue("status") != null ? sss.getStringValue("status") : "";
                         if (!status.toLowerCase().equals("deleted")) {
@@ -317,7 +317,7 @@ end
 //		int n = 0;
 //		Map<ResourceLink, Boolean> resources = new HashMap<>();
 //		for (IJiraIssueLink link : $a.getIssueLinks()){
-//			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+//			Optional<IJiraArtifact> p = link.getTargetIssue();
 //			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 //				n++;
 //				resources.put(p.get().convertToResourceLink(), isRelatedToOne);
@@ -341,7 +341,7 @@ end
 //		int n = 0;
 //		Map<ResourceLink, Boolean> resources = new HashMap<>();
 //		for (IJiraIssueLink link : $a.getIssueLinks()){
-//			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+//			Optional<IJiraArtifact> p = link.getTargetIssue();
 //			if (p.isPresent() && (p.get().getIssueType().getName().equals("Requirement"))){
 //				n++;
 //				if (link.getIssueLinkType().getName().equals("Realizes")){
@@ -380,7 +380,7 @@ end
 //		int n = 0;
 //		Map<ResourceLink, Boolean> resources = new HashMap<>();
 //		for (IJiraIssueLink link : $a.getIssueLinks()){
-//			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+//			Optional<IJiraArtifact> p = link.getTargetIssue();
 //			if (p.isPresent() && (p.get().getIssueType().getName().equals("Unit Test"))){
 //			    resources.put(p.get().convertToResourceLink(), true);
 //				n++;
@@ -402,7 +402,7 @@ end
 //		boolean relatedBug = false;
 //		Map<ResourceLink, Boolean> resources = new HashMap<>();
 //		for (IJiraIssueLink link : $a.getIssueLinks()){
-//			Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+//			Optional<IJiraArtifact> p = link.getTargetIssue();
 //			if (p.isPresent() && p.get().getIssueType().getName().equals("Bug") ){
 //				if (p.get().getStatus().getName().equals("Closed")) {
 //				    resources.put(p.get().convertToResourceLink(), true);
@@ -428,7 +428,7 @@ end
 //		boolean isMitigated = false;
 //		Map<ResourceLink, Boolean> resources = new HashMap<>();
 //		for (IJiraIssueLink link : $a.getIssueLinks()){
-//		    Optional<IJiraArtifact> p = link.getTargetIssue($qac.getWorkflowId(), $qac.getId());
+//		    Optional<IJiraArtifact> p = link.getTargetIssue();
 //			if (p.isPresent() && (p.get().getIssueType().getName().equals("Design Definition"))){
 //				if (link.getIssueLinkType().getName().equals("Mitigates")){
 //					isMitigated = true;
