@@ -1,10 +1,11 @@
 package c4s.qualityassurance.dev;
 
 import artifactapi.IArtifactRegistry;
+import com.google.inject.Injector;
+import impactassessment.DevelopmentConfig;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.command.MockCommandGateway;
 
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.ProjectionModel;
@@ -19,7 +20,8 @@ class CompileTest {
 	
 
 	public static void main(String[] args) {
-		CommandGateway gw = new MockCommandGateway();
+		Injector injector = DevelopmentConfig.getInjector();
+		MockCommandGateway gw = injector.getInstance(MockCommandGateway.class);
 		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
 		IFrontendPusher fp = new SimpleFrontendPusher();
@@ -28,7 +30,7 @@ class CompileTest {
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
 		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
-		((MockCommandGateway)gw).setWorkflowProjection(wfp);
+		gw.setWorkflowProjection(wfp);
 	}
 
 }
