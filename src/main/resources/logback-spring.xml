@@ -37,31 +37,31 @@
         <appender-ref ref="Console" />
     </root>
 
-    <logger name="impactassessment.command" level="debug" additivity="false">
+    <logger name="impactassessment.command" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.query" level="debug" additivity="false">
+    <logger name="impactassessment.query" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.registry" level="debug" additivity="false">
+    <logger name="impactassessment.registry" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.ui" level="debug" additivity="false">
+    <logger name="impactassessment.ui" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.artifactconnector" level="debug" additivity="false">
+    <logger name="impactassessment.artifactconnector" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.passiveprocessengine" level="debug" additivity="false">
+    <logger name="impactassessment.passiveprocessengine" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-    <logger name="impactassessment.kiesession" level="debug" additivity="false">
+    <logger name="impactassessment.kiesession" level="info" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>

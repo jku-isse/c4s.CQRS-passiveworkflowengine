@@ -64,13 +64,13 @@ public class LocalRegisterService extends AbstractRegisterService {
             for (File dir : directories) {
                 FileFilter fileFilter = new WildcardFileFilter("*.json");
                 File[] jsonFiles = dir.listFiles(fileFilter);
-                if (jsonFiles.length != 1) break;
+                if (jsonFiles.length != 1) continue;
                 byte[] encoded = Files.readAllBytes(jsonFiles[0].toPath());
                 WorkflowDefinition wfd = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
 
                 FileFilter fileFilter2 = new WildcardFileFilter("*.drl");
                 File[] drlFiles = dir.listFiles(fileFilter2);
-                if (drlFiles.length < 1) break;
+                if (drlFiles.length < 1) continue;
                 KieContainer kieContainer = kieSessionFactory.getKieContainer(Arrays.asList(drlFiles));
 
                 registry.register(wfd.getId(), wfd, kieContainer);
