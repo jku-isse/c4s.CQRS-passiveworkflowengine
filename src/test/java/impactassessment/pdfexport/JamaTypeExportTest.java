@@ -16,21 +16,21 @@ import java.io.IOException;
 
 public class JamaTypeExportTest {
 
-    @Test
-    void pdfExportJamaTypeCouchDB() {
-        SpringConfig conf = new SpringConfig();
-        IJamaService jamaService = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache(conf.getCouchDbClient())), new JamaChangeSubscriber(new MockCommandGateway()));
-        PdfExporter exporter = new PdfExporter(jamaService);
-        try {
-            exporter.generate("IJamaArtifact");
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
+//    @Test
+//    void pdfExportJamaTypeCouchDB() {
+//        SpringConfig conf = new SpringConfig();
+//        IJamaService jamaService = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache(conf.getCouchDbClient())), new JamaChangeSubscriber(new MockCommandGateway()));
+//        PdfExporter exporter = new PdfExporter(jamaService);
+//        try {
+//            exporter.generate("IJamaArtifact");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            fail();
+//        }
+//    }
 
     @Test
-    void pdfExportJamaTypeMySQL() {
+    void pdfExportJamaType() {
         Injector injector = DevelopmentConfig.getInjector();
         JamaService jamaService = injector.getInstance(JamaService.class);
         PdfExporter exporter = new PdfExporter(jamaService);

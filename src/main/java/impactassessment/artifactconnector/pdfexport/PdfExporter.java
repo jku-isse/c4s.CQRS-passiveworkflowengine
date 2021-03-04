@@ -31,23 +31,12 @@ public class PdfExporter {
     private PDPageContentStream contentStream;
     private PDDocument doc;
 
-    private Collection<JamaItemType> jamaItemTypes;
-    private Collection<PickList> pickLists;
-    private Collection<PickListOption> pickListOptions;
-
     public void generate(String artifactType) throws IOException {
         if (artifactType.equals("IJamaArtifact")) {
-            fetchJamaData();
             generateJama();
         } else {
             log.error("Artifact type {} not supported!", artifactType);
         }
-    }
-
-    private void fetchJamaData() {
-        jamaItemTypes = jamaService.fetchAllJamaItemTypes();
-        pickLists = jamaService.fetchAllPickLists();
-        pickListOptions = jamaService.fetchAllPickListOptions();
     }
 
     private void generateJama() throws IOException {
@@ -55,34 +44,18 @@ public class PdfExporter {
 
         // Jama Item Types
         newPage();
-        writeLn("IJamaArtifact Type Description");
-        contentStream.newLine();
         writeLn("Jama Item Types:");
-        for (JamaItemType type : jamaItemTypes) {
+        contentStream.newLine();
+        lineCount++;
+        for (JamaItemType type : jamaService.fetchAllJamaItemTypes()) {
             String s = type.getDisplay()+" (Key="+type.getTypeKey()+", ID="+type.getId()+")";
             addBulletPointWithLineBreak(s);
             addField(type);
         }
 
-        // Pick Lists
-        newPage();
-        writeLn("Pick Lists:");
-        for (PickList pickList : pickLists) {
-            String s = pickList.getName()+" (ID="+pickList.getId()+"): "+pickList.getDescription();
-            addBulletPointWithLineBreak(s);
-        }
-
-        // Pick List Options
-        newPage();
-        writeLn("Pick List Options:");
-        for (PickListOption option : pickListOptions) {
-            String s = option.getName()+" (ID="+option.getId()+"): "+option.getDescription();
-            addBulletPointWithLineBreak(s);
-        }
-
         contentStream.endText();
         contentStream.close();
-        doc.save("pdfs/IJamaArtifact.pdf");
+        doc.save("IJamaArtifact.pdf");
         doc.close();
     }
 
@@ -130,25 +103,25 @@ public class PdfExporter {
     private void addField(JamaItemType type) throws IOException {
         for (JamaField field : type.getFields()) {
             contentStream.showText("      \u2022");
-            if (field instanceof PickListField) {
-                PickListField pickListField = (PickListField) field;
-                try {
-                    String options = pickListField.getPickList().getOptions().stream().map(PickListOption::getName).collect(Collectors.joining(", "));
-                    if (options.length() > 0) {
-                        writeLn("   " + field.getLabel() + ": " + field.getClass().getSimpleName() + " ("+pickListField.getPickList().getName()+": "+options+")");
-                    } else {
-                        writeLn("   " + field.getLabel() + ": " + field.getClass().getSimpleName() + " ("+pickListField.getPickList().getName()+": options coudn't be fetched)");
+            try {
+                if (field instanceof PickListField) {
+                    PickListField pickListField = (PickListField) field;
+                    contentStream.showText("   " + field.getLabel() + ": " + field.getClass().getSimpleName() + " ("+pickListField.getPickList().getName());
+                    try {
+                        String options = pickListField.getPickList().getOptions().stream().map(PickListOption::getName).collect(Collectors.joining(", "));
+                        if (options.length() > 0) {
+                            writeLn(": "+options+")");
+                        } else {
+                            writeLn(": options coudn't be fetched)");
+                        }
+                    } catch (RestClientException e) {
+                        writeLn(": options coudn't be fetched)");
                     }
-                } catch (RestClientException e) {
-                    writeLn("   " + field.getLabel() + ": " + field.getClass().getSimpleName() + " ("+pickListField.getPickList().getName()+": options coudn't be fetched)");
+                } else {
+                        writeLn("   " + field.getLabel() + ": " + field.getClass().getSimpleName());
                 }
-
-            } else {
-                try {
-                    writeLn("   " + field.getLabel() + ": " + field.getClass().getSimpleName());
-                } catch (IllegalArgumentException e) { // prevent:  U+0009 ('controlHT') is not available in this font Times-Roman encoding: WinAnsiEncoding
-                    writeLn("   " + " -");
-                }
+            } catch (IllegalArgumentException e) {
+                writeLn("   "+e.getMessage());
             }
         }
     }

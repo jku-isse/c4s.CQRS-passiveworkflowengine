@@ -97,16 +97,6 @@ public class JamaDataScope implements IJamaService {
 	}
 
 	@Override
-	public Collection<PickList> fetchAllPickLists() {
-		return origin.fetchAllPickLists();
-	}
-
-	@Override
-	public Collection<PickListOption> fetchAllPickListOptions() {
-		return origin.fetchAllPickListOptions();
-	}
-
-	@Override
 	public Optional<IJamaArtifact> get(Integer id, String workflow) {
 		WeakReference<Object> ref = cache.getOrDefault("JamaItem"+id, new WeakReference<Object>(null));
 		if (ref.get() == null) {

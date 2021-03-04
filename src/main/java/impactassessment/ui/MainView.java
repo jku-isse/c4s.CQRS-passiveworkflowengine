@@ -290,7 +290,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         Button export = new Button("Export", e -> {
             try {
                 pdfExporter.generate(artifactTypes.getValue());
-                Notification.show("Artifact Structure Exported to ./pdfs/"+artifactTypes.getValue()+".pdf");
+                Notification.show("Artifact Structure Exported to ./"+artifactTypes.getValue()+".pdf");
             } catch (IOException ex) {
                 Notification.show("IOException: "+ex.getMessage());
             }

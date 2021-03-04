@@ -30,9 +30,5 @@ public interface IJamaService extends IArtifactService {
 	public String getJamaServerUrl(JamaItem jamaItem);
 
 	public Collection<JamaItemType> fetchAllJamaItemTypes();
-
-	public Collection<PickList> fetchAllPickLists();
-
-	public Collection<PickListOption> fetchAllPickListOptions();
 	
 }

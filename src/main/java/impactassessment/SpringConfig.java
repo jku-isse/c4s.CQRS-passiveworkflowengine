@@ -248,35 +248,35 @@ public class SpringConfig {
 //        return jamaConn;
 //    }
 
-//    @Bean
-//    @Scope("singleton")
-//    public CacheStatus getJamaCacheStatus(HibernateBackedCache cache) {
-//    	HibernateCacheStatus status = new HibernateCacheStatus(cache);
-//    	return status;
-//    }
-    
-//    @Bean
-//    @Scope("singleton")
-//    public HibernateBackedCache getJamaCache() {
-//    	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-//				getProp("mysqlDBuser"),
-//				getProp("mysqlDBpassword"),
-//				getProp("mysqlURL")+"jamacache"
-//				);
-//		return new HibernateBackedCache(sf);
-//     }
-    
-    @Bean
-    public CouchDBJamaCache getJamaCache(CouchDbClient dbClient) {
-        return new CouchDBJamaCache(dbClient);
-    }
-
     @Bean
     @Scope("singleton")
-    public CacheStatus getJamaCacheStatus(CouchDBJamaCache cache) {
-        CouchDBCacheStatus status = new CouchDBCacheStatus(cache);
+    public CacheStatus getJamaCacheStatus(HibernateBackedCache cache) {
+    	HibernateCacheStatus status = new HibernateCacheStatus(cache);
     	return status;
     }
+    
+    @Bean
+    @Scope("singleton")
+    public HibernateBackedCache getJamaCache() {
+    	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
+				getProp("mysqlDBuser"),
+				getProp("mysqlDBpassword"),
+				getProp("mysqlURL")+"jamacache"
+				);
+		return new HibernateBackedCache(sf);
+     }
+    
+//    @Bean
+//    public CouchDBJamaCache getJamaCache(CouchDbClient dbClient) {
+//        return new CouchDBJamaCache(dbClient);
+//    }
+//
+//    @Bean
+//    @Scope("singleton")
+//    public CacheStatus getJamaCacheStatus(CouchDBJamaCache cache) {
+//        CouchDBCacheStatus status = new CouchDBCacheStatus(cache);
+//    	return status;
+//    }
 
 //    @Bean
 //    public JamaInstance getOfflineJamaInstance(CouchDBJamaCache cache) {
@@ -324,20 +324,20 @@ public class SpringConfig {
         return jamaInst;
     }
     
-    @Bean
-    public CouchDbClient getCouchDbClient() {
-        CouchDbProperties dbprops = new CouchDbProperties()
-                .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
-                .setCreateDbIfNotExist(true)
-                .setProtocol("http")
-                .setHost(getProp("couchDBip", "localhost"))
-                .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
-                .setUsername(getProp("jamaCacheCouchDBuser","admin"))
-                .setPassword(getProp("jamaCacheCouchDBpassword","password"))
-                .setMaxConnections(100)
-                .setConnectionTimeout(0);
-        return new CouchDbClient(dbprops);
-    }
+//    @Bean
+//    public CouchDbClient getCouchDbClient() {
+//        CouchDbProperties dbprops = new CouchDbProperties()
+//                .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
+//                .setCreateDbIfNotExist(true)
+//                .setProtocol("http")
+//                .setHost(getProp("couchDBip", "localhost"))
+//                .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
+//                .setUsername(getProp("jamaCacheCouchDBuser","admin"))
+//                .setPassword(getProp("jamaCacheCouchDBpassword","password"))
+//                .setMaxConnections(100)
+//                .setConnectionTimeout(0);
+//        return new CouchDbClient(dbprops);
+//    }
 
     @Bean
     @Scope("singleton")

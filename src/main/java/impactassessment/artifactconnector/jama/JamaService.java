@@ -134,42 +134,6 @@ public class JamaService implements IJamaService {
     }
 
     @Override
-    public Collection<PickList> fetchAllPickLists() {
-        try {
-            // TODO: fetch PickLists from Jama server
-            throw new RestClientException();
-        } catch (RestClientException | NullPointerException e) {
-            // TODO remove this catch-block later on again! Cache based workaround because no server access
-            List<PickList> pickLists = new ArrayList<>();
-            for (int i = 0; i < 2000; i++) { // looked up the IDs in the cache --> is there another way?
-                PickList pickList = (PickList) jamaInstance.checkPool(PickList.class, i);
-                if (pickList != null) {
-                    pickLists.add(pickList);
-                }
-            }
-            return pickLists;
-        }
-    }
-
-    @Override
-    public Collection<PickListOption> fetchAllPickListOptions() {
-        try {
-            // TODO: fetch PickListOptions from Jama server
-            throw new RestClientException();
-        } catch (RestClientException | NullPointerException e) {
-            // TODO remove this catch-block later on again! Cache based workaround because no server access
-            List<PickListOption> pickListOptions = new ArrayList<>();
-            for (int i = 1000; i < 1300; i++) { // looked up the IDs in the cache --> is there another way?
-                PickListOption option = (PickListOption) jamaInstance.checkPool(PickListOption.class, i);
-                if (option != null) {
-                    pickListOptions.add(option);
-                }
-            }
-            return pickListOptions;
-        }
-    }
-
-    @Override
 	public IJamaUserArtifact convertUser(JamaUser user) {
 		return new JamaUserArtifact(user);
 	}
