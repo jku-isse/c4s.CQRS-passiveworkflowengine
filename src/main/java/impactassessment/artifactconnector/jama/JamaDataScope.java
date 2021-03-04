@@ -1,6 +1,7 @@
 package impactassessment.artifactconnector.jama;
 
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,9 +9,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
@@ -89,6 +89,21 @@ public class JamaDataScope implements IJamaService {
 	@Override
 	public String getJamaServerUrl(JamaItem jamaItem) {
 		return origin.getJamaServerUrl(jamaItem);
+	}
+
+	@Override
+	public Collection<JamaItemType> fetchAllJamaItemTypes() {
+		return origin.fetchAllJamaItemTypes();
+	}
+
+	@Override
+	public Collection<PickList> fetchAllPickLists() {
+		return origin.fetchAllPickLists();
+	}
+
+	@Override
+	public Collection<PickListOption> fetchAllPickListOptions() {
+		return origin.fetchAllPickListOptions();
 	}
 
 	@Override

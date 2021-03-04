@@ -1,8 +1,10 @@
 package impactassessment.ui;
 
 import artifactapi.ArtifactType;
+import artifactapi.jira.IJiraArtifact;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
+import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -45,6 +47,7 @@ import impactassessment.api.Queries.GetStateResponse;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.api.Queries.PrintKBResponse;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
+import impactassessment.artifactconnector.pdfexport.PdfExporter;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -95,6 +98,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
     private IFrontendPusher pusher;
     private MonitoringScheduler jiraMonitoringScheduler;
     private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
+    private PdfExporter pdfExporter;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -129,6 +133,10 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
     @Inject
     public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
         this.jamaMonitoringScheduler = jamaMonitoringScheduler;
+    }
+    @Inject
+    public void setPdfExporter(PdfExporter pdfExporter) {
+        this.pdfExporter = pdfExporter;
     }
 
     @Override
@@ -269,9 +277,25 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
 //        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         if (devMode) accordion.add("Backend Queries", backend());
+        if (devMode) accordion.add("Export Artifact Structure", pdfExport());
         accordion.close();
         accordion.open(0);
         accordion.setWidthFull();
+    }
+
+    private Component pdfExport() {
+        RadioButtonGroup<String> artifactTypes = new RadioButtonGroup<>();
+        artifactTypes.setItems("IJamaArtifact", "IJiraArtifact");
+        artifactTypes.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        Button export = new Button("Export", e -> {
+            try {
+                pdfExporter.generate(artifactTypes.getValue());
+                Notification.show("Artifact Structure Exported to ./pdfs/"+artifactTypes.getValue()+".pdf");
+            } catch (IOException ex) {
+                Notification.show("IOException: "+ex.getMessage());
+            }
+        });
+        return new VerticalLayout(new Paragraph("Select an Artifact Type to export."), artifactTypes, export);
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {

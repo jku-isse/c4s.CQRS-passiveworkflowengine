@@ -6,18 +6,20 @@ import artifactapi.IArtifactService;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import c4s.jamaconnector.cache.CouchDBJamaCache;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.jamadomain.core.JamaDomainObject;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
+import impactassessment.SpringUtil;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -114,7 +116,60 @@ public class JamaService implements IJamaService {
       return jamaInstance.getOpenUrl(jamaItem);
   }
 
-	@Override
+    @Override
+    public Collection<JamaItemType> fetchAllJamaItemTypes() {
+        try {
+            return jamaInstance.getItemTypes();
+        } catch (RestClientException | NullPointerException e) {
+            // TODO remove this catch-block later on again! Cache based workaround because no server access
+            List<JamaItemType> typesFromCache = new ArrayList<>();
+            for (int i = 22; i <= 53; i++) { // looked up the IDs in the cache --> is there another way?
+                JamaItemType jamaItemType = (JamaItemType) jamaInstance.checkPool(JamaItemType.class, i);
+                if (jamaItemType != null) {
+                    typesFromCache.add(jamaItemType);
+                }
+            }
+            return typesFromCache;
+        }
+    }
+
+    @Override
+    public Collection<PickList> fetchAllPickLists() {
+        try {
+            // TODO: fetch PickLists from Jama server
+            throw new RestClientException();
+        } catch (RestClientException | NullPointerException e) {
+            // TODO remove this catch-block later on again! Cache based workaround because no server access
+            List<PickList> pickLists = new ArrayList<>();
+            for (int i = 0; i < 2000; i++) { // looked up the IDs in the cache --> is there another way?
+                PickList pickList = (PickList) jamaInstance.checkPool(PickList.class, i);
+                if (pickList != null) {
+                    pickLists.add(pickList);
+                }
+            }
+            return pickLists;
+        }
+    }
+
+    @Override
+    public Collection<PickListOption> fetchAllPickListOptions() {
+        try {
+            // TODO: fetch PickListOptions from Jama server
+            throw new RestClientException();
+        } catch (RestClientException | NullPointerException e) {
+            // TODO remove this catch-block later on again! Cache based workaround because no server access
+            List<PickListOption> pickListOptions = new ArrayList<>();
+            for (int i = 1000; i < 1300; i++) { // looked up the IDs in the cache --> is there another way?
+                PickListOption option = (PickListOption) jamaInstance.checkPool(PickListOption.class, i);
+                if (option != null) {
+                    pickListOptions.add(option);
+                }
+            }
+            return pickListOptions;
+        }
+    }
+
+    @Override
 	public IJamaUserArtifact convertUser(JamaUser user) {
 		return new JamaUserArtifact(user);
 	}
