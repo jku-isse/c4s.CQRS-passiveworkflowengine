@@ -1,5 +1,6 @@
 package impactassessment.command;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -11,23 +12,43 @@ import org.axonframework.common.Registration;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.messaging.MessageDispatchInterceptor;
 
-import impactassessment.api.Commands.ActivateInOutBranchCmd;
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import impactassessment.api.Commands.ActivateTaskCmd;
 import impactassessment.api.Commands.AddConstraintsCmd;
 import impactassessment.api.Commands.AddEvaluationResultToConstraintCmd;
+import impactassessment.api.Commands.AddInputCmd;
+import impactassessment.api.Commands.AddInputToWorkflowCmd;
 import impactassessment.api.Commands.AddOutputCmd;
-import impactassessment.api.Commands.CompleteDataflowCmd;
-import impactassessment.api.Events.ActivatedInOutBranchEvt;
+import impactassessment.api.Commands.AddOutputToWorkflowCmd;
+import impactassessment.api.Commands.CheckAllConstraintsCmd;
+import impactassessment.api.Commands.CheckConstraintCmd;
+import impactassessment.api.Commands.SetPostConditionsFulfillmentCmd;
+import impactassessment.api.Commands.SetPreConditionsFulfillmentCmd;
+import impactassessment.api.Commands.SetTaskPropertyCmd;
+import impactassessment.api.Commands.UpdateArtifactsCmd;
+import impactassessment.api.Events.ActivatedTaskEvt;
 import impactassessment.api.Events.AddedConstraintsEvt;
 import impactassessment.api.Events.AddedEvaluationResultToConstraintEvt;
+import impactassessment.api.Events.AddedInputEvt;
+import impactassessment.api.Events.AddedInputToWorkflowEvt;
 import impactassessment.api.Events.AddedOutputEvt;
-import impactassessment.api.Events.CompletedDataflowEvt;
+import impactassessment.api.Events.AddedOutputToWorkflowEvt;
+import impactassessment.api.Events.CheckedAllConstraintsEvt;
+import impactassessment.api.Events.CheckedConstraintEvt;
+import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
+import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
+import impactassessment.api.Events.SetTaskPropertyEvt;
+import impactassessment.api.Events.UpdatedArtifactsEvt;
 
 public class MockCommandGateway implements CommandGateway {
 
 	WorkflowProjection proj;
+	IArtifactRegistry artifactRegistry;
 	
-	public MockCommandGateway() {
-		
+	public MockCommandGateway(IArtifactRegistry artReg) {
+		this.artifactRegistry = artReg;
 	}
 	
 	public void setWorkflowProjection(WorkflowProjection proj) {
@@ -62,14 +83,7 @@ public class MockCommandGateway implements CommandGateway {
 	@Override
 	public <R> CompletableFuture<R> send(Object command) {
 		
-//		if (command instanceof CompleteDataflowCmd) {
-//			CompleteDataflowCmd cmd = (CompleteDataflowCmd)command;
-//			proj.on(new CompletedDataflowEvt(cmd.getId(), cmd.getDniId(), cmd.getRes()), ReplayStatus.REGULAR);
-//		} else
-//		if (command instanceof ActivateInOutBranchCmd) {
-//			ActivateInOutBranchCmd cmd = (ActivateInOutBranchCmd)command;
-//			proj.on(new ActivatedInOutBranchEvt(cmd.getId(), cmd.getDniId(), cmd.getWftId(), cmd.getBranchId()), ReplayStatus.REGULAR);
-//		} else
+
 		if (command instanceof AddConstraintsCmd) {
 			AddConstraintsCmd cmd = (AddConstraintsCmd)command;
 			proj.on(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()), ReplayStatus.REGULAR);
@@ -77,11 +91,61 @@ public class MockCommandGateway implements CommandGateway {
 		if (command instanceof AddEvaluationResultToConstraintCmd) {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
 			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
-//		} else
-//		if (command instanceof AddOutputCmd) {
-//			AddOutputCmd cmd = (AddOutputCmd)command;
-//			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifact(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
-		} else {
+		} else
+		if (command instanceof CheckConstraintCmd) {
+			CheckConstraintCmd cmd = (CheckConstraintCmd)command;
+	        proj.on(new CheckedConstraintEvt(cmd.getId(), cmd.getCorrId()));
+	    } else	
+		if (command instanceof CheckAllConstraintsCmd) {
+			CheckAllConstraintsCmd cmd = (CheckAllConstraintsCmd) command;
+			proj.on(new CheckedAllConstraintsEvt(cmd.getId()));
+		} else
+		if (command instanceof	AddInputCmd) {
+			AddInputCmd cmd = (AddInputCmd)command;
+			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+		} else	
+		if (command instanceof AddOutputCmd) {
+			AddOutputCmd cmd = (AddOutputCmd)command;
+			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+		} else
+		if (command instanceof AddInputToWorkflowCmd) {
+			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
+			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+		} else
+		if (command instanceof AddOutputToWorkflowCmd) {
+			AddOutputToWorkflowCmd cmd = (AddOutputToWorkflowCmd)command;
+			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+		} else
+		if(command instanceof UpdateArtifactsCmd) {
+			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;
+			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
+		} else
+		if(command instanceof SetPreConditionsFulfillmentCmd) {
+			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;
+			proj.on(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+		} else
+		if(command instanceof SetPostConditionsFulfillmentCmd) {
+			SetPostConditionsFulfillmentCmd cmd = (SetPostConditionsFulfillmentCmd)command;
+			proj.on(new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+		} else
+		if (command instanceof ActivateTaskCmd) {
+			ActivateTaskCmd cmd = (ActivateTaskCmd)command;
+			proj.on(new ActivatedTaskEvt(cmd.getId(), cmd.getWftId()));
+		} else
+		if (command instanceof SetTaskPropertyCmd) {
+			SetTaskPropertyCmd cmd = (SetTaskPropertyCmd)command;
+			proj.on(new SetTaskPropertyEvt(cmd.getId(), cmd.getWftId(), cmd.getProperties()));
+		}
+		else {
+		
 			System.err.println("Received unsupported command: "+command.toString());
 		}
 			

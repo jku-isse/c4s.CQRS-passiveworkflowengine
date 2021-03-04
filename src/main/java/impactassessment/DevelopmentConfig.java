@@ -14,12 +14,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.hibernate.SessionFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -29,13 +26,12 @@ import com.jamasoftware.services.restclient.httpconnection.ApacheHttpClient;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 
-import artifactapi.IArtifactService;
+import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.CacheStatus;
 import c4s.jamaconnector.cache.CachedResourcePool;
 import c4s.jamaconnector.cache.CachingJsonHandler;
-import c4s.jamaconnector.cache.JamaCache;
 import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
 import c4s.jamaconnector.cache.hibernate.HibernateCacheStatus;
 import c4s.jiralightconnector.ChangeSubscriber;
@@ -46,10 +42,9 @@ import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
 import c4s.jiralightconnector.anonymizer.AnonymizingAsyncJiraRestClientFactory;
 import c4s.jiralightconnector.anonymizer.AnonymizingJiraInstance;
 import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
-import impactassessment.artifactconnector.jama.IJamaService;
+import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
-import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
@@ -75,12 +70,13 @@ public class DevelopmentConfig extends AbstractModule {
 	private JiraChangeSubscriber jiraCS;
 	private MonitoringState jiraM;
 	private JiraInstance jiraI;
-	
+	private ArtifactRegistry artReg;
 
 
 	
 	public DevelopmentConfig() {
-		gw = new MockCommandGateway();
+		artReg = new ArtifactRegistry();
+		gw = new MockCommandGateway(artReg);
 		jrc = setupJiraRestClient();
 		jiraCache = configJiraCache();
 		juti = setupJiraUpdateTracingInstrumentation();
@@ -97,7 +93,7 @@ public class DevelopmentConfig extends AbstractModule {
 	
 	protected void configure() {
 		bind(CommandGateway.class).toInstance(gw);
-		
+		bind(IArtifactRegistry.class).toInstance(artReg);
 		bind(JiraRestClient.class).toInstance(jrc);
 		bind(JiraUpdateTracingInstrumentation.class).toInstance(juti);
 		bind(JiraChangeSubscriber.class).toInstance(jiraCS);
