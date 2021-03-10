@@ -68,24 +68,32 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     public void initTreeGrid() {
 
         // Column "Workflow Instance"
-        this.addHierarchyColumn(o -> {
+        this.addComponentHierarchyColumn(o -> {
             if (o instanceof WorkflowInstance) {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 int i = wfi.getId().indexOf("WF-");
                 String id = i < 0 ? wfi.getId() : wfi.getId().substring(0, i+2).concat("...").concat(wfi.getId().substring(wfi.getId().length()-5));
-                return wfi.getType().getId() + " (" + id + ")";
+                Span span = new Span(wfi.getType().getId() + " (" + id + ")");
+                span.getElement().setProperty("title", wfi.getType().getId() + " (" + wfi.getId() + ")");
+                return span;
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
                 if (wft.getName() != null) {
-                    return wft.getName();
+                    Span span = new Span(wft.getName());
+                    span.getElement().setProperty("title", wft.getType().getId());
+                    return span;
                 } else {
-                    return wft.getType().getId();
+                    Span span = new Span(wft.getType().getId());
+                    span.getElement().setProperty("title", wft.getType().getId());
+                    return span;
                 }
             } else if (o instanceof RuleEngineBasedConstraint) {
                 RuleEngineBasedConstraint rebc = (RuleEngineBasedConstraint) o;
-                return rebc.getDescription();
+                Span span = new Span(rebc.getDescription());
+                span.getElement().setProperty("title", rebc.getDescription());
+                return span;
             } else {
-                return o.getClass().getSimpleName() + ": " + o.getId();
+                return new Paragraph(o.getClass().getSimpleName() + ": " + o.getId());
             }
         }).setHeader("Workflow Instance").setWidth("35%");
 
