@@ -29,6 +29,4 @@ public interface IJamaService extends IArtifactService {
 
 	public String getJamaServerUrl(JamaItem jamaItem);
 
-	public Collection<JamaItemType> fetchAllJamaItemTypes();
-	
 }

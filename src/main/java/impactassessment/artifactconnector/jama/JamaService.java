@@ -114,23 +114,6 @@ public class JamaService implements IJamaService {
 	@Override
     public String getJamaServerUrl(JamaItem jamaItem) {
       return jamaInstance.getOpenUrl(jamaItem);
-  }
-
-    @Override
-    public Collection<JamaItemType> fetchAllJamaItemTypes() {
-        try {
-            return jamaInstance.getItemTypes();
-        } catch (RestClientException | NullPointerException e) {
-            // TODO remove this catch-block later on again! Cache based workaround because no server access
-            List<JamaItemType> typesFromCache = new ArrayList<>();
-            for (int i = 22; i <= 53; i++) { // looked up the IDs in the cache --> is there another way?
-                JamaItemType jamaItemType = (JamaItemType) jamaInstance.checkPool(JamaItemType.class, i);
-                if (jamaItemType != null) {
-                    typesFromCache.add(jamaItemType);
-                }
-            }
-            return typesFromCache;
-        }
     }
 
     @Override

@@ -92,11 +92,6 @@ public class JamaDataScope implements IJamaService {
 	}
 
 	@Override
-	public Collection<JamaItemType> fetchAllJamaItemTypes() {
-		return origin.fetchAllJamaItemTypes();
-	}
-
-	@Override
 	public Optional<IJamaArtifact> get(Integer id, String workflow) {
 		WeakReference<Object> ref = cache.getOrDefault("JamaItem"+id, new WeakReference<Object>(null));
 		if (ref.get() == null) {
