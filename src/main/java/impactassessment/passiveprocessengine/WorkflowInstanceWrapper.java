@@ -244,18 +244,6 @@ public class WorkflowInstanceWrapper {
         return output;
     }
 
-    // TODO make new cmd/evts
-    public void handle(StateMachineTriggerEvt evt) {
-        Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
-                .filter(wft -> wft.getId().equals(evt.getWftId()))
-                .findAny();
-        if (opt.isPresent()) {
-//            opt.get().signalEvent(evt.getTrigger());
-        } else {
-            log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
-        }
-    }
-
     public void handle(SetPreConditionsFulfillmentEvt evt) {
         // TODO
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
@@ -271,7 +259,7 @@ public class WorkflowInstanceWrapper {
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
-    public void handle(SetTaskPropertyEvt evt) {
+    public void handle(SetTaskPropertyEvt evt) { // TODO IWFT --> WFI -- wfprops überschreiebn inkl name
         Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
                 .filter(wft -> wft.getId().equals(evt.getWftId()))
                 .findAny();
@@ -317,8 +305,6 @@ public class WorkflowInstanceWrapper {
             handle((AddedInputToWorkflowEvt) evt);
         } else if (evt instanceof AddedOutputToWorkflowEvt) {
             handle((AddedOutputToWorkflowEvt) evt);
-        } else if (evt instanceof StateMachineTriggerEvt) {
-            handle((StateMachineTriggerEvt) evt);
         } else if (evt instanceof SetPreConditionsFulfillmentEvt) {
             handle((SetPreConditionsFulfillmentEvt) evt);
         } else if (evt instanceof SetPostConditionsFulfillmentEvt) {

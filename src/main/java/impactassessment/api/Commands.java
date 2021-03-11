@@ -151,13 +151,6 @@ public class Commands {
         private final List<IArtifact> artifacts;
     }
     @Data
-    public static class StateMachineTriggerCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String wftId;
-        private final TaskLifecycle.Triggers trigger;
-    }
-    @Data
     public static class SetPreConditionsFulfillmentCmd {
         @TargetAggregateIdentifier
         private final String id;

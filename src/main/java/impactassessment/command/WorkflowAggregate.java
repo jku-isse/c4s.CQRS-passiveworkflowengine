@@ -216,12 +216,6 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(StateMachineTriggerCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getTrigger()));
-    }
-
-    @CommandHandler
     public void handle(SetPreConditionsFulfillmentCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
         apply(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));

@@ -131,12 +131,6 @@ public class Events {
         private final List<IArtifact> artifacts;
     }
     @Data
-    public static class StateMachineTriggerEvt implements IdentifiableEvt {
-        private final String id;
-        private final String wftId;
-        private final TaskLifecycle.Triggers trigger;
-    }
-    @Data
     public static class SetPreConditionsFulfillmentEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
