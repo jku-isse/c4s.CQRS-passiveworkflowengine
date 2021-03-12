@@ -156,4 +156,9 @@ public class JamaDataScope implements IJamaService {
 			log.warn("Coudn't inject this DataScope because scope id ({}) doesn't match workflow id ({})", scopeId, s);
 		}
 	}
+
+	@Override
+	public void deleteDataScope(String s) {
+		origin.deleteDataScope(s);
+	}
 }

@@ -65,7 +65,12 @@ public class JamaService implements IJamaService {
         artifact.injectArtifactService(scope);
     }
 
-	@Override
+    @Override
+    public void deleteDataScope(String s) {
+        perProcessCaches.remove(s);
+    }
+
+    @Override
 	public Optional<IJamaArtifact> get(Integer id) {
 		JamaItem jamaItem;
         try {

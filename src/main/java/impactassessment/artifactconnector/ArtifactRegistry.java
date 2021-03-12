@@ -41,4 +41,12 @@ public class ArtifactRegistry implements IArtifactRegistry {
         }
     }
 
+
+    @Override
+    public void deleteAllDataScopes(String scopeId) {
+        for (IArtifactService service : services) {
+            service.deleteDataScope(scopeId);
+        }
+    }
+
 }

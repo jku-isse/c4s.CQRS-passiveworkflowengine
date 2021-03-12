@@ -311,6 +311,7 @@ public class WorkflowProjection {
         pusher.update(new ArrayList<>(projection.getDb().values()));
         if (!status.isReplay()) {
             kieSessions.dispose(evt.getId());
+            artifactRegistry.deleteAllDataScopes(evt.getId());
         }
     }
 
