@@ -234,9 +234,9 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(SetTaskPropertyCmd cmd) {
+    public void handle(SetPropertiesCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new SetTaskPropertyEvt(cmd.getId(), cmd.getWftId(), cmd.getProperties()));
+        apply(new SetPropertiesEvt(cmd.getId(), cmd.getIwftId(), cmd.getProperties()));
     }
     // -------------------------------- Event Handlers --------------------------------
 

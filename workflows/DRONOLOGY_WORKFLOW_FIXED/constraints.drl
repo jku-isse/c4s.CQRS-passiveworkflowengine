@@ -24,9 +24,11 @@ import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
 import java.util.HashMap
 import impactassessment.api.Commands.AddConstraintsCmd
+import impactassessment.api.Commands.SetPropertiesCmd
 import passiveprocessengine.instance.WorkflowTask
 import passiveprocessengine.definition.ArtifactTypes
-import artifactapi.ResourceLink;
+import artifactapi.ResourceLink
+import impactassessment.api.Commands;
 
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
@@ -57,6 +59,15 @@ rule "InsertQAConstraintsStateOpen"
             commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
         }
 end
+
+//rule "SetOpenTaskName"
+//	when
+//		$wft : WorkflowTask (   getType().getId().equals("Open") )
+//	then
+//	    Map<String, String> properties = new HashMap<>();
+//	    properties.put("name", "First Task in the process");
+//		commandGateway.send(new SetPropertiesCmd($wft.getWorkflow().getId(), $wft.getId(), properties));
+//end
 
 //constraints for state in-progress
 rule "InsertQAConstraintsStateInProgress"

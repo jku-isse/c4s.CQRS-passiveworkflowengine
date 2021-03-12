@@ -73,7 +73,12 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 int i = wfi.getId().indexOf("WF-");
                 String id = i < 0 ? wfi.getId() : wfi.getId().substring(0, i+2).concat("...").concat(wfi.getId().substring(wfi.getId().length()-5));
-                Span span = new Span(wfi.getType().getId() + " (" + id + ")");
+                Span span;
+                if (wfi.getName() != null) {
+                    span = new Span(wfi.getName() + " (" + id + ")");
+                } else {
+                    span = new Span(wfi.getType().getId() + " (" + id + ")");
+                }
                 span.getElement().setProperty("title", wfi.getType().getId() + " (" + wfi.getId() + ")");
                 return span;
             } else if (o instanceof WorkflowTask) {

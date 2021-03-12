@@ -78,57 +78,23 @@ public class WorkflowInstanceWrapper {
     }
 
 //    public Map<IWorkflowTask, ArtifactInput> handle(CompletedDataflowEvt evt) {
-//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-//        if (dni != null) {
-//            dni.completedDataflowInvolvingActivationPropagation();
-//            return dni.executeMapping();
-//        } else {
-//            log.error("{} caused an error. Couldn't be found in current WFI (present DNIs: {})", evt, wfi.getDecisionNodeInstancesReadonly().stream().map(DecisionNodeInstance::toString).collect(Collectors.joining( "," )));
-//            return Collections.emptyMap();
-//        }
-//
+//        return null;
 //    }
 
 //    public List<AbstractWorkflowInstanceObject> handle(ActivatedInBranchEvt evt) {
-//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-//        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-//        if (dni != null && wft != null) {
-//            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
-//        }
-//        return awos;
+//        return null;
 //    }
 
 //    public List<AbstractWorkflowInstanceObject> handle(ActivatedOutBranchEvt evt) {
-//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-//        if (dni != null) {
-//            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
-//        }
-//        return awos;
+//        return null;
 //    }
 
 //    public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchEvt evt) {
-//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-//        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-//        if (dni != null && wft != null) {
-//            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
-//            awos.addAll(dni.activateOutBranch(evt.getBranchId()));
-//        }
-//        return awos;
+//        return null;
 //    }
 
 //    public List<AbstractWorkflowInstanceObject> handle(ActivatedInOutBranchesEvt evt) {
-//        DecisionNodeInstance dni = wfi.getDecisionNodeInstance(evt.getDniId());
-//        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-//        List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
-//        if (dni != null && wft != null) {
-//            awos.addAll(dni.activateInBranch(dni.getInBranchIdForWorkflowTask(wft)));
-//            String[] branchIds = new String[evt.getBranchIds().size()];
-//            awos.addAll(dni.activateOutBranches(evt.getBranchIds().toArray(branchIds)));
-//        }
-//        return awos;
+//        return null;
 //    }
 
     public List<AbstractWorkflowInstanceObject> handle(AddedConstraintsEvt evt) {
@@ -245,36 +211,53 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(SetPreConditionsFulfillmentEvt evt) {
-        // TODO
+        // TODO implement
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
     public void handle(SetPostConditionsFulfillmentEvt evt) {
-        // TODO
+        // TODO implement
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
     public void handle(ActivatedTaskEvt evt) {
-        // TODO
+        // TODO implement
         log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
     }
 
-    public void handle(SetTaskPropertyEvt evt) { // TODO IWFT --> WFI -- wfprops überschreiebn inkl name
-        Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
-                .filter(wft -> wft.getId().equals(evt.getWftId()))
-                .findAny();
-        if (opt.isPresent()) {
+    public void handle(SetPropertiesEvt evt) {
+        if (evt.getIwftId().equals(wfi.getId())) { // WorkflowInstance is targeted
             for (Entry<String, String> entry : evt.getProperties().entrySet()) {
-                switch (entry.getKey()) {
-                    case "name":
-                        opt.get().setName(entry.getValue());
+                // name of the WorkflowInstance
+                if (entry.getKey().equals("name")) {
+                    wfi.setName(entry.getValue());
+                }
+                // wfProps
+                for (Entry<String, String> property : wfi.getPropertiesReadOnly()) {
+                    if (property.getKey().equals(entry.getKey())) {
+                        wfi.addOrReplaceProperty(entry.getKey(), entry.getValue());
                         break;
-                    default:
-                        log.warn("Property {} is not supported and cannot be set!", entry.getKey());
+                    }
                 }
             }
-        } else {
-            log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getWftId(), evt.getId());
+        } else { // WorkflowTask is targeted
+            Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
+                    .filter(wft -> wft.getId().equals(evt.getIwftId()))
+                    .findAny();
+            if (opt.isPresent()) {
+                for (Entry<String, String> entry : evt.getProperties().entrySet()) {
+                    switch (entry.getKey()) {
+                        case "name":
+                            opt.get().setName(entry.getValue());
+                            break;
+                         // TODO: insert additional properties
+                        default:
+                            log.warn("Property {} is not supported and cannot be set!", entry.getKey());
+                    }
+                }
+            } else {
+                log.warn("Handling {} coudln't get processed because WFT with ID {} wasn't found in workflow {}", evt.getClass().getSimpleName(), evt.getIwftId(), evt.getId());
+            }
         }
     }
 
@@ -311,8 +294,8 @@ public class WorkflowInstanceWrapper {
             handle((SetPostConditionsFulfillmentEvt) evt);
         } else if (evt instanceof ActivatedTaskEvt) {
             handle((ActivatedTaskEvt) evt);
-        } else if (evt instanceof SetTaskPropertyEvt) {
-            handle((SetTaskPropertyEvt) evt);
+        } else if (evt instanceof SetPropertiesEvt) {
+            handle((SetPropertiesEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

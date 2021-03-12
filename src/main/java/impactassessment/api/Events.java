@@ -148,9 +148,9 @@ public class Events {
         private final String wftId;
     }
     @Data
-    public static class SetTaskPropertyEvt implements IdentifiableEvt {
+    public static class SetPropertiesEvt implements IdentifiableEvt {
         private final String id;
-        private final String wftId;
+        private final String iwftId;
         private final Map<String, String> properties;
     }
 }

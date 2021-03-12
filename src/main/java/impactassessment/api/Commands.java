@@ -171,10 +171,10 @@ public class Commands {
         private final String wftId;
     }
     @Data
-    public static class SetTaskPropertyCmd {
+    public static class SetPropertiesCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final String wftId;
+        private final String iwftId;
         private final Map<String, String> properties;
     }
 }
