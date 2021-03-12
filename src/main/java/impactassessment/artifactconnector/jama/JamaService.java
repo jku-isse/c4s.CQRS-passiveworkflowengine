@@ -67,7 +67,9 @@ public class JamaService implements IJamaService {
 
     @Override
     public void deleteDataScope(String s) {
-        perProcessCaches.remove(s);
+        JamaDataScope scope = perProcessCaches.remove(s);
+        if (scope != null)
+            jamaChangeSubscriber.removeUsage(scope);
     }
 
     @Override

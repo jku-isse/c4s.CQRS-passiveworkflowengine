@@ -59,7 +59,9 @@ public class JiraService implements IJiraService {
 
     @Override
     public void deleteDataScope(String s) {
-        perProcessCaches.remove(s);
+        JiraDataScope scope = perProcessCaches.remove(s);
+        if (scope != null)
+            jiraChangeSubscriber.removeUsage(scope);
     }
 
     @Override

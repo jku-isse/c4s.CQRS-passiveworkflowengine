@@ -58,4 +58,8 @@ public class JamaChangeSubscriber implements IJamaChangeSubscriber {
                 .map(String::valueOf)
                 .collect(Collectors.joining( ", " )));
     }
+
+    public void removeUsage(JamaDataScope scope) {
+        artifactUsages.remove(scope);
+    }
 }
