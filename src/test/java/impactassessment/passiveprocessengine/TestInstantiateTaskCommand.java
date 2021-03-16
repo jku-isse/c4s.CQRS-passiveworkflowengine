@@ -1,0 +1,98 @@
+package impactassessment.passiveprocessengine;
+
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jira.IJiraArtifact;
+import impactassessment.SpringConfig;
+import impactassessment.api.Events;
+import impactassessment.api.Queries;
+import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
+import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.command.MockCommandGateway;
+import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.ProjectionModel;
+import impactassessment.query.WorkflowProjection;
+import impactassessment.registry.LocalRegisterService;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.ui.SimpleFrontendPusher;
+import org.axonframework.eventhandling.ReplayStatus;
+import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.WorkflowInstance;
+import passiveprocessengine.instance.WorkflowTask;
+
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
+public class TestInstantiateTaskCommand {
+
+    private JiraService jiraS;
+    private JamaService jamaS;
+    private WorkflowDefinitionRegistry registry;
+    private WorkflowProjection wfp;
+
+    @BeforeEach
+    public void setup() {
+        SpringConfig conf = new SpringConfig();
+
+        ProjectionModel pModel = new ProjectionModel();
+
+        IArtifactRegistry aRegistry = new ArtifactRegistry();
+        MockCommandGateway gw = new MockCommandGateway(aRegistry);
+
+        JiraChangeSubscriber jiraCS = new JiraChangeSubscriber(gw);
+        jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
+        aRegistry.register(jiraS);
+        JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw);
+        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache(conf.getCouchDbClient())), jamaCS);
+        aRegistry.register(jamaS);
+
+        SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+
+        registry = new WorkflowDefinitionRegistry();
+        LocalRegisterService lrs = new LocalRegisterService(registry);
+        lrs.registerAll();
+
+        SimpleFrontendPusher fp = new SimpleFrontendPusher();
+
+        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
+        gw.setWorkflowProjection(wfp);
+    }
+
+    @Test
+    public void test() {
+        ReplayStatus status = ReplayStatus.REGULAR;
+        String id = "TestId1";
+
+        IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
+        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+
+        IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
+        ArtifactInput in = new ArtifactInput(jiraArt, "jira");
+        wfp.on(new Events.InstantiatedTaskEvt(id, "Evaluate", List.of(in), Collections.emptyList()), status); // should be ignored (task already exists!)
+        wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
+
+        List<WorkflowInstanceWrapper> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        assertEquals(1, state.size());
+        WorkflowInstance wfi = state.get(0).getWorkflowInstance();
+        assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
+        WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
+                .filter(x -> x.getId().startsWith("Execute"))
+                .findAny()
+                .get();
+        assertEquals(1, wft.getOutput().size()); // QACheckDocument
+        assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+
+        System.out.println("done");
+    }
+
+}

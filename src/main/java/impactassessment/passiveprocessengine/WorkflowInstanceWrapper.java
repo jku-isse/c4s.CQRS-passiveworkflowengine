@@ -261,10 +261,38 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    public WorkflowTask handle(InstantiatedTaskEvt evt) {
-        log.warn("Event handler for 'InstantiatedTaskEvt' not implemented!");
-        // TODO implement
-        return null;
+    public Set<AbstractWorkflowInstanceObject> handle(InstantiatedTaskEvt evt) {
+        Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
+
+        // check if task already exists
+        boolean taskAlreadyExists = wfi.getWorkflowTasksReadonly().stream()
+                .map(WorkflowTask::getType)
+                .anyMatch(td -> td.getId().equals(evt.getTaskDefinitionId()));
+
+        if (!taskAlreadyExists) {
+            wfi.getType().getWorkflowTaskDefinitions().stream()
+                    .filter(td -> td.getId().equals(evt.getTaskDefinitionId()))
+                    .findAny()
+                    .ifPresent(taskDefinition -> awos.addAll(wfi.createAndWireTask(taskDefinition)));
+            // find WFT
+            Optional<WorkflowTask> optWft = awos.stream()
+                    .filter(x -> x instanceof WorkflowTask)
+                    .map(x -> (WorkflowTask) x)
+                    .filter(x -> x.getId().startsWith(evt.getTaskDefinitionId()))
+                    .findAny();
+            // add inputs/outputs
+            if (optWft.isPresent()) {
+                WorkflowTask wft = optWft.get();
+                awos.addAll(wft.activate()); // activate task
+                for (ArtifactInput in : evt.getOptionalInputs()) {
+                    wft.addInput(in);
+                }
+                for (ArtifactOutput out : evt.getOptionalOutputs()) {
+                    wft.addOutput(out);
+                }
+            }
+        }
+        return awos;
     }
 
     public void handle(IdentifiableEvt evt) {
