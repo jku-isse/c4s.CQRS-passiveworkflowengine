@@ -66,6 +66,11 @@ public class JiraJsonService implements IArtifactService, IJiraService {
         // TODO not implemented
     }
 
+    @Override
+    public void deleteDataScope(String s) {
+
+    }
+
     private Issue loadIssue(String key) throws JSONException, IOException {
 		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
         String body = IOUtils.toString(is, "UTF-8");

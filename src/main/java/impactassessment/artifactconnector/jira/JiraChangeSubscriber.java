@@ -37,6 +37,10 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
         log.debug("Workflow: {} has following usages: {}", workflowId, artifactUsages.get(workflowId).stream().collect(Collectors.joining( ", " )));
     }
 
+    public void removeUsage(JiraDataScope scope) {
+        artifactUsages.remove(scope);
+    }
+
 	@Override
 	public void handleUpdatedIssues(List<IssueAgent> issues, CorrelationTuple corr) {
         log.info("handleUpdateIssues");

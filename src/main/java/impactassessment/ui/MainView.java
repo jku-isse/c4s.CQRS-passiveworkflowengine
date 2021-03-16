@@ -1,8 +1,10 @@
 package impactassessment.ui;
 
 import artifactapi.ArtifactType;
+import artifactapi.jira.IJiraArtifact;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
+import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;

@@ -6,18 +6,20 @@ import artifactapi.IArtifactService;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import c4s.jamaconnector.cache.CouchDBJamaCache;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.jamadomain.core.JamaDomainObject;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
+import impactassessment.SpringUtil;
 import impactassessment.artifactconnector.jama.subtypes.JamaProjectArtifact;
 import impactassessment.artifactconnector.jama.subtypes.JamaUserArtifact;
 
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -63,7 +65,14 @@ public class JamaService implements IJamaService {
         artifact.injectArtifactService(scope);
     }
 
-	@Override
+    @Override
+    public void deleteDataScope(String s) {
+        JamaDataScope scope = perProcessCaches.remove(s);
+        if (scope != null)
+            jamaChangeSubscriber.removeUsage(scope);
+    }
+
+    @Override
 	public Optional<IJamaArtifact> get(Integer id) {
 		JamaItem jamaItem;
         try {
@@ -112,9 +121,9 @@ public class JamaService implements IJamaService {
 	@Override
     public String getJamaServerUrl(JamaItem jamaItem) {
       return jamaInstance.getOpenUrl(jamaItem);
-  }
+    }
 
-	@Override
+    @Override
 	public IJamaUserArtifact convertUser(JamaUser user) {
 		return new JamaUserArtifact(user);
 	}

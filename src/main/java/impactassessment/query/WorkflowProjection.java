@@ -311,7 +311,21 @@ public class WorkflowProjection {
         pusher.update(new ArrayList<>(projection.getDb().values()));
         if (!status.isReplay()) {
             kieSessions.dispose(evt.getId());
+            artifactRegistry.deleteAllDataScopes(evt.getId());
         }
+    }
+
+    @EventHandler
+    public void on(InstantiatedTaskEvt evt, ReplayStatus status) {
+        log.debug("[PRJ] projecting {}", evt);
+        WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+        Set<AbstractWorkflowInstanceObject> awos= wfiWrapper.handle(evt);
+        if (!status.isReplay() && awos.size() > 0) {
+            ensureInitializedKB(kieSessions, projection, evt.getId());
+            awos.forEach(x -> kieSessions.insertOrUpdate(evt.getId(), x));
+            kieSessions.fire(evt.getId());
+        }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
     }
 
     @EventHandler

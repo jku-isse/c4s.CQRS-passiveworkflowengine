@@ -1,11 +1,11 @@
 package impactassessment.artifactconnector.jama;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import artifactapi.IArtifactService;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
@@ -28,5 +28,5 @@ public interface IJamaService extends IArtifactService {
 	public IJamaUserArtifact convertUser(JamaUser user);
 
 	public String getJamaServerUrl(JamaItem jamaItem);
-	
+
 }

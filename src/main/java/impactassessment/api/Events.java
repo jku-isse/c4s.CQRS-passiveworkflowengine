@@ -3,8 +3,11 @@ package impactassessment.api;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import lombok.Data;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import passiveprocessengine.definition.TaskLifecycle;
 import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
 
 import java.time.Instant;
@@ -131,12 +134,6 @@ public class Events {
         private final List<IArtifact> artifacts;
     }
     @Data
-    public static class StateMachineTriggerEvt implements IdentifiableEvt {
-        private final String id;
-        private final String wftId;
-        private final TaskLifecycle.Triggers trigger;
-    }
-    @Data
     public static class SetPreConditionsFulfillmentEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
@@ -154,10 +151,17 @@ public class Events {
         private final String wftId;
     }
     @Data
-    public static class SetTaskPropertyEvt implements IdentifiableEvt {
+    public static class SetPropertiesEvt implements IdentifiableEvt {
         private final String id;
-        private final String wftId;
+        private final String iwftId;
         private final Map<String, String> properties;
+    }
+    @Data
+    public static class InstantiatedTaskEvt implements IdentifiableEvt {
+        private final String id;
+        private final String taskDefinitionId;
+        private final List<ArtifactInput> optionalInputs;
+        private final List<ArtifactOutput> optionalOutputs;
     }
 }
 

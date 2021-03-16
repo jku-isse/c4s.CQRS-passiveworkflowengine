@@ -216,12 +216,6 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(StateMachineTriggerCmd cmd) {
-        log.debug("[AGG] handling {}", cmd);
-        apply(new StateMachineTriggerEvt(cmd.getId(), cmd.getWftId(), cmd.getTrigger()));
-    }
-
-    @CommandHandler
     public void handle(SetPreConditionsFulfillmentCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
         apply(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
@@ -240,10 +234,17 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(SetTaskPropertyCmd cmd) {
+    public void handle(SetPropertiesCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new SetTaskPropertyEvt(cmd.getId(), cmd.getWftId(), cmd.getProperties()));
+        apply(new SetPropertiesEvt(cmd.getId(), cmd.getIwftId(), cmd.getProperties()));
     }
+
+    @CommandHandler
+    public void handle(InstantiateTaskCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), cmd.getOptionalInputs(), cmd.getOptionalOutputs()));
+    }
+
     // -------------------------------- Event Handlers --------------------------------
 
     @EventSourcingHandler

@@ -57,7 +57,14 @@ public class JiraService implements IJiraService {
         artifact.injectArtifactService(scope);
     }
 
-	@Override
+    @Override
+    public void deleteDataScope(String s) {
+        JiraDataScope scope = perProcessCaches.remove(s);
+        if (scope != null)
+            jiraChangeSubscriber.removeUsage(scope);
+    }
+
+    @Override
 	public Optional<IJiraArtifact> getIssue(String key, String workflowId) {
 		log.debug("JiraService loads "+key);
         IssueAgent issueAgent = jira.fetchAndMonitor(key);

@@ -1,6 +1,7 @@
 package impactassessment.artifactconnector.jama;
 
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,9 +9,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
+import com.jamasoftware.services.restclient.exception.RestClientException;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
@@ -155,5 +155,10 @@ public class JamaDataScope implements IJamaService {
 		} else {
 			log.warn("Coudn't inject this DataScope because scope id ({}) doesn't match workflow id ({})", scopeId, s);
 		}
+	}
+
+	@Override
+	public void deleteDataScope(String s) {
+		origin.deleteDataScope(s);
 	}
 }
