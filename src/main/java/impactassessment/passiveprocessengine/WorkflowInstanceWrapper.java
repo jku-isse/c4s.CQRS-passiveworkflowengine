@@ -261,6 +261,12 @@ public class WorkflowInstanceWrapper {
         }
     }
 
+    public WorkflowTask handle(InstantiatedTaskEvt evt) {
+        log.warn("Event handler for 'InstantiatedTaskEvt' not implemented!");
+        // TODO implement
+        return null;
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
@@ -296,6 +302,8 @@ public class WorkflowInstanceWrapper {
             handle((ActivatedTaskEvt) evt);
         } else if (evt instanceof SetPropertiesEvt) {
             handle((SetPropertiesEvt) evt);
+        } else if (evt instanceof InstantiatedTaskEvt) {
+            handle((InstantiatedTaskEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

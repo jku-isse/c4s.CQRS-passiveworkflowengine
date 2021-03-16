@@ -316,6 +316,19 @@ public class WorkflowProjection {
     }
 
     @EventHandler
+    public void on(InstantiatedTaskEvt evt, ReplayStatus status) {
+        log.debug("[PRJ] projecting {}", evt);
+        WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+        WorkflowTask newTask = wfiWrapper.handle(evt);
+        if (!status.isReplay() && newTask != null) {
+            ensureInitializedKB(kieSessions, projection, evt.getId());
+            kieSessions.insertOrUpdate(evt.getId(), newTask);
+            kieSessions.fire(evt.getId());
+        }
+        pusher.update(new ArrayList<>(projection.getDb().values()));
+    }
+
+    @EventHandler
     public void on(IdentifiableEvt evt) {
         log.debug("[PRJ] projecting {}", evt);
         projection.handle(evt);

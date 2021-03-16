@@ -5,6 +5,8 @@ import artifactapi.ResourceLink;
 import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import passiveprocessengine.definition.TaskLifecycle;
+import passiveprocessengine.instance.ArtifactInput;
+import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
 
 import java.time.Instant;
@@ -176,6 +178,14 @@ public class Commands {
         private final String id;
         private final String iwftId;
         private final Map<String, String> properties;
+    }
+    @Data
+    public static class InstantiateTaskCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String taskDefinitionId;
+        private final List<ArtifactInput> optionalInputs;
+        private final List<ArtifactOutput> optionalOutputs;
     }
 }
 
