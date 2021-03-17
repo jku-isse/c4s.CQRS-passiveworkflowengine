@@ -345,21 +345,6 @@
             <version>2.2.5.RELEASE</version>
             <scope>test</scope>
         </dependency>
-<<<<<<< Updated upstream
-
-<<<<<<< Updated upstream
-=======
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-install-plugin</artifactId>
-            <version>3.0.0-M1</version>
-            <type>maven-plugin</type>
-        </dependency>
-
-
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     </dependencies>
 
     <build>
