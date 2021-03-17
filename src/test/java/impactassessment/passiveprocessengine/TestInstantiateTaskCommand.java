@@ -8,10 +8,10 @@ import impactassessment.SpringConfig;
 import impactassessment.api.Events;
 import impactassessment.api.Queries;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
-import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
-import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.ProjectionModel;
@@ -20,7 +20,6 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.ui.SimpleFrontendPusher;
 import org.axonframework.eventhandling.ReplayStatus;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import passiveprocessengine.instance.ArtifactInput;
@@ -31,12 +30,12 @@ import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TestInstantiateTaskCommand {
 
-    private JiraService jiraS;
-    private JamaService jamaS;
+    private IJiraService jiraS;
+    private IJamaService jamaS;
     private WorkflowDefinitionRegistry registry;
     private WorkflowProjection wfp;
 
@@ -53,7 +52,7 @@ public class TestInstantiateTaskCommand {
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
         JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw);
-        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache(conf.getCouchDbClient())), jamaCS);
+        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 
         SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
@@ -69,7 +68,34 @@ public class TestInstantiateTaskCommand {
     }
 
     @Test
-    public void test() {
+    public void testInstantiateTask() {
+        ReplayStatus status = ReplayStatus.REGULAR;
+        String id = "TestId1";
+
+        IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
+        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+
+        IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
+        ArtifactInput in = new ArtifactInput(jiraArt, "jira");
+        wfp.on(new Events.InstantiatedTaskEvt(id, "Evaluate", List.of(in), Collections.emptyList()), status); // should be ignored (task already exists!)
+        wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
+
+        List<WorkflowInstanceWrapper> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        assertEquals(1, state.size());
+        WorkflowInstance wfi = state.get(0).getWorkflowInstance();
+        assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
+        WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
+                .filter(x -> x.getId().startsWith("Execute"))
+                .findAny()
+                .get();
+        assertEquals(1, wft.getOutput().size()); // QACheckDocument
+        assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+
+        System.out.println("done");
+    }
+
+    @Test
+    public void testInstantiateTaskFirst() {
         ReplayStatus status = ReplayStatus.REGULAR;
         String id = "TestId1";
 
