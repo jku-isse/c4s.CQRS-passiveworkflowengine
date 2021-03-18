@@ -22,11 +22,10 @@ import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
-import impactassessment.artifactconnector.jama.JamaDemoService;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
-import impactassessment.artifactconnector.jira.JiraDemoService;
+import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
@@ -133,7 +132,7 @@ public class SpringConfig {
     @Scope("singleton")
     public IJiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         if (getProp("jiraDemo", "").equals("true")) {
-            return new JiraDemoService();
+            return new JiraJsonService();
         } else {
             // connects directly to a Jira server
             return new JiraService(jiraInstance, jiraChangeSubscriber);
@@ -218,11 +217,7 @@ public class SpringConfig {
     @Bean
     @Scope("singleton")
     public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
-        if (getProp("jamaDemo", "").equals("true")) {
-            return new JamaDemoService();
-        } else {
-            return new JamaService(jamaInstance, jamaChangeSubscriber);
-        }
+        return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
