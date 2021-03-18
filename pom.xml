@@ -29,9 +29,11 @@
         <lombok.version>1.18.0</lombok.version>
         <drool.version>7.32.0.Final</drool.version>
 
-        <jiralightconnector.version>0.6.3-SNAPSHOT</jiralightconnector.version>
+        <jiralightconnector.version>0.6.4-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>3.0.0-SNAPSHOT</passiveprocessengine.v2.version>
+        <passiveprocessengine.v2.version>3.0.1-SNAPSHOT</passiveprocessengine.v2.version>
+        <analytics.version>0.0.1-SNAPSHOT</analytics.version>
+        <artifact.api.version>4.0.0-SNAPSHOT</artifact.api.version>
     </properties>
 
     <profiles>
@@ -119,7 +121,17 @@
 
         <!-- custom developed components provided as JAR in the libs folder (see maven install plugin) -->
         <dependency>
-            <groupId>ISSE.JKU</groupId>
+            <groupId>JKU.ISSE</groupId>
+            <artifactId>c4s.analytics</artifactId>
+            <version>${analytics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>JKU.ISSE</groupId>
+            <artifactId>c4s.artifact.api</artifactId>
+            <version>${artifact.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>JKU.ISSE</groupId>
             <artifactId>c4s.jiralightconnector</artifactId>
             <version>${jiralightconnector.version}</version>
             <exclusions>
@@ -131,13 +143,13 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>ISSE.JKU</groupId>
+            <groupId>JKU.ISSE</groupId>
             <artifactId>c4s.jamaconnector</artifactId>
             <version>${jamaconnector.version}</version>
         </dependency>
         <!-- passiveprocessengine contains JKU.ISSE:c4s.artifact.api:version -->
         <dependency>
-            <groupId>ISSE.JKU</groupId>
+            <groupId>JKU.ISSE</groupId>
             <artifactId>c4s.passiveprocessengine.v2</artifactId>
             <version>${passiveprocessengine.v2.version}</version>
         </dependency>
@@ -356,13 +368,41 @@
                 <version>3.0.0-M1</version>
                 <executions>
                     <execution>
+                        <id>install-analytics</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>JKU.ISSE</groupId>
+                            <artifactId>c4s.analytics</artifactId>
+                            <version>${analytics.version}</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.analytics-${analytics.version}.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-artifact-api</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>JKU.ISSE</groupId>
+                            <artifactId>c4s.artifact.api</artifactId>
+                            <version>${artifact.api.version}</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/libs/c4s.artifact.api-${artifact.api.version}.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>install-jiralightconnector</id>
                         <phase>initialize</phase>
                         <goals>
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <groupId>ISSE.JKU</groupId>
+                            <groupId>JKU.ISSE</groupId>
                             <artifactId>c4s.jiralightconnector</artifactId>
                             <version>${jiralightconnector.version}</version>
                             <packaging>jar</packaging>
@@ -376,7 +416,7 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <groupId>ISSE.JKU</groupId>
+                            <groupId>JKU.ISSE</groupId>
                             <artifactId>c4s.passiveprocessengine.v2</artifactId>
                             <version>${passiveprocessengine.v2.version}</version>
                             <packaging>jar</packaging>
@@ -390,7 +430,7 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <groupId>ISSE.JKU</groupId>
+                            <groupId>JKU.ISSE</groupId>
                             <artifactId>c4s.jamaconnector</artifactId>
                             <version>${jamaconnector.version}</version>
                             <packaging>jar</packaging>
@@ -404,7 +444,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>

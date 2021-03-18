@@ -2,6 +2,7 @@ package impactassessment;
 
 import artifactapi.IArtifactRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
+import c4s.jamaconnector.OfflineHttpClientMock;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.CacheStatus;
 import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
@@ -19,9 +20,13 @@ import com.jamasoftware.services.restclient.httpconnection.ApacheHttpClient;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
+import impactassessment.artifactconnector.jama.JamaDemoService;
 import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.artifactconnector.jira.JiraDemoService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
@@ -37,7 +42,6 @@ import org.lightcouch.CouchDbProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -46,7 +50,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,11 +61,16 @@ import javax.sql.DataSource;
 @Slf4j
 public class SpringConfig {
 
-    private Properties props = null;
+    private Properties props = null; //fetched on first access
+
+    private final boolean USE_MY_SQL_CACHE = true; // if false the CouchDB cache will be used
+    private final boolean IS_JAMA_INSTANCE_ONLINE = true;
+    private final boolean USE_JIRA_IN_MEMORY_MONITORING_STATE = false;
+    private final int AXON_SNAPSHOT_THRESHOLD = 10;
 
     @Bean
     public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
-        return new EventCountSnapshotTriggerDefinition(snapshotter, 10);
+        return new EventCountSnapshotTriggerDefinition(snapshotter, AXON_SNAPSHOT_THRESHOLD);
     }
 
     @Bean
@@ -73,7 +81,7 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(JamaService jamaService, JiraService jiraService) {
+    public IArtifactRegistry getArtifactRegistry(IJamaService jamaService, IJiraService jiraService) {
         IArtifactRegistry registry = new ArtifactRegistry();
         registry.register(jamaService);
         registry.register(jiraService);
@@ -123,9 +131,13 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public JiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
-        // connects directly to a Jira server
-        return new JiraService(jiraInstance, jiraChangeSubscriber);
+    public IJiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
+        if (getProp("jiraDemo", "").equals("true")) {
+            return new JiraDemoService();
+        } else {
+            // connects directly to a Jira server
+            return new JiraService(jiraInstance, jiraChangeSubscriber);
+        }
     }
 
     @Bean
@@ -162,26 +174,19 @@ public class SpringConfig {
     @Scope("singleton")
 
     public MonitoringState getJiraMonitoringState() {
-    	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
-				);
-    	return new HibernateBackedMonitoringState(sf);
+        MonitoringState ms;
+        if (USE_JIRA_IN_MEMORY_MONITORING_STATE) {
+            ms = new InMemoryMonitoringState();
+        } else {
+            SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
+                    getProp("mysqlDBuser"),
+                    getProp("mysqlDBpassword"),
+                    getProp("mysqlURL")+"jiracache"
+            );
+            ms = new HibernateBackedMonitoringState(sf);
+        }
+    	return ms;
     }
-
-//    @Bean
-//    @Scope("singleton")
-//    public SessionFactory getSessionFactory() {
-//    	return 
-//    }
-    
-    
-//    @Bean
-//    @Scope("singleton")
-//    public MonitoringState getMonitoringState() {
-//        return new InMemoryMonitoringState();
-//    }
 
     @Bean
     @Scope("singleton")
@@ -208,21 +213,16 @@ public class SpringConfig {
         };
     }
 
-//    @Bean
-//    public c4s.jamaconnector.ChangeStreamPoller getJamaChangeStreamPoller(HibernateBackedCache cache, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
-//        CacheStatus status = new HibernateCacheStatus(cache);
-//        c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(123, status); // TODO not sure about project id
-//        changeStreamPoller.setJi(jamaInstance);
-//        changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
-//        return changeStreamPoller;
-//    }
-
     // --------------- JAMA ---------------
 
     @Bean
     @Scope("singleton")
-    public JamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
-        return new JamaService(jamaInstance, jamaChangeSubscriber);
+    public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+        if (getProp("jamaDemo", "").equals("true")) {
+            return new JamaDemoService();
+        } else {
+            return new JamaService(jamaInstance, jamaChangeSubscriber);
+        }
     }
 
     @Bean
@@ -250,94 +250,88 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public CacheStatus getJamaCacheStatus(HibernateBackedCache cache) {
-    	HibernateCacheStatus status = new HibernateCacheStatus(cache);
-    	return status;
+    public CacheStatus getJamaCacheStatus(JamaCache cache) {
+        CacheStatus cacheStatus;
+        if (USE_MY_SQL_CACHE) {
+            cacheStatus = new HibernateCacheStatus((HibernateBackedCache)cache);
+        } else {
+            cacheStatus = new CouchDBCacheStatus(cache);
+        }
+    	return cacheStatus;
     }
-    
+
     @Bean
     @Scope("singleton")
-    public HibernateBackedCache getJamaCache() {
-    	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jamacache"
-				);
-		return new HibernateBackedCache(sf);
-     }
-    
-//    @Bean
-//    public CouchDBJamaCache getJamaCache(CouchDbClient dbClient) {
-//        return new CouchDBJamaCache(dbClient);
-//    }
-//
-//    @Bean
-//    @Scope("singleton")
-//    public CacheStatus getJamaCacheStatus(CouchDBJamaCache cache) {
-//        CouchDBCacheStatus status = new CouchDBCacheStatus(cache);
-//    	return status;
-//    }
-
-//    @Bean
-//    public JamaInstance getOfflineJamaInstance(CouchDBJamaCache cache) {
-//        JamaConfig jamaConf = new JamaConfig();
-//        jamaConf.setJson(new CachingJsonHandler(cache));
-//        jamaConf.setApiKey("SUPERSECRETKEY");
-//        String url = "http://localhost";
-//        jamaConf.setBaseUrl(url);
-//        jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
-//        jamaConf.setOpenUrlBase(url);
-//        jamaConf.setUsername("OFFLINE");
-//        jamaConf.setPassword("OFFLINE");
-//        jamaConf.setResourceTimeOut(60);
-//        jamaConf.setHttpClient(new OfflineHttpClientMock());
-//
-//        JamaInstance jamaInst = new JamaInstance(jamaConf, true);
-//        cache.setJamaInstance(jamaInst);
-//        jamaInst.setResourcePool(new CachedResourcePool(cache));
-//        return jamaInst;
-//    }
+    public JamaCache getJamaCache() {
+        JamaCache jamaCache;
+        if (USE_MY_SQL_CACHE) {
+            SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
+                    getProp("mysqlDBuser"),
+                    getProp("mysqlDBpassword"),
+                    getProp("mysqlURL")+"jamacache"
+            );
+            jamaCache = new HibernateBackedCache(sf);
+        } else {
+            CouchDbProperties dbprops = new CouchDbProperties()
+                    .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
+                    .setCreateDbIfNotExist(true)
+                    .setProtocol("http")
+                    .setHost(getProp("couchDBip", "localhost"))
+                    .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
+                    .setUsername(getProp("jamaCacheCouchDBuser","admin"))
+                    .setPassword(getProp("jamaCacheCouchDBpassword","password"))
+                    .setMaxConnections(100)
+                    .setConnectionTimeout(0);
+            jamaCache = new CouchDBJamaCache(new CouchDbClient(dbprops));
+        }
+        return jamaCache;
+    }
 
     @Bean
     @Scope("singleton")
     public JamaInstance getOnlineJamaInstance(JamaCache cache) {
-        JamaConfig jamaConf = new JamaConfig();
-        jamaConf.setJson(new CachingJsonHandler(cache));
-        jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
-        String url = getProp("jamaServerURI");
-        jamaConf.setBaseUrl(url);
-        jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
-        jamaConf.setOpenUrlBase(url);
-        jamaConf.setUsername(getProp("jamaUser"));
-        jamaConf.setPassword(getProp("jamaPassword"));
-        jamaConf.setResourceTimeOut(60);
-        try {
-            jamaConf.setHttpClient(new ApacheHttpClient());
-        } catch (RestClientException e) {
-            e.printStackTrace();
-        }
+        JamaInstance jamaInst;
+        if (IS_JAMA_INSTANCE_ONLINE) {
+            JamaConfig jamaConf = new JamaConfig();
+            jamaConf.setJson(new CachingJsonHandler(cache));
+            jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
+            String url = getProp("jamaServerURI");
+            jamaConf.setBaseUrl(url);
+            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+            jamaConf.setOpenUrlBase(url);
+            jamaConf.setUsername(getProp("jamaUser"));
+            jamaConf.setPassword(getProp("jamaPassword"));
+            jamaConf.setResourceTimeOut(60);
+            try {
+                jamaConf.setHttpClient(new ApacheHttpClient());
+            } catch (RestClientException e) {
+                e.printStackTrace();
+            }
 
-        JamaInstance jamaInst = new JamaInstance(jamaConf, false);
-        cache.setJamaInstance(jamaInst);
-        jamaInst.setResourcePool(new CachedResourcePool(cache));
-        jamaInst.enableAnonymizing();
+            jamaInst = new JamaInstance(jamaConf, false);
+            cache.setJamaInstance(jamaInst);
+            jamaInst.setResourcePool(new CachedResourcePool(cache));
+            jamaInst.enableAnonymizing();
+        } else {
+            JamaConfig jamaConf = new JamaConfig();
+            jamaConf.setJson(new CachingJsonHandler(cache));
+            jamaConf.setApiKey("SUPERSECRETKEY");
+            String url = "http://localhost";
+            jamaConf.setBaseUrl(url);
+            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+            jamaConf.setOpenUrlBase(url);
+            jamaConf.setUsername("OFFLINE");
+            jamaConf.setPassword("OFFLINE");
+            jamaConf.setResourceTimeOut(60);
+            jamaConf.setHttpClient(new OfflineHttpClientMock());
+
+            jamaInst = new JamaInstance(jamaConf, true);
+            cache.setJamaInstance(jamaInst);
+            jamaInst.setResourcePool(new CachedResourcePool(cache));
+            return jamaInst;
+        }
         return jamaInst;
     }
-    
-//    @Bean
-//    public CouchDbClient getCouchDbClient() {
-//        CouchDbProperties dbprops = new CouchDbProperties()
-//                .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
-//                .setCreateDbIfNotExist(true)
-//                .setProtocol("http")
-//                .setHost(getProp("couchDBip", "localhost"))
-//                .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
-//                .setUsername(getProp("jamaCacheCouchDBuser","admin"))
-//                .setPassword(getProp("jamaCacheCouchDBpassword","password"))
-//                .setMaxConnections(100)
-//                .setConnectionTimeout(0);
-//        return new CouchDbClient(dbprops);
-//    }
 
     @Bean
     @Scope("singleton")
