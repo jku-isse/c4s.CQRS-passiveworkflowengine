@@ -24,6 +24,7 @@ import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddOutputToWorkflowCmd;
 import impactassessment.api.Commands.CheckAllConstraintsCmd;
 import impactassessment.api.Commands.CheckConstraintCmd;
+import impactassessment.api.Commands.InstantiateTaskCmd;
 import impactassessment.api.Commands.SetPostConditionsFulfillmentCmd;
 import impactassessment.api.Commands.SetPreConditionsFulfillmentCmd;
 import impactassessment.api.Commands.SetPropertiesCmd;
@@ -37,6 +38,7 @@ import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.AddedOutputToWorkflowEvt;
 import impactassessment.api.Events.CheckedAllConstraintsEvt;
 import impactassessment.api.Events.CheckedConstraintEvt;
+import impactassessment.api.Events.InstantiatedTaskEvt;
 import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPropertiesEvt;
@@ -143,6 +145,10 @@ public class MockCommandGateway implements CommandGateway {
 		if (command instanceof SetPropertiesCmd) {
 			SetPropertiesCmd cmd = (SetPropertiesCmd)command;
 			proj.on(new SetPropertiesEvt(cmd.getId(), cmd.getIwftId(), cmd.getProperties()));
+		} else 
+		if (command instanceof InstantiateTaskCmd) {
+			InstantiateTaskCmd cmd = (InstantiateTaskCmd)command;
+			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), cmd.getOptionalInputs(), cmd.getOptionalOutputs()));
 		}
 		else {
 		

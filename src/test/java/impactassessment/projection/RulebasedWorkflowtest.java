@@ -8,6 +8,7 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
 
@@ -38,7 +39,7 @@ class RulebasedWorkflowtest {
 		MockCommandGateway gw = injector.getInstance(MockCommandGateway.class);
 		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
-		JiraService jiraS = DevelopmentConfig.getJiraService();
+		IJiraService jiraS = DevelopmentConfig.getJiraService(false);
 		aRegistry.register(jiraS);
 		aRegistry.register(injector.getInstance(JamaService.class));
 		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);

@@ -50,36 +50,36 @@ public class Commands {
         private final String dniId;
         private final ResourceLink res;
     }
-    @Data
-    public static class ActivateInBranchCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-    }
-    @Data
-    public static class ActivateOutBranchCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String dniId;
-        private final String branchId;
-    }
-    @Data
-    public static class ActivateInOutBranchCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-        private final String branchId;
-    }
-    @Data
-    public static class ActivateInOutBranchesCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-        private final Set<String> branchIds;
-    }
+//    @Data
+//    public static class ActivateInBranchCmd {
+//        @TargetAggregateIdentifier
+//        private final String id;
+//        private final String dniId;
+//        private final String wftId;
+//    }
+//    @Data
+//    public static class ActivateOutBranchCmd {
+//        @TargetAggregateIdentifier
+//        private final String id;
+//        private final String dniId;
+//        private final String branchId;
+//    }
+//    @Data
+//    public static class ActivateInOutBranchCmd {
+//        @TargetAggregateIdentifier
+//        private final String id;
+//        private final String dniId;
+//        private final String wftId;
+//        private final String branchId;
+//    }
+//    @Data
+//    public static class ActivateInOutBranchesCmd {
+//        @TargetAggregateIdentifier
+//        private final String id;
+//        private final String dniId;
+//        private final String wftId;
+//        private final Set<String> branchIds;
+//    }
     @Data
     public static class DeleteCmd {
         @TargetAggregateIdentifier

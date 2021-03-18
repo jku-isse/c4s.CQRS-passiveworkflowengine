@@ -45,7 +45,9 @@ import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
+import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
 
@@ -111,7 +113,7 @@ public class DevelopmentConfig extends AbstractModule {
 	
 	
 	private static Injector inj;
-	private static JiraService jiraS;
+	private static IJiraService jiraS;
 	
 	public static Injector getInjector() {
 		if (inj == null)
@@ -119,9 +121,12 @@ public class DevelopmentConfig extends AbstractModule {
 		return inj;
 	}
 	
-	public static JiraService getJiraService() {
+	public static IJiraService getJiraService(boolean doCreateDemo) {
 		if (jiraS == null)
-			jiraS = configJiraService(getInjector().getInstance(JiraInstance.class), getInjector().getInstance(JiraChangeSubscriber.class));	
+			if (doCreateDemo) {
+				jiraS = new JiraJsonService();
+			} else 
+				jiraS = configJiraService(getInjector().getInstance(JiraInstance.class), getInjector().getInstance(JiraChangeSubscriber.class));	
 		return jiraS;
 	}
 	

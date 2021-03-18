@@ -22,6 +22,7 @@ import artifactapi.IArtifactRegistry
 
 import impactassessment.kiesession.KieSessionUtils
 import java.util.Map
+import java.util.LinkedHashMap
 import java.util.HashMap
 import impactassessment.api.Commands.AddConstraintsCmd
 import impactassessment.api.Commands.SetPropertiesCmd
@@ -40,7 +41,7 @@ rule "InsertQAConstraintsStateOpen"
 		$wft : WorkflowTask( getType().getId().equals("Open") &&
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
-        Map<String, String> constraints = new HashMap<>();
+        Map<String, String> constraints = new LinkedHashMap<>();
         //constraints for Tasks and Sub-Taks
         if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
             constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
@@ -76,7 +77,7 @@ rule "InsertQAConstraintsStateInProgress"
         		$wft : WorkflowTask( getType().getId().equals("In Progress") &&
 							            getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
-        Map<String, String> constraints = new HashMap<>();
+        Map<String, String> constraints = new LinkedHashMap<>();
         //constraints for Tasks and Sub-Taks
         if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
             constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
@@ -100,7 +101,7 @@ rule "InsertQAConstraintsStateResolved"
         		$wft : WorkflowTask( getType().getId().equals("Resolved") &&
 							            getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
-        Map<String, String> constraints = new HashMap<>();
+        Map<String, String> constraints = new LinkedHashMap<>();
 		//constraints for Tasks and Sub-Taks
 		if ($a.getIssueType().getName().equals("Task") || $a.getIssueType().getName().equals("Sub-task")) {
 		    constraints.put("CheckJiraIssueHasFixVersion", "Does the Jira ticket have at least one FixVersion?");
