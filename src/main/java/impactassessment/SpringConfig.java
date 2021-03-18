@@ -63,7 +63,7 @@ public class SpringConfig {
 
     private Properties props = null; //fetched on first access
 
-    private final boolean USE_MY_SQL_CACHE = false; // if false the CouchDB cache will be used
+    private final boolean USE_MY_SQL_CACHE = true; // if false the CouchDB cache will be used
     private final boolean IS_JAMA_INSTANCE_ONLINE = true;
     private final boolean USE_JIRA_IN_MEMORY_MONITORING_STATE = false;
     private final int AXON_SNAPSHOT_THRESHOLD = 10;
