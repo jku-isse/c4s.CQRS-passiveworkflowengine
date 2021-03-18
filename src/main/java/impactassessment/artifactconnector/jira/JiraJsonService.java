@@ -8,108 +8,88 @@ import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.internal.json.IssueJsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.Properties;
 
 @Slf4j
 public class JiraJsonService implements IArtifactService, IJiraService {
 
-    private final String FILENAME;
-    private static final String TYPE = IJiraArtifact.class.getSimpleName();
+    private final String FOLDER_NAME = "demo";
 
-    private JiraDataScope jds;
-
-    private JiraChangeSubscriber jiraChangeSubscriber;
-
-    public JiraJsonService(JiraChangeSubscriber jiraChangeSubscriber) {
-        this.jiraChangeSubscriber = jiraChangeSubscriber;
-        this.jds = new JiraDataScope("mock", this);
-        Properties props = new Properties();
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("application.properties").getFile());
-            FileReader reader = new FileReader(file);
-            props.load(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.FILENAME = props.getProperty("jiraJsonFileName");
+    @Override
+    public boolean provides(String s) {
+        return s.equals(IJiraArtifact.class.getSimpleName());
     }
 
     @Override
     public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
         log.debug("JiraJsonService loads "+id.getId());
-        Issue issue = null;
         try {
-            issue = loadIssue(id.getId());
+            Optional<Issue> opt = loadIssue(id.getId());
+            if (opt.isPresent()) {
+                IArtifact artifact = new JiraArtifact(opt.get(), this);
+                return Optional.of(artifact);
+            }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
-        if (issue == null)
-            return null;
-
-        jiraChangeSubscriber.addUsage(jds, id);
-        IArtifact artifact = new JiraArtifact(issue, jds);
-        return Optional.of(artifact);
+        return Optional.empty();
     }
+
+    /**
+     * will search in every json file inside the demo folder
+     */
+    private Optional<Issue> loadIssue(String key) throws JSONException, IOException {
+        FileFilter fileFilter = new WildcardFileFilter("*.json");
+        File[] files = new File("./"+FOLDER_NAME+"/").listFiles(fileFilter);
+        if (files == null) return Optional.empty();
+        for (File file : files) {
+            InputStream is = new FileInputStream(file);
+            String body = IOUtils.toString(is, StandardCharsets.UTF_8);
+            JSONObject issueAsJson = new JSONObject(body);
+            JSONArray issues = issueAsJson.getJSONArray("issues");
+            JSONObject jsonObj = null;
+            for (int i = 0; i < issues.length(); i++) {
+                JSONObject curIssue = issues.getJSONObject(i);
+                if (curIssue.getString("key").equals(key)) {
+                    jsonObj = curIssue;
+                    break;
+                }
+            }
+            if (jsonObj != null) {
+                log.debug("Issue {} found in {}", key, file.getAbsolutePath());
+                return Optional.of(new IssueJsonParser(new JSONObject(), new JSONObject()).parse(jsonObj));
+            }
+        }
+        log.warn("Issue {} wasn't found inside any json file inside demo", key);
+        return Optional.empty();
+	}
 
     @Override
     public void injectArtifactService(IArtifact iArtifact, String s) {
-        // TODO not implemented
+        log.warn("injectArtifactService not implemented in JiraJsonService!");
     }
 
     @Override
     public void deleteDataScope(String s) {
-
+        log.warn("deleteDataScope not implemented in JiraJsonService!");
     }
-
-    private Issue loadIssue(String key) throws JSONException, IOException {
-		InputStream is = JiraJsonService.class.getClassLoader().getResourceAsStream(FILENAME);
-        String body = IOUtils.toString(is, "UTF-8");
-        JSONObject issueAsJson = new JSONObject(body);
-        JSONArray issues = issueAsJson.getJSONArray("issues");
-        JSONObject jsonObj = null;
-        for (int i = 0; i < issues.length(); i++) {
-            JSONObject curIssue = issues.getJSONObject(i);
-            if (curIssue.getString("key").equals(key)) {
-                jsonObj = curIssue;
-                break;
-            }
-        }
-        Issue issue = null;
-        if (jsonObj != null) {
-            issue = new IssueJsonParser(new JSONObject(), new JSONObject()).parse(jsonObj);
-        }
-        // log.info("Parsed issue:\n" + issue);
-        return issue;
-	}
 
     @Override
-    public boolean provides(String type) {
-        return type.equals(TYPE);
+    public Optional<IJiraArtifact> getIssue(String id, String workflow) {
+        log.warn("getIssue implemented in JiraJsonService!");
+        return Optional.empty();
     }
 
-	@Override
-	public Optional<IJiraArtifact> getIssue(String id, String workflow) {
-		Optional<IArtifact> opt = get(new ArtifactIdentifier(id, ""), workflow);
-		if (opt.isPresent()) 
-			return Optional.ofNullable((IJiraArtifact)opt.get());
-		else 
-			return Optional.empty();
-	}
-
-	@Override
-	public Optional<IJiraArtifact> getIssue(String key) {
-		return getIssue(key, "mock");
-	}
-
-
+    @Override
+    public Optional<IJiraArtifact> getIssue(String key) {
+        log.warn("getIssue not implemented in JiraJsonService!");
+        return Optional.empty();
+    }
 }
