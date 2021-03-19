@@ -233,12 +233,12 @@ public class WorkflowInstanceWrapper {
                     wfi.setName(entry.getValue());
                 }
                 // wfProps
-                for (Entry<String, String> property : wfi.getPropertiesReadOnly()) {
-                    if (property.getKey().equals(entry.getKey())) {
-                        wfi.addOrReplaceProperty(entry.getKey(), entry.getValue());
-                        break;
-                    }
-                }
+                //for (Entry<String, String> property : wfi.getPropertiesReadOnly()) {
+                //    if (property.getKey().equals(entry.getKey())) {
+                wfi.addOrReplaceProperty(entry.getKey(), entry.getValue());
+                //        break;
+                //    }
+               // }
             }
         } else { // WorkflowTask is targeted
             Optional<WorkflowTask> opt = wfi.getWorkflowTasksReadonly().stream()
@@ -250,9 +250,9 @@ public class WorkflowInstanceWrapper {
                         case "name":
                             opt.get().setName(entry.getValue());
                             break;
-                         // TODO: insert additional properties
+                            // TODO: insert additional properties
                         default:
-                            log.warn("Property {} is not supported and cannot be set!", entry.getKey());
+                            log.warn("Setting Property {} on a WorkflowTask is not supported!", entry.getKey());
                     }
                 }
             } else {

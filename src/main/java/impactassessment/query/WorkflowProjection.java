@@ -53,6 +53,7 @@ public class WorkflowProjection {
         kieSessions.create(evt.getId(), kieContainer);
         if (!status.isReplay()) {
             kieSessions.setInitialized(evt.getId());
+            kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
             awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
             evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
             kieSessions.fire(evt.getId());

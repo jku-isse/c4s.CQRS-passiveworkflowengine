@@ -43,6 +43,7 @@ public class WorkflowHelpers {
                     });
             wfiWrapper.getWorkflowInstance().getDecisionNodeInstancesReadonly()
                     .forEach(dni -> kieSessions.insertOrUpdate(id, dni));
+            kieSessions.insertOrUpdate(id, wfiWrapper.getWorkflowInstance());
             kieSessions.setInitialized(id);
         }
     }
