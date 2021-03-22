@@ -3,6 +3,59 @@
 ## Setup
 https://docs.google.com/document/d/1uvGBJ5rLo97y0mrCi0KsnXnu0X48UGibPbFMJ1UKw4I/edit?usp=sharing
 
+## Things that might be necessary when upgrading to a newer version (release notes will tell so):
+### Clear event store:
+Navigate to 
+
+'axonserver/AxonServer-4.x.y/data/default/'
+
+Delete the only two files there:
+
+000…0000.events
+
+000…0000.snapshots
+
+### Clear event token:
+login to mysql command line (with password from the install instructions):
+
+> mysql -u root -p 
+ 
+select the jama cache (jira cache is not affected): 
+
+> USE token;
+
+delete table TokenEntry (table name is case sensitive): 
+
+> DROP TABLE TokenEntry; 
+
+> exit 
+
+### Clear jama and jira cache:
+login to mysql command line (with password from the install instructions): 
+
+> mysql -u root -p 
+
+select the jama cache (jira cache is not affected): 
+
+> USE jamacache; 
+
+delete table jamaitems (table name is case sensitive): 
+
+> DROP TABLE JamaItems; 
+
+Now also delete jira cache
+
+> USE jiracache;
+ 
+> DROP TABLE JiraIssues;
+
+> exit 
+
+### Replace Workflows:
+Remove content of 'workflows' folder
+
+Copy new workflows in their folders into 'workflows'
+
 ## Introduction
 The foundation for this project is a quality-assurance-process support framework, which facilitates [Drools](https://www.drools.org/) as business rules management system in order to show engineering process state and check process constraints on artifacts of traceability information systems, like [Jira](https://www.atlassian.com/de/software/jira).
 
