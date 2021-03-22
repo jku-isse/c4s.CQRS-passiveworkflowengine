@@ -53,7 +53,7 @@ public class JiraSubtask implements IJiraSubtask {
 
     @Override
     public void injectArtifactService(IArtifactService iArtifactService) {
-        if (jiraService == null) {
+        if (jiraService != null) {
             if (iArtifactService instanceof IJiraService) // will be always the case
                 jiraService = (IJiraService) iArtifactService;
         }
