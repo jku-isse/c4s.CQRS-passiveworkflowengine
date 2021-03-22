@@ -523,7 +523,7 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
                             .filter(tf -> !tf.getValue().equals(""))
                             .filter(tf -> !tf.getLabel().equals(""))
                             // to be consistent with changes above
-                            .forEach(tf -> inputs.put(tf.getValue(), tf.getLabel()));
+                            .forEach(tf -> inputs.put(tf.getValue().trim(), tf.getLabel().trim()));
                     //.forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
                     // send command
                     if (count.get() == inputs.size()) {
