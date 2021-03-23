@@ -176,13 +176,15 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
             content();
         });
 
+        /*
         Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
         shutdown.setColor("red");
         shutdown.getStyle().set("cursor", "pointer");
         shutdown.addClickListener(e -> SpringApp.shutdown());
         shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
+        */
 
-        header.add(firstPart, toggle, shutdown);
+        header.add(firstPart, toggle/*, shutdown*/);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         HorizontalLayout footer = new HorizontalLayout();
