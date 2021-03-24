@@ -181,7 +181,8 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
-        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        IArtifact art = artifactRegistry
+    	replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
         addWorkflowInputsToWfProps(List.of(evt.getArtifact()));
     }
 

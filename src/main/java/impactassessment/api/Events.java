@@ -1,5 +1,6 @@
 package impactassessment.api;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import lombok.Data;
@@ -45,32 +46,7 @@ public class Events {
         private final String dniId;
         private final ResourceLink res;
     }
-    @Data
-    public static class ActivatedInBranchEvt implements IdentifiableEvt {
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-    }
-    @Data
-    public static class ActivatedOutBranchEvt implements IdentifiableEvt {
-        private final String id;
-        private final String dniId;
-        private final String branchId;
-    }
-    @Data
-    public static class ActivatedInOutBranchEvt implements IdentifiableEvt {
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-        private final String branchId;
-    }
-    @Data
-    public static class ActivatedInOutBranchesEvt implements IdentifiableEvt {
-        private final String id;
-        private final String dniId;
-        private final String wftId;
-        private final Set<String> branchIds;
-    }
+    
     @Data
     public static class DeletedEvt implements IdentifiableEvt {
         private final String id;
@@ -102,7 +78,7 @@ public class Events {
     public static class AddedInputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final IArtifact artifact;
+        private final ArtifactIdentifier artifact;
         private final String role;
         private final String type;
     }
@@ -117,14 +93,14 @@ public class Events {
     @Data
     public static class AddedInputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final IArtifact artifact;
+        private final ArtifactIdentifier artifact;
         private final String role;
         private final String type;
     }
     @Data
     public static class AddedOutputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final IArtifact artifact;
+        private final ArtifactIdentifier artifact;
         private final String role;
         private final String type;
     }

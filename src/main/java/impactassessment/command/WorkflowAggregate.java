@@ -172,7 +172,7 @@ public class WorkflowAggregate implements Serializable {
         ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
         Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
         if (opt.isPresent()) {
-            apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+            apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole(), cmd.getType()));
         } else {
             log.warn("Artifact {} was not found.", cmd.getArtifactId());
         }
@@ -198,7 +198,7 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] handling {}", cmd);
         ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
         Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-        opt.ifPresent(artifact -> apply(new AddedInputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+        opt.ifPresent(artifact -> apply(new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
     }
 
     @CommandHandler
@@ -206,7 +206,7 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] handling {}", cmd);
         ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
         Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-        opt.ifPresent(artifact -> apply(new AddedOutputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+        opt.ifPresent(artifact -> apply(new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
     }
 
     @CommandHandler

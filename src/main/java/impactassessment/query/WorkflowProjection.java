@@ -210,7 +210,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(AddedInputEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+        //artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         IWorkflowTask wft = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -241,7 +241,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(AddedInputToWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+       // artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         wfiWrapper.handle(evt);
         // if this input is an IArtifact, insert it into kieSession
@@ -263,7 +263,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(AddedOutputToWorkflowEvt evt) {
         log.debug("[PRJ] projecting {}", evt);
-        artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+     //   artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
         projection.handle(evt);
         pusher.update(new ArrayList<>(projection.getDb().values()));
     }
