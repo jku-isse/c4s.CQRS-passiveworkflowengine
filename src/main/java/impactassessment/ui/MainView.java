@@ -281,29 +281,38 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
     }
 
     private Component filterTable() {
-        Paragraph p = new Paragraph("Filter on process properties:");
+        Paragraph p1 = new Paragraph("Filter on process properties:");
         TextField key = new TextField();
         key.setPlaceholder("KEY");
         TextField val = new TextField();
         val.setPlaceholder("VALUE");
         val.setValueChangeMode(ValueChangeMode.EAGER);
-        val.addValueChangeListener(e -> {
-            Map<String, String> filter = new HashMap<>();
-            if (!key.getValue().equals("") || !val.getValue().equals(""))
-                filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.updateTreeGrid(filter));
-        });
         key.setValueChangeMode(ValueChangeMode.EAGER);
-        key.addValueChangeListener(e -> {
-            Map<String, String> filter = new HashMap<>();
-            if (!key.getValue().equals("") || !val.getValue().equals(""))
-                filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.updateTreeGrid(filter));
-        });
         HorizontalLayout line = new HorizontalLayout();
         line.setWidthFull();
         line.add(key, val);
-        return new VerticalLayout(p, line);
+        Paragraph p2 = new Paragraph("Filter on process name:");
+        TextField name = new TextField();
+        name.setPlaceholder("NAME");
+        name.setValueChangeMode(ValueChangeMode.EAGER);
+
+        val.addValueChangeListener(e -> {
+            Map<String, String> filter = new HashMap<>();
+            filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+        });
+        key.addValueChangeListener(e -> {
+            Map<String, String> filter = new HashMap<>();
+            filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+        });
+        name.addValueChangeListener(e -> {
+            Map<String, String> filter = new HashMap<>();
+            filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+        });
+
+        return new VerticalLayout(p2, name, p1, line);
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {

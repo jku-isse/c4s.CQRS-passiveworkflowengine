@@ -548,14 +548,14 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         updateTreeGrid(x -> true); // no filter, so every entry is used
     }
     private List<WorkflowInstanceWrapper> content;
-    public void updateTreeGrid(Map<String, String> filter) {
+
+    public void updateTreeGrid(Map<String, String> filter, String name) {
         Predicate<WorkflowInstanceWrapper> predicate = x -> true;
-        if (filter.size() > 0) {
-            predicate = wfiw -> wfiw.getWorkflowInstance().getPropertiesReadOnly().stream()
-                    .anyMatch(propertyEntry -> filter.entrySet().stream()
-                            .anyMatch(filterEntry -> ( filterEntry.getKey().equals("") || propertyEntry.getKey().equals(filterEntry.getKey()) || propertyEntry.getKey().startsWith(filterEntry.getKey()) ) &&
-                                            ( filterEntry.getValue().equals("") || propertyEntry.getValue().equals(filterEntry.getValue()) || propertyEntry.getValue().startsWith(filterEntry.getValue()) ) ));
-        }
+        predicate = wfiw -> ( name.equals("") || wfiw.getWorkflowInstance().getType().getId().startsWith(name) || (wfiw.getWorkflowInstance().getName() != null && wfiw.getWorkflowInstance().getName().startsWith(name)) ) &&
+                wfiw.getWorkflowInstance().getPropertiesReadOnly().stream()
+                .anyMatch(propertyEntry -> filter.entrySet().stream()
+                        .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) ));
+
         updateTreeGrid(predicate);
     }
 
