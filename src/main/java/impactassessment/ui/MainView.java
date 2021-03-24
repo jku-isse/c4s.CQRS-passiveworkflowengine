@@ -336,12 +336,8 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
                 log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
             }
         });
-        Button replay = new Button("Replay All Events", evt -> {
-            Notification.show("Replay of Current State initiated. Replay gets executed..");
-            replayer.replay("projection");
-        });
 
-        controlButtonLayout.add(getState, replay);
+        controlButtonLayout.add(getState);
         return controlButtonLayout;
     }
 
@@ -682,7 +678,11 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
             JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
             service2.replayUpdates();
         });
-        return new VerticalLayout(description, id, print, /*timer, textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2);
+        Button replay = new Button("Replay All Events", evt -> {
+            Notification.show("Replay of Current State initiated. Replay gets executed..");
+            replayer.replay("projection");
+        });
+        return new VerticalLayout(description, id, print, /*timer, textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2, replay);
     }
 
     private Component remove() {

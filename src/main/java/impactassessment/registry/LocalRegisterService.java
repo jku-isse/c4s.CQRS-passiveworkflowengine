@@ -1,6 +1,7 @@
 package impactassessment.registry;
 
 import impactassessment.kiesession.KieSessionFactory;
+import impactassessment.query.Replayer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -27,6 +28,10 @@ public class LocalRegisterService extends AbstractRegisterService {
     private DefinitionSerializer serializer = new DefinitionSerializer();
     private KieSessionFactory kieSessionFactory = new KieSessionFactory();
 
+    public LocalRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
+        super(registry, replayer);
+    }
+    
     public LocalRegisterService(WorkflowDefinitionRegistry registry) {
         super(registry);
     }
