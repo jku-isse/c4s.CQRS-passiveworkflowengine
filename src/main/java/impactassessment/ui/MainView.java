@@ -31,6 +31,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -270,12 +271,39 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         accordion.add("Create Process Instance", importArtifact(devMode));
         if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
         accordion.add("Fetch Updates", updates());
+        accordion.add("Filter", filterTable());
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
 //        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         if (devMode) accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
         accordion.setWidthFull();
+    }
+
+    private Component filterTable() {
+        Paragraph p = new Paragraph("Filter on process properties:");
+        TextField key = new TextField();
+        key.setPlaceholder("KEY");
+        TextField val = new TextField();
+        val.setPlaceholder("VALUE");
+        val.setValueChangeMode(ValueChangeMode.EAGER);
+        val.addValueChangeListener(e -> {
+            Map<String, String> filter = new HashMap<>();
+            if (!key.getValue().equals("") || !val.getValue().equals(""))
+                filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.updateTreeGrid(filter));
+        });
+        key.setValueChangeMode(ValueChangeMode.EAGER);
+        key.addValueChangeListener(e -> {
+            Map<String, String> filter = new HashMap<>();
+            if (!key.getValue().equals("") || !val.getValue().equals(""))
+                filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.updateTreeGrid(filter));
+        });
+        HorizontalLayout line = new HorizontalLayout();
+        line.setWidthFull();
+        line.add(key, val);
+        return new VerticalLayout(p, line);
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {
