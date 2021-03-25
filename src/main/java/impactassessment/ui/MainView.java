@@ -1,10 +1,8 @@
 package impactassessment.ui;
 
 import artifactapi.ArtifactType;
-import artifactapi.jira.IJiraArtifact;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
-import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -32,12 +30,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.dom.Style;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.InitialPageSettings;
-import com.vaadin.flow.server.PageConfigurator;
-import impactassessment.SpringApp;
+import com.vaadin.flow.router.*;
 import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateMockWorkflowCmd;
@@ -81,12 +74,12 @@ import static impactassessment.ui.Helpers.createComponent;
 import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
-@Route
+@Route("home")
 @Push
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Dashboard")
-public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
+public class MainView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
 
     private boolean devMode = false;
 
@@ -139,6 +132,22 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         super.onAttach(attachEvent);
         pusher.setUi(attachEvent.getUI());
         pusher.setView(this);
+        grids.stream()
+                .filter(com.vaadin.flow.component.Component::isVisible)
+                .forEach(this::refresh);
+    }
+
+    @Override
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String s) {
+        // example link: http://localhost:8080/home/?key=DEMO-9&value=Task
+        Location location = beforeEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        String key = parametersMap.getOrDefault("key", List.of("")).get(0);
+        String value = parametersMap.getOrDefault("value", List.of("")).get(0);
+        String name = parametersMap.getOrDefault("name", List.of("")).get(0);
+        initAccordion(key, value, name);
     }
 
 //    @Override
@@ -267,11 +276,15 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
     private Accordion accordion = new Accordion();
 
     private void initAccordion() {
+        initAccordion("", "", "");
+    }
+
+    private void initAccordion(String key, String val, String name) {
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact(devMode));
         if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
         accordion.add("Fetch Updates", updates());
-        accordion.add("Filter", filterTable());
+        accordion.add("Filter", filterTable(key, val, name));
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
 //        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         if (devMode) accordion.add("Backend Queries", backend());
@@ -280,12 +293,14 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         accordion.setWidthFull();
     }
 
-    private Component filterTable() {
+    private Component filterTable(String k, String v, String n) {
         Paragraph p1 = new Paragraph("Filter on process properties:");
         TextField key = new TextField();
-        key.setPlaceholder("KEY");
+        key.setLabel("KEY");
+        key.setValue(k);
         TextField val = new TextField();
-        val.setPlaceholder("VALUE");
+        val.setLabel("VALUE");
+        val.setValue(v);
         val.setValueChangeMode(ValueChangeMode.EAGER);
         key.setValueChangeMode(ValueChangeMode.EAGER);
         HorizontalLayout line = new HorizontalLayout();
@@ -293,26 +308,38 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         line.add(key, val);
         Paragraph p2 = new Paragraph("Filter on process name:");
         TextField name = new TextField();
-        name.setPlaceholder("NAME");
+        name.setLabel("NAME");
+        name.setValue(n);
         name.setValueChangeMode(ValueChangeMode.EAGER);
 
         val.addValueChangeListener(e -> {
             Map<String, String> filter = new HashMap<>();
             filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
         });
         key.addValueChangeListener(e -> {
             Map<String, String> filter = new HashMap<>();
             filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
         });
         name.addValueChangeListener(e -> {
             Map<String, String> filter = new HashMap<>();
             filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.updateTreeGrid(filter, name.getValue()));
+            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
         });
 
-        return new VerticalLayout(p2, name, p1, line);
+        Map<String, String> filter = new HashMap<>();
+        filter.put(key.getValue(), val.getValue());
+        grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
+
+        Button clearFilters = new Button("Clear all Filters", e -> {
+            val.setValue("");
+            key.setValue("");
+            name.setValue("");
+        });
+        clearFilters.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        return new VerticalLayout(p2, name, p1, line, clearFilters);
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {
@@ -321,24 +348,26 @@ public class MainView extends VerticalLayout /*implements PageConfigurator*/ {
         controlButtonLayout.setPadding(false);
         controlButtonLayout.setWidthFull();
 
-        Button getState = new Button("Refresh");
-        getState.addClickListener(evt -> {
-            CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
-            try {
-                Notification.show("Current State refreshing requested");
-                List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).getState();
-                grid.updateTreeGrid(response);
-                Notification.show("Refresh successful!");
-            } catch (TimeoutException e1) {
-                log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
-                Notification.show("TimeoutException: Either projection is out of sync ('Replay All Events' might help) or a server exception occurred.");
-            } catch (InterruptedException | ExecutionException e2) {
-                log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
-            }
-        });
+        Button getState = new Button("Refresh State");
+        getState.addClickListener(evt -> refresh(grid));
+        getState.getElement().setProperty("title", "The whole state is automatically updated on events that change the state. You can refresh the state manually with this button if necessary!");
 
         controlButtonLayout.add(getState);
         return controlButtonLayout;
+    }
+
+    private void refresh(WorkflowTreeGrid grid) {
+        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+        try {
+            Notification.show("Refreshing Process Dashboard State");
+            List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).getState();
+            grid.updateTreeGrid(response);
+        } catch (TimeoutException e1) {
+            log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
+            Notification.show("TimeoutException: Either projection is out of sync ('Replay All Events' might help) or a server exception occurred.");
+        } catch (InterruptedException | ExecutionException e2) {
+            log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
+        }
     }
 
     private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {

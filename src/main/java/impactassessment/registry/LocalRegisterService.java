@@ -31,7 +31,7 @@ public class LocalRegisterService extends AbstractRegisterService {
     public LocalRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
         super(registry, replayer);
     }
-    
+
     public LocalRegisterService(WorkflowDefinitionRegistry registry) {
         super(registry);
     }
