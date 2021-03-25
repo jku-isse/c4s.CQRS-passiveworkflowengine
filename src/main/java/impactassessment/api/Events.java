@@ -1,11 +1,8 @@
 package impactassessment.api;
 
 import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import lombok.Data;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
-import passiveprocessengine.definition.TaskLifecycle;
 import passiveprocessengine.definition.WorkflowDefinition;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactOutput;
@@ -15,7 +12,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 public class Events {
@@ -27,7 +23,7 @@ public class Events {
     @Data
     public static class CreatedWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final Collection<Entry<String,IArtifact>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
         private final String definitionName;
         private final WorkflowDefinition wfd;
     }
@@ -38,7 +34,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
-        private final Collection<Entry<String,IArtifact>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {
@@ -86,7 +82,7 @@ public class Events {
     public static class AddedOutputEvt implements IdentifiableEvt {
         private final String id;
         private final String wftId;
-        private final IArtifact artifact;
+        private final ArtifactIdentifier artifact;
         private final String role;
         private final String type;
     }
@@ -107,7 +103,7 @@ public class Events {
     @Data
     public static class UpdatedArtifactsEvt implements IdentifiableEvt {
         private final String id;
-        private final List<IArtifact> artifacts;
+        private final List<ArtifactIdentifier> artifacts;
     }
     @Data
     public static class SetPreConditionsFulfillmentEvt implements IdentifiableEvt {

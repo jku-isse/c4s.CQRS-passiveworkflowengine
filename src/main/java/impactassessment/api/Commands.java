@@ -17,15 +17,15 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 public class Commands {
-    @Data
-    public static class CreateMockWorkflowCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String status;
-        private final String issuetype;
-        private final String priority;
-        private final String summary;
-    }
+//    @Data
+//    public static class CreateMockWorkflowCmd {
+//        @TargetAggregateIdentifier
+//        private final String id;
+//        private final String status;
+//        private final String issuetype;
+//        private final String priority;
+//        private final String summary;
+//    }
     @Data
     public static class CreateWorkflowCmd {
         @TargetAggregateIdentifier

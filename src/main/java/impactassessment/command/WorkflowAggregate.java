@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Profile;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -46,19 +47,19 @@ public class WorkflowAggregate implements Serializable {
     // -------------------------------- Command Handlers --------------------------------
 
 
-    @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
-        log.debug("[AGG] handling {}", cmd);
-        String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
-        Entry<String,IArtifact> a  = new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary()));
-        WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
-        if (wfdContainer != null) {
-            apply(new CreatedWorkflowEvt(cmd.getId(), List.of(a), workflowName, wfdContainer.getWfd()));
-        } else {
-            log.error("Workflow Definition named {} not found in registry!", workflowName);
-        }
-    }
+//    @CommandHandler
+//    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+//    public void handle(CreateMockWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
+//        log.debug("[AGG] handling {}", cmd);
+//        String workflowName = "DRONOLOGY_WORKFLOW_FIXED"; // always used for mock-artifacts
+//        Entry<String,ArtifactIdentifier> a  = new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", JiraMockService.mockArtifact(cmd.getId(), cmd.getStatus(), cmd.getIssuetype(), cmd.getPriority(), cmd.getSummary()));
+//        WorkflowDefinitionContainer wfdContainer = registry.get(workflowName);
+//        if (wfdContainer != null) {
+//            apply(new CreatedWorkflowEvt(cmd.getId(), List.of(a), workflowName, wfdContainer.getWfd()));
+//        } else {
+//            log.error("Workflow Definition named {} not found in registry!", workflowName);
+//        }
+//    }
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
@@ -67,7 +68,11 @@ public class WorkflowAggregate implements Serializable {
         Collection<Entry<String,IArtifact>> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
-            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts, cmd.getDefinitionName(), wfdContainer.getWfd()));
+            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts
+            											.stream()
+            											.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier())) 
+            											.collect(Collectors.toList())
+            								, cmd.getDefinitionName(), wfdContainer.getWfd()));
         } else {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
@@ -100,7 +105,11 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
-            apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd(), cmd.getArtifacts()));
+            apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd(), 
+            		cmd.getArtifacts()
+					.stream()
+					.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier() ) ) 
+					.collect(Collectors.toList()) ));
         } else {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
@@ -184,9 +193,9 @@ public class WorkflowAggregate implements Serializable {
         ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
         Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
         if (opt.isPresent()) {
-            apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+            apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole(), cmd.getType()));
             if (parentWfiId != null && parentWftId != null) {
-                apply(new AddedOutputEvt(parentWfiId, parentWftId, opt.get(), cmd.getRole(), cmd.getType()));
+                apply(new AddedOutputEvt(parentWfiId, parentWftId, ai, cmd.getRole(), cmd.getType()));
             }
         } else {
             log.warn("Artifact {} was not found.", cmd.getArtifactId());
@@ -212,7 +221,7 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(UpdateArtifactsCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
+        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList())));
     }
 
     @CommandHandler

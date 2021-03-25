@@ -4,8 +4,11 @@ import impactassessment.api.Events.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.axonframework.eventhandling.EventMessage;
 import org.springframework.stereotype.Component;
+
+import artifactapi.IArtifactRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -15,11 +18,14 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 public class ProjectionModel {
 
+	private final IArtifactRegistry artifactRegistry;
+	
     private @Getter
     ConcurrentMap<String, WorkflowInstanceWrapper> db;
 
-    public ProjectionModel() {
+    public ProjectionModel(IArtifactRegistry artifactRegistry) {
         db = new ConcurrentHashMap<>();
+        this.artifactRegistry = artifactRegistry;
     }
 
     public int size() {
@@ -42,7 +48,7 @@ public class ProjectionModel {
     }
 
     public synchronized WorkflowInstanceWrapper createAndPutWorkflowModel(String id) {
-        WorkflowInstanceWrapper suc = db.put(id, new WorkflowInstanceWrapper());
+        WorkflowInstanceWrapper suc = db.put(id, new WorkflowInstanceWrapper(artifactRegistry));
         return db.get(id);
     }
 

@@ -1,7 +1,9 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
 import artifactapi.ResourceLink;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
@@ -20,7 +22,12 @@ import java.util.stream.Collectors;
 public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
-
+    private IArtifactRegistry artReg;
+    
+    public WorkflowInstanceWrapper(IArtifactRegistry artReg) {
+    	this.artReg = artReg;
+    }
+    
     public List<IArtifact> getArtifacts() {
         List<IArtifact> artifacts = new ArrayList<>();
         if (wfi != null) {
@@ -54,9 +61,14 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<Entry<String,IArtifact>> artifacts) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<Entry<String,ArtifactIdentifier>> art) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
+        List<Entry<String,IArtifact>> artifacts = art.stream()
+        		.map(entry -> new AbstractMap.SimpleEntry<String, Optional<IArtifact>>(entry.getKey(), artReg.get(entry.getValue(), id)))
+        		.filter(entry -> entry.getValue().isPresent())
+        		.map(entry -> new AbstractMap.SimpleEntry<String, IArtifact>(entry.getKey(), entry.getValue().get()))
+        		.collect(Collectors.toList());
         setInputArtifacts(artifacts);
         addWorkflowInputsToWfProps(artifacts.stream().map(Entry::getValue).collect(Collectors.toList()));
         return wfi.enableWorkflowTasksAndDecisionNodes();
@@ -167,28 +179,39 @@ public class WorkflowInstanceWrapper {
 
     public IWorkflowTask handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+        if (art.isPresent())
+        replaceInput(art.get(), evt.getType(), evt.getRole(), wft);
         return wft;
     }
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
-        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
-        List<IWorkflowInstanceObject> awos = new ArrayList<>();
-        awos.addAll(wft.addOutput(output));
-        awos.add(wft);
-        return awos;
+    	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+    	Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+    	if (art.isPresent()) {
+    		ArtifactOutput output = replaceOutput(art.get(), evt.getType(), evt.getRole(), wft);
+    		List<IWorkflowInstanceObject> awos = new ArrayList<>();
+    		awos.addAll(wft.addOutput(output));
+    		awos.add(wft);
+    		return awos; 
+    	}
+    	else return Collections.emptyList();
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
-        IArtifact art = artifactRegistry
-    	replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
-        addWorkflowInputsToWfProps(List.of(evt.getArtifact()));
+    	Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+        if (art.isPresent()) {
+        	replaceInput(art.get(), evt.getType(), evt.getRole(), wfi);
+        	addWorkflowInputsToWfProps(List.of(art.get()));
+        }
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
-        wfi.addOutput(output);
+    	Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+        if (art.isPresent()) {
+        	ArtifactOutput output = replaceOutput(art.get(), evt.getType(), evt.getRole(), wfi);
+        	wfi.addOutput(output);
+        }
     }
 
     private void replaceInput(IArtifact artifact, String type, String role, IWorkflowTask iwft) {

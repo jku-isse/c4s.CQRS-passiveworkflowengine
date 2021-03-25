@@ -3,6 +3,7 @@ package impactassessment.command;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import impactassessment.query.WorkflowProjection;
 import org.axonframework.commandhandling.CommandCallback;
@@ -112,7 +113,8 @@ public class MockCommandGateway implements CommandGateway {
 			AddOutputCmd cmd = (AddOutputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+			if (opt.isPresent())
+				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof AddInputToWorkflowCmd) {
 			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
@@ -128,7 +130,7 @@ public class MockCommandGateway implements CommandGateway {
 		} else
 		if(command instanceof UpdateArtifactsCmd) {
 			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;
-			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
+			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList())));
 		} else
 		if(command instanceof SetPreConditionsFulfillmentCmd) {
 			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;

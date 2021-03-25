@@ -1,5 +1,6 @@
 package impactassessment.query;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
 import impactassessment.api.Events.*;
@@ -46,7 +47,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
+      //No Longer needed  evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -64,7 +65,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(CreatedSubWorkflowEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
+        //No Longer needed evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
         KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
         WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
         List<AbstractWorkflowInstanceObject> awos = wfiWrapper.handle(evt);
@@ -226,7 +227,7 @@ public class WorkflowProjection {
     @EventHandler
     public void on(AddedOutputEvt evt, ReplayStatus status) {
         log.debug("[PRJ] projecting {}", evt);
-        artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+        //No Longer needed  artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         List<IWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
         if (!status.isReplay()) {
@@ -273,27 +274,44 @@ public class WorkflowProjection {
         log.debug("[PRJ] projecting {}", evt);
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
         if (!status.isReplay()) {
-            evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e, evt.getId()));
+        	 //No Longer needed    evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e, evt.getId()));
             ensureInitializedKB(kieSessions, projection, evt.getId());
-        }
+        // } NOW WE ONLY NEED TO DO THIS WHEN NOT IN REPLAY
         // Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
-        for (IArtifact updatedArtifact : evt.getArtifacts()) {
-        	for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-                if (input.getArtifact() != null && input.getArtifact().getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {
-                    input.setArtifact(updatedArtifact);
-                	if (!status.isReplay()) {
-                    	kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
-                    }
-                }
-            }
-            for (ArtifactOutput output : wfiWrapper.getWorkflowInstance().getOutput()) {
-                if (output.getArtifact() != null && output.getArtifact().getArtifactIdentifier().getId().equals(updatedArtifact.getArtifactIdentifier().getId())) {
-                    output.setArtifact(updatedArtifact);
-                    if (!status.isReplay()) {
-                        kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
-                    }
-                }
-            }
+        for (ArtifactIdentifier updatedArtifact : evt.getArtifacts()) {
+        	Optional<IArtifact> artOpt = artifactRegistry.get(updatedArtifact, evt.getId());
+        	artOpt.ifPresent(art -> {
+        		boolean isUsed = false;
+        		for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
+        			if (input.getArtifact() != null && input.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
+        				input.setArtifact(art);
+        				isUsed=true;
+        			}
+        		}
+        		for (ArtifactOutput output : wfiWrapper.getWorkflowInstance().getOutput()) {
+        			if (output.getArtifact() != null && output.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
+        				output.setArtifact(art);
+        				isUsed=true;
+        			}
+        		}
+        		
+        		long count = wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly().stream()
+        			.flatMap(wft -> { List<ArtifactIO> ios = new LinkedList<ArtifactIO>();
+        								ios.addAll(wft.getInput());
+        								ios.addAll(wft.getOutput());
+        								return ios.stream();
+        								})
+        			.filter(io -> io.getArtifact() != null && io.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId()))
+        			.peek(io -> io.setArtifact(art))
+        			.count();
+        		if (count > 0) 
+        			isUsed=true;
+
+
+        		if (isUsed)
+        			kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
+        		});
+        }
         }
         // TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
