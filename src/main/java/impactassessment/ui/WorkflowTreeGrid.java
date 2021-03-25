@@ -1,14 +1,12 @@
 package impactassessment.ui;
 
 import artifactapi.ArtifactType;
-import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dependency.HtmlImport;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -16,14 +14,10 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.Commands.*;
 import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
@@ -37,15 +31,10 @@ import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static impactassessment.ui.Helpers.createComponent;
-import static impactassessment.ui.Helpers.showOutput;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
@@ -59,10 +48,17 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Function<Object, Object> f;
     private boolean evalMode;
 
+    private List<WorkflowInstanceWrapper> content;
+    private String nameFilter;
+    private Map<String, String> propertiesFilter;
 
     public WorkflowTreeGrid(Function<Object, Object> f, boolean evalMode) {
         this.f = f;
         this.evalMode = evalMode;
+        content = new ArrayList<>();
+        nameFilter = ""; // default filter
+        propertiesFilter = new HashMap<>();
+        propertiesFilter.put("", ""); // default filter
     }
 
     public void initTreeGrid() {
@@ -545,35 +541,52 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return icon;
     }
 
+    public void setFilters(Map<String, String> filter, String name) {
+        propertiesFilter = filter;
+        nameFilter = name;
+        updateTreeGrid();
+    }
+
     public void updateTreeGrid(List<WorkflowInstanceWrapper> content) {
-        if (content != null) {
-            this.setItems(content.stream().map(WorkflowInstanceWrapper::getWorkflowInstance), o -> {
-                if (o instanceof WorkflowInstance) {
-                    WorkflowInstance wfi = (WorkflowInstance) o;
-                    return wfi.getWorkflowTasksReadonly().stream()
-                            .filter(wft -> !(wft.getType() instanceof NoOpTaskDefinition))
-                            .map(wft -> (AbstractIdentifiableObject) wft);
-                } else if (o instanceof WorkflowTask) {
-                    WorkflowTask wft = (WorkflowTask) o;
-                    Optional<QACheckDocument> qacd =  wft.getOutput().stream()
-                            .map(ArtifactIO::getArtifact)
-                            .filter(io -> io instanceof QACheckDocument)
-                            .map(io -> (QACheckDocument) io)
-                            .findFirst();
-                    return qacd.map(qaCheckDocument -> qaCheckDocument.getConstraintsReadonly().stream()
-                            .map(x -> (AbstractIdentifiableObject) x))
-                            .orElseGet(Stream::empty);
-                }/* else if (o instanceof QACheckDocument) {
+        this.content = content;
+        updateTreeGrid();
+    }
+
+    private void updateTreeGrid() {
+        Predicate<WorkflowInstanceWrapper> predicate = wfiw -> ( nameFilter.equals("") || wfiw.getWorkflowInstance().getType().getId().startsWith(nameFilter) || (wfiw.getWorkflowInstance().getName() != null && wfiw.getWorkflowInstance().getName().startsWith(nameFilter)) ) &&
+                wfiw.getWorkflowInstance().getPropertiesReadOnly().stream()
+                        .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
+                                .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) ));
+        this.setItems(this.content.stream()
+                        .filter(predicate)
+                        .map(WorkflowInstanceWrapper::getWorkflowInstance),
+                o -> {
+                    if (o instanceof WorkflowInstance) {
+                        WorkflowInstance wfi = (WorkflowInstance) o;
+                        return wfi.getWorkflowTasksReadonly().stream()
+                                .filter(wft -> !(wft.getType() instanceof NoOpTaskDefinition))
+                                .map(wft -> (AbstractIdentifiableObject) wft);
+                    } else if (o instanceof WorkflowTask) {
+                        WorkflowTask wft = (WorkflowTask) o;
+                        Optional<QACheckDocument> qacd = wft.getOutput().stream()
+                                .map(ArtifactIO::getArtifact)
+                                .filter(io -> io instanceof QACheckDocument)
+                                .map(io -> (QACheckDocument) io)
+                                .findFirst();
+                        return qacd.map(qaCheckDocument -> qaCheckDocument.getConstraintsReadonly().stream()
+                                .map(x -> (AbstractIdentifiableObject) x))
+                                .orElseGet(Stream::empty);
+                    }/* else if (o instanceof QACheckDocument) {
                     QACheckDocument qacd = (QACheckDocument) o;
                     return qacd.getConstraintsReadonly().stream().map(x -> (IdentifiableObject) x);
                 }*/ else if (o instanceof RuleEngineBasedConstraint) {
-                    return Stream.empty();
-                } else {
-                    log.error("TreeGridPanel got unknown artifact: " + o.getClass().getSimpleName());
-                    return Stream.empty();
-                }
-            });
-            this.getDataProvider().refreshAll();
-        }
+                        return Stream.empty();
+                    } else {
+                        log.error("TreeGridPanel got unknown artifact: " + o.getClass().getSimpleName());
+                        return Stream.empty();
+                    }
+                });
+        this.getDataProvider().refreshAll();
     }
+
 }

@@ -27,6 +27,7 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -62,9 +63,10 @@ public class SpringConfig {
 
     private Properties props = null; //fetched on first access
 
+    // default should be true for all flags here:
     private final boolean USE_MY_SQL_CACHE = true; // if false the CouchDB cache will be used
     private final boolean IS_JAMA_INSTANCE_ONLINE = true;
-    private final boolean USE_JIRA_IN_MEMORY_MONITORING_STATE = false;
+    private final boolean USE_HIBERNATE_MONITORING_STATE = true;
     private final int AXON_SNAPSHOT_THRESHOLD = 10;
 
     @Bean
@@ -74,8 +76,8 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry) {
-        return new LocalRegisterService(registry);
+    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
+        return new LocalRegisterService(registry, replayer);
     }
 
     @Bean
@@ -174,15 +176,15 @@ public class SpringConfig {
 
     public MonitoringState getJiraMonitoringState() {
         MonitoringState ms;
-        if (USE_JIRA_IN_MEMORY_MONITORING_STATE) {
-            ms = new InMemoryMonitoringState();
-        } else {
+        if (USE_HIBERNATE_MONITORING_STATE) {
             SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
                     getProp("mysqlDBuser"),
                     getProp("mysqlDBpassword"),
                     getProp("mysqlURL")+"jiracache"
             );
             ms = new HibernateBackedMonitoringState(sf);
+        } else {
+            ms = new InMemoryMonitoringState();
         }
     	return ms;
     }
