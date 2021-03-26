@@ -44,6 +44,8 @@ import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPropertiesEvt;
 import impactassessment.api.Events.UpdatedArtifactsEvt;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactInput;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactOutput;
 
 public class MockCommandGateway implements CommandGateway {
 
@@ -150,7 +152,9 @@ public class MockCommandGateway implements CommandGateway {
 		} else 
 		if (command instanceof InstantiateTaskCmd) {
 			InstantiateTaskCmd cmd = (InstantiateTaskCmd)command;
-			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), cmd.getOptionalInputs(), cmd.getOptionalOutputs()));
+			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
+					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
+					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ));
 		}
 		else {
 		

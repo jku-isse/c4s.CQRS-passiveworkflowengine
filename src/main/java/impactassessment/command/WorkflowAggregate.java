@@ -6,6 +6,8 @@ import artifactapi.IArtifactRegistry;
 import impactassessment.api.Commands.*;
 import impactassessment.api.Events.*;
 import impactassessment.artifactconnector.jira.mock.JiraMockService;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactInput;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactOutput;
 import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -249,9 +251,11 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    public void handle(InstantiateTaskCmd cmd) {
+    public void handle(InstantiateTaskCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), cmd.getOptionalInputs(), cmd.getOptionalOutputs()));
+        apply(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
+        										cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
+        										cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList())   ));
     }
 
     // -------------------------------- Event Handlers --------------------------------
