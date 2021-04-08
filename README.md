@@ -30,6 +30,8 @@ delete table TokenEntry (table name is case sensitive):
 
 > exit 
 
+Alternative to clear event store and event token -  run script: ./reseteventdb.sh
+
 ### Clear jama and jira cache:
 login to mysql command line (with password from the install instructions): 
 
@@ -50,6 +52,10 @@ Now also delete jira cache
 > DROP TABLE JiraIssues;
 
 > exit 
+
+Alternative to clear caches - run script: ./resetAllCaches.sh
+
+To reset everything - run script: ./resetdbs.sh
 
 ### Replace Workflows:
 Remove content of 'workflows' folder
