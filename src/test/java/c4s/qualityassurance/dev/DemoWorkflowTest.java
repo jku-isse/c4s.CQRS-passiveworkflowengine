@@ -39,8 +39,8 @@ class DemoWorkflowTest {
 	public void setup() {
 		Injector injector = DemoConfig.getInjector();
 		CommandGateway gw = injector.getInstance(CommandGateway.class);
-		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
+		ProjectionModel pModel = new ProjectionModel(aRegistry);
 		jiraS = DemoConfig.getJiraDemoService();
 		aRegistry.register(jiraS);
 		IFrontendPusher fp = new SimpleFrontendPusher();
@@ -63,7 +63,7 @@ class DemoWorkflowTest {
 		
 		
 //		
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("ROLE_WPTICKET",jiraArt)), "DRONOLOGY_WORKFLOW_FIXED", registry.get("DRONOLOGY_WORKFLOW_FIXED").getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", new ArtifactIdentifier("UAV-1292", "IJiraArtifact"))), "DRONOLOGY_WORKFLOW_FIXED", registry.get("DRONOLOGY_WORKFLOW_FIXED").getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(workflowId));
