@@ -9,6 +9,8 @@ import org.axonframework.eventhandling.TrackingToken;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 
+import artifactapi.IArtifactRegistry;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.OptionalLong;
@@ -21,7 +23,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class Snapshotter {
     private final EventStore eventStore;
-
+    private final IArtifactRegistry artifactRegistry;
     private ProjectionModel projectionModel;
     private CompletableFuture<ProjectionModel> futureDB = new CompletableFuture<>();
     private ReplayRunnable worker;
@@ -39,7 +41,7 @@ public class Snapshotter {
         futureDB = new CompletableFuture<>();
         futureAction = new CompletableFuture<>();
         futureAction.complete(Action.STEP);
-        projectionModel = new ProjectionModel();
+        projectionModel = new ProjectionModel(artifactRegistry);
 
         worker = new ReplayRunnable(eventStore, timestamp);
         worker.start();

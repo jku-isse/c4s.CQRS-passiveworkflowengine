@@ -3,6 +3,7 @@ package impactassessment.command;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import impactassessment.query.WorkflowProjection;
 import org.axonframework.commandhandling.CommandCallback;
@@ -43,6 +44,8 @@ import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPropertiesEvt;
 import impactassessment.api.Events.UpdatedArtifactsEvt;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactInput;
+import impactassessment.passiveprocessengine.LazyLoadingArtifactOutput;
 
 public class MockCommandGateway implements CommandGateway {
 
@@ -106,29 +109,30 @@ public class MockCommandGateway implements CommandGateway {
 			AddInputCmd cmd = (AddInputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()));
+			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole(), cmd.getType()));
 		} else	
 		if (command instanceof AddOutputCmd) {
 			AddOutputCmd cmd = (AddOutputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), opt.get(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+			if (opt.isPresent())
+				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof AddInputToWorkflowCmd) {
 			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
 		} else
 		if (command instanceof AddOutputToWorkflowCmd) {
 			AddOutputToWorkflowCmd cmd = (AddOutputToWorkflowCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact, cmd.getRole(), cmd.getType())));
+	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
 		} else
 		if(command instanceof UpdateArtifactsCmd) {
 			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;
-			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts()));
+			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList())));
 		} else
 		if(command instanceof SetPreConditionsFulfillmentCmd) {
 			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;
@@ -148,7 +152,9 @@ public class MockCommandGateway implements CommandGateway {
 		} else 
 		if (command instanceof InstantiateTaskCmd) {
 			InstantiateTaskCmd cmd = (InstantiateTaskCmd)command;
-			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), cmd.getOptionalInputs(), cmd.getOptionalOutputs()));
+			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
+					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
+					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ));
 		}
 		else {
 		
