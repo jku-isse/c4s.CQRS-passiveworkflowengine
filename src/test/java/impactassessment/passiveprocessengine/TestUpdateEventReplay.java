@@ -28,6 +28,7 @@ import passiveprocessengine.instance.WorkflowInstance;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +109,7 @@ public class TestUpdateEventReplay {
         wfp.on(new Events.UpdatedArtifactsEvt(
                 id,
                 List.of(new ArtifactIdentifier(jamaId+"", "IJamaArtifact"))
-                ), status);
+                ));
         wfp.on(new Events.AddedEvaluationResultToConstraintEvt(
                 id,
                 "CheckJiraExists_Evaluate_"+id,
@@ -119,13 +120,17 @@ public class TestUpdateEventReplay {
 
         WorkflowInstance wfi = getWfi();
 
+
         System.out.println("done");
     }
 
     private WorkflowInstance getWfi() {
-        List<WorkflowInstanceWrapper> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
         assertEquals(1, state.size());
-        return state.get(0).getWorkflowInstance();
+        for (WorkflowInstance wfi : state) {
+            return wfi;
+        }
+        return null;
     }
 
 }

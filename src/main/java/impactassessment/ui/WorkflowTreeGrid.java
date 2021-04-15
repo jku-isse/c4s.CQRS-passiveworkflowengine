@@ -20,7 +20,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.Commands.*;
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
 import passiveprocessengine.definition.IWorkflowTask;
@@ -48,7 +47,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Function<Object, Object> f;
     private boolean evalMode;
 
-    private List<WorkflowInstanceWrapper> content;
+    private Collection<WorkflowInstance> content;
     private String nameFilter;
     private Map<String, String> propertiesFilter;
 
@@ -547,19 +546,18 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         updateTreeGrid();
     }
 
-    public void updateTreeGrid(List<WorkflowInstanceWrapper> content) {
+    public void updateTreeGrid(Collection<WorkflowInstance> content) {
         this.content = content;
         updateTreeGrid();
     }
 
     private void updateTreeGrid() {
-        Predicate<WorkflowInstanceWrapper> predicate = wfiw -> ( nameFilter.equals("") || wfiw.getWorkflowInstance().getType().getId().startsWith(nameFilter) || (wfiw.getWorkflowInstance().getName() != null && wfiw.getWorkflowInstance().getName().startsWith(nameFilter)) ) &&
-                wfiw.getWorkflowInstance().getPropertiesReadOnly().stream()
+        Predicate<WorkflowInstance> predicate = wfi -> ( nameFilter.equals("") || wfi.getType().getId().startsWith(nameFilter) || (wfi.getName() != null && wfi.getName().startsWith(nameFilter)) ) &&
+                ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
                         .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
-                                .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) ));
+                                .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
         this.setItems(this.content.stream()
-                        .filter(predicate)
-                        .map(WorkflowInstanceWrapper::getWorkflowInstance),
+                        .filter(predicate).map(x->x),
                 o -> {
                     if (o instanceof WorkflowInstance) {
                         WorkflowInstance wfi = (WorkflowInstance) o;
