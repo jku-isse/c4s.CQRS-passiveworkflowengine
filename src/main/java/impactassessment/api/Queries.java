@@ -4,13 +4,12 @@ import lombok.Data;
 import passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.Collection;
-import java.util.List;
 
 public class Queries {
     // QUERIES
     @Data
     public static class GetStateQuery {
-        private final int depth;
+        private final String id;
     }
     @Data
     public static class PrintKBQuery {

@@ -8,7 +8,7 @@ import java.util.List;
 public class SimpleFrontendPusher implements IFrontendPusher {
 
     @Override
-    public void update(List<WorkflowInstance> state) {
+    public void update(WorkflowInstance wfi) {
         // no op
     }
 

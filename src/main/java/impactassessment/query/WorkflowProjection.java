@@ -59,7 +59,7 @@ public class WorkflowProjection {
 			evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
 			kieSessions.fire(evt.getId());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
@@ -109,7 +109,7 @@ public class WorkflowProjection {
 			});
 			kieSessions.fire(evt.getId());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@DisallowReplay
@@ -156,7 +156,7 @@ public class WorkflowProjection {
 			kieSessions.fire(evt.getId());
 			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
@@ -171,7 +171,7 @@ public class WorkflowProjection {
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
 			kieSessions.fire(evt.getId());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
@@ -193,7 +193,7 @@ public class WorkflowProjection {
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputToWorkflowEvt");
 			kieSessions.fire(evt.getId());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
@@ -201,7 +201,7 @@ public class WorkflowProjection {
 		log.debug("[PRJ] projecting {}", evt);
 		//   artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
 		projection.handle(evt);
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@DisallowReplay
@@ -257,7 +257,7 @@ public class WorkflowProjection {
 	public void on(DeletedEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
 		projection.handle(evt);
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		if (!status.isReplay()) {
 			kieSessions.dispose(evt.getId());
 			artifactRegistry.deleteAllDataScopes(evt.getId());
@@ -274,7 +274,7 @@ public class WorkflowProjection {
 			awos.forEach(x -> kieSessions.insertOrUpdate(evt.getId(), x));
 			kieSessions.fire(evt.getId());
 		}
-		pusher.update(new ArrayList<>(projection.getWfis()));
+		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
@@ -289,7 +289,12 @@ public class WorkflowProjection {
 	public GetStateResponse handle(GetStateQuery query) {
 		log.debug("[PRJ] handle {}", query);
 		if (projection.getDb().size() == 0) return new GetStateResponse(Collections.emptyList());
-		return new GetStateResponse(projection.getWfis());
+		if (query.getId().equals("*")) {
+			return new GetStateResponse(projection.getWfis());
+		} else {
+			log.warn("GetStateQuery with id-parameter other that '*' is not supported! (id was: {})", query.getId());
+			return new GetStateResponse(Collections.emptyList());
+		}
 	}
 
 	@QueryHandler

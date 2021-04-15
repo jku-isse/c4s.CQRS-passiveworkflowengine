@@ -125,7 +125,7 @@ public class TestUpdateEventReplay {
     }
 
     private WorkflowInstance getWfi() {
-        Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery("*")).getState();
         assertEquals(1, state.size());
         for (WorkflowInstance wfi : state) {
             return wfi;

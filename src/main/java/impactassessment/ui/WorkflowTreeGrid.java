@@ -47,14 +47,14 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Function<Object, Object> f;
     private boolean evalMode;
 
-    private Collection<WorkflowInstance> content;
+    private Map<String, WorkflowInstance> content;
     private String nameFilter;
     private Map<String, String> propertiesFilter;
 
     public WorkflowTreeGrid(Function<Object, Object> f, boolean evalMode) {
         this.f = f;
         this.evalMode = evalMode;
-        content = new ArrayList<>();
+        content = new HashMap<>();
         nameFilter = ""; // default filter
         propertiesFilter = new HashMap<>();
         propertiesFilter.put("", ""); // default filter
@@ -547,7 +547,13 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     }
 
     public void updateTreeGrid(Collection<WorkflowInstance> content) {
-        this.content = content;
+        this.content = new HashMap<>();
+        content.forEach(wfi -> this.content.put(wfi.getId(), wfi));
+        updateTreeGrid();
+    }
+
+    public void updateTreeGrid(WorkflowInstance wfi) {
+        this.content.put(wfi.getId(), wfi);
         updateTreeGrid();
     }
 
@@ -556,7 +562,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
                         .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
                                 .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
-        this.setItems(this.content.stream()
+        this.setItems(this.content.values().stream()
                         .filter(predicate).map(x->x),
                 o -> {
                     if (o instanceof WorkflowInstance) {

@@ -358,7 +358,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
         try {
             Notification.show("Refreshing Process Dashboard State");
             Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();

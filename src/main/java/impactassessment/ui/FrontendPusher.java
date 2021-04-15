@@ -10,7 +10,6 @@ import passiveprocessengine.instance.WorkflowInstance;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 
 @Component
 @Scope("singleton")
@@ -25,7 +24,7 @@ public class FrontendPusher implements IFrontendPusher {
     private final boolean PERFORMANCE_MODE = false;
 
     @Override
-    public void update(List<WorkflowInstance> state) {
+    public void update(WorkflowInstance state) {
         if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
             log.debug("update frontend");
             lastUpdate = Instant.now();

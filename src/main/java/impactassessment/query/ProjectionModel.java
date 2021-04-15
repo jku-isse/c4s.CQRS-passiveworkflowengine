@@ -13,6 +13,7 @@ import passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -91,5 +92,12 @@ public class ProjectionModel {
         return db.values().stream()
                 .map(WorkflowInstanceWrapper::getWorkflowInstance)
                 .collect(Collectors.toList());
+    }
+
+    public Optional<WorkflowInstance> getWfi(String id) {
+        return db.values().stream()
+                .map(WorkflowInstanceWrapper::getWorkflowInstance)
+                .filter(wfi -> wfi.getId().equals(id))
+                .findAny();
     }
 }
