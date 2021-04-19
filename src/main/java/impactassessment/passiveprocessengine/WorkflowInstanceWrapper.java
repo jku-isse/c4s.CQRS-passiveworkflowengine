@@ -28,10 +28,12 @@ public class WorkflowInstanceWrapper {
         List<IArtifact> artifacts = new ArrayList<>();
         if (wfi != null) {
             artifacts.addAll(wfi.getInput().stream()
-                    .map(ArtifactIO::getArtifact)
+                    .map(ArtifactIO::getArtifacts)
+                    .flatMap(Collection::stream)
                     .collect(Collectors.toList()));
             artifacts.addAll(wfi.getOutput().stream()
-                    .map(ArtifactIO::getArtifact)
+                    .map(ArtifactIO::getArtifacts)
+                    .flatMap(Collection::stream)
                     .collect(Collectors.toList()));
         }
         return artifacts;
@@ -40,7 +42,7 @@ public class WorkflowInstanceWrapper {
     private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
     	if (wfi != null) {
     	    // TODO use LazyLoadingArtifactInput here?
-    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(in.getValue(), in.getKey(), new ArtifactType(in.getValue().getArtifactIdentifier().getType()))));
+    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(Set.of(in.getValue()), in.getKey(), new ArtifactType(in.getValue().getArtifactIdentifier().getType()))));
     	}
     }
 
@@ -76,7 +78,7 @@ public class WorkflowInstanceWrapper {
         QACheckDocument qa = getQACDocOfWft(wft);
         if (qa == null) {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            ArtifactOutput ao = new ArtifactOutput(Set.of(qa), ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
             addConstraint(evt, qa, wft, awos);
             awos.addAll(wft.addOutput(ao));
         } else {
@@ -163,7 +165,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private void replaceInput(ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactInput input = new LazyLoadingArtifactInput(artifact, artReg, wfi.getId(), new ArtifactType(type), role);
+        ArtifactInput input = new LazyLoadingArtifactInput(Set.of(artifact), artReg, wfi.getId(), new ArtifactType(type), role);
         iwft.getInput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .filter(o -> o.getArtifactType().getArtifactType().equals(type))
@@ -173,7 +175,7 @@ public class WorkflowInstanceWrapper {
     }
 
     private ArtifactOutput replaceOutput(ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactOutput output = new LazyLoadingArtifactOutput(artifact, artReg, wfi.getId(), new ArtifactType(type), role);
+        ArtifactOutput output = new LazyLoadingArtifactOutput(Set.of(artifact), artReg, wfi.getId(), new ArtifactType(type), role);
         iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .filter(o -> o.getArtifactType().getArtifactType().equals(type))
@@ -260,7 +262,9 @@ public class WorkflowInstanceWrapper {
                     if (in instanceof LazyLoadingArtifactInput) {
                     	((LazyLoadingArtifactInput) in).reinjectRegistry(artReg);
                     } else {
-                    	artReg.injectArtifactService(in.getArtifact(), evt.getId());
+                        for (IArtifact a : in.getArtifacts()) {
+                            artReg.injectArtifactService(a, evt.getId());
+                        }
                     }
                 	wft.addInput(in);
                 }
@@ -268,7 +272,9 @@ public class WorkflowInstanceWrapper {
                    if (out instanceof LazyLoadingArtifactOutput) {
                 	   ((LazyLoadingArtifactOutput) out).reinjectRegistry(artReg);
                    } else {
-                	   artReg.injectArtifactService(out.getArtifact(), evt.getId());
+                       for (IArtifact a : out.getArtifacts()) {
+                           artReg.injectArtifactService(a, evt.getId());
+                       }
                    }
                 	wft.addOutput(out);
                 }
@@ -318,7 +324,8 @@ public class WorkflowInstanceWrapper {
         Optional<QACheckDocument> optQACD = Optional.empty();
         if (wft != null){
             optQACD = wft.getOutput().stream()
-                    .map(ArtifactIO::getArtifact)
+                    .map(ArtifactIO::getArtifacts)
+                    .flatMap(Collection::stream)
                     .filter(ao -> ao instanceof QACheckDocument)
                     .map(a -> (QACheckDocument) a)
                     .findAny();
@@ -331,12 +338,14 @@ public class WorkflowInstanceWrapper {
         List<WorkflowTask> wfts = wfi.getWorkflowTasksReadonly();
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
             for (ArtifactOutput ao : wft.getOutput()) {
-                if (ao.getArtifact() instanceof QACheckDocument) {
-                    QACheckDocument qacd = (QACheckDocument) ao.getArtifact();
-                    for (QACheckDocument.QAConstraint rebc : qacd.getConstraintsReadonly()) {
-                        if (rebc.getId().equals(rebcId)) {
-                            if (rebc instanceof RuleEngineBasedConstraint) {
-                                return (RuleEngineBasedConstraint) rebc;
+                for (IArtifact a : ao.getArtifacts()) {
+                    if (a instanceof QACheckDocument) {
+                        QACheckDocument qacd = (QACheckDocument) a;
+                        for (QACheckDocument.QAConstraint rebc : qacd.getConstraintsReadonly()) {
+                            if (rebc.getId().equals(rebcId)) {
+                                if (rebc instanceof RuleEngineBasedConstraint) {
+                                    return (RuleEngineBasedConstraint) rebc;
+                                }
                             }
                         }
                     }

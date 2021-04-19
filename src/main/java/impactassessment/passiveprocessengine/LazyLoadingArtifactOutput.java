@@ -1,6 +1,8 @@
 package impactassessment.passiveprocessengine;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.ArtifactType;
@@ -18,12 +20,12 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private ArtifactIdentifier ai;
+	private Set<ArtifactIdentifier> ai;
 	private transient IArtifactRegistry reg;
 	private String wfi;
 	
 	@SuppressWarnings("deprecation")
-	public LazyLoadingArtifactOutput(ArtifactIdentifier ai, IArtifactRegistry reg, String wfi, ArtifactType type, String role) {
+	public LazyLoadingArtifactOutput(Set<ArtifactIdentifier> ai, IArtifactRegistry reg, String wfi, ArtifactType type, String role) {
 		this.ai = ai;
 		this.reg = reg;
 		this.wfi = wfi;
@@ -34,19 +36,20 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	
 	
 	@Override
-	public IArtifact getArtifact() {
-		IArtifact art = super.getArtifact();
-		if (art == null) {
-			Optional<IArtifact> artOpt = reg.get(ai, wfi);
-			if (artOpt.isPresent()) {
-				super.setArtifact(artOpt.get());
-				return artOpt.get();
-			} else {
-				log.warn("Could not load artifact from registry:"+ai);
-				return null;
+	public Set<IArtifact> getArtifacts() {
+		Set<IArtifact> artifacts = super.getArtifacts();
+		if (artifacts == null) {
+			for (ArtifactIdentifier aId : ai) {
+				Optional<IArtifact> artOpt = reg.get(aId, wfi);
+				if (artOpt.isPresent()) {
+					super.addOrReplaceArtifact(artOpt.get());
+				} else {
+					log.warn("Could not load artifact from registry:" + ai);
+				}
 			}
+			return super.getArtifacts();
 		} else
-			return art;
+			return artifacts;
 	}
 
 
@@ -57,7 +60,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	}
 
 	public static LazyLoadingArtifactOutput generateFrom(ArtifactIO io, IArtifactRegistry reg, String wfi) {
-		return new LazyLoadingArtifactOutput(io.getArtifact().getArtifactIdentifier(), reg, wfi, io.getArtifactType(), io.getRole());
+		return new LazyLoadingArtifactOutput(io.getArtifacts().stream().map(IArtifact::getArtifactIdentifier).collect(Collectors.toSet()), reg, wfi, io.getArtifactType(), io.getRole());
 	}
 	
 	public void reinjectRegistry(IArtifactRegistry reg) {

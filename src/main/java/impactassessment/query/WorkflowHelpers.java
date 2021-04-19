@@ -7,13 +7,9 @@ import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.QACheckDocument;
-import passiveprocessengine.instance.RuleEngineBasedConstraint;
-import passiveprocessengine.instance.WorkflowWrapperTaskInstance;
+import passiveprocessengine.instance.*;
 
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -49,9 +45,12 @@ public class WorkflowHelpers {
     }
 
     public static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        Collection<Entry<String,IArtifact>> artifacts = wwti.getInput().stream()
-        		.map(in -> new AbstractMap.SimpleEntry<>(in.getRole(), in.getArtifact()))
-        		.collect(Collectors.toList());
+        List<Entry<String,IArtifact>> artifacts = new ArrayList<>();
+        for (ArtifactInput input : wwti.getInput()) {
+            for (IArtifact a : input.getArtifacts()) {
+                artifacts.add(new AbstractMap.SimpleEntry<>(input.getRole(), a));
+            }
+        }
         // THis approach is not quite ok, as the artifact could be set/updated later and the datamapping among different role names is not considered
         // FIXME: proper subwp handling, i.e. input and output mapping propagation
         CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);

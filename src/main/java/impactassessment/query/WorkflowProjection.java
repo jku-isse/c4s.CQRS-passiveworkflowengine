@@ -217,14 +217,14 @@ public class WorkflowProjection {
 			artOpt.ifPresent(art -> {
 				boolean isUsed = false;
 				for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-					if (input.getArtifact() != null && input.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
-						input.setArtifact(art);
+					if (input.containsArtifact(art)) {
+						input.addOrReplaceArtifact(art);
 						isUsed=true;
 					}
 				}
 				for (ArtifactOutput output : wfiWrapper.getWorkflowInstance().getOutput()) {
-					if (output.getArtifact() != null && output.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
-						output.setArtifact(art);
+					if (output.containsArtifact(art)) {
+						output.addOrReplaceArtifact(art);
 						isUsed=true;
 					}
 				}
@@ -236,8 +236,8 @@ public class WorkflowProjection {
 							ios.addAll(wft.getOutput());
 							return ios.stream();
 						})
-						.filter(io -> io.getArtifact() != null && io.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId()))
-						.peek(io -> io.setArtifact(art))
+						.filter(io -> io.containsArtifact(art))
+						.peek(io -> io.addOrReplaceArtifact(art))
 						.count();
 				if (count > 0)
 					isUsed=true;
