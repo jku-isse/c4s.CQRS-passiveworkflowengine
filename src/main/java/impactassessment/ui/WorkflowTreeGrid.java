@@ -393,7 +393,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
                 Optional<T> opt = present.stream()
                         .filter(aio -> entry.getKey().equals(aio.getRole()))
-                        //.filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType())) // TODO ignore artifact type?
+                        .filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType()))
                         .findAny();
                 if (opt.isPresent()) {
                     ArtifactIO artifactIO = opt.get();
@@ -441,7 +441,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         boolean existOthers = false;
         for (ArtifactIO ao : present) {
             if (expected.entrySet().stream()
-                    .noneMatch(e -> e.getKey().equals(ao.getRole())/* && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType())*/)) { // TODO ignore artifact type?
+                    .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType()))) {
                 existOthers = true;
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
