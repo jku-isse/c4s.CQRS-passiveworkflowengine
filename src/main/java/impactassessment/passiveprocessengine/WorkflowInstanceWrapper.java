@@ -1,5 +1,6 @@
 package impactassessment.passiveprocessengine;
 
+
 import artifactapi.*;
 import impactassessment.api.Events.*;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,7 @@ public class WorkflowInstanceWrapper {
         setInputArtifacts(artifacts);
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
+
 
     public List<AbstractWorkflowInstanceObject> handle(AddedConstraintsEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
@@ -140,6 +142,8 @@ public class WorkflowInstanceWrapper {
 
     public IWorkflowTask handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+       // Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+       // if (art.isPresent())
         replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
         return wft;
     }
@@ -151,15 +155,21 @@ public class WorkflowInstanceWrapper {
         awos.addAll(wft.addOutput(output));
         awos.add(wft);
         return awos;
+
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
+    	//Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+        //if (art.isPresent()) {
         replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
-        wfi.addOutput(output);
+    	//Optional<IArtifact> art = artReg.get(evt.getArtifact(), evt.getId());
+        //if (art.isPresent()) {
+        	ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        	wfi.addOutput(output);
+        //}
     }
 
     private void replaceInput(ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {

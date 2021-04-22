@@ -64,8 +64,4 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		this.reg = reg;
 	}
 
-	@Override
-	protected void setContainer(IWorkflowTask wt) {
-		// TODO setId !!!
-	}
 }

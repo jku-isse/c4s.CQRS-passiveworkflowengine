@@ -75,7 +75,7 @@ public class JiraArtifact implements IJiraArtifact {
         String rel = "self";
         String as = getIssueType().getName();
         String linkType = "html";
-        String title = getKey();
+        String title = getKey() +" "+getSummary();
         return new ResourceLink(context, href, rel, as, linkType, title);
     }
 
