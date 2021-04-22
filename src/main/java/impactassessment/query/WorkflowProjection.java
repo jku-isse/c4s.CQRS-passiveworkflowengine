@@ -42,6 +42,8 @@ public class WorkflowProjection {
 	private final IFrontendPusher pusher;
 	private final IArtifactRegistry artifactRegistry;
 
+	private boolean updateFrontend = true;
+
 	// Event Handlers
 
 	@EventHandler
@@ -58,8 +60,9 @@ public class WorkflowProjection {
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
 			evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@EventHandler
@@ -108,8 +111,9 @@ public class WorkflowProjection {
 				}
 			});
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@DisallowReplay
@@ -155,8 +159,9 @@ public class WorkflowProjection {
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputEvt");
 			kieSessions.fire(evt.getId());
 			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@EventHandler
@@ -170,8 +175,9 @@ public class WorkflowProjection {
 			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@EventHandler
@@ -192,16 +198,18 @@ public class WorkflowProjection {
 			kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputToWorkflowEvt");
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
-	public void on(AddedOutputToWorkflowEvt evt) {
+	public void on(AddedOutputToWorkflowEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
 		//   artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
 		projection.handle(evt);
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		if (!status.isReplay()) {
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
 	}
 
 	@DisallowReplay
@@ -257,10 +265,10 @@ public class WorkflowProjection {
 	public void on(DeletedEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
 		projection.handle(evt);
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		if (!status.isReplay()) {
 			kieSessions.dispose(evt.getId());
 			artifactRegistry.deleteAllDataScopes(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
 	}
 
@@ -273,8 +281,8 @@ public class WorkflowProjection {
 			ensureInitializedKB(kieSessions, projection, evt.getId());
 			awos.forEach(x -> kieSessions.insertOrUpdate(evt.getId(), x));
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler

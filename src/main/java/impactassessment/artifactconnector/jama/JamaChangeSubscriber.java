@@ -54,7 +54,7 @@ public class JamaChangeSubscriber implements IJamaChangeSubscriber {
         } else {
             artifactKeys.add(Integer.parseInt(id.getId()));
         }
-        log.debug("Workflow: {} has following usages: {}", scope, artifactUsages.get(scope).stream()
+        log.debug("Workflow: {} has following usages: {}", scope.getScopeId(), artifactUsages.get(scope).stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining( ", " )));
     }

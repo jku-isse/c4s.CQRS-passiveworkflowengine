@@ -25,16 +25,16 @@ public class JiraChangeSubscriber implements ChangeSubscriber {
     // Map<workflowId, Set<artifactKey>>
     private ConcurrentMap<JiraDataScope, Set<String>> artifactUsages = new ConcurrentHashMap<>();
 
-    public void addUsage(JiraDataScope workflowId, ArtifactIdentifier id) {
-        Set<String> artifactKeys = artifactUsages.get(workflowId);
+    public void addUsage(JiraDataScope scope, ArtifactIdentifier id) {
+        Set<String> artifactKeys = artifactUsages.get(scope);
         if (artifactKeys == null) {
             Set<String> newSet = new HashSet<>();
             newSet.add(id.getId());
-            artifactUsages.put(workflowId, newSet);
+            artifactUsages.put(scope, newSet);
         } else {
             artifactKeys.add(id.getId());
         }
-        log.debug("Workflow: {} has following usages: {}", workflowId, artifactUsages.get(workflowId).stream().collect(Collectors.joining( ", " )));
+        log.debug("Workflow: {} has following usages: {}", scope.getScopeId(), artifactUsages.get(scope).stream().collect(Collectors.joining( ", " )));
     }
 
     public void removeUsage(JiraDataScope scope) {
