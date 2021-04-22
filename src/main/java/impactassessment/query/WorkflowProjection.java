@@ -190,7 +190,9 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			wfiWrapper.getWorkflowInstance().getInput().stream()
 			.filter(o -> o.getRole().equals(evt.getRole()))
-			.filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
+			.map(ArtifactIO::getArtifacts)
+			.flatMap(Collection::stream)
+			.filter(o -> o.getArtifactIdentifier().getType().equals(evt.getType()))
 			.findAny()
 			.ifPresent(o -> {
 				kieSessions.remove(evt.getId(), evt.getArtifact()); // TODO what if the artifact is used twice in the workflow?

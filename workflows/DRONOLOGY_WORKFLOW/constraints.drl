@@ -43,8 +43,8 @@ rule "InsertQAConstraintsStateOpen"
 		                        getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null)
 	then
         for (ArtifactInput ai : $wft.getWorkflow().getInput()) {
-            if (ai.getArtifactType().getId().equals("IJiraArtifact")) {
-                for (IArtifact a : ai.getArtifacts()) {
+            for (IArtifact a : ai.getArtifacts()) {
+                if (a.getArtifactIdentifier().getType().equals("IJiraArtifact")) {
                     IJiraArtifact $a = (IJiraArtifact) a;
                     Map<String, String> constraints = new LinkedHashMap<>();
                     //constraints for Tasks and Sub-Taks
@@ -87,8 +87,8 @@ rule "InsertQAConstraintsStateInProgress"
                                 getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
         for (ArtifactInput ai : $wft.getWorkflow().getInput()) {
-            if (ai.getArtifactType().getId().equals("IJiraArtifact")) {
-                for (IArtifact a : ai.getArtifacts()) {
+            for (IArtifact a : ai.getArtifacts()) {
+                if (a.getArtifactIdentifier().getType().equals("IJiraArtifact")) {
                     IJiraArtifact $a = (IJiraArtifact) a;
                     Map<String, String> constraints = new LinkedHashMap<>();
                     //constraints for Tasks and Sub-Taks
@@ -117,8 +117,8 @@ rule "InsertQAConstraintsStateResolved"
                                     getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
 	then
         for (ArtifactInput ai : $wft.getWorkflow().getInput()) {
-            if (ai.getArtifactType().getId().equals("IJiraArtifact")) {
-                for (IArtifact a : ai.getArtifacts()) {
+            for (IArtifact a : ai.getArtifacts()) {
+                if (a.getArtifactIdentifier().getType().equals("IJiraArtifact")) {
                     IJiraArtifact $a = (IJiraArtifact) a;
                     Map<String, String> constraints = new LinkedHashMap<>();
                     //constraints for Tasks and Sub-Taks

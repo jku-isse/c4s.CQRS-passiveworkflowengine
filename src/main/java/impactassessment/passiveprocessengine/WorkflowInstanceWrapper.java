@@ -42,7 +42,7 @@ public class WorkflowInstanceWrapper {
     private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
     	if (wfi != null) {
     	    // TODO use LazyLoadingArtifactInput here?
-    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(Set.of(in.getValue()), in.getKey(), new ArtifactType(in.getValue().getArtifactIdentifier().getType()))));
+    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(in.getValue(), in.getKey())));
     	}
     }
 
@@ -78,7 +78,7 @@ public class WorkflowInstanceWrapper {
         QACheckDocument qa = getQACDocOfWft(wft);
         if (qa == null) {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
-            ArtifactOutput ao = new ArtifactOutput(Set.of(qa), ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT, new ArtifactType(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT));
+            ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT);
             addConstraint(evt, qa, wft, awos);
             awos.addAll(wft.addOutput(ao));
         } else {
@@ -142,13 +142,13 @@ public class WorkflowInstanceWrapper {
 
     public IWorkflowTask handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
         return wft;
     }
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        ArtifactOutput output = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
         awos.addAll(wft.addOutput(output));
         awos.add(wft);
@@ -156,32 +156,38 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
-        replaceInput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        ArtifactOutput output = replaceOutput(evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        ArtifactOutput output = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
         wfi.addOutput(output);
     }
 
-    private void replaceInput(ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactInput input = new LazyLoadingArtifactInput(Set.of(artifact), artReg, wfi.getId(), new ArtifactType(type), role);
-        iwft.getInput().stream()
+    private void addInput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
+        Optional<ArtifactInput> opt = iwft.getInput().stream()
                 .filter(o -> o.getRole().equals(role))
-                .filter(o -> o.getArtifactType().getArtifactType().equals(type))
-                .findAny()
-                .ifPresent(iwft::removeInput); //TODO: check if this doesnt result in concurrent modification exception
-        iwft.addInput(input);
+                .findAny();
+        if (opt.isPresent()) { // if ArtifactInput with correct role is present, IArtifact is added to Set
+            artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); // TODO is it okay to fetch artifact here?
+        } else { // if no ArtifactInput with correct role is present, a new ArtifactInput is created
+            ArtifactInput input = new LazyLoadingArtifactInput(artifact, artReg, wfi.getId(), role);
+            iwft.addInput(input);
+        }
     }
 
-    private ArtifactOutput replaceOutput(ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
-        ArtifactOutput output = new LazyLoadingArtifactOutput(Set.of(artifact), artReg, wfi.getId(), new ArtifactType(type), role);
-        iwft.getOutput().stream()
+    private ArtifactOutput addOutput(String id, ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
+        Optional<ArtifactOutput> opt = iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
-                .filter(o -> o.getArtifactType().getArtifactType().equals(type))
-                .findAny()
-                .ifPresent(iwft::removeOutput);
-        return output;
+                .findAny();
+        if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
+            artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); // TODO is it okay to fetch artifact here?
+            return opt.get();
+        } else { // if no ArtifactOutput with correct role is present, a new ArtifactOutput is created
+            ArtifactOutput output = new LazyLoadingArtifactOutput(artifact, artReg, wfi.getId(), role);
+            iwft.addOutput(output);
+            return output;
+        }
     }
 
     public void handle(SetPreConditionsFulfillmentEvt evt) {

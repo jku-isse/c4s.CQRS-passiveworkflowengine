@@ -391,23 +391,23 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
                 line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-                Optional<T> opt = present.stream()
+                Optional<IArtifact> opt = present.stream()
                         .filter(aio -> entry.getKey().equals(aio.getRole()))
-                        .filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType()))
+                        .map(ArtifactIO::getArtifacts)
+                        .flatMap(Collection::stream)
+                        .filter(a -> entry.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))
                         .findAny();
                 if (opt.isPresent()) {
-                    ArtifactIO artifactIO = opt.get();
-                    for (IArtifact a : artifactIO.getArtifacts()) {
-                        Optional<Component> rl = tryToConvertToResourceLink(a);
-                        if (rl.isPresent()) {
-                            line.add(rl.get());
-                        } else {
-                            Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
-                            p.setClassName("bold");
-                            line.add(p);
-                        }
-                        line.add(addInOut("Replace", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                    IArtifact a = opt.get();
+                    Optional<Component> rl = tryToConvertToResourceLink(a);
+                    if (rl.isPresent()) {
+                        line.add(rl.get());
+                    } else {
+                        Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
+                        p.setClassName("bold");
+                        line.add(p);
                     }
+                    line.add(addInOut("Replace", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
                 } else {
                     Paragraph p = new Paragraph("missing");
                     p.setClassName("red");
@@ -440,13 +440,13 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         list.setClassName("const-margin");
         boolean existOthers = false;
         for (ArtifactIO ao : present) {
-            if (expected.entrySet().stream()
-                    .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType()))) {
-                existOthers = true;
-                HorizontalLayout line = new HorizontalLayout();
-                line.setClassName("line");
-                line.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + ")"));
-                for (IArtifact a : ao.getArtifacts()) {
+            for (IArtifact a : ao.getArtifacts()) {
+                if (expected.entrySet().stream()
+                        .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))) {
+                    existOthers = true;
+                    HorizontalLayout line = new HorizontalLayout();
+                    line.setClassName("line");
+                    line.add(new ListItem(ao.getRole() + " (" + a.getArtifactIdentifier().getType() + ")"));
                     Optional<Component> rl = tryToConvertToResourceLink(a);
                     if (rl.isPresent()) {
                         line.add(rl.get());
@@ -455,8 +455,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                         p.setClassName("bold");
                         line.add(p);
                     }
+                    list.add(line);
                 }
-                list.add(line);
             }
         }
         if (!existOthers) {

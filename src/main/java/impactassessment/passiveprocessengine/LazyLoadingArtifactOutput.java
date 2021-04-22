@@ -1,39 +1,40 @@
 package impactassessment.passiveprocessengine;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.instance.ArtifactIO;
+import passiveprocessengine.instance.ArtifactOutput;
+
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import artifactapi.ArtifactIdentifier;
-import artifactapi.ArtifactType;
-import artifactapi.IArtifact;
-import artifactapi.IArtifactRegistry;
-import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.instance.ArtifactIO;
-import passiveprocessengine.instance.ArtifactOutput;
-
 @Slf4j
 public class LazyLoadingArtifactOutput extends ArtifactOutput {
-	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
-	private Set<ArtifactIdentifier> ai;
+	private Set<ArtifactIdentifier> ai = new LinkedHashSet<>();
 	private transient IArtifactRegistry reg;
 	private String wfi;
 	
 	@SuppressWarnings("deprecation")
-	public LazyLoadingArtifactOutput(Set<ArtifactIdentifier> ai, IArtifactRegistry reg, String wfi, ArtifactType type, String role) {
-		this.ai = ai;
+	public LazyLoadingArtifactOutput(Set<ArtifactIdentifier> ai, IArtifactRegistry reg, String wfi, String role) {
+		this.ai.addAll(ai);
 		this.reg = reg;
 		this.wfi = wfi;
-		super.setArtifactType(type);
 		super.setRole(role);
 	}
-	
-	
+
+	@SuppressWarnings("deprecation")
+	public LazyLoadingArtifactOutput(ArtifactIdentifier ai, IArtifactRegistry reg, String wfi, String role) {
+		this.ai.add(ai);
+		this.reg = reg;
+		this.wfi = wfi;
+		super.setRole(role);
+	}
 	
 	@Override
 	public Set<IArtifact> getArtifacts() {
@@ -60,15 +61,11 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	}
 
 	public static LazyLoadingArtifactOutput generateFrom(ArtifactIO io, IArtifactRegistry reg, String wfi) {
-		return new LazyLoadingArtifactOutput(io.getArtifacts().stream().map(IArtifact::getArtifactIdentifier).collect(Collectors.toSet()), reg, wfi, io.getArtifactType(), io.getRole());
+		return new LazyLoadingArtifactOutput(io.getArtifacts().stream().map(IArtifact::getArtifactIdentifier).collect(Collectors.toSet()), reg, wfi, io.getRole());
 	}
 	
 	public void reinjectRegistry(IArtifactRegistry reg) {
 		this.reg = reg;
 	}
 
-	@Override
-	protected void setContainer(IWorkflowTask wt) {
-		// TODO setId !!!
-	}
 }
