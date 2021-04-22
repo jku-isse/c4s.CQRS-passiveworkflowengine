@@ -10,8 +10,11 @@ import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 
 import artifactapi.IArtifactRegistry;
+import passiveprocessengine.instance.WorkflowInstance;
+
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.*;
@@ -59,15 +62,16 @@ public class Snapshotter {
         }
     }
 
-    public List<WorkflowInstanceWrapper> getState() {
-        ConcurrentMap<String, WorkflowInstanceWrapper> data = null;
+    public List<WorkflowInstance> getState() {
+        ConcurrentMap<String, WorkflowInstanceWrapper> data;
         try {
             data = futureDB.get().getDb();
             futureDB = new CompletableFuture<>();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            return Collections.emptyList();
         }
-        return data.entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
+        return data.values().stream().map(WorkflowInstanceWrapper::getWorkflowInstance).collect(Collectors.toList());
     }
 
     public boolean step() {

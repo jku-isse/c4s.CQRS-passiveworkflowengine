@@ -27,6 +27,7 @@ import passiveprocessengine.instance.WorkflowInstance;
 import passiveprocessengine.instance.WorkflowTask;
 
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,9 +44,8 @@ public class TestInstantiateTaskCommand {
     public void setup() {
         SpringConfig conf = new SpringConfig();
 
-        ProjectionModel pModel = new ProjectionModel();
-
         IArtifactRegistry aRegistry = new ArtifactRegistry();
+        ProjectionModel pModel = new ProjectionModel(aRegistry);
         MockCommandGateway gw = new MockCommandGateway(aRegistry);
 
         JiraChangeSubscriber jiraCS = new JiraChangeSubscriber(gw);
@@ -73,50 +73,55 @@ public class TestInstantiateTaskCommand {
         String id = "TestId1";
 
         IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
-        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama", new ArtifactIdentifier("14464163", "IJamaArtifact"))), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
 
         IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
         ArtifactInput in = new ArtifactInput(jiraArt, "jira");
         wfp.on(new Events.InstantiatedTaskEvt(id, "Evaluate", List.of(in), Collections.emptyList()), status); // should be ignored (task already exists!)
         wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
 
-        List<WorkflowInstanceWrapper> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery("*")).getState();
         assertEquals(1, state.size());
-        WorkflowInstance wfi = state.get(0).getWorkflowInstance();
-        assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
-        WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().startsWith("Execute"))
-                .findAny()
-                .get();
-        assertEquals(1, wft.getOutput().size()); // QACheckDocument
-        assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+        for (WorkflowInstance wfi : state) {
+            assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
+            WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
+                    .filter(x -> x.getId().startsWith("Execute"))
+                    .findAny()
+                    .get();
+            assertEquals(1, wft.getOutput().size()); // QACheckDocument
+            assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+        }
 
         System.out.println("done");
     }
 
     @Test
-    public void testInstantiateTaskFirst() {
+    public void testInstantiateTaskAndRegualrEnabling() {
         ReplayStatus status = ReplayStatus.REGULAR;
         String id = "TestId1";
 
         IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
-        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama", new ArtifactIdentifier("14464163", "IJamaArtifact"))), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
 
         IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
         ArtifactInput in = new ArtifactInput(jiraArt, "jira");
         wfp.on(new Events.InstantiatedTaskEvt(id, "Evaluate", List.of(in), Collections.emptyList()), status); // should be ignored (task already exists!)
         wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
+        wfp.on(new Events.AddedOutputEvt(id, "Evaluate#"+id, new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), "checkissue", "IJiraArtifact"), status);
 
-        List<WorkflowInstanceWrapper> state = wfp.handle(new Queries.GetStateQuery(0)).getState();
+        // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE 
+
+        Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery("*")).getState();
         assertEquals(1, state.size());
-        WorkflowInstance wfi = state.get(0).getWorkflowInstance();
-        assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
-        WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
-                .filter(x -> x.getId().startsWith("Execute"))
-                .findAny()
-                .get();
-        assertEquals(1, wft.getOutput().size()); // QACheckDocument
-        assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+        for (WorkflowInstance wfi : state) {
+            assertEquals(2, wfi.getWorkflowTasksReadonly().size()); // Task "Evaluate" and "Execute" should be present
+            WorkflowTask wft = wfi.getWorkflowTasksReadonly().stream()
+                    .filter(x -> x.getId().startsWith("Execute"))
+                    .findAny()
+                    .get();
+            assertEquals(1, wft.getOutput().size()); // QACheckDocument
+            assertEquals(1, wft.getInput().size()); // IJiraArtifact (DEMO-9)
+        }
 
         System.out.println("done");
     }

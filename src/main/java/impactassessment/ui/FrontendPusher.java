@@ -1,16 +1,15 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.UI;
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import passiveprocessengine.instance.WorkflowInstance;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 
 @Component
 @Scope("singleton")
@@ -25,7 +24,7 @@ public class FrontendPusher implements IFrontendPusher {
     private final boolean PERFORMANCE_MODE = false;
 
     @Override
-    public void update(List<WorkflowInstanceWrapper> state) {
+    public void update(WorkflowInstance state) {
         if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
             log.debug("update frontend");
             lastUpdate = Instant.now();

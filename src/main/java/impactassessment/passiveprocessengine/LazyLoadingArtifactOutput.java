@@ -7,6 +7,7 @@ import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
 import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.ArtifactIO;
 import passiveprocessengine.instance.ArtifactOutput;
 
@@ -18,7 +19,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	 */
 	private static final long serialVersionUID = 1L;
 	private ArtifactIdentifier ai;
-	private volatile IArtifactRegistry reg;
+	private transient IArtifactRegistry reg;
 	private String wfi;
 	
 	@SuppressWarnings("deprecation")
@@ -62,4 +63,5 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	public void reinjectRegistry(IArtifactRegistry reg) {
 		this.reg = reg;
 	}
+
 }

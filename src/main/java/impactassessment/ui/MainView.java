@@ -53,6 +53,7 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
+import passiveprocessengine.instance.WorkflowInstance;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -67,6 +68,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
@@ -356,14 +358,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
         try {
             Notification.show("Refreshing Process Dashboard State");
-            List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).getState();
+            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
             grid.updateTreeGrid(response);
         } catch (TimeoutException e1) {
-            log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
-            Notification.show("TimeoutException: Either projection is out of sync ('Replay All Events' might help) or a server exception occurred.");
+            log.error("GetStateQuery resulted in TimeoutException!");
+            Notification.show("TimeoutException");
         } catch (InterruptedException | ExecutionException e2) {
             log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
         }
