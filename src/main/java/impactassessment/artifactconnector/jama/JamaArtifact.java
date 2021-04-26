@@ -307,6 +307,19 @@ public class JamaArtifact implements IJamaArtifact {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JamaArtifact that = (JamaArtifact) o;
+        return artifactIdentifier.equals(that.artifactIdentifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(artifactIdentifier);
+    }
+
     private Optional<String> getString(JamaFieldValue jfv) {
         if (jfv instanceof CalculatedFieldValue) {
             return Optional.ofNullable((String) jfv.getValue());

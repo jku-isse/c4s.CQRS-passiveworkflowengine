@@ -56,9 +56,7 @@ public class WorkflowProjection {
 		kieSessions.create(evt.getId(), kieContainer);
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
-			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-			evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
@@ -188,16 +186,6 @@ public class WorkflowProjection {
 		wfiWrapper.handle(evt);
 		// if this input is an IArtifact, insert it into kieSession
 		if (!status.isReplay()) {
-			wfiWrapper.getWorkflowInstance().getInput().stream()
-			.filter(o -> o.getRole().equals(evt.getRole()))
-			.map(ArtifactIO::getArtifacts)
-			.flatMap(Collection::stream)
-			.filter(o -> o.getArtifactIdentifier().getType().equals(evt.getType()))
-			.findAny()
-			.ifPresent(o -> {
-				kieSessions.remove(evt.getId(), evt.getArtifact()); // TODO what if the artifact is used twice in the workflow?
-			});
-			kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputToWorkflowEvt");
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
@@ -219,46 +207,38 @@ public class WorkflowProjection {
 	public void on(UpdatedArtifactsEvt evt) {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-		//No Longer needed    evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e, evt.getId()));
 		ensureInitializedKB(kieSessions, projection, evt.getId());
 		// Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
+		List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
 		for (ArtifactIdentifier updatedArtifact : evt.getArtifacts()) {
 			Optional<IArtifact> artOpt = artifactRegistry.get(updatedArtifact, evt.getId());
 			artOpt.ifPresent(art -> {
-				boolean isUsed = false;
-				for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-					if (input.containsArtifact(art)) {
-						input.addOrReplaceArtifact(art);
-						isUsed=true;
+				// check inputs and outputs of workflow instance
+				List<ArtifactIO> wfiInOuts = new LinkedList<>();
+				wfiInOuts.addAll(wfiWrapper.getWorkflowInstance().getInput());
+				wfiInOuts.addAll(wfiWrapper.getWorkflowInstance().getOutput());
+				for (ArtifactIO io : wfiInOuts) {
+					if (io.containsArtifact(art)) {
+						io.addOrReplaceArtifact(art);
 					}
 				}
-				for (ArtifactOutput output : wfiWrapper.getWorkflowInstance().getOutput()) {
-					if (output.containsArtifact(art)) {
-						output.addOrReplaceArtifact(art);
-						isUsed=true;
+				// check inputs and outputs of all workflow tasks
+				for (WorkflowTask wft : wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly()) {
+					List<ArtifactIO> wftInOuts = new LinkedList<>();
+					wftInOuts.addAll(wft.getInput());
+					wftInOuts.addAll(wft.getOutput());
+					for (ArtifactIO io : wftInOuts) {
+						if (io.containsArtifact(art)) {
+							io.addOrReplaceArtifact(art);
+							awos.add(wft); // WFTs must be updated in the kieSession
+						}
 					}
 				}
-
-				long count = wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-						.flatMap(wft -> {
-							List<ArtifactIO> ios = new LinkedList<ArtifactIO>();
-							ios.addAll(wft.getInput());
-							ios.addAll(wft.getOutput());
-							return ios.stream();
-						})
-						.filter(io -> io.containsArtifact(art))
-						.peek(io -> io.addOrReplaceArtifact(art))
-						.count();
-				if (count > 0)
-					isUsed=true;
-
-				if (isUsed)
-					kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
 			});
 		}
-		// TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
 		// CheckAllConstraints
+		awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
 		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
 		kieSessions.fire(evt.getId());
 	}
