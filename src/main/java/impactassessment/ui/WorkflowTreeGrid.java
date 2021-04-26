@@ -1,6 +1,7 @@
 package impactassessment.ui;
 
 import artifactapi.ArtifactType;
+import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
@@ -20,7 +21,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import impactassessment.api.Commands.*;
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
 import passiveprocessengine.definition.IWorkflowTask;
@@ -48,14 +48,14 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
     private Function<Object, Object> f;
     private boolean evalMode;
 
-    private List<WorkflowInstanceWrapper> content;
+    private Map<String, WorkflowInstance> content;
     private String nameFilter;
     private Map<String, String> propertiesFilter;
 
     public WorkflowTreeGrid(Function<Object, Object> f, boolean evalMode) {
         this.f = f;
         this.evalMode = evalMode;
-        content = new ArrayList<>();
+        content = new HashMap<>();
         nameFilter = ""; // default filter
         propertiesFilter = new HashMap<>();
         propertiesFilter.put("", ""); // default filter
@@ -197,7 +197,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 WorkflowInstance wfi = (WorkflowInstance) o;
                 boolean unsatisfied = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
+                                .map(out -> out.getArtifacts())
+                                .flatMap(Collection::stream)
                                 .filter(a -> a instanceof passiveprocessengine.instance.QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
@@ -206,7 +207,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                         );
                 boolean fulfilled = wfi.getWorkflowTasksReadonly().stream()
                         .anyMatch(wft -> wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
+                                .map(out -> out.getArtifacts())
+                                .flatMap(Collection::stream)
                                 .filter(a -> a instanceof QACheckDocument)
                                 .map(a -> (QACheckDocument) a)
                                 .map(QACheckDocument::getConstraintsReadonly)
@@ -217,14 +219,16 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             } else if (o instanceof WorkflowTask) {
                 WorkflowTask wft = (WorkflowTask) o;
                 boolean unsatisfied = wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
-                                .filter(a -> a instanceof QACheckDocument)
-                                .map(a -> (QACheckDocument) a)
-                                .map(QACheckDocument::getConstraintsReadonly)
-                                .anyMatch(a -> a.stream()
-                                        .anyMatch(c -> !c.isFulfilled()));
+                        .map(out -> out.getArtifacts())
+                        .flatMap(Collection::stream)
+                        .filter(a -> a instanceof QACheckDocument)
+                        .map(a -> (QACheckDocument) a)
+                        .map(QACheckDocument::getConstraintsReadonly)
+                        .anyMatch(a -> a.stream()
+                                .anyMatch(c -> !c.isFulfilled()));
                 boolean fulfilled = wft.getOutput().stream()
-                        .map(ArtifactIO::getArtifact)
+                        .map(out -> out.getArtifacts())
+                        .flatMap(Collection::stream)
                         .filter(a -> a instanceof QACheckDocument)
                         .map(a -> (QACheckDocument) a)
                         .map(QACheckDocument::getConstraintsReadonly)
@@ -387,16 +391,19 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
                 line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-                Optional<T> opt = present.stream()
+                Optional<IArtifact> opt = present.stream()
                         .filter(aio -> entry.getKey().equals(aio.getRole()))
-                        .filter(aio -> entry.getValue().getArtifactType().equals(aio.getArtifactType().getArtifactType()))
+                        .map(ArtifactIO::getArtifacts)
+                        .flatMap(Collection::stream)
+                        .filter(a -> entry.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))
                         .findAny();
                 if (opt.isPresent()) {
-                    Optional<Component> rl = tryToConvertToResourceLink(opt.get());
+                    IArtifact a = opt.get();
+                    Optional<Component> rl = tryToConvertToResourceLink(a);
                     if (rl.isPresent()) {
                         line.add(rl.get());
                     } else {
-                        Paragraph p = new Paragraph(opt.get().getArtifact().getArtifactIdentifier().getId());
+                        Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
                         p.setClassName("bold");
                         line.add(p);
                     }
@@ -417,10 +424,10 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return list;
     }
 
-    private Optional<Component> tryToConvertToResourceLink(ArtifactIO artifactIO) {
+    private Optional<Component> tryToConvertToResourceLink(IArtifact artifact) {
         // TODO for now only jira and jama artifacts have a web resource
-        if (artifactIO.getArtifact() instanceof IJamaArtifact || artifactIO.getArtifact() instanceof IJiraArtifact) {
-            ResourceLink rl = artifactIO.getArtifact().convertToResourceLink();
+        if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
+            ResourceLink rl = artifact.convertToResourceLink();
             Anchor a = new Anchor(rl.getHref(), rl.getTitle());
             a.setTarget("_blank");
             return Optional.of(a);
@@ -433,21 +440,23 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         list.setClassName("const-margin");
         boolean existOthers = false;
         for (ArtifactIO ao : present) {
-            if (expected.entrySet().stream()
-                    .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(ao.getArtifactType().getArtifactType()))) {
-                existOthers = true;
-                HorizontalLayout line = new HorizontalLayout();
-                line.setClassName("line");
-                line.add(new ListItem(ao.getRole() + " (" + ao.getArtifactType().getArtifactType() + ")"));
-                Optional<Component> rl = tryToConvertToResourceLink(ao);
-                if (rl.isPresent()) {
-                    line.add(rl.get());
-                } else {
-                    Paragraph p = new Paragraph(ao.getArtifact().getArtifactIdentifier().getId());
-                    p.setClassName("bold");
-                    line.add(p);
+            for (IArtifact a : ao.getArtifacts()) {
+                if (expected.entrySet().stream()
+                        .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))) {
+                    existOthers = true;
+                    HorizontalLayout line = new HorizontalLayout();
+                    line.setClassName("line");
+                    line.add(new ListItem(ao.getRole() + " (" + a.getArtifactIdentifier().getType() + ")"));
+                    Optional<Component> rl = tryToConvertToResourceLink(a);
+                    if (rl.isPresent()) {
+                        line.add(rl.get());
+                    } else {
+                        Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
+                        p.setClassName("bold");
+                        line.add(p);
+                    }
+                    list.add(line);
                 }
-                list.add(line);
             }
         }
         if (!existOthers) {
@@ -547,19 +556,24 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         updateTreeGrid();
     }
 
-    public void updateTreeGrid(List<WorkflowInstanceWrapper> content) {
-        this.content = content;
+    public void updateTreeGrid(Collection<WorkflowInstance> content) {
+        this.content = new HashMap<>();
+        content.forEach(wfi -> this.content.put(wfi.getId(), wfi));
+        updateTreeGrid();
+    }
+
+    public void updateTreeGrid(WorkflowInstance wfi) {
+        this.content.put(wfi.getId(), wfi);
         updateTreeGrid();
     }
 
     private void updateTreeGrid() {
-        Predicate<WorkflowInstanceWrapper> predicate = wfiw -> ( nameFilter.equals("") || wfiw.getWorkflowInstance().getType().getId().startsWith(nameFilter) || (wfiw.getWorkflowInstance().getName() != null && wfiw.getWorkflowInstance().getName().startsWith(nameFilter)) ) &&
-                wfiw.getWorkflowInstance().getPropertiesReadOnly().stream()
+        Predicate<WorkflowInstance> predicate = wfi -> ( nameFilter.equals("") || wfi.getType().getId().startsWith(nameFilter) || (wfi.getName() != null && wfi.getName().startsWith(nameFilter)) ) &&
+                ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
                         .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
-                                .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) ));
-        this.setItems(this.content.stream()
-                        .filter(predicate)
-                        .map(WorkflowInstanceWrapper::getWorkflowInstance),
+                                .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
+        this.setItems(this.content.values().stream()
+                        .filter(predicate).map(x->x),
                 o -> {
                     if (o instanceof WorkflowInstance) {
                         WorkflowInstance wfi = (WorkflowInstance) o;
@@ -569,7 +583,8 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                     } else if (o instanceof WorkflowTask) {
                         WorkflowTask wft = (WorkflowTask) o;
                         Optional<QACheckDocument> qacd = wft.getOutput().stream()
-                                .map(ArtifactIO::getArtifact)
+                                .map(out -> out.getArtifacts())
+                                .flatMap(Collection::stream)
                                 .filter(io -> io instanceof QACheckDocument)
                                 .map(io -> (QACheckDocument) io)
                                 .findFirst();

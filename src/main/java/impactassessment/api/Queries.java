@@ -1,15 +1,15 @@
 package impactassessment.api;
 
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 import lombok.Data;
+import passiveprocessengine.instance.WorkflowInstance;
 
-import java.util.List;
+import java.util.Collection;
 
 public class Queries {
     // QUERIES
     @Data
     public static class GetStateQuery {
-        private final int depth;
+        private final String id;
     }
     @Data
     public static class PrintKBQuery {
@@ -19,7 +19,7 @@ public class Queries {
     // QUERY-RESPONSES
     @Data
     public static class GetStateResponse {
-        private final List<WorkflowInstanceWrapper> state;
+        private final Collection<WorkflowInstance> state;
     }
     @Data
     public static class PrintKBResponse {

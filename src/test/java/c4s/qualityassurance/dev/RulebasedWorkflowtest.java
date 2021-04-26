@@ -34,8 +34,8 @@ class RulebasedWorkflowtest {
 	public static void main(String[] args) {
 		Injector injector = DevelopmentConfig.getInjector();
 		CommandGateway gw = injector.getInstance(CommandGateway.class);
-		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
+		ProjectionModel pModel = new ProjectionModel(aRegistry);
 		IJiraService jiraS = DevelopmentConfig.getJiraService(false);
 		JamaService jamaS = injector.getInstance(JamaService.class);
 		aRegistry.register(jiraS);
@@ -61,7 +61,7 @@ class RulebasedWorkflowtest {
 		
 		
 //		
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("jama",jamaArt)), "DemoProcess3", registry.get("DemoProcess3").getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("jama", new ArtifactIdentifier("18001185", "IJamaArtifact"))), "DemoProcess3", registry.get("DemoProcess3").getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(workflowId));

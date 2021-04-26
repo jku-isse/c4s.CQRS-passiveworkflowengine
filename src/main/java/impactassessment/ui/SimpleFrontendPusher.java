@@ -1,14 +1,14 @@
 package impactassessment.ui;
 
 import com.vaadin.flow.component.UI;
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
+import passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.List;
 
 public class SimpleFrontendPusher implements IFrontendPusher {
 
     @Override
-    public void update(List<WorkflowInstanceWrapper> state) {
+    public void update(WorkflowInstance wfi) {
         // no op
     }
 

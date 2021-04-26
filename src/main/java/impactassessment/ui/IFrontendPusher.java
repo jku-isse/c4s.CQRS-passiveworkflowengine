@@ -1,11 +1,11 @@
 package impactassessment.ui;
 
-import impactassessment.passiveprocessengine.WorkflowInstanceWrapper;
 
-import java.util.List;
+import passiveprocessengine.instance.WorkflowInstance;
 
 public interface IFrontendPusher {
-    void update(List<WorkflowInstanceWrapper> state);
+
+    void update(WorkflowInstance wfi);
 
     void setUi(com.vaadin.flow.component.UI ui);
 

@@ -33,7 +33,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CheckConstraintCmd;
-import impactassessment.api.Commands.CreateMockWorkflowCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
 import impactassessment.api.Commands.DeleteCmd;
 import impactassessment.api.Queries.GetStateQuery;
@@ -54,6 +53,7 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
+import passiveprocessengine.instance.WorkflowInstance;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -68,6 +68,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
@@ -282,7 +283,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private void initAccordion(String key, String val, String name) {
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact(devMode));
-        if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
+//        if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
         accordion.add("Fetch Updates", updates());
         accordion.add("Filter", filterTable(key, val, name));
 //        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
@@ -357,14 +358,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery(0), GetStateResponse.class);
+        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
         try {
             Notification.show("Refreshing Process Dashboard State");
-            List<WorkflowInstanceWrapper> response = future.get(5, TimeUnit.SECONDS).getState();
+            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
             grid.updateTreeGrid(response);
         } catch (TimeoutException e1) {
-            log.error("GetStateQuery resulted in TimeoutException, make sure projection is initialized (Replay all Events first)!");
-            Notification.show("TimeoutException: Either projection is out of sync ('Replay All Events' might help) or a server exception occurred.");
+            log.error("GetStateQuery resulted in TimeoutException!");
+            Notification.show("TimeoutException");
         } catch (InterruptedException | ExecutionException e2) {
             log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
         }
@@ -729,62 +730,62 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         return layout;
     }
 
-    private Component importMocked() {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setMargin(false);
-        layout.setPadding(false);
-        layout.setWidthFull();
-
-        // MOCK fields
-        TextField id = new TextField("ID");
-        id.setValue("JiraMock1");
-        id.setWidthFull();
-        TextField status = new TextField("Status");
-        status.setValue(JiraMockService.DEFAULT_STATUS);
-        status.setWidthFull();
-        TextField issuetype = new TextField("Issue-Type");
-        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
-        issuetype.setWidthFull();
-        TextField priority = new TextField("Priority");
-        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
-        priority.setWidthFull();
-        TextField summary = new TextField("Summary");
-        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
-        summary.setWidthFull();
-
-        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
-            try {
-                commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
-                Notification.show("Success");
-            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-                log.error("CommandExecutionException: "+e.getMessage());
-                Notification.show("Creation failed!");
-            }
-        });
-        importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
-
-        VerticalLayout column1 = new VerticalLayout();
-        column1.setMargin(false);
-        column1.setPadding(false);
-        column1.add(id, status);
-        column1.setWidth("50%");
-        VerticalLayout column2 = new VerticalLayout();
-        column2.setMargin(false);
-        column2.setPadding(false);
-        column2.add(issuetype, priority);
-        column2.setWidth("50%");
-        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
-        row1.setWidthFull();
-        row1.setMargin(false);
-        row1.setPadding(false);
-        VerticalLayout row2 = new VerticalLayout();
-        row2.setMargin(false);
-        row2.setPadding(false);
-        row2.add(summary, importOrUpdateArtifactButton);
-
-        layout.add(new Paragraph("No actual artifact will be fetched, but a mocked version as specified below will be used."), row1, row2);
-        return layout;
-    }
+//    private Component importMocked() {
+//        VerticalLayout layout = new VerticalLayout();
+//        layout.setMargin(false);
+//        layout.setPadding(false);
+//        layout.setWidthFull();
+//
+//        // MOCK fields
+//        TextField id = new TextField("ID");
+//        id.setValue("JiraMock1");
+//        id.setWidthFull();
+//        TextField status = new TextField("Status");
+//        status.setValue(JiraMockService.DEFAULT_STATUS);
+//        status.setWidthFull();
+//        TextField issuetype = new TextField("Issue-Type");
+//        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
+//        issuetype.setWidthFull();
+//        TextField priority = new TextField("Priority");
+//        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
+//        priority.setWidthFull();
+//        TextField summary = new TextField("Summary");
+//        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
+//        summary.setWidthFull();
+//
+//        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
+//            try {
+//                commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
+//                Notification.show("Success");
+//            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+//                log.error("CommandExecutionException: "+e.getMessage());
+//                Notification.show("Creation failed!");
+//            }
+//        });
+//        importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
+//
+//        VerticalLayout column1 = new VerticalLayout();
+//        column1.setMargin(false);
+//        column1.setPadding(false);
+//        column1.add(id, status);
+//        column1.setWidth("50%");
+//        VerticalLayout column2 = new VerticalLayout();
+//        column2.setMargin(false);
+//        column2.setPadding(false);
+//        column2.add(issuetype, priority);
+//        column2.setWidth("50%");
+//        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
+//        row1.setWidthFull();
+//        row1.setMargin(false);
+//        row1.setPadding(false);
+//        VerticalLayout row2 = new VerticalLayout();
+//        row2.setMargin(false);
+//        row2.setPadding(false);
+//        row2.add(summary, importOrUpdateArtifactButton);
+//
+//        layout.add(new Paragraph("No actual artifact will be fetched, but a mocked version as specified below will be used."), row1, row2);
+//        return layout;
+//    }
 
 //    private @Getter
 //    SimpleTimer timer = new SimpleTimer(60);

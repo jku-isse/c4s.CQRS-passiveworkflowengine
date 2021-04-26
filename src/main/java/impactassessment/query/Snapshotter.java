@@ -9,7 +9,11 @@ import org.axonframework.eventhandling.TrackingToken;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.stereotype.Component;
 
+import artifactapi.IArtifactRegistry;
+import passiveprocessengine.instance.WorkflowInstance;
+
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.*;
@@ -21,7 +25,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class Snapshotter {
     private final EventStore eventStore;
-
+    private final IArtifactRegistry artifactRegistry;
     private ProjectionModel projectionModel;
     private CompletableFuture<ProjectionModel> futureDB = new CompletableFuture<>();
     private ReplayRunnable worker;
@@ -39,7 +43,7 @@ public class Snapshotter {
         futureDB = new CompletableFuture<>();
         futureAction = new CompletableFuture<>();
         futureAction.complete(Action.STEP);
-        projectionModel = new ProjectionModel();
+        projectionModel = new ProjectionModel(artifactRegistry);
 
         worker = new ReplayRunnable(eventStore, timestamp);
         worker.start();
@@ -57,15 +61,16 @@ public class Snapshotter {
         }
     }
 
-    public List<WorkflowInstanceWrapper> getState() {
-        ConcurrentMap<String, WorkflowInstanceWrapper> data = null;
+    public List<WorkflowInstance> getState() {
+        ConcurrentMap<String, WorkflowInstanceWrapper> data;
         try {
             data = futureDB.get().getDb();
             futureDB = new CompletableFuture<>();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            return Collections.emptyList();
         }
-        return data.entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
+        return data.values().stream().map(WorkflowInstanceWrapper::getWorkflowInstance).collect(Collectors.toList());
     }
 
     public boolean step() {

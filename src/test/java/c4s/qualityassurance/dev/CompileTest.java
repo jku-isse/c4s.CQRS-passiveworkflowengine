@@ -22,8 +22,8 @@ class CompileTest {
 	public static void main(String[] args) {
 		Injector injector = DevelopmentConfig.getInjector();
 		MockCommandGateway gw = injector.getInstance(MockCommandGateway.class);
-		ProjectionModel pModel = new ProjectionModel();
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
+		ProjectionModel pModel = new ProjectionModel(aRegistry);
 		IFrontendPusher fp = new SimpleFrontendPusher();
 		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();

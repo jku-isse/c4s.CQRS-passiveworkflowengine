@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class JiraArtifact implements IJiraArtifact {
@@ -91,11 +92,6 @@ public class JiraArtifact implements IJiraArtifact {
         } else {
             log.warn("Injection of {} into JiraArtifact not possible.", service.getClass().getSimpleName());
         }
-    }
-
-    @Override
-    public ArtifactType getType() {
-        return new ArtifactType(artifactIdentifier.getType());
     }
 
     @Override
@@ -260,5 +256,18 @@ public class JiraArtifact implements IJiraArtifact {
                 + ", id=" + getId() + ", project=" + getProject() + ", issueType=" + getIssueType() + ", status=" + getStatus()
                 + ", priority=" + getPriority() + ", reporter=" + getReporter() + ", assignee=" + getAssignee() + ", creationDate=" + getCreationDate()
                 + ", updateDate=" + getUpdateDate() + ", dueDate=" + getDueDate() + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JiraArtifact that = (JiraArtifact) o;
+        return artifactIdentifier.equals(that.artifactIdentifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(artifactIdentifier);
     }
 }
