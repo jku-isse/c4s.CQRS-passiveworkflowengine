@@ -396,7 +396,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                         .map(ArtifactIO::getArtifacts)
                         .flatMap(Collection::stream)
                         .filter(a -> entry.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))
-                        .findAny();
+                        .findFirst();
                 if (opt.isPresent()) {
                     IArtifact a = opt.get();
                     Optional<Component> rl = tryToConvertToResourceLink(a);
@@ -407,7 +407,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                         p.setClassName("bold");
                         line.add(p);
                     }
-                    line.add(addInOut("Replace", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
                 } else {
                     Paragraph p = new Paragraph("missing");
                     p.setClassName("red");
