@@ -127,11 +127,6 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     @Override
-    public ArtifactType getType() {
-        return new ArtifactType(artifactIdentifier.getType());
-    }
-
-    @Override
     public IArtifact getParentArtifact() {
         // TODO auto-generated
         return null;
@@ -310,6 +305,19 @@ public class JamaArtifact implements IJamaArtifact {
                 ", name=" + getName() +
                 ", project=" + getProject() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JamaArtifact that = (JamaArtifact) o;
+        return artifactIdentifier.equals(that.artifactIdentifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(artifactIdentifier);
     }
 
     private Optional<String> getString(JamaFieldValue jfv) {

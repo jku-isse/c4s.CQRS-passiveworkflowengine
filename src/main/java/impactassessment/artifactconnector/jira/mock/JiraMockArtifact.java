@@ -34,12 +34,6 @@ public class JiraMockArtifact implements IJiraArtifact {
     }
 
     @Override
-    public ArtifactType getType() {
-        // TODO auto-generated
-        return null;
-    }
-
-    @Override
     public IArtifact getParentArtifact() {
         // TODO auto-generated
         return null;

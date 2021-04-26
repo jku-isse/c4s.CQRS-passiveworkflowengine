@@ -42,6 +42,8 @@ public class WorkflowProjection {
 	private final IFrontendPusher pusher;
 	private final IArtifactRegistry artifactRegistry;
 
+	private boolean updateFrontend = true;
+
 	// Event Handlers
 
 	@EventHandler
@@ -54,12 +56,11 @@ public class WorkflowProjection {
 		kieSessions.create(evt.getId(), kieContainer);
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
-			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-			evt.getArtifacts().forEach(art -> kieSessions.insertOrUpdate(evt.getId(), art.getValue()));
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@EventHandler
@@ -110,9 +111,8 @@ public class WorkflowProjection {
 				}
 			});
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
-
 	}
 
 	@DisallowReplay
@@ -158,9 +158,8 @@ public class WorkflowProjection {
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputEvt");
 			kieSessions.fire(evt.getId());
 			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
-
 	}
 
 	@EventHandler
@@ -174,8 +173,9 @@ public class WorkflowProjection {
 			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+
 	}
 
 	@EventHandler
@@ -186,26 +186,20 @@ public class WorkflowProjection {
 		wfiWrapper.handle(evt);
 		// if this input is an IArtifact, insert it into kieSession
 		if (!status.isReplay()) {
-			wfiWrapper.getWorkflowInstance().getInput().stream()
-			.filter(o -> o.getRole().equals(evt.getRole()))
-			.filter(o -> o.getArtifactType().getArtifactType().equals(evt.getType()))
-			.findAny()
-			.ifPresent(o -> {
-				kieSessions.remove(evt.getId(), evt.getArtifact()); // TODO what if the artifact is used twice in the workflow?
-			});
-			kieSessions.insertOrUpdate(evt.getId(), evt.getArtifact());
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputToWorkflowEvt");
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
-	public void on(AddedOutputToWorkflowEvt evt) {
+	public void on(AddedOutputToWorkflowEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
 		//   artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
 		projection.handle(evt);
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		if (!status.isReplay()) {
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
 	}
 
 	@DisallowReplay
@@ -213,46 +207,38 @@ public class WorkflowProjection {
 	public void on(UpdatedArtifactsEvt evt) {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-		//No Longer needed    evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e, evt.getId()));
 		ensureInitializedKB(kieSessions, projection, evt.getId());
 		// Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
+		List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
 		for (ArtifactIdentifier updatedArtifact : evt.getArtifacts()) {
 			Optional<IArtifact> artOpt = artifactRegistry.get(updatedArtifact, evt.getId());
 			artOpt.ifPresent(art -> {
-				boolean isUsed = false;
-				for (ArtifactInput input : wfiWrapper.getWorkflowInstance().getInput()) {
-					if (input.getArtifact() != null && input.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
-						input.setArtifact(art);
-						isUsed=true;
+				// check inputs and outputs of workflow instance
+				List<ArtifactIO> wfiInOuts = new LinkedList<>();
+				wfiInOuts.addAll(wfiWrapper.getWorkflowInstance().getInput());
+				wfiInOuts.addAll(wfiWrapper.getWorkflowInstance().getOutput());
+				for (ArtifactIO io : wfiInOuts) {
+					if (io.containsArtifact(art)) {
+						io.addOrReplaceArtifact(art);
 					}
 				}
-				for (ArtifactOutput output : wfiWrapper.getWorkflowInstance().getOutput()) {
-					if (output.getArtifact() != null && output.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId())) {
-						output.setArtifact(art);
-						isUsed=true;
+				// check inputs and outputs of all workflow tasks
+				for (WorkflowTask wft : wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly()) {
+					List<ArtifactIO> wftInOuts = new LinkedList<>();
+					wftInOuts.addAll(wft.getInput());
+					wftInOuts.addAll(wft.getOutput());
+					for (ArtifactIO io : wftInOuts) {
+						if (io.containsArtifact(art)) {
+							io.addOrReplaceArtifact(art);
+							awos.add(wft); // WFTs must be updated in the kieSession
+						}
 					}
 				}
-
-				long count = wfiWrapper.getWorkflowInstance().getWorkflowTasksReadonly().stream()
-						.flatMap(wft -> {
-							List<ArtifactIO> ios = new LinkedList<ArtifactIO>();
-							ios.addAll(wft.getInput());
-							ios.addAll(wft.getOutput());
-							return ios.stream();
-						})
-						.filter(io -> io.getArtifact() != null && io.getArtifact().getArtifactIdentifier().getId().equals(art.getArtifactIdentifier().getId()))
-						.peek(io -> io.setArtifact(art))
-						.count();
-				if (count > 0)
-					isUsed=true;
-
-				if (isUsed)
-					kieSessions.insertOrUpdate(evt.getId(), updatedArtifact);
 			});
 		}
-		// TODO: Is artifact used as Input/Output of a WFT --> update WFT, update WFT in kieSession
 
 		// CheckAllConstraints
+		awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
 		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
 		kieSessions.fire(evt.getId());
 	}
@@ -261,10 +247,10 @@ public class WorkflowProjection {
 	public void on(DeletedEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
 		projection.handle(evt);
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		if (!status.isReplay()) {
 			kieSessions.dispose(evt.getId());
 			artifactRegistry.deleteAllDataScopes(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
 	}
 
@@ -277,8 +263,8 @@ public class WorkflowProjection {
 			ensureInitializedKB(kieSessions, projection, evt.getId());
 			awos.forEach(x -> kieSessions.insertOrUpdate(evt.getId(), x));
 			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-		projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 
 	@EventHandler
