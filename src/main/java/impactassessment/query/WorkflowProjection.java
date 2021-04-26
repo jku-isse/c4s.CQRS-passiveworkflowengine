@@ -78,6 +78,8 @@ public class WorkflowProjection {
 		}
 	}
 
+
+
 	@EventHandler
 	public void on(AddedConstraintsEvt evt, ReplayStatus status) {
 		log.debug("[PRJ] projecting {}", evt);
@@ -111,7 +113,6 @@ public class WorkflowProjection {
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-
 	}
 
 	@DisallowReplay
@@ -159,7 +160,6 @@ public class WorkflowProjection {
 			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
-
 	}
 
 	@EventHandler
@@ -285,6 +285,7 @@ public class WorkflowProjection {
 			log.warn("GetStateQuery with id-parameter other that '*' is not supported! (id was: {})", query.getId());
 			return new GetStateResponse(Collections.emptyList());
 		}
+
 	}
 
 	@QueryHandler

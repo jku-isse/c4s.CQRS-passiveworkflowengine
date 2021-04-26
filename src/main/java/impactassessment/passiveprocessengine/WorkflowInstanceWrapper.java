@@ -1,5 +1,6 @@
 package impactassessment.passiveprocessengine;
 
+
 import artifactapi.*;
 import impactassessment.api.Events.*;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +73,7 @@ public class WorkflowInstanceWrapper {
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
 
+
     public List<AbstractWorkflowInstanceObject> handle(AddedConstraintsEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         List<AbstractWorkflowInstanceObject> awos = new ArrayList<>();
@@ -142,6 +144,7 @@ public class WorkflowInstanceWrapper {
 
     public IWorkflowTask handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+
         addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
         return wft;
     }
@@ -153,9 +156,11 @@ public class WorkflowInstanceWrapper {
         awos.addAll(wft.addOutput(output));
         awos.add(wft);
         return awos;
+
     }
 
     public void handle(AddedInputToWorkflowEvt evt) {
+
         addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);
     }
 

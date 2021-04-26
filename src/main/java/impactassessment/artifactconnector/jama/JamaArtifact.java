@@ -111,7 +111,7 @@ public class JamaArtifact implements IJamaArtifact {
         String rel = "self";
         String as = getName();
         String linkType = "html";
-        String title = getDocumentKey();
+        String title = getDocumentKey() + " " +getName();
         return new ResourceLink(context, href, rel, as, linkType, title);
     }
 
