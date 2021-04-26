@@ -127,11 +127,6 @@ public class JamaArtifact implements IJamaArtifact {
     }
 
     @Override
-    public ArtifactType getType() {
-        return new ArtifactType(artifactIdentifier.getType());
-    }
-
-    @Override
     public IArtifact getParentArtifact() {
         // TODO auto-generated
         return null;
