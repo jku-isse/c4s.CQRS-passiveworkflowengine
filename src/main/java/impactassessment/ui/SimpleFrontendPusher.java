@@ -13,6 +13,11 @@ public class SimpleFrontendPusher implements IFrontendPusher {
     }
 
     @Override
+    public void remove(String wfiId) {
+        // no op
+    }
+
+    @Override
     public void setUi(UI ui) {
         // no op
     }

@@ -250,7 +250,7 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			kieSessions.dispose(evt.getId());
 			artifactRegistry.deleteAllDataScopes(evt.getId());
-			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+			if (updateFrontend) pusher.remove(evt.getId());
 		}
 	}
 
