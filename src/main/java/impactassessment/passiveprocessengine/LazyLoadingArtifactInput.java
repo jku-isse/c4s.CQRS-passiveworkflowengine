@@ -41,8 +41,8 @@ public class LazyLoadingArtifactInput extends ArtifactInput {
 	
 	@Override
 	public Set<IArtifact> getArtifacts() {
-		Set<IArtifact> art = super.getArtifacts();
-		if (art == null) {
+		Set<IArtifact> artifacts = super.getArtifacts();
+		if (artifacts.size() == 0) {
 			for (ArtifactIdentifier aId : ai) {
 				Optional<IArtifact> artOpt = reg.get(aId, wfi);
 				if (artOpt.isPresent()) {
@@ -53,7 +53,7 @@ public class LazyLoadingArtifactInput extends ArtifactInput {
 			}
 			return super.getArtifacts();
 		} else 
-			return art;
+			return artifacts;
 	}
 
 

@@ -39,7 +39,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	@Override
 	public Set<IArtifact> getArtifacts() {
 		Set<IArtifact> artifacts = super.getArtifacts();
-		if (artifacts == null) {
+		if (artifacts.size() == 0) {
 			for (ArtifactIdentifier aId : ai) {
 				Optional<IArtifact> artOpt = reg.get(aId, wfi);
 				if (artOpt.isPresent()) {
