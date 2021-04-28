@@ -34,6 +34,7 @@ import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -369,17 +370,17 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         inOut(l, h41, expectedInOut(expectedOutput, outputs, wft, false), otherInOut(expectedOutput, outputs), outputs, expectedOutput);
     }
 
-    private void inOut(VerticalLayout l, H4 h41, Component expectedInOut, Component otherInOut, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedOutput) {
+    private void inOut(VerticalLayout l, H4 h41, Component expectedInOut, Optional<Component> otherInOut, List<ArtifactOutput> outputs, Map<String, ArtifactType> expectedOutput) {
         h41.setClassName("const-margin");
         l.add(h41);
         VerticalLayout outLayout = new VerticalLayout();
         outLayout.setClassName("card-border");
         outLayout.add(new H5("Expected"));
         outLayout.add(expectedInOut);
-        if (otherInOut != null) {
+        otherInOut.ifPresent(io -> {
             outLayout.add(new H5("Other"));
-            outLayout.add(otherInOut);
-        }
+            outLayout.add(io);
+        });
         l.add(outLayout);
     }
 
@@ -391,30 +392,32 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
                 line.add(new ListItem(entry.getKey() + " (" + entry.getValue().getArtifactType() + ")"));
-                Optional<IArtifact> opt = present.stream()
+                List<IArtifact> artifactList = present.stream()
                         .filter(aio -> entry.getKey().equals(aio.getRole()))
                         .map(ArtifactIO::getArtifacts)
                         .flatMap(Collection::stream)
                         .filter(a -> entry.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))
-                        .findFirst();
-                if (opt.isPresent()) {
-                    IArtifact a = opt.get();
-                    Optional<Component> rl = tryToConvertToResourceLink(a);
-                    if (rl.isPresent()) {
-                        line.add(rl.get());
-                    } else {
-                        Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
-                        p.setClassName("bold");
-                        line.add(p);
-                    }
+                        .collect(Collectors.toList());
+                if (artifactList.size() == 1) {
+                    IArtifact a = artifactList.get(0);
+                    line.add(tryToConvertToResourceLink(a));
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
-                } else {
+                    list.add(line);
+                } else if (artifactList.size() > 1) {
+                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                    list.add(line);
+                    UnorderedList nestedList = new UnorderedList();
+                    for (IArtifact a : artifactList) {
+                        nestedList.add(new ListItem(tryToConvertToResourceLink(a)));
+                    }
+                    list.add(nestedList);
+                } else { // artifactList.size() == 0
                     Paragraph p = new Paragraph("missing");
                     p.setClassName("red");
                     line.add(p);
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
+                    list.add(line);
                 }
-                list.add(line);
             }
         } else {
             ListItem li = new ListItem("nothing expected");
@@ -424,45 +427,54 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         return list;
     }
 
-    private Optional<Component> tryToConvertToResourceLink(IArtifact artifact) {
-        // TODO for now only jira and jama artifacts have a web resource
+    private Component tryToConvertToResourceLink(IArtifact artifact) {
+        // for now only jira and jama artifacts have a web resource
         if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
             ResourceLink rl = artifact.convertToResourceLink();
             Anchor a = new Anchor(rl.getHref(), rl.getTitle());
             a.setTarget("_blank");
-            return Optional.of(a);
+            return a;
+        } else {
+            Paragraph p = new Paragraph(artifact.getArtifactIdentifier().getId());
+            p.setClassName("bold");
+            return p;
         }
-        return Optional.empty(); // artifact id will be shown in the frontend
     }
 
-    private <T extends ArtifactIO> Component otherInOut(Map<String, ArtifactType> expected, List<T> present) {
+    private <T extends ArtifactIO> Optional<Component> otherInOut(Map<String, ArtifactType> expected, List<T> present) {
         UnorderedList list = new UnorderedList();
         list.setClassName("const-margin");
         boolean existOthers = false;
         for (ArtifactIO ao : present) {
-            for (IArtifact a : ao.getArtifacts()) {
-                if (expected.entrySet().stream()
-                        .noneMatch(e -> e.getKey().equals(ao.getRole()) && e.getValue().getArtifactType().equals(a.getArtifactIdentifier().getType()))) {
+            if (expected.entrySet().stream()
+                    .noneMatch(e -> e.getKey().equals(ao.getRole()))) {
+                List<IArtifact> artifactList = new ArrayList<>(ao.getArtifacts());
+                if (artifactList.size() == 1) {
                     existOthers = true;
                     HorizontalLayout line = new HorizontalLayout();
                     line.setClassName("line");
-                    line.add(new ListItem(ao.getRole() + " (" + a.getArtifactIdentifier().getType() + ")"));
-                    Optional<Component> rl = tryToConvertToResourceLink(a);
-                    if (rl.isPresent()) {
-                        line.add(rl.get());
-                    } else {
-                        Paragraph p = new Paragraph(a.getArtifactIdentifier().getId());
-                        p.setClassName("bold");
-                        line.add(p);
-                    }
+                    line.add(new ListItem(ao.getRole() + " (" + artifactList.get(0).getArtifactIdentifier().getType() + ")"));
+                    line.add(tryToConvertToResourceLink(artifactList.get(0)));
                     list.add(line);
+                } else if(artifactList.size() > 1) {
+                    existOthers = true;
+                    list.add(new ListItem(ao.getRole()));
+                    UnorderedList nestedList = new UnorderedList();
+                    for (IArtifact a : ao.getArtifacts()) {
+                        HorizontalLayout line = new HorizontalLayout();
+                        line.setClassName("line");
+                        line.add(new ListItem(a.getArtifactIdentifier().getType()+": "));
+                        line.add(tryToConvertToResourceLink(a));
+                        nestedList.add(line);
+                    }
+                    list.add(nestedList);
                 }
             }
         }
         if (!existOthers) {
-            return null;
+            return Optional.empty();
         }
-        return list;
+        return Optional.of(list);
     }
 
     private Component infoDialog(RuleEngineBasedConstraint rebc) {
@@ -564,6 +576,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     public void updateTreeGrid(WorkflowInstance wfi) {
         this.content.put(wfi.getId(), wfi);
+        updateTreeGrid();
+    }
+
+    public void removeWorkflow(String id) {
+        this.content.remove(id);
         updateTreeGrid();
     }
 

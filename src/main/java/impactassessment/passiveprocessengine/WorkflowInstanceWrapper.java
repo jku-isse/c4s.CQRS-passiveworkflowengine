@@ -151,9 +151,9 @@ public class WorkflowInstanceWrapper {
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        ArtifactOutput output = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
-        awos.addAll(wft.addOutput(output));
+        opt.ifPresent(artifactOutput -> awos.addAll(wft.addOutput(artifactOutput)));
         awos.add(wft);
         return awos;
 
@@ -165,8 +165,8 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        ArtifactOutput output = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
-        wfi.addOutput(output);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        opt.ifPresent(out -> wfi.addOutput(out));
     }
 
     private void addInput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
@@ -181,17 +181,16 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    private ArtifactOutput addOutput(String id, ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
+    private Optional<ArtifactOutput> addOutput(String id, ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
         Optional<ArtifactOutput> opt = iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .findAny();
         if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
             artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); // TODO is it okay to fetch artifact here?
-            return opt.get();
+            return Optional.empty();
         } else { // if no ArtifactOutput with correct role is present, a new ArtifactOutput is created
             ArtifactOutput output = new LazyLoadingArtifactOutput(artifact, artReg, wfi.getId(), role);
-            iwft.addOutput(output);
-            return output;
+            return Optional.of(output);
         }
     }
 

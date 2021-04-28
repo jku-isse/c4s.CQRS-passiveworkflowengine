@@ -36,6 +36,19 @@ public class FrontendPusher implements IFrontendPusher {
         }
     }
 
+    @Override
+    public void remove(String wfiId) {
+        if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
+            log.debug("update frontend");
+            lastUpdate = Instant.now();
+            if (ui != null && view != null) {
+                ui.access(() -> view.getGrids().stream()
+                        .filter(com.vaadin.flow.component.Component::isVisible)
+                        .forEach(grid -> grid.removeWorkflow(wfiId)));
+            }
+        }
+    }
+
 //    public void updateFetchTimer() {
 //        if (ui != null && view != null) {
 //            ui.access(() -> {
