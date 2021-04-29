@@ -293,6 +293,56 @@ public class WorkflowInstanceWrapper {
         return awos;
     }
 
+    public IWorkflowTask handle(RemovedInputEvt evt) {
+        List<ArtifactInput> inputs;
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+            if (evt.getId().equals(evt.getWftId())) {
+                inputs = wfi.getInput();
+            } else {
+                return null;
+            }
+        } else {
+            inputs = wft.getInput();
+        }
+        Optional<ArtifactInput> opt = inputs.stream()
+                .filter(i -> i.getRole().equals(evt.getRole()))
+                .findAny();
+        if (opt.isPresent()) {
+            ArtifactInput in = opt.get();
+            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(in::removeArtifact);
+            if (in.getArtifacts().size() == 0 && wft != null) {
+                wft.removeInput(in);
+            }
+        }
+        return wft;
+    }
+
+    public IWorkflowTask handle(RemovedOutputEvt evt) {
+        List<ArtifactOutput> outputs;
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+            if (evt.getId().equals(evt.getWftId())) {
+                outputs = wfi.getOutput();
+            } else {
+                return null;
+            }
+        } else {
+            outputs = wft.getOutput();
+        }
+        Optional<ArtifactOutput> opt = outputs.stream()
+                .filter(o -> o.getRole().equals(evt.getRole()))
+                .findAny();
+        if (opt.isPresent()) {
+            ArtifactOutput out = opt.get();
+            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(out::removeArtifact);
+            if (out.getArtifacts().size() == 0 && wft != null) {
+                wft.removeOutput(out);
+            }
+        }
+        return wft;
+    }
+
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof CreatedWorkflowEvt) {
             handle((CreatedWorkflowEvt) evt);
@@ -320,6 +370,10 @@ public class WorkflowInstanceWrapper {
             handle((SetPropertiesEvt) evt);
         } else if (evt instanceof InstantiatedTaskEvt) {
             handle((InstantiatedTaskEvt) evt);
+        } else if (evt instanceof RemovedInputEvt) {
+            handle((RemovedInputEvt) evt);
+        } else if (evt instanceof RemovedOutputEvt) {
+            handle((RemovedOutputEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }

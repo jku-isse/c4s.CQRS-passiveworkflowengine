@@ -68,4 +68,9 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		this.reg = reg;
 	}
 
+	@Override
+	public boolean removeArtifact(IArtifact a) {
+		super.removeArtifact(a);
+		return ai.remove(a.getArtifactIdentifier());
+	}
 }

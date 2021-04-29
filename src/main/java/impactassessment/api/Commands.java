@@ -1,5 +1,6 @@
 package impactassessment.api;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import lombok.Data;
@@ -116,6 +117,22 @@ public class Commands {
         private final String artifactId;
         private final String role;
         private final String type;
+    }
+    @Data
+    public static class RemoveOutputCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final ArtifactIdentifier artifactId;
+        private final String role;
+    }
+    @Data
+    public static class RemoveInputCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final ArtifactIdentifier artifactId;
+        private final String role;
     }
     @Data
     public static class UpdateArtifactsCmd {
