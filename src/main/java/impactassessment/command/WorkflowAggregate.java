@@ -258,6 +258,18 @@ public class WorkflowAggregate implements Serializable {
         										cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList())   ));
     }
 
+    @CommandHandler
+    public void handle(RemoveInputCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+    }
+
+    @CommandHandler
+    public void handle(RemoveOutputCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+    }
+
     // -------------------------------- Event Handlers --------------------------------
 
     @EventSourcingHandler

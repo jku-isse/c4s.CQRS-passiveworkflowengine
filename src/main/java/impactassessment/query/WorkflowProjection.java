@@ -268,6 +268,34 @@ public class WorkflowProjection {
 	}
 
 	@EventHandler
+	public void on(RemovedInputEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		IWorkflowTask wft = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			if (wft != null) {
+				kieSessions.insertOrUpdate(evt.getId(), wft);
+				kieSessions.fire(evt.getId());
+			}
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+	}
+
+	@EventHandler
+	public void on(RemovedOutputEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		IWorkflowTask wft = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			if (wft != null) {
+				kieSessions.insertOrUpdate(evt.getId(), wft);
+				kieSessions.fire(evt.getId());
+			}
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+	}
+
+	@EventHandler
 	public void on(IdentifiableEvt evt) {
 		log.debug("[PRJ] projecting {}", evt);
 		projection.handle(evt);
