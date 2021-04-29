@@ -101,6 +101,20 @@ public class Events {
         private final String type; // TODO remove type, already inside ArtifactIdentifier
     }
     @Data
+    public static class RemovedOutputEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+        private final ArtifactIdentifier artifact;
+        private final String role;
+    }
+    @Data
+    public static class RemovedInputEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+        private final ArtifactIdentifier artifact;
+        private final String role;
+    }
+    @Data
     public static class UpdatedArtifactsEvt implements IdentifiableEvt {
         private final String id;
         private final List<ArtifactIdentifier> artifacts;
