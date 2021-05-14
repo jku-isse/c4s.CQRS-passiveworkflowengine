@@ -68,6 +68,7 @@ public class Commands {
     public static class AddEvaluationResultToConstraintCmd {
         @TargetAggregateIdentifier
         private final String id;
+        private final String wftId;
         private final String qacId;
         private final Map<ResourceLink, Boolean> res;
         private final CorrelationTuple corr;

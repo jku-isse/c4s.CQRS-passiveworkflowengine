@@ -95,7 +95,7 @@ public class MockCommandGateway implements CommandGateway {
 		} else
 		if (command instanceof AddEvaluationResultToConstraintCmd) {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
-			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
+			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof CheckConstraintCmd) {
 			CheckConstraintCmd cmd = (CheckConstraintCmd)command;
@@ -109,26 +109,26 @@ public class MockCommandGateway implements CommandGateway {
 			AddInputCmd cmd = (AddInputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole(), cmd.getType()));
+			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole()));
 		} else	
 		if (command instanceof AddOutputCmd) {
 			AddOutputCmd cmd = (AddOutputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 			if (opt.isPresent())
-				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
+				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof AddInputToWorkflowCmd) {
 			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
+	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole())));
 		} else
 		if (command instanceof AddOutputToWorkflowCmd) {
 			AddOutputToWorkflowCmd cmd = (AddOutputToWorkflowCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole(), cmd.getType())));
+	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole())));
 		} else
 		if(command instanceof UpdateArtifactsCmd) {
 			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;

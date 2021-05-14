@@ -107,7 +107,7 @@ public class TestInstantiateTaskCommand {
         ArtifactInput in = new ArtifactInput(jiraArt, "jira");
         wfp.on(new Events.InstantiatedTaskEvt(id, "Evaluate", List.of(in), Collections.emptyList()), status); // should be ignored (task already exists!)
         wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
-        wfp.on(new Events.AddedOutputEvt(id, "Evaluate#"+id, new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), "checkissue", "IJiraArtifact"), status);
+        wfp.on(new Events.AddedOutputEvt(id, "Evaluate#"+id, new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), "checkissue"), status);
 
         // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE 
 

@@ -76,7 +76,7 @@ rule "SetOpenTaskName"
 	then
 	    Map<String, String> properties = new HashMap<>();
 	    properties.put("name", "First Task in the process");
-		commandGateway.send(new SetPropertiesCmd($wft.getWorkflow().getId(), $wft.getId(), properties));
+//		commandGateway.send(new SetPropertiesCmd($wft.getWorkflow().getId(), $wft.getId(), properties));
 		commandGateway.send(new Commands.AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), "DEMO-9", "TEST", "IJiraArtifact"));
 end
 
@@ -160,7 +160,7 @@ rule "CheckJiraIssueHasFixVersion"
                 IJiraArtifact $a = (IJiraArtifact) a;
                 boolean hasFixVersion = $a.getFixVersions().iterator().hasNext();
                 Map<ResourceLink, Boolean> result = Map.of($a.convertToResourceLink(), hasFixVersion);
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
             }
 		}
 end
@@ -190,7 +190,7 @@ rule "CheckJiraIssueRelatedToDesignDefinition"
                 if (n == 0) {
                     resources.put($a.convertToResourceLink(), false);
                 }
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end
@@ -224,7 +224,7 @@ rule "CheckDesignDefinitionRelatedToRequirement"
                 if (n == 0) {
                     resources.put($a.convertToResourceLink(), false);
                 }
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end
@@ -242,7 +242,7 @@ rule "CheckJiraIssueHasAssignee"
                 IJiraArtifact $a = (IJiraArtifact) a;
                 boolean hasAssignee = $a.getAssignee() != null;
                 Map<ResourceLink, Boolean> result = Map.of($a.convertToResourceLink(), hasAssignee);
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end
@@ -270,7 +270,7 @@ rule "CheckJiraIssueRelatedToUnitTest"
                 if (n == 0) {
                     resources.put($a.convertToResourceLink(), false);
                 }
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end
@@ -302,7 +302,7 @@ rule "CheckAllRelatedBugsClosed"
                 if (!relatedBug) {
                     resources.put($a.convertToResourceLink(), true);
                 }
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end
@@ -332,7 +332,7 @@ rule "CheckHazardIsMitigated"
                 if (!isMitigated) {
                     resources.put($a.convertToResourceLink(), false);
                 }
-                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
+                commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
 end

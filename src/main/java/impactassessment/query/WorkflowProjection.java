@@ -117,6 +117,14 @@ public class WorkflowProjection {
 
 	@DisallowReplay
 	@EventHandler
+	public void on(UpdatedEvaluationTimeEvt evt) {
+		log.debug("[PRJ] projecting {}", evt);
+		projection.handle(evt);
+		if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+	}
+
+	@DisallowReplay
+	@EventHandler
 	public void on(CheckedConstraintEvt evt) {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
@@ -157,7 +165,7 @@ public class WorkflowProjection {
 			kieSessions.insertOrUpdate(evt.getId(), wft);
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputEvt");
 			kieSessions.fire(evt.getId());
-			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
+			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getArtifact().getType());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
 	}

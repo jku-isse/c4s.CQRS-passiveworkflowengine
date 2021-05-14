@@ -91,6 +91,7 @@ public class TestUpdateEventReplay {
         ), status);
         wfp.on(new Events.AddedEvaluationResultToConstraintEvt(
                 id,
+                "Evaluate#"+id,
                 "CheckJiraExists_Evaluate_"+id,
                 Map.of(new ResourceLink("test", "test", "test", "test", "test", "test"), false),
                 new CorrelationTuple(),
@@ -112,6 +113,7 @@ public class TestUpdateEventReplay {
                 ));
         wfp.on(new Events.AddedEvaluationResultToConstraintEvt(
                 id,
+                "Evaluate#"+id,
                 "CheckJiraExists_Evaluate_"+id,
                 Map.of(updatedJamaArt.convertToResourceLink(), true),
                 new CorrelationTuple(),

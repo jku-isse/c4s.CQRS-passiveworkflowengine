@@ -95,7 +95,7 @@ public class WorkflowInstanceWrapper {
         qa.setLastChangeDueTo(corr);
         Map<String, String> rules = evt.getRules();
         for (Map.Entry<String, String> e : rules.entrySet()) {
-            String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
+            String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId(); // TODO pull id creation inside constructor!
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
             rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
             qa.addConstraint(rebc);
@@ -131,7 +131,7 @@ public class WorkflowInstanceWrapper {
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
             if (evt.getRes().isEmpty()) {
-            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE);
+            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE); // TODO make explicit failed command
             } else {
             	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
             }
@@ -140,6 +140,13 @@ public class WorkflowInstanceWrapper {
                 .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
         }
         return awos;
+    }
+
+    public void handle(UpdatedEvaluationTimeEvt evt) {
+        RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
+        rebc.setLastEvaluated(evt.getTime());
+        rebc.setEvaluated(evt.getCorr());
+        rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
@@ -151,7 +158,7 @@ public class WorkflowInstanceWrapper {
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
         opt.ifPresent(artifactOutput -> awos.addAll(wft.addOutput(artifactOutput)));
         awos.add(wft);
@@ -165,7 +172,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);
         opt.ifPresent(out -> wfi.addOutput(out));
     }
 
@@ -181,7 +188,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    private Optional<ArtifactOutput> addOutput(String id, ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
+    private Optional<ArtifactOutput> addOutput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
         Optional<ArtifactOutput> opt = iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .findAny();
@@ -374,6 +381,8 @@ public class WorkflowInstanceWrapper {
             handle((RemovedInputEvt) evt);
         } else if (evt instanceof RemovedOutputEvt) {
             handle((RemovedOutputEvt) evt);
+        } else if (evt instanceof UpdatedEvaluationTimeEvt) {
+            handle((UpdatedEvaluationTimeEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }
