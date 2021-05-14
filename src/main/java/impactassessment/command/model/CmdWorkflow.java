@@ -31,21 +31,12 @@ public class CmdWorkflow {
                 .findAny();
     }
 
-    public Optional<CmdConstraint> getConstraint(String id) {
-//        List<String> l = List.of(id.split("_"));
-//        return tasks.stream()
-//                .filter(task -> task.getId().equals(l.get(1)+"#"+l.get(2)))
-//                .map(CmdTask::getConstraints)
-//                .flatMap(Collection::stream)
-//                .filter(constr -> constr.getId().equals(l.get(0)))
-//                .findAny();
-        for (CmdTask task : tasks) {
-            for (CmdConstraint constr : task.getConstraints()) {
-                if (constr.getId().equals(id)) {
-                    return Optional.of(constr);
-                }
-            }
-        }
-        return Optional.empty();
+    public Optional<CmdConstraint> getConstraint(String wftId, String constrId) {
+        return tasks.stream()
+                .filter(task -> task.getId().equals(wftId))
+                .map(CmdTask::getConstraints)
+                .flatMap(Collection::stream)
+                .filter(constr -> constr.getId().equals(constrId))
+                .findAny();
     }
 }

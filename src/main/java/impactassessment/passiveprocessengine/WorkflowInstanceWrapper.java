@@ -104,9 +104,8 @@ public class WorkflowInstanceWrapper {
     }
 
     public Set<AbstractWorkflowInstanceObject> handle(AddedEvaluationResultToConstraintEvt evt) {
-        RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
         Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
-        if (rebc != null) {
+        getRebc(evt.getWftId(), evt.getQacId()).ifPresent(rebc -> {
             boolean hasChanged = false;
             Instant oldTime = rebc.getLastChanged();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
@@ -131,22 +130,23 @@ public class WorkflowInstanceWrapper {
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
             if (evt.getRes().isEmpty()) {
-            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE); // TODO make explicit failed command
+                rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE); // TODO make explicit failed command
             } else {
-            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+                rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
             }
             // output state may change because QA constraints may be all fulfilled now
             wfi.getWorkflowTasksReadonly()
-                .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
-        }
+                    .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
+        });
         return awos;
     }
 
     public void handle(UpdatedEvaluationTimeEvt evt) {
-        RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
-        rebc.setLastEvaluated(evt.getTime());
-        rebc.setEvaluated(evt.getCorr());
-        rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+        getRebc(evt.getWftId(), evt.getQacId()).ifPresent(rebc -> {
+            rebc.setLastEvaluated(evt.getTime());
+            rebc.setEvaluated(evt.getCorr());
+            rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+        });
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
@@ -406,26 +406,38 @@ public class WorkflowInstanceWrapper {
         return optQACD.orElse(null);
     }
 
-    public RuleEngineBasedConstraint getRebc(String rebcId) {
-        if (wfi == null) return null;
-        List<WorkflowTask> wfts = wfi.getWorkflowTasksReadonly();
+    public Optional<RuleEngineBasedConstraint> getRebc(String rebcId) {
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
-            for (ArtifactOutput ao : wft.getOutput()) {
-                for (IArtifact a : ao.getArtifacts()) {
-                    if (a instanceof QACheckDocument) {
-                        QACheckDocument qacd = (QACheckDocument) a;
-                        for (QACheckDocument.QAConstraint rebc : qacd.getConstraintsReadonly()) {
-                            if (rebc.getId().equals(rebcId)) {
-                                if (rebc instanceof RuleEngineBasedConstraint) {
-                                    return (RuleEngineBasedConstraint) rebc;
-                                }
-                            }
-                        }
-                    }
-                }
+            Optional<RuleEngineBasedConstraint> opt = getRebc(wft, rebcId);
+            if (opt.isPresent()) {
+                return opt;
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    public Optional<RuleEngineBasedConstraint> getRebc(String wftId, String rebcId) {
+        IWorkflowTask wft = wfi.getWorkflowTask(wftId);
+        if (wft != null) {
+//            Optional<RuleEngineBasedConstraint> opt = getRebc(wft, rebcId);
+//            if (opt.isEmpty())
+//                log.debug("EMPTY!!! ({})", rebcId);
+            return getRebc(wft, rebcId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<RuleEngineBasedConstraint> getRebc(IWorkflowTask wft, String rebcId) {
+        return wft.getOutput().stream()
+                .map(ArtifactIO::getArtifacts)
+                .flatMap(Collection::stream)
+                .filter(a -> a instanceof QACheckDocument)
+                .map(a -> ((QACheckDocument)a).getConstraintsReadonly())
+                .flatMap(Collection::stream)
+                .filter(qac -> qac.getId().equals(rebcId))
+                .filter(qac -> qac instanceof RuleEngineBasedConstraint)
+                .map(qac -> (RuleEngineBasedConstraint)qac)
+                .findAny();
     }
 
     @Override

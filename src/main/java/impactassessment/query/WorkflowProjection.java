@@ -129,14 +129,11 @@ public class WorkflowProjection {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		if (wfiWrapper != null) {
-			RuleEngineBasedConstraint rebc = wfiWrapper.getRebc(evt.getCorrId());
-			if (rebc != null) {
+			wfiWrapper.getRebc(evt.getCorrId()).ifPresentOrElse(rebc -> {
 				ensureInitializedKB(kieSessions, projection, evt.getId());
 				insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), rebc.getConstraintType(), "CheckedConstraintEvt");
 				kieSessions.fire(evt.getId());
-			} else {
-				log.warn("Concerned RuleEngineBasedConstraint wasn't found");
-			}
+			}, () -> log.warn("Concerned RuleEngineBasedConstraint wasn't found"));
 		} else {
 			log.warn("WFI not initialized");
 		}

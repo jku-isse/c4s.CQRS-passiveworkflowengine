@@ -137,11 +137,11 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(AddEvaluationResultToConstraintCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getConstraint(cmd.getQacId()).isEmpty() || model.getConstraint(cmd.getQacId()).get().hasChanged(cmd.getRes())) {
-            log.debug(">>>>>>>>>>>>>>  AddEvaluationResultToConstraintCmd caused --> AddedEvaluationResultToConstraintEvt");
+        if (model.getConstraint(cmd.getWftId(), cmd.getQacId()).isEmpty() || model.getConstraint(cmd.getWftId(), cmd.getQacId()).get().hasChanged(cmd.getRes())) {
+            log.debug("AddEvaluationResultToConstraintCmd caused --> AddedEvaluationResultToConstraintEvt");
             apply(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()));
         } else {
-            log.debug(">>>>>>>>>>>>>>  AddEvaluationResultToConstraintCmd caused --> UpdatedEvaluationTimeEvt");
+            log.debug("AddEvaluationResultToConstraintCmd caused --> UpdatedEvaluationTimeEvt");
             apply(new UpdatedEvaluationTimeEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getCorr(), cmd.getTime()));
         }
     }
@@ -293,7 +293,7 @@ public class WorkflowAggregate implements Serializable {
     @EventSourcingHandler
     public void on(AddedEvaluationResultToConstraintEvt evt) {
         log.debug("[AGG] applying {}", evt);
-        model.getConstraint(evt.getQacId())
+        model.getConstraint(evt.getWftId(), evt.getQacId())
                 .ifPresentOrElse(
                         constr -> constr.update(evt.getRes()),
                         () -> model.getTask(evt.getWftId())
