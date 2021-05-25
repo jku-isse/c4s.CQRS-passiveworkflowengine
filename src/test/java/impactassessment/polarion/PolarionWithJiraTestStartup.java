@@ -1,23 +1,25 @@
-package c4s.qualityassurance.dev;
+package impactassessment.polarion;
 
 import java.util.AbstractMap;
 import java.util.List;
-import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifactRegistry;
-import artifactapi.jira.IJiraArtifact;
-import impactassessment.artifactconnector.ArtifactRegistry;
-import impactassessment.artifactconnector.jira.IJiraService;
-import impactassessment.command.MockCommandGateway;
+import java.util.Optional;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.ReplayStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.inject.Injector;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
+import artifactapi.IArtifactRegistry;
+import artifactapi.jira.IJiraArtifact;
+import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
+import at.jku.designspace.sdk.polarion.polarionapi.implementations.PolarionArtifact;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
+import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.ProjectionModel;
@@ -27,22 +29,26 @@ import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.ui.IFrontendPusher;
 import impactassessment.ui.SimpleFrontendPusher;
 
-class DemoWorkflowTest {
+public class PolarionWithJiraTestStartup {
 
 	ReplayStatus status = ReplayStatus.REGULAR;
 	String workflowId = "TestId1";
+	String wft = "POLARION_TEST2";
 	WorkflowDefinitionRegistry registry;
-	IJiraService jiraS;
 	WorkflowProjection wfp;
+	IPolarionService ps;
+	IArtifactRegistry aRegistry;
 	
-	@BeforeEach
+	@Before
 	public void setup() {
-		Injector injector = DemoConfig.getInjector();
+		System.setProperty("org.jboss.logging.provider", "slf4j");
+		Injector injector = DevelopmentConfig.getInjector();
 		CommandGateway gw = injector.getInstance(CommandGateway.class);
-		IArtifactRegistry aRegistry = new ArtifactRegistry();
+		aRegistry = injector.getInstance(IArtifactRegistry.class);
 		ProjectionModel pModel = new ProjectionModel(aRegistry);
-		jiraS = DemoConfig.getJiraDemoService();
-		aRegistry.register(jiraS);
+		ps = injector.getInstance(IPolarionService.class);
+		aRegistry.register(ps);
+		aRegistry.register(DevelopmentConfig.getJiraDemoService());
 		IFrontendPusher fp = new SimpleFrontendPusher();
 		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
 		registry = new WorkflowDefinitionRegistry();
@@ -52,26 +58,23 @@ class DemoWorkflowTest {
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 	
 	}
-
+	
 	@Test
-	public void testDemoWorkflow() {
-		
-		//new AddOutputCmd(id, id, null, "outDoc", new ArtifactType("IJiraArtifact") );
-		
-		IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("UAV-1292", "IJiraArtifact"), workflowId).get();
-
-		
-		
+	public void runPolarionWithJiraTest() {
+		ArtifactIdentifier ai = new ArtifactIdentifier("DEMOISSUE", "IJiraArtifact");
+		Optional<IArtifact> optArt = aRegistry.get(ai, workflowId);
+		IJiraArtifact jira = (IJiraArtifact) optArt.get();
+		//Optional<String> descr = LoadTestHtmlFromFiles.load_ST24837incorrect_Description();
+		//PolarionArtifact art = (PolarionArtifact) optArt.get();
+		//art.getDescription();
+		//art.getInstance().propertyAsSingle("description").set(descr.get());
+//		art.getInstance().addProperty(property);
 //		
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", new ArtifactIdentifier("UAV-1292", "IJiraArtifact"))), "DRONOLOGY_WORKFLOW_FIXED", registry.get("DRONOLOGY_WORKFLOW_FIXED").getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("jira", ai)), wft, registry.get(wft).getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(workflowId));
 		
-//		pModel.getWorkflowModel(workflowId).getWorkflowInstance().getWorkflowTasksReadonly().stream()
-//		.map(wft -> wft.getAnyOneOutputByRole("ARTIFACT_TYPE_QA_CHECK_DOCUMENT"))
-//			.filter(Objects::nonNull)
-//			.forEach(qa -> System.out.println(qa));
 	}
 
 }

@@ -1,0 +1,98 @@
+{
+  "dnds": [
+    {
+      "hasExternalContextRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [
+      {
+          "from": [
+            {
+              "first": "POLARION_TEST",
+              "second": "workitem"
+            }
+          ],
+          "to": [
+            {
+              "first": "Open",
+              "second": "workitem"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+        ],
+      "id": "workflowKickOff"
+    },
+    {
+      "hasExternalContextRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [
+        {
+          "from": [
+            {
+              "first": "Open",
+              "second": "workitem"
+            }
+          ],
+          "to": [
+            {
+              "first": "Closed",
+              "second": "workitem"
+            }
+          ],
+          "mappingType": "ANY"
+        }
+      ],
+      "id": "open2closed"
+    },
+    {
+      "hasExternalContextRules": false,
+      "inBranchingType": "AND",
+      "outBranchingType": "SYNC",
+      "mappings": [],
+      "id": "workflowEnd"
+    }
+  ],
+  "taskDefinitions": [
+    {
+      "expectedInput": {
+      "workitem": {
+          "id": "IPolarionArtifact"
+        }
+      },
+      "expectedOutput": {
+        "workitem": {
+          "id": "IPolarionArtifact"
+        }
+      },
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "workflowKickOff",
+      "outDND": "open2closed",
+      "id": "Open"
+    },
+    {
+      "expectedInput": {
+        "workitem": {
+          "id": "IPolarionArtifact"
+        }
+      },
+      "expectedOutput": {},
+      "hasPreCondition": false,
+      "hasPostCondition": false,
+      "inDND": "open2closed",
+      "outDND": "workflowEnd",
+      "id": "Closed"
+    }
+  ],
+  "hasPreCondition": false,
+  "hasPostCondition": false,
+  "expectedInput": {
+   "workitem": {
+          "id": "IPolarionArtifact"
+        }
+  },
+  "expectedOutput": {},
+  "id": "POLARION_TEST"
+}

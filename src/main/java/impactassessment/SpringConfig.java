@@ -1,6 +1,10 @@
 package impactassessment;
 
 import artifactapi.IArtifactRegistry;
+import at.jku.designspace.sdk.polarion.clientservice.PolarionService;
+import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
+import at.jku.isse.designspace.sdk.core.DesignSpace;
+import at.jku.isse.designspace.sdk.core.model.User;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.OfflineHttpClientMock;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
@@ -82,11 +86,19 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(IJamaService jamaService, IJiraService jiraService) {
+    public IArtifactRegistry getArtifactRegistry(IJiraService jiraService, IPolarionService polarionService) {
         IArtifactRegistry registry = new ArtifactRegistry();
-        registry.register(jamaService);
         registry.register(jiraService);
+        registry.register(polarionService);
         return registry;
+    }
+    
+    @Bean
+    @Scope("singleton")
+    public IPolarionService getPolarionService() {
+    	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
+    	PolarionService  polarionService = new PolarionService(user);
+	    return polarionService;
     }
     
     // SETUP TOKEN DB:
@@ -216,27 +228,27 @@ public class SpringConfig {
 
     // --------------- JAMA ---------------
 
-    @Bean
-    @Scope("singleton")
-    public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
-        return new JamaService(jamaInstance, jamaChangeSubscriber);
-    }
-
-    @Bean
-    @Scope("singleton")
-    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
-        c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
-        String projectIds =  getProp("jamaProjectIds");
-        String[] ids = projectIds.split(",");
-        for (String id : ids) {
-            c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
-            changeStreamPoller.setInterval(Integer.parseInt(getProp("pollIntervalInMinutes")));
-            changeStreamPoller.setJi(jamaInstance);
-            changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
-            scheduler.registerAndStartTask(changeStreamPoller);
-        }
-        return scheduler;
-    }
+//    @Bean
+//    @Scope("singleton")
+//    public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+//        return new JamaService(jamaInstance, jamaChangeSubscriber);
+//    }
+//
+//    @Bean
+//    @Scope("singleton")
+//    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
+//        c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
+//        String projectIds =  getProp("jamaProjectIds");
+//        String[] ids = projectIds.split(",");
+//        for (String id : ids) {
+//            c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
+//            changeStreamPoller.setInterval(Integer.parseInt(getProp("pollIntervalInMinutes")));
+//            changeStreamPoller.setJi(jamaInstance);
+//            changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
+//            scheduler.registerAndStartTask(changeStreamPoller);
+//        }
+//        return scheduler;
+//    }
 
 //    @Bean
 //    public JamaConnector getJamaConnector(AutowireCapableBeanFactory beanFactory) {
@@ -245,106 +257,106 @@ public class SpringConfig {
 //        return jamaConn;
 //    }
 
-    @Bean
-    @Scope("singleton")
-    public CacheStatus getJamaCacheStatus(JamaCache cache) {
-        CacheStatus cacheStatus;
-        if (USE_MY_SQL_CACHE) {
-            cacheStatus = new HibernateCacheStatus((HibernateBackedCache)cache);
-        } else {
-            cacheStatus = new CouchDBCacheStatus(cache);
-        }
-    	return cacheStatus;
-    }
-
-    @Bean
-    @Scope("singleton")
-    public JamaCache getJamaCache() {
-        JamaCache jamaCache;
-        if (USE_MY_SQL_CACHE) {
-            SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-                    getProp("mysqlDBuser"),
-                    getProp("mysqlDBpassword"),
-                    getProp("mysqlURL")+"jamacache"
-            );
-            jamaCache = new HibernateBackedCache(sf);
-        } else {
-            CouchDbProperties dbprops = new CouchDbProperties()
-                    .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
-                    .setCreateDbIfNotExist(true)
-                    .setProtocol("http")
-                    .setHost(getProp("couchDBip", "localhost"))
-                    .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
-                    .setUsername(getProp("jamaCacheCouchDBuser","admin"))
-                    .setPassword(getProp("jamaCacheCouchDBpassword","password"))
-                    .setMaxConnections(100)
-                    .setConnectionTimeout(0);
-            jamaCache = new CouchDBJamaCache(new CouchDbClient(dbprops));
-        }
-        return jamaCache;
-    }
-
-    @Bean
-    @Scope("singleton")
-    public JamaInstance getOnlineJamaInstance(JamaCache cache) {
-        JamaInstance jamaInst;
-        if (IS_JAMA_INSTANCE_ONLINE) {
-            JamaConfig jamaConf = new JamaConfig();
-            jamaConf.setJson(new CachingJsonHandler(cache));
-            jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
-            String url = getProp("jamaServerURI");
-            jamaConf.setBaseUrl(url);
-            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
-            jamaConf.setOpenUrlBase(url);
-            jamaConf.setUsername(getProp("jamaUser"));
-            jamaConf.setPassword(getProp("jamaPassword"));
-            jamaConf.setResourceTimeOut(60);
-            try {
-                jamaConf.setHttpClient(new ApacheHttpClient());
-            } catch (RestClientException e) {
-                e.printStackTrace();
-            }
-
-            jamaInst = new JamaInstance(jamaConf, false);
-            cache.setJamaInstance(jamaInst);
-            jamaInst.setResourcePool(new CachedResourcePool(cache));
-            jamaInst.enableAnonymizing();
-        } else {
-            JamaConfig jamaConf = new JamaConfig();
-            jamaConf.setJson(new CachingJsonHandler(cache));
-            jamaConf.setApiKey("SUPERSECRETKEY");
-            String url = "http://localhost";
-            jamaConf.setBaseUrl(url);
-            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
-            jamaConf.setOpenUrlBase(url);
-            jamaConf.setUsername("OFFLINE");
-            jamaConf.setPassword("OFFLINE");
-            jamaConf.setResourceTimeOut(60);
-            jamaConf.setHttpClient(new OfflineHttpClientMock());
-
-            jamaInst = new JamaInstance(jamaConf, true);
-            cache.setJamaInstance(jamaInst);
-            jamaInst.setResourcePool(new CachedResourcePool(cache));
-            return jamaInst;
-        }
-        return jamaInst;
-    }
-
-    @Bean
-    @Scope("singleton")
-    public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
-        return new JamaUpdateTracingInstrumentation() {
-            @Override
-            public void logJamaPollResult(CorrelationTuple correlationTuple, int i, Map<String, Set<Integer>> map) {
-                if (map.size() > 0) log.info("Jama poll result: {}", String.join(",", map.keySet()));
-            }
-
-            @Override
-            public void logJamaUpdateResult(CorrelationTuple correlationTuple, int i, Set<JamaItem> set) {
-                if (set.size() > 0) log.info("Jama update result: {}", set.stream().map(JamaItem::getDocumentKey).collect(Collectors.joining(",")));
-            }
-        };
-    }
+//    @Bean
+//    @Scope("singleton")
+//    public CacheStatus getJamaCacheStatus(JamaCache cache) {
+//        CacheStatus cacheStatus;
+//        if (USE_MY_SQL_CACHE) {
+//            cacheStatus = new HibernateCacheStatus((HibernateBackedCache)cache);
+//        } else {
+//            cacheStatus = new CouchDBCacheStatus(cache);
+//        }
+//    	return cacheStatus;
+//    }
+//
+//    @Bean
+//    @Scope("singleton")
+//    public JamaCache getJamaCache() {
+//        JamaCache jamaCache;
+//        if (USE_MY_SQL_CACHE) {
+//            SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
+//                    getProp("mysqlDBuser"),
+//                    getProp("mysqlDBpassword"),
+//                    getProp("mysqlURL")+"jamacache"
+//            );
+//            jamaCache = new HibernateBackedCache(sf);
+//        } else {
+//            CouchDbProperties dbprops = new CouchDbProperties()
+//                    .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
+//                    .setCreateDbIfNotExist(true)
+//                    .setProtocol("http")
+//                    .setHost(getProp("couchDBip", "localhost"))
+//                    .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
+//                    .setUsername(getProp("jamaCacheCouchDBuser","admin"))
+//                    .setPassword(getProp("jamaCacheCouchDBpassword","password"))
+//                    .setMaxConnections(100)
+//                    .setConnectionTimeout(0);
+//            jamaCache = new CouchDBJamaCache(new CouchDbClient(dbprops));
+//        }
+//        return jamaCache;
+//    }
+//
+//    @Bean
+//    @Scope("singleton")
+//    public JamaInstance getOnlineJamaInstance(JamaCache cache) {
+//        JamaInstance jamaInst;
+//        if (IS_JAMA_INSTANCE_ONLINE) {
+//            JamaConfig jamaConf = new JamaConfig();
+//            jamaConf.setJson(new CachingJsonHandler(cache));
+//            jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
+//            String url = getProp("jamaServerURI");
+//            jamaConf.setBaseUrl(url);
+//            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+//            jamaConf.setOpenUrlBase(url);
+//            jamaConf.setUsername(getProp("jamaUser"));
+//            jamaConf.setPassword(getProp("jamaPassword"));
+//            jamaConf.setResourceTimeOut(60);
+//            try {
+//                jamaConf.setHttpClient(new ApacheHttpClient());
+//            } catch (RestClientException e) {
+//                e.printStackTrace();
+//            }
+//
+//            jamaInst = new JamaInstance(jamaConf, false);
+//            cache.setJamaInstance(jamaInst);
+//            jamaInst.setResourcePool(new CachedResourcePool(cache));
+//            jamaInst.enableAnonymizing();
+//        } else {
+//            JamaConfig jamaConf = new JamaConfig();
+//            jamaConf.setJson(new CachingJsonHandler(cache));
+//            jamaConf.setApiKey("SUPERSECRETKEY");
+//            String url = "http://localhost";
+//            jamaConf.setBaseUrl(url);
+//            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+//            jamaConf.setOpenUrlBase(url);
+//            jamaConf.setUsername("OFFLINE");
+//            jamaConf.setPassword("OFFLINE");
+//            jamaConf.setResourceTimeOut(60);
+//            jamaConf.setHttpClient(new OfflineHttpClientMock());
+//
+//            jamaInst = new JamaInstance(jamaConf, true);
+//            cache.setJamaInstance(jamaInst);
+//            jamaInst.setResourcePool(new CachedResourcePool(cache));
+//            return jamaInst;
+//        }
+//        return jamaInst;
+//    }
+//
+//    @Bean
+//    @Scope("singleton")
+//    public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
+//        return new JamaUpdateTracingInstrumentation() {
+//            @Override
+//            public void logJamaPollResult(CorrelationTuple correlationTuple, int i, Map<String, Set<Integer>> map) {
+//                if (map.size() > 0) log.info("Jama poll result: {}", String.join(",", map.keySet()));
+//            }
+//
+//            @Override
+//            public void logJamaUpdateResult(CorrelationTuple correlationTuple, int i, Set<JamaItem> set) {
+//                if (set.size() > 0) log.info("Jama update result: {}", set.stream().map(JamaItem::getDocumentKey).collect(Collectors.joining(",")));
+//            }
+//        };
+//    }
 
     // ----------------------------- Property Access -----------------------------
 
