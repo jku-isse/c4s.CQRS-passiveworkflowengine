@@ -48,7 +48,7 @@ public class WorkflowProjection {
 
 	@EventHandler
 	public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
-		log.debug("[PRJ] projecting {}", evt);
+		log.debug("[PRJ] projecting {} in {}", evt, status.toString());
 		//No Longer needed  evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
 		KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
 		WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
@@ -148,7 +148,7 @@ public class WorkflowProjection {
 
 	@EventHandler
 	public void on(AddedInputEvt evt, ReplayStatus status) {
-		log.debug("[PRJ] projecting {}", evt);
+		log.debug("[PRJ] projecting {} in {}", evt, status.toString());
 		//artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		IWorkflowTask wft = wfiWrapper.handle(evt);
@@ -239,6 +239,8 @@ public class WorkflowProjection {
 
 		// CheckAllConstraints
 		awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+		// insert Event as trigger for rule to react upon
+		kieSessions.insertOrUpdate(evt.getId(), evt);
 		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
 		kieSessions.fire(evt.getId());
 	}
