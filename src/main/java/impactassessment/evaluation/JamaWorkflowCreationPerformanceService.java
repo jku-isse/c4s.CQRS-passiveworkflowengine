@@ -1,5 +1,6 @@
 package impactassessment.evaluation;
 
+import artifactapi.ArtifactIdentifier;
 import impactassessment.api.Commands;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -32,8 +33,8 @@ public class JamaWorkflowCreationPerformanceService {
 
     public void createAll() {
         for (Integer id : wpIds) {
-            Map<String, String> input = new HashMap<>();
-            input.put(String.valueOf(id), "jama::IJamaArtifact");
+            Map<ArtifactIdentifier, String> input = new HashMap<>();
+            input.put(new ArtifactIdentifier(String.valueOf(id), "IJamaArtifact"), "jama");
             commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, definitionName));
         }
     }
@@ -43,8 +44,8 @@ public class JamaWorkflowCreationPerformanceService {
         @Override
         public void run() {
             for (Integer id : wpIds) {
-                Map<String, String> input = new HashMap<>();
-                input.put(String.valueOf(id), "jama::IJamaArtifact");
+                Map<ArtifactIdentifier, String> input = new HashMap<>();
+                input.put(new ArtifactIdentifier(String.valueOf(id), "IJamaArtifact"), "jama");
                 commandGateway.send(new Commands.CreateWorkflowCmd(getNewId(), input, definitionName));
                 try {
                     Thread.sleep(1000);

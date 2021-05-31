@@ -1,23 +1,14 @@
 package c4s.qualityassurance.dev;
 
-import java.util.AbstractMap;
-import java.util.List;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
+import com.google.inject.Injector;
+import impactassessment.api.Events.CreatedWorkflowEvt;
+import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.command.MockCommandGateway;
-
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.eventhandling.ReplayStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.google.inject.Injector;
-
-import impactassessment.api.Events.CreatedWorkflowEvt;
-import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.ProjectionModel;
@@ -26,6 +17,12 @@ import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import impactassessment.ui.IFrontendPusher;
 import impactassessment.ui.SimpleFrontendPusher;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventhandling.ReplayStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 class DemoWorkflowTest {
 
@@ -63,7 +60,7 @@ class DemoWorkflowTest {
 		
 		
 //		
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("ROLE_WPTICKET", new ArtifactIdentifier("UAV-1292", "IJiraArtifact"))), "DRONOLOGY_WORKFLOW_FIXED", registry.get("DRONOLOGY_WORKFLOW_FIXED").getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(new ArtifactIdentifier("UAV-1292", "IJiraArtifact"), "ROLE_WPTICKET"), "DRONOLOGY_WORKFLOW_FIXED", registry.get("DRONOLOGY_WORKFLOW_FIXED").getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();
 		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
 		wfp.handle(new PrintKBQuery(workflowId));

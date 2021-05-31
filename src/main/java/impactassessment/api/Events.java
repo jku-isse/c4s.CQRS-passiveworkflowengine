@@ -23,7 +23,7 @@ public class Events {
     @Data
     public static class CreatedWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Map<ArtifactIdentifier, String> artifacts;
         private final String definitionName;
         private final WorkflowDefinition wfd;
     }
@@ -34,7 +34,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
-        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Map<ArtifactIdentifier, String> artifacts;
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {

@@ -18,20 +18,12 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 public class Commands {
-//    @Data
-//    public static class CreateMockWorkflowCmd {
-//        @TargetAggregateIdentifier
-//        private final String id;
-//        private final String status;
-//        private final String issuetype;
-//        private final String priority;
-//        private final String summary;
-//    }
+
     @Data
     public static class CreateWorkflowCmd {
         @TargetAggregateIdentifier
         private final String id;
-        private final Map<String, String> input;
+        private final Map<ArtifactIdentifier, String> input;
         private final String definitionName;
     }
     @Data
@@ -41,7 +33,7 @@ public class Commands {
         private final String parentWfiId;
         private final String parentWftId;
         private final String definitionName;
-        private final Collection<Entry<String,IArtifact>> artifacts;
+        private final Map<ArtifactIdentifier, String> input;
     }
 
     @Data

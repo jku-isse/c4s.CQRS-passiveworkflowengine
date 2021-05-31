@@ -40,10 +40,10 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
     
-    private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
+    private void setInputArtifacts(Map<IArtifact, String> inputs) {
     	if (wfi != null) {
     	    // TODO use LazyLoadingArtifactInput here?
-    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(in.getValue(), in.getKey())));
+    		inputs.forEach((key, value) -> wfi.addInput(new ArtifactInput(key, value)));
     	}
     }
 
@@ -61,14 +61,13 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<Entry<String,ArtifactIdentifier>> art) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
-        List<Entry<String,IArtifact>> artifacts = art.stream()
-        		.map(entry -> new AbstractMap.SimpleEntry<String, Optional<IArtifact>>(entry.getKey(), artReg.get(entry.getValue(), id)))
-        		.filter(entry -> entry.getValue().isPresent())
-        		.map(entry -> new AbstractMap.SimpleEntry<String, IArtifact>(entry.getKey(), entry.getValue().get()))
-        		.collect(Collectors.toList());
+        Map<IArtifact, String> artifacts = art.entrySet().stream()
+        		.map(entry -> new AbstractMap.SimpleEntry<>(artReg.get(entry.getKey(), id), entry.getValue()))
+        		.filter(entry -> entry.getKey().isPresent())
+        		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
         setInputArtifacts(artifacts);
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }

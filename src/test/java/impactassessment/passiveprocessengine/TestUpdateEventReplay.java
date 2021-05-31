@@ -27,7 +27,6 @@ import passiveprocessengine.instance.WorkflowInstance;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +79,7 @@ public class TestUpdateEventReplay {
         // event replay
         wfp.on(new Events.CreatedWorkflowEvt(
                 id,
-                List.of(new AbstractMap.SimpleEntry<>("jama",new ArtifactIdentifier(jamaId+"", "IJamaArtifact"))),
+                Map.of(new ArtifactIdentifier(jamaId+"", "IJamaArtifact"), "jama"),
                 "DemoProcess2",
                 registry.get("DemoProcess2").getWfd()
         ), status);

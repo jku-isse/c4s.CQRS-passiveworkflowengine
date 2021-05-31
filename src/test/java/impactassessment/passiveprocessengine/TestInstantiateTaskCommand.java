@@ -26,10 +26,7 @@ import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.WorkflowInstance;
 import passiveprocessengine.instance.WorkflowTask;
 
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -73,7 +70,7 @@ public class TestInstantiateTaskCommand {
         String id = "TestId1";
 
         IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
-        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama", new ArtifactIdentifier("14464163", "IJamaArtifact"))), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+        wfp.on(new Events.CreatedWorkflowEvt(id, Map.of(new ArtifactIdentifier("14464163", "IJamaArtifact"), "jama"), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
 
         IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
         ArtifactInput in = new ArtifactInput(jiraArt, "jira");
@@ -101,7 +98,7 @@ public class TestInstantiateTaskCommand {
         String id = "TestId1";
 
         IJamaArtifact jamaArt = (IJamaArtifact) jamaS.get(new ArtifactIdentifier("14464163", "IJamaArtifact"), id).get();
-        wfp.on(new Events.CreatedWorkflowEvt(id, List.of(new AbstractMap.SimpleEntry<>("jama", new ArtifactIdentifier("14464163", "IJamaArtifact"))), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
+        wfp.on(new Events.CreatedWorkflowEvt(id, Map.of(new ArtifactIdentifier("14464163", "IJamaArtifact"), "jama"), "DemoProcess2", registry.get("DemoProcess2").getWfd()), status);
 
         IJiraArtifact jiraArt = (IJiraArtifact) jiraS.get(new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), id).get();
         ArtifactInput in = new ArtifactInput(jiraArt, "jira");

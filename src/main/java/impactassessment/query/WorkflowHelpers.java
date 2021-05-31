@@ -1,5 +1,6 @@
 package impactassessment.query;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import impactassessment.api.Commands.*;
 import impactassessment.kiesession.IKieSessionService;
@@ -45,15 +46,15 @@ public class WorkflowHelpers {
     }
 
     public static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
-        List<Entry<String,IArtifact>> artifacts = new ArrayList<>();
+        Map<ArtifactIdentifier, String> arts = new HashMap<>();
         for (ArtifactInput input : wwti.getInput()) {
             for (IArtifact a : input.getArtifacts()) {
-                artifacts.add(new AbstractMap.SimpleEntry<>(input.getRole(), a));
+                arts.put(a.getArtifactIdentifier(), input.getRole());
             }
         }
-        // THis approach is not quite ok, as the artifact could be set/updated later and the datamapping among different role names is not considered
+        // This approach is not quite ok, as the artifact could be set/updated later and the datamapping among different role names is not considered
         // FIXME: proper subwp handling, i.e. input and output mapping propagation
-        CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), artifacts);
+        CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), arts);
         commandGateway.send(cmd);
     }
     
