@@ -129,7 +129,7 @@ public class WorkflowProjection {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		if (wfiWrapper != null) {
-			wfiWrapper.getRebc(evt.getCorrId()).ifPresentOrElse(rebc -> {
+			wfiWrapper.getRebc(evt.getConstrId()).ifPresentOrElse(rebc -> {
 				ensureInitializedKB(kieSessions, projection, evt.getId());
 				insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), rebc.getConstraintType(), "CheckedConstraintEvt");
 				kieSessions.fire(evt.getId());

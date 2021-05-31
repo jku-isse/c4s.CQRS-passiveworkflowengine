@@ -73,7 +73,7 @@ public class Events {
     @Data
     public static class CheckedConstraintEvt implements IdentifiableEvt {
         private final String id;
-        private final String corrId;
+        private final String constrId;
     }
     @Data
     public static class CheckedAllConstraintsEvt implements IdentifiableEvt {

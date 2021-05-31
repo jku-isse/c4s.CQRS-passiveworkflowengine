@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Profile;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
@@ -149,8 +148,7 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(CheckConstraintCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        // TODO only if present
-        apply(new CheckedConstraintEvt(cmd.getId(), cmd.getCorrId()));
+        apply(new CheckedConstraintEvt(cmd.getId(), cmd.getConstrId()));
     }
 
     @CommandHandler
@@ -251,13 +249,15 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(RemoveInputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+        if (model.getTask(cmd.getWftId()).isPresent())
+            apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
     }
 
     @CommandHandler
     public void handle(RemoveOutputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+        if (model.getTask(cmd.getWftId()).isPresent())
+            apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
     }
 
     // -------------------------------- Event Handlers --------------------------------

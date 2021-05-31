@@ -99,7 +99,7 @@ public class MockCommandGateway implements CommandGateway {
 		} else
 		if (command instanceof CheckConstraintCmd) {
 			CheckConstraintCmd cmd = (CheckConstraintCmd)command;
-	        proj.on(new CheckedConstraintEvt(cmd.getId(), cmd.getCorrId()));
+	        proj.on(new CheckedConstraintEvt(cmd.getId(), cmd.getConstrId()));
 	    } else	
 		if (command instanceof CheckAllConstraintsCmd) {
 			CheckAllConstraintsCmd cmd = (CheckAllConstraintsCmd) command;
