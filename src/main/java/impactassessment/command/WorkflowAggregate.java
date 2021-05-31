@@ -202,15 +202,19 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(RemoveInputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getTask(cmd.getWftId()).isPresent())
+        if (model.getId().equals(cmd.getWftId()) || model.getTask(cmd.getWftId()).isPresent())
             apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+        else
+            log.warn("Target: '{}' is not existing.", cmd.getWftId());
     }
 
     @CommandHandler
     public void handle(RemoveOutputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getTask(cmd.getWftId()).isPresent())
+        if (model.getId().equals(cmd.getWftId()) || model.getTask(cmd.getWftId()).isPresent())
             apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
+        else
+            log.warn("Target: '{}' is not existing.", cmd.getWftId());
     }
 
     // -------------------------------- Event Handlers --------------------------------
