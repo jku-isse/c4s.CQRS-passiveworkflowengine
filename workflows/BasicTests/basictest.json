@@ -100,7 +100,7 @@
 					}
 			},
 			"hasPreCondition": false,
-			"hasPostCondition": false,
+			"hasPostCondition": true,
 			"inDND": "open2closed",
 			"outDND": "workflowEnd",
 			"id": "Closed"

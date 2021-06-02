@@ -74,8 +74,10 @@ public class TestMultiArtifacts {
 //			.forEach(wft -> { //System.out.println(wft); 
 //			System.out.println("InputRelItemsSize: "+wft.getAllInputsByRole("relItems").size());
 //			});
-		
+		wfp.on(new SetPostConditionsFulfillmentEvt(workflowId, "Closed#"+workflowId, true), status);
 		wfp.handle(new PrintKBQuery(workflowId));
+		pModel.getWorkflowModel(workflowId).getWorkflowInstance().getAllOutputsByRole("relItems").stream()
+		.forEach(art -> System.out.println(art.getArtifactIdentifier()));
 	}
 
 }
