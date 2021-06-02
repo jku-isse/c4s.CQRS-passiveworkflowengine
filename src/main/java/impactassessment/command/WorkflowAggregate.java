@@ -15,14 +15,12 @@ import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
-import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.context.annotation.Profile;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
@@ -44,15 +42,10 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] empty constructor WorkflowAggregate invoked");
     }
 
-    public String getId() {
-        return id;
-    }
-
-    // -------------------------------- Command Handlers --------------------------------
+    // -------------------------------- Constructors --------------------------------
 
     @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
+    public WorkflowAggregate(CreateWorkflowCmd cmd, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
         log.info("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
@@ -63,8 +56,7 @@ public class WorkflowAggregate implements Serializable {
     }
 
     @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
+    public WorkflowAggregate(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.debug("[AGG] handling {}", cmd);
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
@@ -73,6 +65,12 @@ public class WorkflowAggregate implements Serializable {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
     }
+
+    public String getId() {
+        return id;
+    }
+
+    // -------------------------------- Command Handlers --------------------------------
 
     @CommandHandler
     public void handle(DeleteCmd cmd) {
@@ -113,35 +111,27 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(AddInputCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getTask(cmd.getWftId()).isPresent()) {
-            ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
-            Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-            if (opt.isPresent()) {
-                apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole()));
-            } else {
-                log.warn("Artifact {} was not found.", cmd.getArtifactId());
-            }
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        if (opt.isPresent()) {
+            apply(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole()));
         } else {
-            log.warn("Process step {} is not existing.", cmd.getWftId());
+            log.warn("Artifact {} was not found.", cmd.getArtifactId());
         }
     }
 
     @CommandHandler
     public void handle(AddOutputCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getTask(cmd.getWftId()).isPresent()) {
-            ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
-            Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-            if (opt.isPresent()) {
-                apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole()));
-                if (parentWfiId != null && parentWftId != null) {
-                    apply(new AddedOutputEvt(parentWfiId, parentWftId, ai, cmd.getRole()));
-                }
-            } else {
-                log.warn("Artifact {} was not found.", cmd.getArtifactId());
+        ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
+        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
+        if (opt.isPresent()) {
+            apply(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole()));
+            if (parentWfiId != null && parentWftId != null) {
+                apply(new AddedOutputEvt(parentWfiId, parentWftId, ai, cmd.getRole()));
             }
         } else {
-            log.warn("Process step {} is not existing.", cmd.getWftId());
+            log.warn("Artifact {} was not found.", cmd.getArtifactId());
         }
     }
 
@@ -164,7 +154,7 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(UpdateArtifactsCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList())));
+        apply(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(IArtifact::getArtifactIdentifier).collect(Collectors.toList())));
     }
 
     @CommandHandler
@@ -194,7 +184,7 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(InstantiateTaskCmd cmd, IArtifactRegistry artifactRegistry) {
         log.debug("[AGG] handling {}", cmd);
-        apply(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
+        apply(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(),
         										cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
         										cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList())   ));
     }
@@ -202,19 +192,13 @@ public class WorkflowAggregate implements Serializable {
     @CommandHandler
     public void handle(RemoveInputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getId().equals(cmd.getWftId()) || model.getTask(cmd.getWftId()).isPresent())
-            apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
-        else
-            log.warn("Target: '{}' is not existing.", cmd.getWftId());
+        apply(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
     }
 
     @CommandHandler
     public void handle(RemoveOutputCmd cmd) {
         log.debug("[AGG] handling {}", cmd);
-        if (model.getId().equals(cmd.getWftId()) || model.getTask(cmd.getWftId()).isPresent())
-            apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
-        else
-            log.warn("Target: '{}' is not existing.", cmd.getWftId());
+        apply(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()));
     }
 
     // -------------------------------- Event Handlers --------------------------------
