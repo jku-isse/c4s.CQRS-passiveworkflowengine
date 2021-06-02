@@ -1,0 +1,122 @@
+{
+	"dnds": [
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "BASETEST1",
+							"second": "jira"
+						}
+					],
+					"to": [
+						{
+							"first": "Open",
+							"second": "jira"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowKickOff"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "Open",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "Closed",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "open2closed"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "Closed",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "BASETEST1",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowEnd"
+		}
+	],
+	"taskDefinitions": [
+		{
+			"expectedInput": {
+				"jira": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"expectedOutput": {
+				"relItems": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": true,
+			"inDND": "workflowKickOff",
+			"outDND": "open2closed",
+			"id": "Open"
+		},
+		{
+			"expectedInput": {
+				"relItems": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"expectedOutput": {
+					"relItems": {
+						"id": "IJiraArtifact"
+					}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": false,
+			"inDND": "open2closed",
+			"outDND": "workflowEnd",
+			"id": "Closed"
+		}
+	],
+	"hasPreCondition": false,
+	"hasPostCondition": false,
+	"expectedInput": {
+		"jira": {
+			"id": "IJiraArtifact"
+		}
+	},
+	"expectedOutput": {
+		"relItems": {
+			"id": "IJiraArtifact"
+		}
+	},
+	"id": "BASETEST1"
+}

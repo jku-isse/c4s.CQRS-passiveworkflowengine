@@ -1,4 +1,4 @@
-package impactassessment.polarion;
+package impactassessment.basebehavior;
 
 
 import java.io.File;
@@ -58,9 +58,9 @@ import impactassessment.command.MockCommandGateway;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 
-public class DevelopmentConfig extends AbstractModule {
+public class BaseBehaviorTestConfig extends AbstractModule {
 
-	protected Logger log = LogManager.getLogger(DevelopmentConfig.class);
+	protected Logger log = LogManager.getLogger(BaseBehaviorTestConfig.class);
 	
 	
 	private WorkflowDefinitionRegistry registry;
@@ -69,22 +69,18 @@ public class DevelopmentConfig extends AbstractModule {
 
 	private ArtifactRegistry artReg;
 
-	private PolarionService polarionService;
 	
-	public DevelopmentConfig() {
+	public BaseBehaviorTestConfig() {
 		artReg = new ArtifactRegistry();
 		registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
 		gw = new MockCommandGateway(artReg, registry);
-		User user = DesignSpace.registerUser("felix");
-	    polarionService = new PolarionService(user);
 	}
 	
 	protected void configure() {
 		bind(CommandGateway.class).toInstance(gw);
 		bind(IArtifactRegistry.class).toInstance(artReg);
-		bind(IPolarionService.class).toInstance(polarionService);
 		bind(WorkflowDefinitionRegistry.class).toInstance(registry);
 	}
 	
@@ -94,7 +90,7 @@ public class DevelopmentConfig extends AbstractModule {
 	
 	public static Injector getInjector() {
 		if (inj == null)
-			inj = Guice.createInjector(new DevelopmentConfig());
+			inj = Guice.createInjector(new BaseBehaviorTestConfig());
 		return inj;
 	}
 	

@@ -38,7 +38,26 @@ public class LocalRegisterService extends AbstractRegisterService {
 
     @Override
     public int registerAll() {
-        int i = 0;
+      
+    	 List<File> baseRules = new ArrayList<File>();
+        // load default rule set from jar file
+        try {
+          ClassLoader cl = this.getClass().getClassLoader();
+          ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+          Resource[] folders = resolver.getResources("classpath:defaultrules") ;
+          for (Resource res : folders) {
+              Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
+              if (drlResources.length < 1) continue;
+              for (Resource drl : drlResources) {
+            	  log.info("Loading defaultrule file: ",drl.getFilename());
+                  baseRules.add(drl.getFile());
+              }
+          }
+      } catch (IOException e) {
+          e.printStackTrace();
+      }
+
+        
 //        try {
 //            ClassLoader cl = this.getClass().getClassLoader();
 //            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
@@ -62,7 +81,8 @@ public class LocalRegisterService extends AbstractRegisterService {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-
+        
+        int i = 0;
         // external resources (same directory as JAR)
         try {
             File[] directories = new File("./workflows/").listFiles(File::isDirectory);
@@ -76,8 +96,9 @@ public class LocalRegisterService extends AbstractRegisterService {
                 FileFilter fileFilter2 = new WildcardFileFilter("*.drl");
                 File[] drlFiles = dir.listFiles(fileFilter2);
                 if (drlFiles.length < 1) continue;
-                KieContainer kieContainer = kieSessionFactory.getKieContainer(Arrays.asList(drlFiles));
-
+                List<File> ruleFiles = new ArrayList<File>(Arrays.asList(drlFiles)); //asList() produces list that doesn't allow appending!!
+                ruleFiles.addAll(baseRules);
+                KieContainer kieContainer = kieSessionFactory.getKieContainer(ruleFiles);
                 registry.register(wfd.getId(), wfd, kieContainer);
                 i++;
             }

@@ -1,11 +1,17 @@
 package impactassessment.command;
 
+import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import impactassessment.query.WorkflowProjection;
+import impactassessment.registry.WorkflowDefinitionContainer;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+
 import org.axonframework.commandhandling.CommandCallback;
 import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -25,6 +31,7 @@ import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddOutputToWorkflowCmd;
 import impactassessment.api.Commands.CheckAllConstraintsCmd;
 import impactassessment.api.Commands.CheckConstraintCmd;
+import impactassessment.api.Commands.CreateWorkflowCmd;
 import impactassessment.api.Commands.InstantiateTaskCmd;
 import impactassessment.api.Commands.SetPostConditionsFulfillmentCmd;
 import impactassessment.api.Commands.SetPreConditionsFulfillmentCmd;
@@ -39,6 +46,7 @@ import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.AddedOutputToWorkflowEvt;
 import impactassessment.api.Events.CheckedAllConstraintsEvt;
 import impactassessment.api.Events.CheckedConstraintEvt;
+import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Events.InstantiatedTaskEvt;
 import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
 import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
@@ -51,9 +59,11 @@ public class MockCommandGateway implements CommandGateway {
 
 	WorkflowProjection proj;
 	IArtifactRegistry artifactRegistry;
+	WorkflowDefinitionRegistry workflowDefinitionRegistry;
 	
-	public MockCommandGateway(IArtifactRegistry artReg) {
+	public MockCommandGateway(IArtifactRegistry artReg, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
 		this.artifactRegistry = artReg;
+		this.workflowDefinitionRegistry = workflowDefinitionRegistry;
 	}
 	
 	public void setWorkflowProjection(WorkflowProjection proj) {
@@ -109,7 +119,7 @@ public class MockCommandGateway implements CommandGateway {
 			AddInputCmd cmd = (AddInputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole(), cmd.getType()));
+			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole(), cmd.getType()), ReplayStatus.REGULAR);
 		} else	
 		if (command instanceof AddOutputCmd) {
 			AddOutputCmd cmd = (AddOutputCmd)command;
@@ -136,11 +146,11 @@ public class MockCommandGateway implements CommandGateway {
 		} else
 		if(command instanceof SetPreConditionsFulfillmentCmd) {
 			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;
-			proj.on(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+			proj.on(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()), ReplayStatus.REGULAR);
 		} else
 		if(command instanceof SetPostConditionsFulfillmentCmd) {
 			SetPostConditionsFulfillmentCmd cmd = (SetPostConditionsFulfillmentCmd)command;
-			proj.on(new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()));
+			proj.on(new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof ActivateTaskCmd) {
 			ActivateTaskCmd cmd = (ActivateTaskCmd)command;
@@ -155,6 +165,16 @@ public class MockCommandGateway implements CommandGateway {
 			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
 					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
 					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ));
+		} else
+		if (command instanceof CreateWorkflowCmd) {
+			CreateWorkflowCmd cmd = (CreateWorkflowCmd)command;
+			Collection<Entry<String,IArtifact>> artifacts = WorkflowAggregate.mapWorkflowInput(cmd.getId(), artifactRegistry, cmd.getInput());
+			WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
+			proj.on(new CreatedWorkflowEvt(cmd.getId(), artifacts
+					.stream()
+					.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier())) 
+					.collect(Collectors.toList())
+					, cmd.getDefinitionName(), wfdContainer.getWfd()));
 		}
 		else {
 		

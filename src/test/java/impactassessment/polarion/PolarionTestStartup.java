@@ -51,9 +51,7 @@ public class PolarionTestStartup {
 		aRegistry.register(ps);
 		IFrontendPusher fp = new SimpleFrontendPusher();
 		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
-		registry = new WorkflowDefinitionRegistry();
-		LocalRegisterService lrs = new LocalRegisterService(registry);
-		lrs.registerAll();
+		registry = injector.getInstance(WorkflowDefinitionRegistry.class);
 		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 	

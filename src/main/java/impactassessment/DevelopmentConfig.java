@@ -50,6 +50,8 @@ import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.registry.LocalRegisterService;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 
 public class DevelopmentConfig extends AbstractModule {
 
@@ -63,7 +65,7 @@ public class DevelopmentConfig extends AbstractModule {
 	private CacheStatus jamaStatus; 
 	private JamaInstance jamaI;
 	private JamaUpdateTracingInstrumentation jamaUTI;
-	
+	private WorkflowDefinitionRegistry registry;
 	private CommandGateway gw;
 	
 	private JiraRestClient jrc;
@@ -78,7 +80,10 @@ public class DevelopmentConfig extends AbstractModule {
 	
 	public DevelopmentConfig() {
 		artReg = new ArtifactRegistry();
-		gw = new MockCommandGateway(artReg);
+		registry = new WorkflowDefinitionRegistry();
+		LocalRegisterService lrs = new LocalRegisterService(registry);
+		lrs.registerAll();
+		gw = new MockCommandGateway(artReg, registry);
 		jrc = setupJiraRestClient();
 		jiraCache = configJiraCache();
 		juti = setupJiraUpdateTracingInstrumentation();
@@ -105,6 +110,7 @@ public class DevelopmentConfig extends AbstractModule {
 		bind(AnonymizingJiraInstance.class).asEagerSingleton();
 		bind(JamaInstance.class).toInstance(jamaI);
 		bind(JamaService.class).toInstance(jamaS);
+		bind(WorkflowDefinitionRegistry.class).toInstance(registry);
 	}
 	
 	private static JiraService configJiraService(JiraInstance jiraI, JiraChangeSubscriber jiraCS) {

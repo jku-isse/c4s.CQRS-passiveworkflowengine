@@ -1,0 +1,116 @@
+package processdefinition;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
+
+import java.util.stream.Collectors;
+import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.Set
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Iterator;
+import java.net.URL;
+
+import passiveprocessengine.definition.ArtifactTypes
+import passiveprocessengine.instance.*
+import passiveprocessengine.definition.*
+import passiveprocessengine.definition.TaskLifecycle.State;
+
+import artifactapi.ResourceLink
+import artifactapi.IArtifact
+import artifactapi.IArtifactRegistry
+import artifactapi.ArtifactIdentifier
+import artifactapi.IArtifactRegistry
+import artifactapi.jira.IJiraArtifact
+import artifactapi.jira.subtypes.*
+
+
+import c4s.impactassessment.tools.*
+
+import impactassessment.kiesession.KieSessionUtils
+import impactassessment.api.Commands.*
+import impactassessment.api.Events.*
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+
+global CommandGateway commandGateway;
+global IArtifactRegistry artifactRegistry;
+
+
+rule "LinksToOutputItems"
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								 , $item : getAnyOneInputByRole("jira") 								
+							 ) 
+		eval ($item != null )					 
+	then
+		System.out.println("Convert links to output item collection: relItems");
+		IJiraArtifact jira = (IJiraArtifact)$item;
+		Iterator<IJiraIssueLink> links = jira.getIssueLinks().iterator();
+		while(links.hasNext()) {
+			IJiraIssueLink link = links.next();
+			String key = link.getTargetIssueKey();
+			if (! $wft.getAllOutputsByRole("relItems").stream().map(art -> art.getArtifactIdentifier()).anyMatch(ai -> ai.getId().equals(key))) {
+				// if no match, add to outputs
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), key, "relItems", "IJiraArtifact"));
+			}
+		}
+end
+
+
+rule "InputToOutputItems"
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Closed") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) && 
+								getAllInputsByRole("relItems").size() > 0								
+							 ) 		 
+	then
+		System.out.println("Copy input to output item collection");
+//		Set<IArtifact> items = (Set<IArtifact> )$items;
+		for(IArtifact artIn : $wft.getAllInputsByRole("relItems") ) {
+			if (! $wft.getAllOutputsByRole("relItems").stream().map(art -> art.getArtifactIdentifier()).anyMatch(ai -> ai.equals(artIn.getArtifactIdentifier())) ) {
+				// if no match, add to outputs
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), artIn.getArtifactIdentifier().getId(), "relItems", artIn.getArtifactIdentifier().getType() ));
+			}
+		}
+end
+
+/*
+rule "SpawnProcessesAlternative"
+	no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								 , $item : getAnyOneInputByRole("jira") 								
+							 ) 
+		eval ($item != null )					 
+	then
+		System.out.println("Spawning process for related items if not already spawned");
+		IJiraArtifact jira = (IJiraArtifact)$item;
+		Iterator<IJiraIssueLink> links = jira.getIssueLinks().iterator();
+		while(links.hasNext()) {
+			IJiraIssueLink link = links.next();
+			String key = link.getTargetIssueKey();
+			if ( $wft.getAnyOneOutputByRole(key) == null){
+			// only if there is no such output recorded yet
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), key, key, "IJiraArtifact"));
+				// alternatively we could collect the outputs in a well known role, and then iterate through the role to check for its presence			
+				
+				// we create a workflow of this workflow for sake of demonstrations
+				// for each linked item, using the itemkey as process id
+				// as input we use the item,
+				Map<String, String> input = new HashMap<String, String>();
+				// an input entry consists of the identifier of the artifact, and as value a concatination of role :: type
+				input.put(key, "jira::IJiraArtifact"); // role/type concatination is not nice
+				commandGateway.send(new CreateWorkflowCmd(key, input ,"POLARION_TEST2" ));
+			}
+		}
+end
+*/

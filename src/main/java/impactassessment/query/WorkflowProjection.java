@@ -177,6 +177,38 @@ public class WorkflowProjection {
 		}
 
 	}
+	
+	@EventHandler
+	public void on(SetPostConditionsFulfillmentEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		//No Longer needed  artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		Set<AbstractWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			ensureInitializedKB(kieSessions, projection, evt.getId());
+			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
+			//insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
+			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+
+	}
+	
+	@EventHandler
+	public void on(SetPreConditionsFulfillmentEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		//No Longer needed  artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		Set<AbstractWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			ensureInitializedKB(kieSessions, projection, evt.getId());
+			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
+			//insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
+			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+
+	}
 
 	@EventHandler
 	public void on(AddedInputToWorkflowEvt evt, ReplayStatus status) {

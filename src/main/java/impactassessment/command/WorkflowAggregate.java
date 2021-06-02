@@ -67,7 +67,7 @@ public class WorkflowAggregate implements Serializable {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
         log.info("[AGG] handling {}", cmd);
-        Collection<Entry<String,IArtifact>> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
+        Collection<Entry<String,IArtifact>> artifacts = mapWorkflowInput(cmd.getId(), artifactRegistry, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts
@@ -80,7 +80,7 @@ public class WorkflowAggregate implements Serializable {
         }
     }
 
-    private Collection<Entry<String,IArtifact>> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
+    public static Collection<Entry<String,IArtifact>> mapWorkflowInput(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
         List<Entry<String,IArtifact>> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();

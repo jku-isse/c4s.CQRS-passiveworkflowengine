@@ -31,7 +31,7 @@
 
         <jiralightconnector.version>0.6.4-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>4.0.4-SNAPSHOT</passiveprocessengine.v2.version>
+        <passiveprocessengine.v2.version>4.0.5-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.0.1-SNAPSHOT</artifact.api.version>
         <polarion.client.version>4.0</polarion.client.version>
