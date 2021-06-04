@@ -57,6 +57,7 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
@@ -74,6 +75,7 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			kieSessions.fire(evt.getId());
 		}
 	}
@@ -264,6 +266,16 @@ public class WorkflowProjection {
 							io.addOrReplaceArtifact(art);
 							awos.add(wft); // WFTs must be updated in the kieSession
 						}
+					}
+				}
+				// check if used as workflow input (as this is also used for triggering premature activation/completion of tasks
+				List<ArtifactIO> wftInOuts = new LinkedList<>();
+				wftInOuts.addAll(wfiWrapper.getWorkflowInstance().getInput());
+				wftInOuts.addAll(wfiWrapper.getWorkflowInstance().getOutput());
+				for (ArtifactIO io : wftInOuts) {
+					if (io.containsArtifact(art)) {
+						io.addOrReplaceArtifact(art);
+						awos.add(wfiWrapper.getWorkflowInstance()); // WFI must be updated in the kieSession
 					}
 				}
 			});

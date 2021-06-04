@@ -164,7 +164,7 @@ public class MockCommandGateway implements CommandGateway {
 			InstantiateTaskCmd cmd = (InstantiateTaskCmd)command;
 			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
 					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
-					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ));
+					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof CreateWorkflowCmd) {
 			CreateWorkflowCmd cmd = (CreateWorkflowCmd)command;
@@ -174,7 +174,7 @@ public class MockCommandGateway implements CommandGateway {
 					.stream()
 					.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier())) 
 					.collect(Collectors.toList())
-					, cmd.getDefinitionName(), wfdContainer.getWfd()));
+					, cmd.getDefinitionName(), wfdContainer.getWfd()), ReplayStatus.REGULAR);
 		}
 		else {
 		

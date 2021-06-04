@@ -48,6 +48,7 @@ import c4s.jiralightconnector.anonymizer.AnonymizingAsyncJiraRestClientFactory;
 import c4s.jiralightconnector.anonymizer.AnonymizingJiraInstance;
 import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.demo.DemoService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.IJiraService;
@@ -55,8 +56,14 @@ import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.kiesession.IKieSessionService;
+import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.ProjectionModel;
+import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.ui.IFrontendPusher;
+import impactassessment.ui.SimpleFrontendPusher;
 
 public class BaseBehaviorTestConfig extends AbstractModule {
 
@@ -68,6 +75,12 @@ public class BaseBehaviorTestConfig extends AbstractModule {
 	private CommandGateway gw;
 
 	private ArtifactRegistry artReg;
+	
+	private DemoService ds;
+	
+	WorkflowProjection wfp;
+	ProjectionModel pModel;
+	IKieSessionService kieS;
 
 	
 	public BaseBehaviorTestConfig() {
@@ -76,15 +89,24 @@ public class BaseBehaviorTestConfig extends AbstractModule {
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
 		gw = new MockCommandGateway(artReg, registry);
+		ds = new DemoService();
+		artReg.register(ds);
+		pModel = new ProjectionModel(artReg);
+		IFrontendPusher fp = new SimpleFrontendPusher();
+		kieS = new SimpleKieSessionService(gw, artReg);
+		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg);
+		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 	}
 	
 	protected void configure() {
 		bind(CommandGateway.class).toInstance(gw);
 		bind(IArtifactRegistry.class).toInstance(artReg);
 		bind(WorkflowDefinitionRegistry.class).toInstance(registry);
+		bind(DemoService.class).toInstance(ds);
+		bind(WorkflowProjection.class).toInstance(wfp);
+		bind(IKieSessionService.class).toInstance(kieS);
+		bind(ProjectionModel.class).toInstance(pModel);
 	}
-	
-	
 	
 	private static Injector inj;
 	
@@ -94,13 +116,8 @@ public class BaseBehaviorTestConfig extends AbstractModule {
 		return inj;
 	}
 	
-	public static IJiraService getJiraDemoService() {
-		if (jiraS == null)
-				jiraS = new JiraJsonService();
-		return jiraS;
-	}
+
 	
-	private static IJiraService jiraS;
 	
     private Properties props = null;
     
