@@ -1,32 +1,18 @@
 package impactassessment;
 
 import artifactapi.IArtifactRegistry;
-import at.jku.designspace.sdk.polarion.clientservice.PolarionService;
-import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
+import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
+import at.jku.designspace.sdk.clientservice.Service;
 import at.jku.isse.designspace.sdk.core.DesignSpace;
 import at.jku.isse.designspace.sdk.core.model.User;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
-import c4s.jamaconnector.OfflineHttpClientMock;
-import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
-import c4s.jamaconnector.cache.CacheStatus;
-import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
-import c4s.jamaconnector.cache.hibernate.HibernateCacheStatus;
-import c4s.jamaconnector.cache.*;
 import c4s.jiralightconnector.*;
 import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
 import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
-import com.jamasoftware.services.restclient.JamaConfig;
-import com.jamasoftware.services.restclient.exception.RestClientException;
-import com.jamasoftware.services.restclient.httpconnection.ApacheHttpClient;
-import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
-import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 import impactassessment.artifactconnector.ArtifactRegistry;
-import impactassessment.artifactconnector.jama.IJamaService;
-import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
-import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
@@ -41,8 +27,6 @@ import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.Snapshotter;
 import org.hibernate.SessionFactory;
-import org.lightcouch.CouchDbClient;
-import org.lightcouch.CouchDbProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -56,8 +40,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
-
 import javax.sql.DataSource;
 
 
@@ -86,7 +68,7 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(IJiraService jiraService, IPolarionService polarionService) {
+    public IArtifactRegistry getArtifactRegistry(IJiraService jiraService, PolarionInstanceService polarionService) {
         IArtifactRegistry registry = new ArtifactRegistry();
         registry.register(jiraService);
         registry.register(polarionService);
@@ -95,9 +77,9 @@ public class SpringConfig {
     
     @Bean
     @Scope("singleton")
-    public IPolarionService getPolarionService() {
+    public PolarionInstanceService getPolarionService() {
     	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
-    	PolarionService  polarionService = new PolarionService(user);
+    	PolarionInstanceService  polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
 	    return polarionService;
     }
     

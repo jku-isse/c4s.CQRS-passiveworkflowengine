@@ -28,8 +28,8 @@ import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
 
 import artifactapi.IArtifactRegistry;
-import at.jku.designspace.sdk.polarion.clientservice.PolarionService;
-import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
+import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
+import at.jku.designspace.sdk.clientservice.Service;
 import at.jku.isse.designspace.sdk.core.DesignSpace;
 import at.jku.isse.designspace.sdk.core.model.User;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
@@ -69,7 +69,7 @@ public class DevelopmentConfig extends AbstractModule {
 
 	private ArtifactRegistry artReg;
 
-	private PolarionService polarionService;
+	private PolarionInstanceService polarionService;
 	
 	public DevelopmentConfig() {
 		artReg = new ArtifactRegistry();
@@ -78,13 +78,13 @@ public class DevelopmentConfig extends AbstractModule {
 		lrs.registerAll();
 		gw = new MockCommandGateway(artReg, registry);
 		User user = DesignSpace.registerUser("felix");
-	    polarionService = new PolarionService(user);
+	    polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
 	}
 	
 	protected void configure() {
 		bind(CommandGateway.class).toInstance(gw);
 		bind(IArtifactRegistry.class).toInstance(artReg);
-		bind(IPolarionService.class).toInstance(polarionService);
+		bind(PolarionInstanceService.class).toInstance(polarionService);
 		bind(WorkflowDefinitionRegistry.class).toInstance(registry);
 	}
 	

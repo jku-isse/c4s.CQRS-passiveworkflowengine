@@ -16,8 +16,8 @@ import com.google.inject.Injector;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
-import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
-import at.jku.designspace.sdk.polarion.polarionapi.implementations.PolarionArtifact;
+import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
+import at.jku.designspace.sdk.polarion.implementations.PolarionArtifact;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Events.UpdatedArtifactsEvt;
 import impactassessment.api.Queries.PrintKBQuery;
@@ -38,7 +38,7 @@ public class PolarionTestStartup {
 	String wft = "POLARION_TEST";
 	WorkflowDefinitionRegistry registry;
 	WorkflowProjection wfp;
-	IPolarionService ps;
+	PolarionInstanceService ps;
 	
 	@Before
 	public void setup() {
@@ -47,7 +47,7 @@ public class PolarionTestStartup {
 		CommandGateway gw = injector.getInstance(CommandGateway.class);
 		IArtifactRegistry aRegistry = injector.getInstance(IArtifactRegistry.class);
 		ProjectionModel pModel = new ProjectionModel(aRegistry);
-		ps = injector.getInstance(IPolarionService.class);
+		ps = injector.getInstance(PolarionInstanceService.class);
 		aRegistry.register(ps);
 		IFrontendPusher fp = new SimpleFrontendPusher();
 		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
@@ -59,9 +59,8 @@ public class PolarionTestStartup {
 	
 	@Test
 	public void runPolarionTest() {
-		ArtifactIdentifier ai = new ArtifactIdentifier("DPS-511", "IPolarionArtifact");
+		ArtifactIdentifier ai = new ArtifactIdentifier("DPS-511", PolarionArtifact.class.getSimpleName());
 		
-//		art.getInstance().addProperty(property);
 //		
 		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("workitem", ai)), wft, registry.get(wft).getWfd()), status);
 		//kieS.getKieSession(workflowId).fireAllRules();

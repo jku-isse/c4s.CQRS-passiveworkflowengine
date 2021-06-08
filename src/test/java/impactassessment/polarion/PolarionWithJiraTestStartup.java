@@ -15,8 +15,7 @@ import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
 import artifactapi.jira.IJiraArtifact;
-import at.jku.designspace.sdk.polarion.clientservice.interfaces.IPolarionService;
-import at.jku.designspace.sdk.polarion.polarionapi.implementations.PolarionArtifact;
+import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.command.MockCommandGateway;
@@ -36,7 +35,7 @@ public class PolarionWithJiraTestStartup {
 	String wft = "POLARION_TEST2";
 	WorkflowDefinitionRegistry registry;
 	WorkflowProjection wfp;
-	IPolarionService ps;
+	PolarionInstanceService ps;
 	IArtifactRegistry aRegistry;
 	
 	@Before
@@ -46,7 +45,7 @@ public class PolarionWithJiraTestStartup {
 		CommandGateway gw = injector.getInstance(CommandGateway.class);
 		aRegistry = injector.getInstance(IArtifactRegistry.class);
 		ProjectionModel pModel = new ProjectionModel(aRegistry);
-		ps = injector.getInstance(IPolarionService.class);
+		ps = injector.getInstance(PolarionInstanceService.class);
 		aRegistry.register(ps);
 		aRegistry.register(DevelopmentConfig.getJiraDemoService());
 		IFrontendPusher fp = new SimpleFrontendPusher();

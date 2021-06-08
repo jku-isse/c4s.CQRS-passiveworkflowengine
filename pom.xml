@@ -156,7 +156,7 @@
         </dependency>
 		<dependency>
 			<groupId>at.jku.isse.sdk</groupId>
-    		<artifactId>polarion-client</artifactId>
+    		<artifactId>artifact-client</artifactId>
     		<version>${polarion.client.version}</version>
 		</dependency>
 
@@ -447,10 +447,10 @@
 						<id>install-polarionconnector</id>
 						<phase>clean</phase>
 						<configuration>
-							<file>${basedir}/libs/polarion-client-${polarion.client.version}.jar</file>
+							<file>${basedir}/libs/artifact-client-${polarion.client.version}.jar</file>
 							<repositoryLayout>default</repositoryLayout>
 							<groupId>at.jku.isse.sdk</groupId>
-    						<artifactId>polarion-client</artifactId>
+    						<artifactId>artifact-client</artifactId>
     						<version>${polarion.client.version}</version>
 							<packaging>jar</packaging>
 							<generatePom>true</generatePom>
