@@ -5,13 +5,12 @@ import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jamaconnector.OfflineHttpClientMock;
 import c4s.jamaconnector.analytics.JamaUpdateTracingInstrumentation;
 import c4s.jamaconnector.cache.CacheStatus;
+import c4s.jamaconnector.cache.*;
 import c4s.jamaconnector.cache.hibernate.HibernateBackedCache;
 import c4s.jamaconnector.cache.hibernate.HibernateCacheStatus;
-import c4s.jamaconnector.cache.*;
 import c4s.jiralightconnector.*;
 import c4s.jiralightconnector.analytics.JiraUpdateTracingInstrumentation;
 import c4s.jiralightconnector.hibernate.HibernateBackedMonitoringState;
-
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.jamasoftware.services.restclient.JamaConfig;
@@ -27,124 +26,154 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.featureflags.*;
 import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
-
 import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.Snapshotter;
 import org.hibernate.SessionFactory;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import javax.sql.DataSource;
+import java.net.URI;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Configuration
 @Slf4j
 public class SpringConfig {
 
-    private Properties props = null; //fetched on first access
+    @Autowired
+    private Environment env;
 
-    // default should be true for all flags here:
-    private final boolean USE_MY_SQL_CACHE = true; // if false the CouchDB cache will be used
-    private final boolean IS_JAMA_INSTANCE_ONLINE = true;
-    private final boolean USE_HIBERNATE_MONITORING_STATE = true;
-    private final int AXON_SNAPSHOT_THRESHOLD = 10;
+
+    //------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------PROJECT COMPONENTS-----------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
 
     @Bean
-    public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
-        return new EventCountSnapshotTriggerDefinition(snapshotter, AXON_SNAPSHOT_THRESHOLD);
+    @Primary
+    @IfJiraLiveOrDemo
+    @IfJama
+    public IArtifactRegistry getIArtifactRegistry(IJiraService jiraService, IJamaService jamaService) {
+        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
+        artifactRegistry.register(jamaService);
+        artifactRegistry.register(jiraService);
+        return artifactRegistry;
     }
 
     @Bean
-    @Scope("singleton")
+    @IfJiraLiveOrDemo
+    public IArtifactRegistry getIArtifactRegistryOnlyJira(IJiraService jiraService) {
+        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
+        artifactRegistry.register(jiraService);
+        return artifactRegistry;
+    }
+
+    @Bean
+    @IfJama
+    public IArtifactRegistry getIArtifactRegistryOnlyJama(IJamaService jamaService) {
+        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
+        artifactRegistry.register(jamaService);
+        return artifactRegistry;
+    }
+
+    @Bean
+    @IfNone
+    public IArtifactRegistry getEmptyIArtifactRegistry() {
+        return new ArtifactRegistry();
+    }
+
+    @Bean
     public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
         return new LocalRegisterService(registry, replayer);
     }
 
+//    @Bean(name="pollIntervalInMinutes")
+//    public String pollInterval() {
+//        return env.getProperty("pollIntervalInMinutes");
+//    }
+
+
+
+    //------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------AXON--------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
+
     @Bean
-    @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(IJamaService jamaService, IJiraService jiraService) {
-        IArtifactRegistry registry = new ArtifactRegistry();
-        registry.register(jamaService);
-        registry.register(jiraService);
-        return registry;
+    public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
+        int AXON_SNAPSHOT_THRESHOLD = 10;
+        return new EventCountSnapshotTriggerDefinition(snapshotter, AXON_SNAPSHOT_THRESHOLD);
     }
-    
-    // SETUP TOKEN DB:
-    
+
+    // token database
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-       LocalContainerEntityManagerFactoryBean em 
-         = new LocalContainerEntityManagerFactoryBean();
+       LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
        em.setDataSource(dataSource());
        em.setPackagesToScan(new String[] { "org.axonframework.eventsourcing.eventstore.jpa", "org.axonframework.eventhandling.tokenstore.jpa" });
-
        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
        em.setJpaVendorAdapter(vendorAdapter);
        em.setJpaProperties(additionalProperties());
-
        return em;
     }
-    
+
+    private Properties additionalProperties() {
+        Properties properties = new Properties();
+        properties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("spring.jpa.hibernate.ddl-auto", "update"));
+        //   properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+        return properties;
+    }
+
+    // token database
     @Bean
     public DataSource dataSource(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl(getProp("spring.datasource.url"));
-        dataSource.setUsername( getProp("spring.datasource.username") );
-        dataSource.setPassword( getProp("spring.datasource.password") );
+        dataSource.setUrl(env.getProperty("spring.datasource.url"));
+        dataSource.setUsername(env.getProperty("spring.datasource.username") );
+        dataSource.setPassword(env.getProperty("spring.datasource.password") );
         return dataSource;
     }
     
-    Properties additionalProperties() {
-        Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", getProp("spring.jpa.hibernate.ddl-auto", "update"));
-     //   properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
-           
-        return properties;
-    }
 
-    @Bean(name="pollIntervalInMinutes")
-    public String pollInterval() {
-        return getProp("pollIntervalInMinutes");
-    }
 
-    // --------------- JIRA ---------------
+    //------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------JIRA--------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
 
     @Bean
-    @Scope("singleton")
-    public IJiraService getJiraService(JiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
-        if (getProp("jiraDemo", "").equals("true")) {
-            return new JiraJsonService();
-        } else {
-            // connects directly to a Jira server
-            return new JiraService(jiraInstance, jiraChangeSubscriber);
-        }
+    @Primary
+    @IfJiraLive
+    public IJiraService getJiraService(IJiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
+        return new JiraService(jiraInstance, jiraChangeSubscriber);
     }
 
     @Bean
-    @Scope("singleton")
-    public MonitoringScheduler getJiraMonitoringScheduler(JiraInstance jiraInstance, IssueCache issueCache) {
-        String minutes =  getProp("pollIntervalInMinutes");
+    @Primary
+    @IfJiraLive
+    public MonitoringScheduler getJiraMonitoringScheduler(IJiraInstance jiraInstance, IssueCache issueCache) {
+        String minutes = env.getProperty("pollIntervalInMinutes");
+        String s = env.getProperty("pollIntervalInMinutes");
+        System.out.println("------> "+minutes+" ------ "+s);
         ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));
         changeStreamPoller.setJi(jiraInstance);
         changeStreamPoller.setCache(issueCache);
@@ -153,53 +182,49 @@ public class SpringConfig {
         return scheduler;
     }
 
-
-    @Bean 
-    public JiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
+    @Bean
+    @Primary
+    @IfJiraLive
+    public IJiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
         return new JiraInstance(issueCache, changeSubscriber, monitoringState);
     }
 
-    
     @Bean
-    @Scope("singleton")
+    @Primary
+    @IfJiraLive
     public IssueCache getJiraCache() {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
+                env.getProperty("mysqlDBuser"),
+                env.getProperty("mysqlDBpassword"),
+                env.getProperty("mysqlURL")+"jiracache"
 				);
     	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
      }
     
     @Bean
-    @Scope("singleton")
-
+    @Primary
+    @IfJiraLive
     public MonitoringState getJiraMonitoringState() {
-        MonitoringState ms;
-        if (USE_HIBERNATE_MONITORING_STATE) {
-            SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-                    getProp("mysqlDBuser"),
-                    getProp("mysqlDBpassword"),
-                    getProp("mysqlURL")+"jiracache"
-            );
-            ms = new HibernateBackedMonitoringState(sf);
-        } else {
-            ms = new InMemoryMonitoringState();
-        }
-    	return ms;
+//        return new InMemoryMonitoringState();
+        SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
+                env.getProperty("mysqlDBuser"),
+                env.getProperty("mysqlDBpassword"),
+                env.getProperty("mysqlURL")+"jiracache"
+        );
+        return new HibernateBackedMonitoringState(sf);
     }
 
     @Bean
-    @Scope("singleton")
+    @Primary
+    @IfJiraLive
     public JiraRestClient getJiraRestClient() {
-        String uri =  getProp("jiraServerURI");
-        String username =  getProp("jiraConnectorUsername");
-        String pw =  getProp("jiraConnectorPassword");
+        String uri = env.getProperty("jiraServerURI");
+        String username = env.getProperty("jiraConnectorUsername");
+        String pw = env.getProperty("jiraConnectorPassword");
         return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
 
     @Bean
-    @Scope("singleton")
     public JiraUpdateTracingInstrumentation getJiraUpdateTracingInstrumentation() {
         return new JiraUpdateTracingInstrumentation() {
             @Override
@@ -214,28 +239,58 @@ public class SpringConfig {
         };
     }
 
-    // --------------- JAMA ---------------
+
+
+    //------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------JIRA DEMO------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
 
     @Bean
-    @Scope("singleton")
+    @IfJiraDemo
+    public IJiraService getJiraJsonService() {
+        return new JiraJsonService();
+    }
+
+    @Bean
+    public MonitoringScheduler getEmptyJiraMonitoringScheduler() {
+        return new MonitoringScheduler(); // empty scheduler without pollers
+    }
+
+
+
+    //------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------JAMA--------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
+
+    // possibility to use cached jama dump in a couch db (for development purposes only, don't use in a release!)
+    private final boolean USE_DEV_COUCH_DB_FOR_JAMA = false; // FIXME: MUST BE >>>false<<< IN PRODUCTION BUILD!!!
+
+    @Bean
+    @IfJama
     public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
         return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
-    @Scope("singleton")
+    @Primary
+    @IfJama
     public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
-        String projectIds =  getProp("jamaProjectIds");
+        String projectIds = env.getProperty("jamaProjectIds");
         String[] ids = projectIds.split(",");
         for (String id : ids) {
             c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
-            changeStreamPoller.setInterval(Integer.parseInt(getProp("pollIntervalInMinutes")));
+            changeStreamPoller.setInterval(Integer.parseInt(env.getProperty("pollIntervalInMinutes")));
             changeStreamPoller.setJi(jamaInstance);
             changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
             scheduler.registerAndStartTask(changeStreamPoller);
         }
         return scheduler;
+    }
+
+    @Bean
+    public c4s.jamaconnector.MonitoringScheduler getEmptyJamaMonitoringScheduler() {
+        return new c4s.jamaconnector.MonitoringScheduler(); // empty scheduler without pollers
     }
 
 //    @Bean
@@ -246,70 +301,50 @@ public class SpringConfig {
 //    }
 
     @Bean
-    @Scope("singleton")
+    @IfJama
     public CacheStatus getJamaCacheStatus(JamaCache cache) {
         CacheStatus cacheStatus;
-        if (USE_MY_SQL_CACHE) {
-            cacheStatus = new HibernateCacheStatus((HibernateBackedCache)cache);
-        } else {
+        if (USE_DEV_COUCH_DB_FOR_JAMA) {
             cacheStatus = new CouchDBCacheStatus(cache);
+        } else {
+            cacheStatus = new HibernateCacheStatus((HibernateBackedCache)cache);
         }
     	return cacheStatus;
     }
 
     @Bean
-    @Scope("singleton")
+    @IfJama
     public JamaCache getJamaCache() {
         JamaCache jamaCache;
-        if (USE_MY_SQL_CACHE) {
-            SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-                    getProp("mysqlDBuser"),
-                    getProp("mysqlDBpassword"),
-                    getProp("mysqlURL")+"jamacache"
-            );
-            jamaCache = new HibernateBackedCache(sf);
-        } else {
+        if (USE_DEV_COUCH_DB_FOR_JAMA) {
             CouchDbProperties dbprops = new CouchDbProperties()
-                    .setDbName(getProp("jamaCacheCouchDBname", "jamaitems3"))
+                    .setDbName(env.getProperty("jamaCacheCouchDBname", "jamaitems3"))
                     .setCreateDbIfNotExist(true)
                     .setProtocol("http")
-                    .setHost(getProp("couchDBip", "localhost"))
-                    .setPort(Integer.parseInt(getProp("couchDBport", "5984")))
-                    .setUsername(getProp("jamaCacheCouchDBuser","admin"))
-                    .setPassword(getProp("jamaCacheCouchDBpassword","password"))
+                    .setHost(env.getProperty("couchDBip", "localhost"))
+                    .setPort(Integer.parseInt(env.getProperty("couchDBport", "5984")))
+                    .setUsername(env.getProperty("jamaCacheCouchDBuser","admin"))
+                    .setPassword(env.getProperty("jamaCacheCouchDBpassword","password"))
                     .setMaxConnections(100)
                     .setConnectionTimeout(0);
             jamaCache = new CouchDBJamaCache(new CouchDbClient(dbprops));
+        } else {
+            SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
+                    env.getProperty("mysqlDBuser"),
+                    env.getProperty("mysqlDBpassword"),
+                    env.getProperty("mysqlURL")+"jamacache"
+            );
+            jamaCache = new HibernateBackedCache(sf);
         }
         return jamaCache;
     }
 
     @Bean
-    @Scope("singleton")
-    public JamaInstance getOnlineJamaInstance(JamaCache cache) {
+    @IfJama
+    public JamaInstance getJamaInstance(JamaCache cache) {
         JamaInstance jamaInst;
-        if (IS_JAMA_INSTANCE_ONLINE) {
-            JamaConfig jamaConf = new JamaConfig();
-            jamaConf.setJson(new CachingJsonHandler(cache));
-            jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
-            String url = getProp("jamaServerURI");
-            jamaConf.setBaseUrl(url);
-            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
-            jamaConf.setOpenUrlBase(url);
-            jamaConf.setUsername(getProp("jamaUser"));
-            jamaConf.setPassword(getProp("jamaPassword"));
-            jamaConf.setResourceTimeOut(60);
-            try {
-                jamaConf.setHttpClient(new ApacheHttpClient());
-            } catch (RestClientException e) {
-                e.printStackTrace();
-            }
-
-            jamaInst = new JamaInstance(jamaConf, false);
-            cache.setJamaInstance(jamaInst);
-            jamaInst.setResourcePool(new CachedResourcePool(cache));
-            jamaInst.enableAnonymizing();
-        } else {
+        if (USE_DEV_COUCH_DB_FOR_JAMA) {
+            // run jama instance offline
             JamaConfig jamaConf = new JamaConfig();
             jamaConf.setJson(new CachingJsonHandler(cache));
             jamaConf.setApiKey("SUPERSECRETKEY");
@@ -321,17 +356,35 @@ public class SpringConfig {
             jamaConf.setPassword("OFFLINE");
             jamaConf.setResourceTimeOut(60);
             jamaConf.setHttpClient(new OfflineHttpClientMock());
-
             jamaInst = new JamaInstance(jamaConf, true);
             cache.setJamaInstance(jamaInst);
             jamaInst.setResourcePool(new CachedResourcePool(cache));
-            return jamaInst;
+        } else {
+            JamaConfig jamaConf = new JamaConfig();
+            jamaConf.setJson(new CachingJsonHandler(cache));
+            jamaConf.setApiKey(env.getProperty("jamaOptionalKey", "SUPERSECRETKEY"));
+            String url = env.getProperty("jamaServerURI");
+            jamaConf.setBaseUrl(url);
+            jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
+            jamaConf.setOpenUrlBase(url);
+            jamaConf.setUsername(env.getProperty("jamaUser"));
+            jamaConf.setPassword(env.getProperty("jamaPassword"));
+            jamaConf.setResourceTimeOut(60);
+            try {
+                jamaConf.setHttpClient(new ApacheHttpClient());
+            } catch (RestClientException e) {
+                e.printStackTrace();
+            }
+            jamaInst = new JamaInstance(jamaConf, false);
+            cache.setJamaInstance(jamaInst);
+            jamaInst.setResourcePool(new CachedResourcePool(cache));
+            jamaInst.enableAnonymizing();
         }
         return jamaInst;
     }
 
     @Bean
-    @Scope("singleton")
+    @IfJama
     public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
         return new JamaUpdateTracingInstrumentation() {
             @Override
@@ -345,36 +398,5 @@ public class SpringConfig {
             }
         };
     }
-
-    // ----------------------------- Property Access -----------------------------
-
-    private String getProp(String name) {
-        return getProp(name, null);
-    }
-
-    private String getProp(String name, String defaultValue) {
-        if (props == null) {
-            props = getProps();
-        }
-        String value = props.getProperty(name, defaultValue);
-        if (value == null) {
-            log.error("Required property {} was not found in the application properties!", name);
-        }
-        return value;
-    }
-
-    private Properties getProps() {
-        Properties props = new Properties();
-        // try to use external first
-        try {
-            FileReader reader = new FileReader(new File("./main.properties"));
-            props.load(reader);
-            return props;
-        } catch (IOException e1) {
-            log.error("No properties file found.");
-        }
-        return props;
-    }
-
 
 }

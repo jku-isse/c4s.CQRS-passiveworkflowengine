@@ -1,6 +1,7 @@
 package impactassessment.evaluation;
 
 import impactassessment.api.Commands;
+import impactassessment.featureflags.IfJama;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import static impactassessment.general.IdGenerator.getNewId;
 
 @Service
 @RequiredArgsConstructor
+@IfJama
 public class JamaWorkflowCreationPerformanceService {
 
     private String definitionName = "DemoProcess2";

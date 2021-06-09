@@ -2,16 +2,11 @@ package impactassessment.artifactconnector.jira;
 
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
-import artifactapi.IArtifactService;
-import artifactapi.jama.IJamaArtifact;
 import artifactapi.jira.IJiraArtifact;
+import c4s.jiralightconnector.IJiraInstance;
 import c4s.jiralightconnector.IssueAgent;
-import c4s.jiralightconnector.JiraInstance;
-import impactassessment.artifactconnector.jama.IJamaService;
-import impactassessment.artifactconnector.jama.JamaDataScope;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,12 +16,12 @@ public class JiraService implements IJiraService {
 
     private static final String TYPE = IJiraArtifact.class.getSimpleName();
 
-    private JiraInstance jira;
+    private IJiraInstance jira;
     private JiraChangeSubscriber jiraChangeSubscriber;
     private ConcurrentMap<String, JiraDataScope> perProcessCaches = new ConcurrentHashMap<>();
 
     
-    public JiraService(JiraInstance jira, JiraChangeSubscriber jiraChangeSubscriber) {
+    public JiraService(IJiraInstance jira, JiraChangeSubscriber jiraChangeSubscriber) {
         this.jira = jira;
         this.jiraChangeSubscriber = jiraChangeSubscriber;
     }
