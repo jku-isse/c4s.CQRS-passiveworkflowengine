@@ -698,12 +698,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         //---------------------------------------------------------
 
         Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
-            JamaWorkflowCreationPerformanceService service1 = SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class);
-            service1.createAll();
+            SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class).ifPresent(JamaWorkflowCreationPerformanceService::createAll);
         });
         Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
-            JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
-            service2.replayUpdates();
+            SpringUtil.getBean(JamaUpdatePerformanceService.class).ifPresent(JamaUpdatePerformanceService::replayUpdates);
         });
         Button replay = new Button("Replay All Events", evt -> {
             Notification.show("Replay of Current State initiated. Replay gets executed..");
@@ -792,8 +790,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
                 jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
-        String pollTime = SpringUtil.getBean(String.class, "pollIntervalInMinutes");
-        return new VerticalLayout(new Paragraph("Updates are fetched every "+pollTime+" minutes automatically. Additionally you can fetch updates manually."), update);
+        return new VerticalLayout(new Paragraph("Updates are fetched every few minutes automatically. Additionally you can fetch updates manually."), update);
     }
 
     private VerticalLayout snapshotPanel(boolean addHeader) {
