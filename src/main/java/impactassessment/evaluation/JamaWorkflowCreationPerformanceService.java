@@ -4,6 +4,7 @@ import artifactapi.ArtifactIdentifier;
 import impactassessment.api.Commands;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import static impactassessment.general.IdGenerator.getNewId;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnExpression("${jama.enabled:true}")
 public class JamaWorkflowCreationPerformanceService {
 
     private String definitionName = "DemoProcess2";

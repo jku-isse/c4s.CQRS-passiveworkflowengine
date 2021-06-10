@@ -49,7 +49,7 @@ public class TestInstantiateTaskCommand {
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
         JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw);
-        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache()), jamaCS);
+        jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 
         SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
@@ -106,7 +106,7 @@ public class TestInstantiateTaskCommand {
         wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
         wfp.on(new Events.AddedOutputEvt(id, "Evaluate#"+id, new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), "checkissue"), status);
 
-        // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE 
+        // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE
 
         Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery("*")).getState();
         assertEquals(1, state.size());

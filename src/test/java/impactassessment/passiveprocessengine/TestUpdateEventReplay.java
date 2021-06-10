@@ -54,7 +54,7 @@ public class TestUpdateEventReplay {
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
         jamaCS = new JamaChangeSubscriber(gw);
-        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache()), jamaCS);
+        jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 
         MockKieSessionService kieS = new MockKieSessionService();
