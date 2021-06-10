@@ -259,7 +259,7 @@ public class SpringConfig {
     //------------------------------------------------------------------------------------------------------------------
 
     // possibility to use cached jama dump in a couch db (for development purposes only, don't use in a release!)
-    private final boolean USE_DEV_COUCH_DB_FOR_JAMA = true; // FIXME: MUST BE >>>false<<< IN PRODUCTION BUILD!!!
+    private final boolean USE_DEV_COUCH_DB_FOR_JAMA = false; // FIXME: MUST BE >>>false<<< IN PRODUCTION BUILD!!!
 
     @Bean
     @ConditionalOnExpression("${jama.enabled:true}")
