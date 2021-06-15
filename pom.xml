@@ -31,10 +31,10 @@
 
         <jiralightconnector.version>0.6.4-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>4.0.5-SNAPSHOT</passiveprocessengine.v2.version>
+        <passiveprocessengine.v2.version>4.0.6-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.0.1-SNAPSHOT</artifact.api.version>
-        <polarion.client.version>4.0</polarion.client.version>
+        <designspace.client.version>4.0</designspace.client.version>
     </properties>
 
     <profiles>
@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>at.jku.isse.sdk</groupId>
     		<artifactId>artifact-client</artifactId>
-    		<version>${polarion.client.version}</version>
+    		<version>${designspace.client.version}</version>
 		</dependency>
 
         <!-- Axon -->
@@ -444,14 +444,14 @@
                         </configuration>
                     </execution>
                     <execution>
-						<id>install-polarionconnector</id>
-						<phase>clean</phase>
+						<id>install-designspaceconnector</id>
+						<phase>initialize</phase>
 						<configuration>
-							<file>${basedir}/libs/artifact-client-${polarion.client.version}.jar</file>
+							<file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file>
 							<repositoryLayout>default</repositoryLayout>
 							<groupId>at.jku.isse.sdk</groupId>
     						<artifactId>artifact-client</artifactId>
-    						<version>${polarion.client.version}</version>
+    						<version>${designspace.client.version}</version>
 							<packaging>jar</packaging>
 							<generatePom>true</generatePom>
 						</configuration>
