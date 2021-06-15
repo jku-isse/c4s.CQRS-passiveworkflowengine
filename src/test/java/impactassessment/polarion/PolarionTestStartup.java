@@ -58,8 +58,9 @@ public class PolarionTestStartup {
 	}
 	
 	@Test
-	public void runPolarionTest() {
-		ArtifactIdentifier ai = new ArtifactIdentifier("DPS-511", PolarionArtifact.class.getSimpleName());
+	public void runPolarionLiveTest() {
+		//ArtifactIdentifier ai = new ArtifactIdentifier("DPS-511", PolarionArtifact.class.getSimpleName());
+		ArtifactIdentifier ai = new ArtifactIdentifier("AC-392", PolarionArtifact.class.getSimpleName());
 		
 //		
 		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("workitem", ai)), wft, registry.get(wft).getWfd()), status);
@@ -71,8 +72,10 @@ public class PolarionTestStartup {
 		Optional<IArtifact> optArt = ps.get(ai, workflowId);
 		Optional<String> descr = LoadTestHtmlFromFiles.load_ST24837incorrect_Description();
 		PolarionArtifact art = (PolarionArtifact) optArt.get();
-		art.getDescription();
-		art.getInstance().propertyAsSingle("description").set(descr.get());
+		
+		System.out.println(art.getDescription());
+		
+		//art.getInstance().propertyAsSingle("description").set(descr.get());
 		
 		wfp.on(new UpdatedArtifactsEvt(workflowId, Collections.nCopies(1, ai)));
 		
@@ -80,4 +83,28 @@ public class PolarionTestStartup {
 		
 	}
 
+	@Test
+	public void runPolariondemoTest() {
+		ArtifactIdentifier ai = new ArtifactIdentifier("DPS-511", PolarionArtifact.class.getSimpleName());
+//		
+		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("workitem", ai)), wft, registry.get(wft).getWfd()), status);
+		//kieS.getKieSession(workflowId).fireAllRules();
+		//wfp.on(new AddedInputToWorkflowEvt(id, new ArtifactInput(new ArtifactWrapper(jiraArt.getKey(), "IJiraArtifact", null, jiraArt), "root")), status);
+		wfp.handle(new PrintKBQuery(workflowId));
+		
+		//now we update the artifact and see if the eval changes correctly
+		Optional<IArtifact> optArt = ps.get(ai, workflowId);
+		Optional<String> descr = LoadTestHtmlFromFiles.load_ST24837incorrect_Description();
+		PolarionArtifact art = (PolarionArtifact) optArt.get();
+		
+		System.out.println(art.getDescription());
+		
+		//art.getInstance().propertyAsSingle("description").set(descr.get());
+		
+		wfp.on(new UpdatedArtifactsEvt(workflowId, Collections.nCopies(1, ai)));
+		
+		wfp.handle(new PrintKBQuery(workflowId));
+		
+	}
+	
 }
