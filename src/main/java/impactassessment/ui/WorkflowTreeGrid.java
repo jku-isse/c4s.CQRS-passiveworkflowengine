@@ -20,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import impactassessment.api.Commands;
 import impactassessment.api.Commands.*;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
@@ -401,6 +402,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 if (artifactList.size() == 1) {
                     IArtifact a = artifactList.get(0);
                     line.add(tryToConvertToResourceLink(a));
+                    line.add(deleteInOut(wft, isIn, entry, a));
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().getArtifactType()));
                     list.add(line);
                 } else if (artifactList.size() > 1) {
@@ -408,7 +410,11 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                     list.add(line);
                     UnorderedList nestedList = new UnorderedList();
                     for (IArtifact a : artifactList) {
-                        nestedList.add(new ListItem(tryToConvertToResourceLink(a)));
+                        HorizontalLayout nestedLine = new HorizontalLayout();
+                        nestedLine.setClassName("line");
+                        nestedLine.add(new ListItem(tryToConvertToResourceLink(a)));
+                        nestedLine.add(deleteInOut(wft, isIn, entry, a));
+                        nestedList.add(nestedLine);
                     }
                     list.add(nestedList);
                 } else { // artifactList.size() == 0
@@ -425,6 +431,21 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             list.add(li);
         }
         return list;
+    }
+
+    private Component deleteInOut(IWorkflowTask wft, boolean isIn, Map.Entry<String, ArtifactType> entry, IArtifact a) {
+        Icon icon = new Icon(VaadinIcon.TRASH);
+        icon.setColor("red");
+        icon.setSize("15px");
+        icon.getStyle().set("cursor", "pointer");
+        icon.addClickListener(e -> {
+            if (isIn) {
+                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()));
+            } else {
+                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()));
+            }
+        });
+        return icon;
     }
 
     private Component tryToConvertToResourceLink(IArtifact artifact) {

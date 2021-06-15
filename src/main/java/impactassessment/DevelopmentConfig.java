@@ -1,12 +1,7 @@
 package impactassessment;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.hibernate.SessionFactory;
-import org.springframework.core.io.ClassPathResource;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.google.inject.AbstractModule;
@@ -52,11 +46,15 @@ import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
 
 public class DevelopmentConfig extends AbstractModule {
 
 	protected Logger log = LogManager.getLogger(DevelopmentConfig.class);
-	
+	@Autowired
+	private Environment env;
 	
 	HibernateBackedCache jamaCache;
 	
@@ -139,9 +137,9 @@ public class DevelopmentConfig extends AbstractModule {
 	
    
     private JiraRestClient setupJiraRestClient() {
-        String uri =  getProp("jiraServerURI");
-        String username =  getProp("jiraConnectorUsername");
-        String pw =  getProp("jiraConnectorPassword");
+        String uri =  env.getProperty("jiraServerURI");
+        String username =  env.getProperty("jiraConnectorUsername");
+        String pw =  env.getProperty("jiraConnectorPassword");
         return new AnonymizingAsyncJiraRestClientFactory()
 			      .createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
@@ -162,18 +160,18 @@ public class DevelopmentConfig extends AbstractModule {
 	
     private c4s.jiralightconnector.hibernate.HibernateBackedCache configJiraCache() {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
+				env.getProperty("mysqlDBuser"),
+				env.getProperty("mysqlDBpassword"),
+				env.getProperty("mysqlURL")+"jiracache"
 				);
     	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
      }
 
     private MonitoringState configJiraMonitoringState() {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
+				env.getProperty("mysqlDBuser"),
+				env.getProperty("mysqlDBpassword"),
+				env.getProperty("mysqlURL")+"jiracache"
 				);
     	return new HibernateBackedMonitoringState(sf);
     }
@@ -190,20 +188,20 @@ public class DevelopmentConfig extends AbstractModule {
     
     private HibernateBackedCache setupJamaCache() {
     	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jamacache"				
+				env.getProperty("mysqlDBuser"),
+				env.getProperty("mysqlDBpassword"),
+				env.getProperty("mysqlURL")+"jamacache"
 				);
 		return new HibernateBackedCache(sf);
      }
 	
 	private c4s.jamaconnector.MonitoringScheduler setupJamaMonitoringScheduler() {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
-        String projectIds =  getProp("jamaProjectIds");
+        String projectIds =  env.getProperty("jamaProjectIds");
         String[] ids = projectIds.split(",");
         for (String id : ids) {
             c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), jamaStatus);
-            changeStreamPoller.setInterval(Integer.parseInt(getProp("pollIntervalInMinutes")));
+            changeStreamPoller.setInterval(Integer.parseInt(env.getProperty("pollIntervalInMinutes")));
             changeStreamPoller.setJi(jamaI);
             changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUTI);
             scheduler.registerAndStartTask(changeStreamPoller);
@@ -214,13 +212,13 @@ public class DevelopmentConfig extends AbstractModule {
     private JamaInstance configOnlineJamaInstance() {
         JamaConfig jamaConf = new JamaConfig();
         jamaConf.setJson(new CachingJsonHandler(jamaCache));
-        jamaConf.setApiKey(getProp("jamaOptionalKey", "SUPERSECRETKEY"));
-        String url = getProp("jamaServerURI");
+        jamaConf.setApiKey(env.getProperty("jamaOptionalKey", "SUPERSECRETKEY"));
+        String url = env.getProperty("jamaServerURI");
         jamaConf.setBaseUrl(url);
         jamaConf.setResourceTimeOut(Integer.MAX_VALUE);
         jamaConf.setOpenUrlBase(url);
-        jamaConf.setUsername(getProp("jamaUser"));
-        jamaConf.setPassword(getProp("jamaPassword"));
+        jamaConf.setUsername(env.getProperty("jamaUser"));
+        jamaConf.setPassword(env.getProperty("jamaPassword"));
         jamaConf.setResourceTimeOut(60);
         try {
             jamaConf.setHttpClient(new ApacheHttpClient());
@@ -250,42 +248,5 @@ public class DevelopmentConfig extends AbstractModule {
             }
         };
     }
-    
-    private Properties props = null;
-    
-    private String getProp(String name) {
-        return getProp(name, null);
-    }
 
-    private String getProp(String name, String defaultValue) {
-        if (props == null) {
-            props = getProps();
-        }
-        String value = props.getProperty(name, defaultValue);
-        if (value == null) {
-        	log.error("Required property "+name+" was not found in the application properties!");
-        }
-        return value;
-    }
-    
-    private Properties getProps() {
-        Properties props = new Properties();
-        // try to use external first
-        try {
-            FileReader reader = new FileReader(new File("./main.properties"));
-            props.load(reader);
-            return props;
-        } catch (IOException e1) {
-        	log.info("No properties file in default location (same directory as JAR) found! Using default props.");
-            try {
-                InputStream inputStream = new ClassPathResource("application.properties").getInputStream();
-                props.load(inputStream);
-                return props;
-            } catch (IOException e2) {
-                log.error("No properties file found.");
-                e2.printStackTrace();
-            }
-        }
-        return props;
-    }
 }
