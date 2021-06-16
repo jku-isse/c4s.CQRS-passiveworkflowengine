@@ -28,6 +28,8 @@ public class LocalRegisterService extends AbstractRegisterService {
     private DefinitionSerializer serializer = new DefinitionSerializer();
     private KieSessionFactory kieSessionFactory = new KieSessionFactory();
 
+    public static String BASERULESDIR = "BASERULES-DONOTDELETE";
+    
     public LocalRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
         super(registry, replayer);
     }
@@ -40,47 +42,40 @@ public class LocalRegisterService extends AbstractRegisterService {
     public int registerAll() {
       
     	 List<File> baseRules = new ArrayList<File>();
-        // load default rule set from jar file
-        try {
-          ClassLoader cl = this.getClass().getClassLoader();
-          ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
-          Resource[] folders = resolver.getResources("classpath:defaultrules") ;
-          for (Resource res : folders) {
-              Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
-              if (drlResources.length < 1) continue;
-              for (Resource drl : drlResources) {
-            	  log.info("Loading defaultrule file: ",drl.getFilename());
-                  baseRules.add(drl.getFile());
-              }
-          }
-      } catch (IOException e) {
-          e.printStackTrace();
-      }
+        // load default rule set from jar file --> SOMEHOW THIS IS NOT FOUND WHEN RUNNING AS JAR
+//        try {
+//          ClassLoader cl = this.getClass().getClassLoader();
+//          ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+//          Resource[] folders = resolver.getResources("classpath:defaultrules") ;
+//          for (Resource res : folders) {
+//              Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
+//              if (drlResources.length < 1) continue;
+//              for (Resource drl : drlResources) {
+//            	  log.info("Loading defaultrule file: ",drl.getFilename());
+//                  baseRules.add(drl.getFile());
+//              }
+//          }
+//      } catch (IOException e) {
+//          e.printStackTrace();
+//      }
 
         
-//        try {
-//            ClassLoader cl = this.getClass().getClassLoader();
-//            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
-//            Resource[] folders = resolver.getResources("classpath:processdefinition/*") ;
-//            for (Resource res : folders) {
-//                Resource[] jsonResources = resolver.getResources(res.getURL()+"/*.json");
-//                if (jsonResources.length != 1) continue;
-//                WorkflowDefinition wfd = serializer.fromJson(asString(jsonResources[0]));
-//
-//                Resource[] drlResources = resolver.getResources(res.getURL()+"/*.drl");
-//                if (drlResources.length < 1) continue;
-//                List<File> files = new ArrayList<>();
-//                for (Resource drl : drlResources) {
-//                    files.add(drl.getFile());
-//                }
-//                KieContainer kieContainer = kieSessionFactory.getKieContainer(files);
-//
-//                registry.register(wfd.getId(), wfd, kieContainer);
-//                i++;
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            File[] directories = new File("./workflows/").listFiles(File::isDirectory);
+            for (File dir : directories) {
+                if (dir.getName().equals(BASERULESDIR)) {
+                    FileFilter fileFilter2 = new WildcardFileFilter("*.drl");
+                    File[] drlFiles = dir.listFiles(fileFilter2);
+                    if (drlFiles.length < 1) continue;
+                    List<File> ruleFiles = new ArrayList<File>(Arrays.asList(drlFiles)); 
+                    baseRules.addAll(ruleFiles);
+                }
+            }
+        } catch (NullPointerException e) {
+            log.warn("No external 'workflows' directory available");
+        }
+        baseRules.stream().forEach(file -> log.info("Loaded baserule: "+file.getName()));
+
         
         int i = 0;
         // external resources (same directory as JAR)

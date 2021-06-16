@@ -1,10 +1,22 @@
 package impactassessment;
 
+import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
+import artifactapi.jama.IJamaArtifact;
+import artifactapi.jama.subtypes.IJamaProjectArtifact;
+import artifactapi.jama.subtypes.IJamaUserArtifact;
+import at.jku.designspace.sdk.clientservice.InstanceService;
 import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
 import at.jku.designspace.sdk.clientservice.Service;
+import at.jku.designspace.sdk.clientservice.exceptions.NotFoundException;
+import at.jku.designspace.sdk.clientservice.exceptions.TimeOutException;
+import at.jku.designspace.sdk.clientservice.interfaces.IInstanceService;
+import at.jku.designspace.sdk.polarion.implementations.PolarionArtifact;
 import at.jku.isse.designspace.sdk.core.DesignSpace;
+import at.jku.isse.designspace.sdk.core.model.Instance;
 import at.jku.isse.designspace.sdk.core.model.User;
+import at.jku.isse.designspace.sdk.core.model.Workspace;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 
 import c4s.jamaconnector.OfflineHttpClientMock;
@@ -24,6 +36,8 @@ import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.httpconnection.ApacheHttpClient;
 import com.jamasoftware.services.restclient.jamadomain.core.JamaInstance;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaItem;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject;
+import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.IJamaService;
@@ -122,21 +136,101 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry() {
+    public IArtifactRegistry getArtifactRegistry(IInstanceService<PolarionArtifact> polarion, IJamaService jamaS, IJiraService jiraS) {
         IArtifactRegistry registry = new ArtifactRegistry();
-        SpringUtil.getBean(PolarionInstanceService.class).ifPresent(service -> registry.register(service));
-        SpringUtil.getBean(IJiraService.class).ifPresent(service -> registry.register(service));
-        SpringUtil.getBean(IJamaService.class).ifPresent(service -> registry.register(service));
+//        SpringUtil.getBean(PolarionInstanceService.class).ifPresent(service -> registry.register(service));
+//        SpringUtil.getBean(IJiraService.class).ifPresent(service -> registry.register(service));
+//        SpringUtil.getBean(IJamaService.class).ifPresent(service -> registry.register(service));
+        registry.register(polarion);
+        registry.register(jamaS);
+        registry.register(jiraS);
         return registry;
     }
     
     @Bean
     @Primary
-    @ConditionalOnExpression("${polarion.live.enabled:true}")
-    public PolarionInstanceService getPolarionService() {
+    @ConditionalOnExpression("${polarion.enabled:false}")
+    public IInstanceService<PolarionArtifact> getPolarionService() {
     	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
     	PolarionInstanceService  polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
 	    return polarionService;
+    }
+    
+    @Bean
+ //   @ConditionalOnExpression("${polarion.enabled:false} == false")
+    public IInstanceService<PolarionArtifact> getPolarionServiceMock() {
+    	return new IInstanceService<PolarionArtifact>() {
+
+			@Override
+			public boolean provides(String type) {
+				// NOTHING, thus provide nothing
+				return false;
+			}
+
+			@Override
+			public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void injectArtifactService(IArtifact artifact, String workflowId) {
+				//NOOP
+			}
+
+			@Override
+			public void deleteDataScope(String scopeId) {
+				//NOOP
+			}
+
+			@Override
+			public Optional<PolarionArtifact> get(String id, String workflow)
+					throws NotFoundException, TimeOutException {
+				// noop
+				return Optional.empty();
+			}
+
+			@Override
+			public Optional<PolarionArtifact> get(String id) throws NotFoundException, TimeOutException {
+				// NOOP
+				return null;
+			}
+
+			@Override
+			public Workspace getWorkspace() {
+				// NOOP
+				return null;
+			}
+
+			@Override
+			public Optional<Instance> getInstance(String id) {
+				//NOOP
+				return Optional.empty();
+			}
+
+			@Override
+			public Optional<Instance> createServerRequest(String requestId, Service service, String artifactIdentifier)
+					throws NotFoundException, TimeOutException {
+				// NOOP
+				return Optional.empty();
+			}
+
+			@Override
+			public void putIntoCache(String key, IArtifact artifact) {
+				//NOOP
+			}
+
+			@Override
+			public Optional<IArtifact> searchInCache(String key) {
+				return null;
+			}
+
+			@Override
+			public Service getServiceType() {
+				return null;
+			}
+    		
+    	};
     }
     
     //------------------------------------------------------------------------------------------------------------------
@@ -147,7 +241,7 @@ public class SpringConfig {
     
     // SETUP TOKEN DB:
     
-
+    @Bean
     public SnapshotTriggerDefinition workflowSnapshotTrigger(Snapshotter snapshotter) {
         int AXON_SNAPSHOT_THRESHOLD = 10;
         return new EventCountSnapshotTriggerDefinition(snapshotter, AXON_SNAPSHOT_THRESHOLD);
@@ -298,6 +392,70 @@ public class SpringConfig {
         return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
+    @Bean
+    @ConditionalOnExpression("${jama.enabled} == false")
+    public IJamaService getJamaServiceMock() {
+        return new IJamaService(){
+
+			@Override
+			public boolean provides(String type) {
+				// NOOP nothing provided, so null
+				return false;
+			}
+
+			@Override
+			public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+				// NOOP
+				return Optional.empty();
+			}
+
+			@Override
+			public void injectArtifactService(IArtifact artifact, String workflowId) {
+				// NOOP
+			}
+
+			@Override
+			public void deleteDataScope(String scopeId) {
+				// NOOP
+			}
+
+			@Override
+			public Optional<IJamaArtifact> get(Integer id, String workflow) {
+				// NOOP
+				return Optional.empty();
+			}
+
+			@Override
+			public Optional<IJamaArtifact> get(Integer id) {
+				// NOOP
+				return Optional.empty();
+			}
+
+			@Override
+			public IJamaArtifact convert(JamaItem item) {
+				// noop
+				return null;
+			}
+
+			@Override
+			public IJamaProjectArtifact convertProject(JamaProject proj) {
+				// noop
+				return null;
+			}
+
+			@Override
+			public IJamaUserArtifact convertUser(JamaUser user) {
+				// noop
+				return null;
+			}
+
+			@Override
+			public String getJamaServerUrl(JamaItem jamaItem) {
+				// noop
+				return null;
+			}};
+    }
+    
     @Bean
     @Primary
     @ConditionalOnExpression("${jama.enabled:true}")
