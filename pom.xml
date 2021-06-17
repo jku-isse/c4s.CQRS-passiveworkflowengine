@@ -34,6 +34,7 @@
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.0.1-SNAPSHOT</artifact.api.version>
         <designspace.client.version>4.0</designspace.client.version>
+        <designspace.main.version>4.0</designspace.main.version>
     </properties>
 
     <profiles>
@@ -158,6 +159,11 @@
     		<artifactId>artifact-client</artifactId>
     		<version>${designspace.client.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>at.jku.isse.designspace.sdk</groupId>
+            <artifactId>main</artifactId>
+            <version>${designspace.main.version}</version>
+        </dependency>
 
         <!-- Axon -->
         <dependency>
@@ -447,17 +453,29 @@
 						<phase>initialize</phase>
 						<configuration>
 							<file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file>
-							<repositoryLayout>default</repositoryLayout>
 							<groupId>at.jku.isse.sdk</groupId>
     						<artifactId>artifact-client</artifactId>
     						<version>${designspace.client.version}</version>
 							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
 						</configuration>
 						<goals>
 							<goal>install-file</goal>
 						</goals>
-					</execution> 
+					</execution>
+                    <execution>
+                        <id>install-designspacemain</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/libs/main-${designspace.main.version}-jar-with-dependencies.jar</file>
+                            <groupId>at.jku.isse.designspace.sdk</groupId>
+                            <artifactId>main</artifactId>
+                            <version>${designspace.main.version}</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 
