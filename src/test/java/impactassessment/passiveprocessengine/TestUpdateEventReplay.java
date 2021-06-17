@@ -47,9 +47,13 @@ public class TestUpdateEventReplay {
     public void setup() {
         SpringConfig conf = new SpringConfig();
 
+        registry = new WorkflowDefinitionRegistry();
+        LocalRegisterService lrs = new LocalRegisterService(registry);
+        lrs.registerAll();
+
         IArtifactRegistry aRegistry = new ArtifactRegistry();
         ProjectionModel pModel = new ProjectionModel(aRegistry);
-        MockCommandGateway gw = new MockCommandGateway(aRegistry);
+        MockCommandGateway gw = new MockCommandGateway(aRegistry, registry);
 
         jiraCS = new JiraChangeSubscriber(gw);
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
@@ -60,10 +64,6 @@ public class TestUpdateEventReplay {
 
         MockKieSessionService kieS = new MockKieSessionService();
 //        SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
-
-        registry = new WorkflowDefinitionRegistry();
-        LocalRegisterService lrs = new LocalRegisterService(registry);
-        lrs.registerAll();
 
         SimpleFrontendPusher fp = new SimpleFrontendPusher();
 
