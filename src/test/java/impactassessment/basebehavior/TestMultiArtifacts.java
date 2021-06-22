@@ -90,6 +90,7 @@ public class TestMultiArtifacts {
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
 		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
 		
+		
 		// prematurely activate "closed"
 		Basic1Artifacts.req1.getPropertyMap().put(DemoRequirement.propKeys.assessment.toString(), DemoRequirement.assessmentValues.inpreparation.toString());
 		wfp.on(new UpdatedArtifactsEvt(workflowId, List.of(Basic1Artifacts.req1.getArtifactIdentifier())));
