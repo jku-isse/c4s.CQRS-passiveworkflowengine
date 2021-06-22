@@ -41,6 +41,8 @@ import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.api.Queries.PrintKBResponse;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
+//import impactassessment.evaluation.JamaUpdatePerformanceService;
+//import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
@@ -88,7 +90,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private WorkflowDefinitionRegistry registry;
     private IFrontendPusher pusher;
     private MonitoringScheduler jiraMonitoringScheduler;
-    private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
+ //   private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -120,10 +122,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     public void setJiraMonitoringScheduler(MonitoringScheduler jiraMonitoringScheduler) {
         this.jiraMonitoringScheduler = jiraMonitoringScheduler;
     }
-    @Inject
-    public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
-        this.jamaMonitoringScheduler = jamaMonitoringScheduler;
-    }
+//    @Inject
+//    public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
+//        this.jamaMonitoringScheduler = jamaMonitoringScheduler;
+//    }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
@@ -697,12 +699,23 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 //        });
         //---------------------------------------------------------
 
+
+//        Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
+//            JamaWorkflowCreationPerformanceService service1 = SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class);
+//            service1.createAll();
+//        });
+//        Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
+//            JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
+//            service2.replayUpdates();
+//        });
+
         Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
             SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class).ifPresent(JamaWorkflowCreationPerformanceService::createAll);
         });
         Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
             SpringUtil.getBean(JamaUpdatePerformanceService.class).ifPresent(JamaUpdatePerformanceService::replayUpdates);
         });
+
         Button replay = new Button("Replay All Events", evt -> {
             Notification.show("Replay of Current State initiated. Replay gets executed..");
             replayer.replay("projection");
@@ -787,8 +800,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private Component updates() {
 
         Button update = new Button("Fetch Updates Now", e -> {
-                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
-                jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
+               jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
+                //jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
         return new VerticalLayout(new Paragraph("Updates are fetched every few minutes automatically. Additionally you can fetch updates manually."), update);
     }

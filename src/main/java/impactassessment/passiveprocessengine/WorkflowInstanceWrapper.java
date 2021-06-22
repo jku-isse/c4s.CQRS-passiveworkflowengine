@@ -173,8 +173,13 @@ public class WorkflowInstanceWrapper {
         Optional<ArtifactInput> opt = iwft.getInput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .findAny();
-        if (opt.isPresent()) { // if ArtifactInput with correct role is present, IArtifact is added to Set
-            artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); // TODO is it okay to fetch artifact here?
+        if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
+        	ArtifactInput ao = opt.get();
+        	if (ao instanceof LazyLoadingArtifactInput) { // then lets just store the identifier
+        		((LazyLoadingArtifactInput) ao).addOrReplaceArtifact(artifact);
+        	} else { // otherwise fetch and store the artifacts
+        		artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); 
+        	}
         } else { // if no ArtifactInput with correct role is present, a new ArtifactInput is created
             ArtifactInput input = new LazyLoadingArtifactInput(artifact, artReg, wfi.getId(), role);
             iwft.addInput(input);
@@ -186,7 +191,12 @@ public class WorkflowInstanceWrapper {
                 .filter(o -> o.getRole().equals(role))
                 .findAny();
         if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
-            artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); // TODO is it okay to fetch artifact here?
+        	ArtifactOutput ao = opt.get();
+        	if (ao instanceof LazyLoadingArtifactOutput) { // then lets just store the identifier
+        		((LazyLoadingArtifactOutput) ao).addOrReplaceArtifact(artifact);
+        	} else { // otherwise fetch and store the artifacts
+        		artReg.get(artifact, id).ifPresent(a -> opt.get().addOrReplaceArtifact(a)); 
+        	}
             return Optional.empty();
         } else { // if no ArtifactOutput with correct role is present, a new ArtifactOutput is created
             ArtifactOutput output = new LazyLoadingArtifactOutput(artifact, artReg, wfi.getId(), role);
@@ -194,14 +204,30 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    public void handle(SetPreConditionsFulfillmentEvt evt) {
-        // TODO implement
-        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
+    public Set<AbstractWorkflowInstanceObject> handle(SetPreConditionsFulfillmentEvt evt) {
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+        	log.warn("{} - workflowtask not found", evt.getWftId());
+        	return Collections.emptySet();
+        } else {
+        	if (evt.isFulfilled()) 
+        		return wft.preConditionsFulfilled();
+        	else
+        		return wft.preConditionsFailed();
+        }
     }
 
-    public void handle(SetPostConditionsFulfillmentEvt evt) {
-        // TODO implement
-        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
+    public Set<AbstractWorkflowInstanceObject> handle(SetPostConditionsFulfillmentEvt evt) {
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+        	log.warn("{} - workflowtask not found", evt.getWftId());
+        	return Collections.emptySet();
+        } else {
+        	if (evt.isFulfilled()) 
+        		return wft.postConditionsFulfilled();
+        	else
+        		return wft.postConditionsFailed();
+        }
     }
 
     public void handle(ActivatedTaskEvt evt) {
@@ -362,8 +388,6 @@ public class WorkflowInstanceWrapper {
             handle((AddedOutputToWorkflowEvt) evt);
         } else if (evt instanceof SetPreConditionsFulfillmentEvt) {
             handle((SetPreConditionsFulfillmentEvt) evt);
-        } else if (evt instanceof SetPostConditionsFulfillmentEvt) {
-            handle((SetPostConditionsFulfillmentEvt) evt);
         } else if (evt instanceof ActivatedTaskEvt) {
             handle((ActivatedTaskEvt) evt);
         } else if (evt instanceof SetPropertiesEvt) {

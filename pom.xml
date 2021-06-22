@@ -6,8 +6,7 @@
 
     <groupId>JKU.ISSE</groupId>
     <artifactId>CQRS-Passiveprocessengine</artifactId>
-    <version>2.0.3-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <version>2.1.0-SNAPSHOT</version>
 
     <name>CQRS-Passiveprocessengine</name>
     <description>CQRS-Passiveprocessengine</description>
@@ -24,16 +23,18 @@
 
         <java.version>11</java.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-        <axon.version>4.4.3</axon.version>
+        <axon.version>4.4.3</axon.version> <!--  <axon.version>4.5.2</axon.version> -->
         <vaadin.version>14.4.9</vaadin.version>
         <lombok.version>1.18.0</lombok.version>
         <drool.version>7.32.0.Final</drool.version>
 
         <jiralightconnector.version>0.6.4-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>4.0.3-SNAPSHOT</passiveprocessengine.v2.version>
+        <passiveprocessengine.v2.version>4.0.6-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.0.1-SNAPSHOT</artifact.api.version>
+        <designspace.client.version>4.0</designspace.client.version>
+        <designspace.main.version>4.0</designspace.main.version>
     </properties>
 
     <profiles>
@@ -152,6 +153,16 @@
             <groupId>JKU.ISSE</groupId>
             <artifactId>c4s.passiveprocessengine.v2</artifactId>
             <version>${passiveprocessengine.v2.version}</version>
+        </dependency>
+		<dependency>
+			<groupId>at.jku.isse.sdk</groupId>
+    		<artifactId>artifact-client</artifactId>
+    		<version>${designspace.client.version}</version>
+		</dependency>
+        <dependency>
+            <groupId>at.jku.isse.designspace.sdk</groupId>
+            <artifactId>main</artifactId>
+            <version>${designspace.main.version}</version>
         </dependency>
 
         <!-- Axon -->
@@ -436,6 +447,34 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.jamaconnector-${jamaconnector.version}.jar</file>
                         </configuration>
+                    </execution>
+                    <execution>
+						<id>install-designspaceconnector</id>
+						<phase>initialize</phase>
+						<configuration>
+							<file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file>
+							<groupId>at.jku.isse.sdk</groupId>
+    						<artifactId>artifact-client</artifactId>
+    						<version>${designspace.client.version}</version>
+							<packaging>jar</packaging>
+						</configuration>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+					</execution>
+                    <execution>
+                        <id>install-designspacemain</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/libs/main-${designspace.main.version}-jar-with-dependencies.jar</file>
+                            <groupId>at.jku.isse.designspace.sdk</groupId>
+                            <artifactId>main</artifactId>
+                            <version>${designspace.main.version}</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

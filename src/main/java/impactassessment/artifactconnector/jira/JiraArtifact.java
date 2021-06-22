@@ -135,7 +135,7 @@ public class JiraArtifact implements IJiraArtifact {
     private String getHumanReadableResourceLinkEndpoint() {
 		
 		URI uri = getSelf();
-		String port = uri.getPort() == -1 ? "" : uri.getPort()+"";
+		String port = uri.getPort() == -1 ? "" : ":"+uri.getPort()+"";
 		String href = uri.getScheme()+"://"+uri.getHost()+port+"/browse/"+getKey();
 		return href;
 	}

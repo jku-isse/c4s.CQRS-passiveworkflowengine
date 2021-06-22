@@ -1,0 +1,71 @@
+package processdefinition;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
+
+import java.util.stream.Collectors;
+import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.Collections;
+import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.Set
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Iterator;
+import java.net.URL;
+
+import passiveprocessengine.definition.ArtifactTypes
+import passiveprocessengine.instance.*
+import passiveprocessengine.definition.*
+import passiveprocessengine.definition.TaskLifecycle.State;
+
+import artifactapi.ResourceLink
+import artifactapi.IArtifact
+import artifactapi.IArtifactRegistry
+import artifactapi.ArtifactIdentifier
+import artifactapi.IArtifactRegistry
+
+import impactassessment.artifactconnector.demo.*
+
+import c4s.impactassessment.tools.*
+
+import impactassessment.kiesession.KieSessionUtils
+import impactassessment.api.Commands.*
+import impactassessment.api.Events.*
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+
+global CommandGateway commandGateway;
+global IArtifactRegistry artifactRegistry;
+
+
+rule "SpawnProcess"
+salience 1010
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								, $req : getAnyOneInputByRole("req") 							
+							 ) 		
+		eval ($req != null && ( ((DemoArtifact)$req).getProperty("type").equalsIgnoreCase("highlevel") ) )
+	then
+		System.out.println("Copy input to output and spawn");
+		for(IArtifact artIn : ((DemoArtifact)$req).getLinkedArtifacts() ) {
+			String key = artIn.getArtifactIdentifier().getId();
+			if ( $wft.getAnyOneOutputByRole(key) == null){
+			// only if there is no such output recorded yet
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), artIn.getArtifactIdentifier().getId(), key, artIn.getArtifactIdentifier().getType()));
+				
+				// we create a workflow of this workflow for sake of demonstrations
+				// for each linked item, using the itemkey as process id
+				// as input we use the item,
+				Map<String, String> input = new HashMap<String, String>();
+				//TODO an input entry consists of the identifier of the artifact, and as value a concatination of role :: type for now, improvement needs to be merged and here adapted
+				input.put(key, "req::DemoRequirement"); //
+				commandGateway.send(new CreateWorkflowCmd(key, input ,"BASICTEST1" ));
+			}
+		}
+end
+
