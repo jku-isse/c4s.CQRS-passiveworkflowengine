@@ -6,12 +6,14 @@ import artifactapi.IArtifactRegistry;
 import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
+import artifactapi.jira.IJiraArtifact;
 import at.jku.designspace.sdk.clientservice.InstanceService;
 import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
 import at.jku.designspace.sdk.clientservice.Service;
 import at.jku.designspace.sdk.clientservice.exceptions.NotFoundException;
 import at.jku.designspace.sdk.clientservice.exceptions.TimeOutException;
 import at.jku.designspace.sdk.clientservice.interfaces.IInstanceService;
+import at.jku.designspace.sdk.jira.JiraArtifact;
 import at.jku.designspace.sdk.polarion.implementations.PolarionArtifact;
 import at.jku.isse.designspace.sdk.core.DesignSpace;
 import at.jku.isse.designspace.sdk.core.model.Instance;
@@ -342,6 +344,7 @@ public class SpringConfig {
         String uri = env.getProperty("jiraServerURI");
         String username = env.getProperty("jiraConnectorUsername");
         String pw = env.getProperty("jiraConnectorPassword");
+        log.info("Using default AsynchronousJiraRestClientFactory");
         return (new AsynchronousJiraRestClientFactory()).createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
 
@@ -377,8 +380,49 @@ public class SpringConfig {
         return new MonitoringScheduler(); // empty scheduler without pollers
     }
 
-
-
+    //------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------JIRA via Designspace-------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
+    @Bean
+    @ConditionalOnExpression("${jira.designspace.enabled:false}")
+    public IJiraService getJiraDesignspaceService() {
+    	return new IJiraService() {
+    		User user = DesignSpace.registerUser("felix");
+    		InstanceService<JiraArtifact> js = new InstanceService<JiraArtifact>(user, Service.JIRA, JiraArtifact.class, IJiraArtifact.class);
+			
+    		public boolean provides(String type) {
+				return js.provides(type);
+			}
+			public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
+				return js.get(id, workflowId);
+			}
+			public void injectArtifactService(IArtifact artifact, String workFlowId) {
+				js.injectArtifactService(artifact, workFlowId);
+			}
+			@Override
+			public void deleteDataScope(String scopeId) {
+				js.deleteDataScope(scopeId);
+			}
+			@Override
+			public Optional<IJiraArtifact> getIssue(String id, String workflow) {
+				try {
+					return js.get(id, workflow).map(j -> j);
+				} catch (NotFoundException | TimeOutException e) {
+					return Optional.empty();
+				}
+			}
+			@Override
+			public Optional<IJiraArtifact> getIssue(String key) {
+				try {
+					return js.get(key).map(j -> j);
+				} catch (NotFoundException | TimeOutException e) {
+					return Optional.empty();
+				}
+			}			    		
+    	} ;   	    
+    }
+    
+    
     //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------JAMA--------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
