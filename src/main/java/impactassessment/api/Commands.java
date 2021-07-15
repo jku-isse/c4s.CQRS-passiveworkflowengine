@@ -175,5 +175,11 @@ public class Commands {
         private final List<ArtifactInput> optionalInputs;
         private final List<ArtifactOutput> optionalOutputs;
     }
+    
+    @Data
+    public static class RefreshFrontendDataCmd {
+    	 @TargetAggregateIdentifier
+         private final String id;
+    }
 }
 

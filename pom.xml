@@ -6,7 +6,7 @@
 
     <groupId>JKU.ISSE</groupId>
     <artifactId>CQRS-Passiveprocessengine</artifactId>
-    <version>2.1.1-SNAPSHOT</version>
+    <version>2.1.2-SNAPSHOT</version>
 
     <name>CQRS-Passiveprocessengine</name>
     <description>CQRS-Passiveprocessengine</description>

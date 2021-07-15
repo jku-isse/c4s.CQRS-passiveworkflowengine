@@ -10,6 +10,7 @@ import passiveprocessengine.instance.WorkflowInstance;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 
 @Component
 @Scope("singleton")
@@ -48,6 +49,15 @@ public class FrontendPusher implements IFrontendPusher {
             }
         }
     }
+
+	@Override
+	public void update(Collection<WorkflowInstance> wfis) {
+		 if (ui != null && view != null) {
+             ui.access(() -> view.getGrids().stream()
+                     .filter(com.vaadin.flow.component.Component::isVisible)
+                     .forEach(grid -> grid.updateTreeGrid(wfis)));
+         }
+	}
 
 //    public void updateFetchTimer() {
 //        if (ui != null && view != null) {

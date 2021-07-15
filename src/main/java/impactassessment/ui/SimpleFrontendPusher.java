@@ -3,6 +3,7 @@ package impactassessment.ui;
 import com.vaadin.flow.component.UI;
 import passiveprocessengine.instance.WorkflowInstance;
 
+import java.util.Collection;
 import java.util.List;
 
 public class SimpleFrontendPusher implements IFrontendPusher {
@@ -26,4 +27,9 @@ public class SimpleFrontendPusher implements IFrontendPusher {
     public void setView(MainView view) {
         // no op
     }
+
+	@Override
+	public void update(Collection<WorkflowInstance> wfis) {
+		// noop		
+	}
 }

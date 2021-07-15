@@ -35,10 +35,10 @@ import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
 import impactassessment.api.Commands.DeleteCmd;
-import impactassessment.api.Queries.GetStateQuery;
-import impactassessment.api.Queries.GetStateResponse;
+import impactassessment.api.Commands.RefreshFrontendDataCmd;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.api.Queries.PrintKBResponse;
+import impactassessment.command.RefreshForwarderAggregate;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 //import impactassessment.evaluation.JamaUpdatePerformanceService;
@@ -53,8 +53,6 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import passiveprocessengine.instance.WorkflowInstance;
-
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -63,10 +61,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static impactassessment.general.IdGenerator.getNewId;
@@ -357,18 +351,22 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
-        try {
-            Notification.show("Refreshing Process Dashboard State");
-            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
-            grid.updateTreeGrid(response);
-        } catch (TimeoutException e1) {
-            log.error("GetStateQuery resulted in TimeoutException!");
-            Notification.show("TimeoutException");
-        } catch (InterruptedException | ExecutionException e2) {
-            log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
-        }
+    		commandGateway.send(new RefreshFrontendDataCmd(RefreshForwarderAggregate.class.getSimpleName()));
     }
+    
+//    private void refresh(WorkflowTreeGrid grid) {
+//        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
+//        try {
+//            Notification.show("Refreshing Process Dashboard State");
+//            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
+//            grid.updateTreeGrid(response);
+//        } catch (TimeoutException e1) {
+//            log.error("GetStateQuery resulted in TimeoutException!");
+//            Notification.show("TimeoutException");
+//        } catch (InterruptedException | ExecutionException e2) {
+//            log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
+//        }
+//    }
 
     private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {
         VerticalLayout layoutV = new VerticalLayout();
