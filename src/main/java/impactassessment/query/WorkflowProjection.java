@@ -96,7 +96,9 @@ public class WorkflowProjection {
 					kieSessions.insertOrUpdate(evt.getId(), ct);
 				}
 			});
-			kieSessions.fire(evt.getId());
+			if (awos.size() > 0) { //there was some impact, thus eval constraints
+				kieSessions.fire(evt.getId());
+			}
 		}
 	}
 

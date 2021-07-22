@@ -83,10 +83,10 @@ public class WorkflowInstanceWrapper {
             ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT);
             addConstraint(evt, qa, wft, awos);
             awos.addAll(wft.addOutput(ao));
-        } else {
-            addConstraint(evt, qa, wft, awos);
-        }
-        awos.add((WorkflowTask)wft); // TODO: fix for nested workflow
+            awos.add((WorkflowTask)wft); // TODO: fix for nested workflow, --> we assume a nested workflow task doesn have its own QAchecks but rather the steps inside the nested workflow have, thus not an issue here
+        } // else { //We require that all constraints are set at once in a single command, 
+//            addConstraint(evt, qa, wft, awos);
+//        }        
         return awos;
     }
 
