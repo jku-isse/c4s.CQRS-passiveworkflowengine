@@ -40,8 +40,8 @@ public class JiraArtifact implements IJiraArtifact {
 
         this.issue = issue;
         this.status = new JiraStatus(issue.getStatus());
-        this.reporter = new JiraUser(issue.getReporter());
-        this.assignee = new JiraUser(issue.getAssignee());
+        this.reporter = issue.getReporter() != null ? new JiraUser(issue.getReporter()) : null;
+        this.assignee = issue.getAssignee() != null ? new JiraUser(issue.getAssignee()) : null;
         this.basicPriority = new JiraBasicPriority(issue.getPriority());
         this.issueType = new JiraIssueType(issue.getIssueType());
         this.basicProject = new JiraBasicProject(issue.getProject());
@@ -135,7 +135,7 @@ public class JiraArtifact implements IJiraArtifact {
     private String getHumanReadableResourceLinkEndpoint() {
 		
 		URI uri = getSelf();
-		String port = uri.getPort() == -1 ? "" : uri.getPort()+"";
+		String port = uri.getPort() == -1 ? "" : ":"+uri.getPort()+"";
 		String href = uri.getScheme()+"://"+uri.getHost()+port+"/browse/"+getKey();
 		return href;
 	}

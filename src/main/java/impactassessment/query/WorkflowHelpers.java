@@ -20,7 +20,7 @@ public class WorkflowHelpers {
         WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(id);
         if (!kieSessions.isInitialized(id) && wfiWrapper != null) {
             List<IArtifact> artifacts = wfiWrapper.getArtifacts();
-            log.info(">>INIT KB<<");
+            log.info(">>INIT KB for <<"+id);
             // if kieSession is not initialized, try to add all artifacts
             for (IArtifact artifact : artifacts) {
                 kieSessions.insertOrUpdate(id, artifact);

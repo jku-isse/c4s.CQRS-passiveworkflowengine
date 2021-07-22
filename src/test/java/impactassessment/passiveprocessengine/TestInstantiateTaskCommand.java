@@ -44,22 +44,22 @@ public class TestInstantiateTaskCommand {
     public void setup() {
         SpringConfig conf = new SpringConfig();
 
+        registry = new WorkflowDefinitionRegistry();
+        LocalRegisterService lrs = new LocalRegisterService(registry);
+        lrs.registerAll();
+
         IArtifactRegistry aRegistry = new ArtifactRegistry();
         ProjectionModel pModel = new ProjectionModel(aRegistry);
-        MockCommandGateway gw = new MockCommandGateway(aRegistry);
+        MockCommandGateway gw = new MockCommandGateway(aRegistry, registry);
 
         JiraChangeSubscriber jiraCS = new JiraChangeSubscriber(gw);
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
         JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw);
-        jamaS = conf.getJamaService(conf.getOnlineJamaInstance(conf.getJamaCache()), jamaCS);
+        jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 
         SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
-
-        registry = new WorkflowDefinitionRegistry();
-        LocalRegisterService lrs = new LocalRegisterService(registry);
-        lrs.registerAll();
 
         SimpleFrontendPusher fp = new SimpleFrontendPusher();
 
@@ -109,7 +109,7 @@ public class TestInstantiateTaskCommand {
         wfp.on(new Events.InstantiatedTaskEvt(id, "Execute", List.of(in), Collections.emptyList()), status);
         wfp.on(new Events.AddedOutputEvt(id, "Evaluate#"+id, new ArtifactIdentifier("DEMO-9", "IJiraArtifact"), "checkissue", "IJiraArtifact"), status);
 
-        // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE 
+        // --> Task Evaluate#TestId1 received (and ignored) for 'expectedSM' unexpected Event ACTIVATE for State ACTIVE
 
         Collection<WorkflowInstance> state = wfp.handle(new Queries.GetStateQuery("*")).getState();
         assertEquals(1, state.size());

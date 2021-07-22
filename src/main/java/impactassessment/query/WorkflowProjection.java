@@ -48,7 +48,7 @@ public class WorkflowProjection {
 
 	@EventHandler
 	public void on(CreatedWorkflowEvt evt, ReplayStatus status) {
-		log.debug("[PRJ] projecting {}", evt);
+		log.debug("[PRJ] projecting {} in {}", evt, status.toString());
 		//No Longer needed  evt.getArtifacts().forEach(e -> artifactRegistry.injectArtifactService(e.getValue(), evt.getId()));
 		KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
 		WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
@@ -57,6 +57,7 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
@@ -74,6 +75,7 @@ public class WorkflowProjection {
 		if (!status.isReplay()) {
 			kieSessions.setInitialized(evt.getId());
 			awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+			kieSessions.insertOrUpdate(evt.getId(), wfiWrapper.getWorkflowInstance());
 			kieSessions.fire(evt.getId());
 		}
 	}
@@ -94,7 +96,9 @@ public class WorkflowProjection {
 					kieSessions.insertOrUpdate(evt.getId(), ct);
 				}
 			});
-			kieSessions.fire(evt.getId());
+			if (awos.size() > 0) { //there was some impact, thus eval constraints
+				kieSessions.fire(evt.getId());
+			}
 		}
 	}
 
@@ -148,7 +152,7 @@ public class WorkflowProjection {
 
 	@EventHandler
 	public void on(AddedInputEvt evt, ReplayStatus status) {
-		log.debug("[PRJ] projecting {}", evt);
+		log.debug("[PRJ] projecting {} in {}", evt, status.toString());
 		//artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		IWorkflowTask wft = wfiWrapper.handle(evt);
@@ -172,6 +176,38 @@ public class WorkflowProjection {
 			ensureInitializedKB(kieSessions, projection, evt.getId());
 			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
+			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+
+	}
+	
+	@EventHandler
+	public void on(SetPostConditionsFulfillmentEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		//No Longer needed  artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		Set<AbstractWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			ensureInitializedKB(kieSessions, projection, evt.getId());
+			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
+			//insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
+			kieSessions.fire(evt.getId());
+			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		}
+
+	}
+	
+	@EventHandler
+	public void on(SetPreConditionsFulfillmentEvt evt, ReplayStatus status) {
+		log.debug("[PRJ] projecting {}", evt);
+		//No Longer needed  artifactRegistry.injectArtifactService(evt.getArtifact(), evt.getId());
+		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
+		Set<AbstractWorkflowInstanceObject> wios = wfiWrapper.handle(evt);
+		if (!status.isReplay()) {
+			ensureInitializedKB(kieSessions, projection, evt.getId());
+			wios.forEach(wio -> kieSessions.insertOrUpdate(evt.getId(), wio));
+			//insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedOutputEvt");
 			kieSessions.fire(evt.getId());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
@@ -234,11 +270,23 @@ public class WorkflowProjection {
 						}
 					}
 				}
+				// check if used as workflow input (as this is also used for triggering premature activation/completion of tasks
+				List<ArtifactIO> wftInOuts = new LinkedList<>();
+				wftInOuts.addAll(wfiWrapper.getWorkflowInstance().getInput());
+				wftInOuts.addAll(wfiWrapper.getWorkflowInstance().getOutput());
+				for (ArtifactIO io : wftInOuts) {
+					if (io.containsArtifact(art)) {
+						io.addOrReplaceArtifact(art);
+						awos.add(wfiWrapper.getWorkflowInstance()); // WFI must be updated in the kieSession
+					}
+				}
 			});
 		}
 
 		// CheckAllConstraints
 		awos.forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+		// insert Event as trigger for rule to react upon
+		kieSessions.insertOrUpdate(evt.getId(), evt);
 		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
 		kieSessions.fire(evt.getId());
 	}

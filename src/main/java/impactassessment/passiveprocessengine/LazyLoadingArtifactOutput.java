@@ -24,6 +24,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	public LazyLoadingArtifactOutput(Set<ArtifactIdentifier> ai, IArtifactRegistry reg, String wfi, String role) {
 		this.ai.addAll(ai);
 		this.reg = reg;
+		assert(reg!=null);
 		this.wfi = wfi;
 		super.setRole(role);
 	}
@@ -32,14 +33,30 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	public LazyLoadingArtifactOutput(ArtifactIdentifier ai, IArtifactRegistry reg, String wfi, String role) {
 		this.ai.add(ai);
 		this.reg = reg;
+		assert(reg!=null);
 		this.wfi = wfi;
 		super.setRole(role);
+	}
+	
+	
+	@Override
+	public void addOrReplaceArtifact(IArtifact artifact) {
+		super.addOrReplaceArtifact(artifact);
+		this.ai.add(artifact.getArtifactIdentifier()); //to keep identifiers synced with artifacts
+	}
+	
+	public void addOrReplaceArtifact(ArtifactIdentifier ai) {
+		this.ai.add(ai);
 	}
 	
 	@Override
 	public Set<IArtifact> getArtifacts() {
 		Set<IArtifact> artifacts = super.getArtifacts();
-		if (artifacts.size() == 0) {
+		if (artifacts.size() != ai.size()) { //then there is something to load
+			if (reg==null) {
+				String parent = super.getContainer() != null ? super.getContainer().getId() : "NOT SET";
+				log.warn("Registry ref is null for: "+this.getRole()+ " of "+parent);
+			} else {
 			for (ArtifactIdentifier aId : ai) {
 				Optional<IArtifact> artOpt = reg.get(aId, wfi);
 				if (artOpt.isPresent()) {
@@ -47,6 +64,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 				} else {
 					log.warn("Could not load artifact from registry:" + ai);
 				}
+			}
 			}
 			return super.getArtifacts();
 		} else

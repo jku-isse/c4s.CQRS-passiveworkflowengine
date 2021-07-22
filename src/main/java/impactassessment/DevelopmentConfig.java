@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.hibernate.SessionFactory;
-import org.springframework.core.io.ClassPathResource;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.google.inject.AbstractModule;
@@ -50,97 +49,106 @@ import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.registry.LocalRegisterService;
+import impactassessment.registry.WorkflowDefinitionRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
+
 
 public class DevelopmentConfig extends AbstractModule {
 
-	protected Logger log = LogManager.getLogger(DevelopmentConfig.class);
-	
-	
-	HibernateBackedCache jamaCache;
-	
-	private JamaService jamaS;
-	private c4s.jamaconnector.MonitoringScheduler jamaM;
-	private CacheStatus jamaStatus; 
-	private JamaInstance jamaI;
-	private JamaUpdateTracingInstrumentation jamaUTI;
-	
-	private CommandGateway gw;
-	
-	private JiraRestClient jrc;
-	private c4s.jiralightconnector.hibernate.HibernateBackedCache jiraCache;
-	private JiraUpdateTracingInstrumentation juti;
-	private JiraChangeSubscriber jiraCS;
-	private MonitoringState jiraM;
-	private JiraInstance jiraI;
-	private ArtifactRegistry artReg;
+    protected Logger log = LogManager.getLogger(DevelopmentConfig.class);
+
+    HibernateBackedCache jamaCache;
+
+    private JamaService jamaS;
+    private c4s.jamaconnector.MonitoringScheduler jamaM;
+    private CacheStatus jamaStatus;
+    private JamaInstance jamaI;
+    private JamaUpdateTracingInstrumentation jamaUTI;
+    private WorkflowDefinitionRegistry registry;
+    private CommandGateway gw;
+
+    private JiraRestClient jrc;
+    private c4s.jiralightconnector.hibernate.HibernateBackedCache jiraCache;
+    private JiraUpdateTracingInstrumentation juti;
+    private JiraChangeSubscriber jiraCS;
+    private MonitoringState jiraM;
+    private JiraInstance jiraI;
+    private ArtifactRegistry artReg;
 
 
-	
-	public DevelopmentConfig() {
-		artReg = new ArtifactRegistry();
-		gw = new MockCommandGateway(artReg);
-		jrc = setupJiraRestClient();
-		jiraCache = configJiraCache();
-		juti = setupJiraUpdateTracingInstrumentation();
-		jiraM = configJiraMonitoringState();
-		jiraCS = new JiraChangeSubscriber(gw);
-		
-		jamaCache = setupJamaCache();
-		jamaStatus = setupJamaCacheStatus();
-		jamaUTI = setupUpdateTraceInstrumentation();
-		jamaI = configOnlineJamaInstance();
-		jamaM = setupJamaMonitoringScheduler();
-		jamaS = configJamaService();
-	}
-	
-	protected void configure() {
-		bind(CommandGateway.class).toInstance(gw);
-		bind(IArtifactRegistry.class).toInstance(artReg);
-		bind(JiraRestClient.class).toInstance(jrc);
-		bind(JiraUpdateTracingInstrumentation.class).toInstance(juti);
-		bind(JiraChangeSubscriber.class).toInstance(jiraCS);
-		bind(ChangeSubscriber.class).toInstance(jiraCS);
-		bind(MonitoringState.class).toInstance(jiraM);
-		bind(IssueCache.class).toInstance(jiraCache);
-		bind(AnonymizingJiraInstance.class).asEagerSingleton();
-		bind(JamaInstance.class).toInstance(jamaI);
-		bind(JamaService.class).toInstance(jamaS);
-	}
-	
-	private static JiraService configJiraService(JiraInstance jiraI, JiraChangeSubscriber jiraCS) {
-		return new JiraService(jiraI, jiraCS);
-	}
-	
-	
-	private static Injector inj;
-	private static IJiraService jiraS;
-	
-	public static Injector getInjector() {
-		if (inj == null)
-			inj = Guice.createInjector(new DevelopmentConfig());
-		return inj;
-	}
-	
-	public static IJiraService getJiraService(boolean doCreateDemo) {
-		if (jiraS == null)
-			if (doCreateDemo) {
-				jiraS = new JiraJsonService();
-			} else 
-				jiraS = configJiraService(getInjector().getInstance(JiraInstance.class), getInjector().getInstance(JiraChangeSubscriber.class));	
-		return jiraS;
-	}
-	
-	
-   
+
+    public DevelopmentConfig() {
+        artReg = new ArtifactRegistry();
+        registry = new WorkflowDefinitionRegistry();
+        LocalRegisterService lrs = new LocalRegisterService(registry);
+        lrs.registerAll();
+        gw = new MockCommandGateway(artReg, registry);
+        jrc = setupJiraRestClient();
+        jiraCache = configJiraCache();
+        juti = setupJiraUpdateTracingInstrumentation();
+        jiraM = configJiraMonitoringState();
+        jiraCS = new JiraChangeSubscriber(gw);
+
+        jamaCache = setupJamaCache();
+        jamaStatus = setupJamaCacheStatus();
+        jamaUTI = setupUpdateTraceInstrumentation();
+        jamaI = configOnlineJamaInstance();
+        jamaM = setupJamaMonitoringScheduler();
+        jamaS = configJamaService();
+    }
+
+    protected void configure() {
+        bind(CommandGateway.class).toInstance(gw);
+        bind(IArtifactRegistry.class).toInstance(artReg);
+        bind(JiraRestClient.class).toInstance(jrc);
+        bind(JiraUpdateTracingInstrumentation.class).toInstance(juti);
+        bind(JiraChangeSubscriber.class).toInstance(jiraCS);
+        bind(ChangeSubscriber.class).toInstance(jiraCS);
+        bind(MonitoringState.class).toInstance(jiraM);
+        bind(IssueCache.class).toInstance(jiraCache);
+        bind(AnonymizingJiraInstance.class).asEagerSingleton();
+        bind(JamaInstance.class).toInstance(jamaI);
+        bind(JamaService.class).toInstance(jamaS);
+        bind(WorkflowDefinitionRegistry.class).toInstance(registry);
+    }
+
+    private static JiraService configJiraService(JiraInstance jiraI, JiraChangeSubscriber jiraCS) {
+        return new JiraService(jiraI, jiraCS);
+    }
+
+
+    private static Injector inj;
+    private static IJiraService jiraS;
+
+    public static Injector getInjector() {
+        if (inj == null)
+            inj = Guice.createInjector(new DevelopmentConfig());
+        return inj;
+    }
+
+    public static IJiraService getJiraService(boolean doCreateDemo) {
+        if (jiraS == null)
+            if (doCreateDemo) {
+                jiraS = new JiraJsonService();
+            } else
+                jiraS = configJiraService(getInjector().getInstance(JiraInstance.class), getInjector().getInstance(JiraChangeSubscriber.class));
+        return jiraS;
+    }
+
+
+
     private JiraRestClient setupJiraRestClient() {
         String uri =  getProp("jiraServerURI");
         String username =  getProp("jiraConnectorUsername");
         String pw =  getProp("jiraConnectorPassword");
         return new AnonymizingAsyncJiraRestClientFactory()
-			      .createWithBasicHttpAuthentication(URI.create(uri), username, pw);
+                .createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
-    
-   private JiraUpdateTracingInstrumentation setupJiraUpdateTracingInstrumentation() {
+
+    private JiraUpdateTracingInstrumentation setupJiraUpdateTracingInstrumentation() {
         return new JiraUpdateTracingInstrumentation() {
             @Override
             public void logJiraPollResult(CorrelationTuple correlationTuple, Set<String> set) {
@@ -153,45 +161,45 @@ public class DevelopmentConfig extends AbstractModule {
             }
         };
     }
-	
+
     private c4s.jiralightconnector.hibernate.HibernateBackedCache configJiraCache() {
-    	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
-				);
-    	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
-     }
+        SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
+                getProp("mysqlDBuser"),
+                getProp("mysqlDBpassword"),
+                getProp("mysqlURL")+"jiracache"
+        );
+        return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
+    }
 
     private MonitoringState configJiraMonitoringState() {
-    	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jiracache"				
-				);
-    	return new HibernateBackedMonitoringState(sf);
+        SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
+                getProp("mysqlDBuser"),
+                getProp("mysqlDBpassword"),
+                getProp("mysqlURL")+"jiracache"
+        );
+        return new HibernateBackedMonitoringState(sf);
     }
-    
+
     private JamaService configJamaService() {
-		jamaS = new JamaService(jamaI, new JamaChangeSubscriber(gw));
-		return jamaS;
-	}
-	
-	private CacheStatus setupJamaCacheStatus() {
-    	HibernateCacheStatus status = new HibernateCacheStatus(jamaCache);
-    	return status;
+        jamaS = new JamaService(jamaI, new JamaChangeSubscriber(gw));
+        return jamaS;
     }
-    
+
+    private CacheStatus setupJamaCacheStatus() {
+        HibernateCacheStatus status = new HibernateCacheStatus(jamaCache);
+        return status;
+    }
+
     private HibernateBackedCache setupJamaCache() {
-    	SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
-				getProp("mysqlDBuser"),
-				getProp("mysqlDBpassword"),
-				getProp("mysqlURL")+"jamacache"				
-				);
-		return new HibernateBackedCache(sf);
-     }
-	
-	private c4s.jamaconnector.MonitoringScheduler setupJamaMonitoringScheduler() {
+        SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
+                getProp("mysqlDBuser"),
+                getProp("mysqlDBpassword"),
+                getProp("mysqlURL")+"jamacache"
+        );
+        return new HibernateBackedCache(sf);
+    }
+
+    private c4s.jamaconnector.MonitoringScheduler setupJamaMonitoringScheduler() {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
         String projectIds =  getProp("jamaProjectIds");
         String[] ids = projectIds.split(",");
@@ -204,7 +212,7 @@ public class DevelopmentConfig extends AbstractModule {
         }
         return scheduler;
     }
-	
+
     private JamaInstance configOnlineJamaInstance() {
         JamaConfig jamaConf = new JamaConfig();
         jamaConf.setJson(new CachingJsonHandler(jamaCache));
@@ -226,11 +234,11 @@ public class DevelopmentConfig extends AbstractModule {
         jamaInst.enableAnonymizing();
         jamaCache.setJamaInstance(jamaInst);
         jamaInst.setResourcePool(new CachedResourcePool(jamaCache));
-        
+
         return jamaInst;
     }
-	
-    
+
+
     private JamaUpdateTracingInstrumentation setupUpdateTraceInstrumentation() {
         return new JamaUpdateTracingInstrumentation() {
             @Override
@@ -244,9 +252,9 @@ public class DevelopmentConfig extends AbstractModule {
             }
         };
     }
-    
+
     private Properties props = null;
-    
+
     private String getProp(String name) {
         return getProp(name, null);
     }
@@ -257,11 +265,11 @@ public class DevelopmentConfig extends AbstractModule {
         }
         String value = props.getProperty(name, defaultValue);
         if (value == null) {
-        	log.error("Required property "+name+" was not found in the application properties!");
+            log.error("Required property "+name+" was not found in the application properties!");
         }
         return value;
     }
-    
+
     private Properties getProps() {
         Properties props = new Properties();
         // try to use external first
@@ -270,7 +278,7 @@ public class DevelopmentConfig extends AbstractModule {
             props.load(reader);
             return props;
         } catch (IOException e1) {
-        	log.info("No properties file in default location (same directory as JAR) found! Using default props.");
+            log.info("No properties file in default location (same directory as JAR) found! Using default props.");
             try {
                 InputStream inputStream = new ClassPathResource("application.properties").getInputStream();
                 props.load(inputStream);
@@ -282,4 +290,5 @@ public class DevelopmentConfig extends AbstractModule {
         }
         return props;
     }
+
 }

@@ -37,8 +37,10 @@ public class WorkflowAggregate implements Serializable {
     private String parentWfiId; // also parent aggregate id
     private String parentWftId;
 
+    private boolean isNew = true;
+    
     public WorkflowAggregate() {
-        log.debug("[AGG] empty constructor WorkflowAggregate invoked");
+        log.info("[AGG] empty constructor WorkflowAggregate invoked");
     }
 
     public String getId() {
@@ -64,10 +66,13 @@ public class WorkflowAggregate implements Serializable {
 //    }
 
     @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
-        log.info("[AGG] handling {}", cmd);
-        Collection<Entry<String,IArtifact>> artifacts = createWorkflow(cmd.getId(), artifactRegistry, cmd.getInput());
+    public WorkflowAggregate(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
+    	log.info("[AGG] handling {}", cmd);
+        if (!this.isNew) {
+        	log.warn("[AGG] Attempt to create workflow again ignored "+cmd.getId());
+        	return;
+        } 
+        Collection<Entry<String,IArtifact>> artifacts = mapWorkflowInput(cmd.getId(), artifactRegistry, cmd.getInput());
         WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedWorkflowEvt(cmd.getId(), artifacts
@@ -79,8 +84,29 @@ public class WorkflowAggregate implements Serializable {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
     }
+    
+//    @CommandHandler
+//    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+//    public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
+//        log.info("[AGG] handling {}", cmd);
+//        if (!this.isNew) {
+//        	log.warn("Attempt to create workflow again ignored "+cmd.getId());
+//        	return;
+//        } 
+//        Collection<Entry<String,IArtifact>> artifacts = mapWorkflowInput(cmd.getId(), artifactRegistry, cmd.getInput());
+//        WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
+//        if (wfdContainer != null) {
+//            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts
+//            											.stream()
+//            											.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier())) 
+//            											.collect(Collectors.toList())
+//            								, cmd.getDefinitionName(), wfdContainer.getWfd()));
+//        } else {
+//            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+//        }
+//    }
 
-    private Collection<Entry<String,IArtifact>> createWorkflow(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
+    public static Collection<Entry<String,IArtifact>> mapWorkflowInput(String id, IArtifactRegistry artifactRegistry, Map<String, String> inputs) {
         List<Entry<String,IArtifact>> artifacts = new ArrayList<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String key = entry.getKey();
@@ -105,6 +131,10 @@ public class WorkflowAggregate implements Serializable {
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     public void handle(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {
         log.debug("[AGG] handling {}", cmd);
+        if (!this.isNew) {
+        	log.warn("[AGG] Attempt to create workflow again ignored "+cmd.getId());
+        	return;
+        } 
         WorkflowDefinitionContainer wfdContainer = registry.get(cmd.getDefinitionName());
         if (wfdContainer != null) {
             apply(new CreatedSubWorkflowEvt(cmd.getId(), cmd.getParentWfiId(), cmd.getParentWftId(), cmd.getDefinitionName(), wfdContainer.getWfd(), 
@@ -276,6 +306,7 @@ public class WorkflowAggregate implements Serializable {
     public void on(CreatedWorkflowEvt evt) {
         log.debug("[AGG] applying {}", evt);
         id = evt.getId();
+        this.isNew = false; //not we flag this aggreate as not new, as we just created it
     }
 
     @EventSourcingHandler
@@ -284,6 +315,7 @@ public class WorkflowAggregate implements Serializable {
         id = evt.getId();
         parentWfiId = evt.getParentWfiId();
         parentWftId = evt.getParentWftId();
+       	this.isNew = false; //not we flag this aggreate as not new, as we just created it
     }
 
     @EventSourcingHandler
