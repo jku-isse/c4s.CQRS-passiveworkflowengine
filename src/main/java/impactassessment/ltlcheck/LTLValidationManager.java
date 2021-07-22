@@ -1,0 +1,161 @@
+package impactassessment.ltlcheck;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
+
+import impactassessment.ltlcheck.LTLFormulaProvider.AvailableFormulas;
+import impactassessment.ltlcheck.ValidationUtil.ValidationSelection;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author chris
+ */
+@Slf4j
+public class LTLValidationManager {
+
+	/** utility **/
+	private static LTLValidationManager instance = null;
+
+	/**
+	 * This collection will contain one entry per workflow the
+	 * {@link LTLValidationManager} is called for. An entry is identified by a
+	 * string-value (i.e. a workflow-ID, etc.) which is paired with a HashMap. This
+	 * HashMap contains entries which map a formula-name to a Stack of type
+	 * ArrayList<ValidationResult> that in turn comprises lists with validation
+	 * results (one list per validation invocation) associated with one single
+	 * formula. This structure allows to store multiple validation results per
+	 * formula for an arbitrary amounts of formulas validated for a workflow. As we
+	 * use a stack, backwards comparison is done from top to bottom.
+	 **/
+	private ConcurrentHashMap<String, HashMap<String, Stack<ArrayList<ValidationResult>>>> checkResults;
+
+	private LTLValidationManager() {
+		checkResults = new ConcurrentHashMap<>();
+	}
+
+	public static LTLValidationManager getInstance() {
+		if (instance == null) {
+			instance = new LTLValidationManager();
+		}
+		return instance;
+	}
+
+	/**
+	 * Check if the process log (processLogObj) of workflow with workflowID
+	 * satisfies the LTL formula(s) denoted by ltlFormulaDefinitionKey.
+	 *
+	 * @param workflowID              The ID of the workflow the validation
+	 *                                procedure is to be invoked for.
+	 * @param processLogObj           Placeholder-object which will be the source
+	 *                                for the runtime-process-log creation (e.g. a
+	 *                                workflow-object that contains all necessary
+	 *                                information to derive a valid process log).
+	 * @param ltlFormulaDefinitionKey Enum-value identifying which of the formulas
+	 *                                that have been defined in
+	 *                                {@link LTLFormulaProvider} should be validated
+	 *                                against a process log (this only allows the
+	 *                                use of static formulas that are valid for
+	 *                                every workflow and can thus be defined at
+	 *                                design time).
+	 * @param validationSelection     Value indicating if a certain defined formula
+	 *                                should be validated against a process log
+	 *                                (e.g. ValidationSelection.SPECIAL), or if all
+	 *                                formulas (ValidationSelection.ALL)
+	 *                                respectively an arbitrary one
+	 *                                (ValidationSelection.ANY) should be evaluated.
+	 *                                For the last two options (ALL, ANY)
+	 *                                <code>ltlFormulaDefinitionKey</code> should be
+	 *                                mapped to a definition containing multiple
+	 *                                formulas to make sense (therefore a
+	 *                                <code>ltlFormulaDefinitionKey</code> with the
+	 *                                prefix MULT should be used, but there is no
+	 *                                necessity for it).
+	 */
+	private void checkTraceAndStoreResult(String workflowID, Object processLogObj,
+			AvailableFormulas ltlFormulaDefinitionKey, ValidationSelection validationSelection) {
+		// TODO adapt description of method and think of implementation for
+		// processLogObj and ltlFormulaDefinitionKey.
+		if (!checkResults.containsKey(workflowID)) {
+			HashMap<String, Stack<ArrayList<ValidationResult>>> workflowMap = new HashMap<>();
+			Stack<ArrayList<ValidationResult>> resultStack = new Stack<ArrayList<ValidationResult>>();
+			resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, validationSelection));
+			workflowMap.put(ltlFormulaDefinitionKey.toString(), resultStack);
+			checkResults.put(workflowID, workflowMap);
+		} else {
+			checkResults.get(workflowID).get(ltlFormulaDefinitionKey.toString())
+					.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, validationSelection));
+		}
+	}
+
+	/**
+	 * Evaluate if the most recent execution of the validation algorithm for a
+	 * certain formula resulted in the same set of failed and successful process
+	 * instances or if anything changed for the better or worst.
+	 *
+	 * @param workflowID           The ID of the workflow whose most recent two
+	 *                             validation results for a certain formula should
+	 *                             be compared with one another.
+	 * @param formulaDefinitionKey The identifier of the formula associated with the
+	 *                             validation results to be compared.
+	 */
+	private void evaluateResults(String workflowID, AvailableFormulas formulaDefinitionKey) {
+		Stack<ArrayList<ValidationResult>> tempStack = checkResults.get(workflowID)
+				.get(formulaDefinitionKey.toString());
+
+		if (tempStack == null) {
+			log.debug("No trace validations of formula " + formulaDefinitionKey.toString()
+					+ " have been conducted for workflow " + workflowID + " yet.");
+			return;
+		} else if (tempStack.size() < 2) {
+			log.debug("Only one validation of formula " + formulaDefinitionKey.toString()
+					+ " has been conducted for workflow " + workflowID + " yet. No result comparison possible.");
+			return;
+		}
+
+		ArrayList<ValidationResult> topResult = tempStack.elementAt(0);
+		ArrayList<ValidationResult> olderResult = tempStack.elementAt(1);
+
+		Integer aggregateTop = topResult.stream().mapToInt(x -> x.getNrOfGoodResults()).sum();
+		Integer aggregateTopBadResults = topResult.stream().mapToInt(x -> x.getNrOfBadResults()).sum();
+		Integer aggregateOld = olderResult.stream().mapToInt(x -> x.getNrOfGoodResults()).sum();
+
+		int cmp = aggregateTop.compareTo(aggregateOld);
+		if (cmp > 0) {
+			if (aggregateTopBadResults == 0) {
+				log.debug("No trace violations detected in the most recent validation.");
+			}
+		} else if (cmp < 0) {
+			log.debug("The most recent validation yields more violations than the previous.");
+		} else {
+			log.debug("The most recent validation yields the same result as the previous.");
+		}
+	}
+
+	/**
+	 * Clear all present validation results for the workflow identified by
+	 * workflowID.
+	 *
+	 * @param workflowID The ID of the workflow whose validation results should be
+	 *                   cleared.
+	 * @return true if results have been cleared, false otherwise (if no results are
+	 *         present yet)
+	 */
+	public boolean clearResults(String workflowID) {
+		if (checkResults.containsKey(workflowID)) {
+			checkResults.get(workflowID).clear();
+			return true;
+		}
+		return false;
+	}
+
+	public static void main(String[] args) {
+		// LTLValidationManager.getInstance().checkTraceAndStoreResult("workflow1",
+		// null, AvailableFormulas.MULT_TEST,
+		// ValidationSelection.ANY);
+		LTLValidationManager.getInstance().checkTraceAndStoreResult("workflow1", null,
+				AvailableFormulas.COMPLEX_FORMULA, ValidationSelection.SPECIAL);
+		LTLValidationManager.getInstance().evaluateResults("workflow1", AvailableFormulas.COMPLEX_FORMULA);
+	}
+}
