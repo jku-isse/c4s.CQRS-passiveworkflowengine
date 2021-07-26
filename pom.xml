@@ -367,26 +367,22 @@
             <version>2.2.5.RELEASE</version>
             <scope>test</scope>
         </dependency>
+        
+        <!-- Process Mining -->
         <dependency>
         	<groupId>org.processmining.analysis.ltlchecker</groupId>
         	<artifactId>ltlchecker</artifactId>
         	<version>1.0</version>
-        	<scope>system</scope>
-        	<systemPath>${basedir}/libs/ltlchecker.jar</systemPath>
         </dependency>
         <dependency>
         	<groupId>org.processmining.analysis.ltltemplate</groupId>
         	<artifactId>ltltemplate</artifactId>
         	<version>1.0</version>
-        	<scope>system</scope>
-        	<systemPath>${basedir}/libs/ltltemplate.jar</systemPath>
         </dependency>
         <dependency>
         	<groupId>org.processmining</groupId>
         	<artifactId>prom-framework</artifactId>
         	<version>5.2</version>
-        	<scope>system</scope>
-        	<systemPath>${basedir}/libs/ProM.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -491,6 +487,50 @@
                             <groupId>at.jku.isse.designspace.sdk</groupId>
                             <artifactId>main</artifactId>
                             <version>${designspace.main.version}</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                    
+                    <!-- Process Mining -->
+                    <execution>
+                        <id>install-ltlchecker</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/libs/ltlchecker.jar</file>
+                            <groupId>org.processmining.analysis.ltlchecker</groupId>
+        					<artifactId>ltlchecker</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install-ltltemplate</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/libs/ltltemplate.jar</file>
+                            <groupId>org.processmining.analysis.ltltemplate</groupId>
+        					<artifactId>ltltemplate</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install-prom</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/libs/ProM.jar</file>
+                            <groupId>org.processmining</groupId>
+        					<artifactId>prom-framework</artifactId>
+                            <version>5.2</version>
                             <packaging>jar</packaging>
                         </configuration>
                         <goals>

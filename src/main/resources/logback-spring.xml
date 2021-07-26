@@ -65,5 +65,9 @@
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>
-
+	<logger name="impactassessment.ltlcheck" level="info" additivity="false">
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </logger>
+	
 </configuration>
