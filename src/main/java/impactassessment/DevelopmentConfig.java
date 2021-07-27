@@ -48,6 +48,7 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
@@ -90,7 +91,7 @@ public class DevelopmentConfig extends AbstractModule {
         jiraCache = configJiraCache();
         juti = setupJiraUpdateTracingInstrumentation();
         jiraM = configJiraMonitoringState();
-        jiraCS = new JiraChangeSubscriber(gw);
+        jiraCS = new JiraChangeSubscriber(gw, new InMemoryPerProcessArtifactUsagePersistor());
 
         jamaCache = setupJamaCache();
         jamaStatus = setupJamaCacheStatus();
@@ -181,7 +182,7 @@ public class DevelopmentConfig extends AbstractModule {
     }
 
     private JamaService configJamaService() {
-        jamaS = new JamaService(jamaI, new JamaChangeSubscriber(gw));
+        jamaS = new JamaService(jamaI, new JamaChangeSubscriber(gw, new InMemoryPerProcessArtifactUsagePersistor()));
         return jamaS;
     }
 

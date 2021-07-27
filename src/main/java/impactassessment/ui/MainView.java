@@ -126,9 +126,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         super.onAttach(attachEvent);
         pusher.setUi(attachEvent.getUI());
         pusher.setView(this);
-        grids.stream()
-                .filter(com.vaadin.flow.component.Component::isVisible)
-                .forEach(this::refresh);
+        //grids.stream()
+        //        .filter(com.vaadin.flow.component.Component::isVisible)
+        //        .forEach(this::refresh);
+        if (grids.stream().anyMatch(com.vaadin.flow.component.Component::isVisible))
+        	this.refresh(null);
+                
     }
 
     @Override

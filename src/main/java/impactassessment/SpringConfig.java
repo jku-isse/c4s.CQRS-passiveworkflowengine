@@ -49,6 +49,9 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
+import impactassessment.artifactconnector.usage.HibernatePerProcessArtifactUsagePersistor;
+import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
+import impactassessment.artifactconnector.usage.PerProcessArtifactUsagePersistor;
 import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
@@ -287,19 +290,20 @@ public class SpringConfig {
 
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public IJiraService getJiraService(IJiraInstance jiraInstance, JiraChangeSubscriber jiraChangeSubscriber) {
         return new JiraService(jiraInstance, jiraChangeSubscriber);
     }
 
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public MonitoringScheduler getJiraMonitoringScheduler(IJiraInstance jiraInstance, IssueCache issueCache) {
         String minutes = env.getProperty("pollIntervalInMinutes");
-        ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));
+        ChangeStreamPoller changeStreamPoller = new ChangeStreamPoller(Integer.parseInt(minutes));        
         changeStreamPoller.setJi(jiraInstance);
         changeStreamPoller.setCache(issueCache);
+        changeStreamPoller.initLastCacheRefresh();
         MonitoringScheduler scheduler = new MonitoringScheduler();
         scheduler.registerAndStartTask(changeStreamPoller);
         return scheduler;
@@ -307,14 +311,32 @@ public class SpringConfig {
 
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public IJiraInstance getJiraInstance(IssueCache issueCache, ChangeSubscriber changeSubscriber, MonitoringState monitoringState) {
         return new JiraInstance(issueCache, changeSubscriber, monitoringState);
     }
 
+    
+    @Bean(name="jira")
+    @Primary
+    @ConditionalOnExpression("${jira.live.enabled:false}")
+    public PerProcessArtifactUsagePersistor getHibernatePerProcessArtifactUsagePersistor() {
+    	SessionFactory sf = impactassessment.artifactconnector.usage.ConnectionBuilder.createConnection(
+                env.getProperty("mysqlDBuser"),
+                env.getProperty("mysqlDBpassword"),
+                env.getProperty("mysqlURL")+"jiracache"
+				);
+    	return new HibernatePerProcessArtifactUsagePersistor(sf);
+    }
+    
+//    @Bean(name="jira")    
+//    public PerProcessArtifactUsagePersistor getInMemoryPerProcessArtifactUsagePersistor() {    	
+//    	return new InMemoryPerProcessArtifactUsagePersistor();
+//    }
+    
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public IssueCache getJiraCache() {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
                 env.getProperty("mysqlDBuser"),
@@ -326,7 +348,7 @@ public class SpringConfig {
     
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public MonitoringState getJiraMonitoringState() {
 //        return new InMemoryMonitoringState();
         SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
@@ -339,7 +361,7 @@ public class SpringConfig {
 
     @Bean
     @Primary
-    @ConditionalOnExpression("${jira.live.enabled:true}")
+    @ConditionalOnExpression("${jira.live.enabled:false}")
     public JiraRestClient getJiraRestClient() {
         String uri = env.getProperty("jiraServerURI");
         String username = env.getProperty("jiraConnectorUsername");
@@ -370,7 +392,7 @@ public class SpringConfig {
     //------------------------------------------------------------------------------------------------------------------
 
     @Bean
-    @ConditionalOnExpression("${jira.demo.enabled:true}")
+    @ConditionalOnExpression("${jira.demo.enabled:false}")
     public IJiraService getJiraJsonService() {
         return new JiraJsonService();
     }
@@ -431,13 +453,14 @@ public class SpringConfig {
     private final boolean USE_DEV_COUCH_DB_FOR_JAMA = false; // FIXME: MUST BE >>>false<<< IN PRODUCTION BUILD!!!
 
     @Bean
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @Primary
+    @ConditionalOnExpression("${jama.enabled:false}")
     public IJamaService getJamaService(JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
         return new JamaService(jamaInstance, jamaChangeSubscriber);
     }
 
     @Bean
-    @ConditionalOnExpression("${jama.enabled} == false")
+    //@ConditionalOnExpression("${jama.enabled} == false")
     public IJamaService getJamaServiceMock() {
         return new IJamaService(){
 
@@ -502,7 +525,7 @@ public class SpringConfig {
     
     @Bean
     @Primary
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @ConditionalOnExpression("${jama.enabled:false}")
     public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
         String projectIds = env.getProperty("jamaProjectIds");
@@ -518,6 +541,8 @@ public class SpringConfig {
     }
 
 
+    
+
     @Bean
     public c4s.jamaconnector.MonitoringScheduler getEmptyJamaMonitoringScheduler() {
         return new c4s.jamaconnector.MonitoringScheduler(); // empty scheduler without pollers
@@ -525,7 +550,7 @@ public class SpringConfig {
 
 
     @Bean
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @ConditionalOnExpression("${jama.enabled:false}")
     public CacheStatus getJamaCacheStatus(JamaCache cache) {
         CacheStatus cacheStatus;
         if (USE_DEV_COUCH_DB_FOR_JAMA) {
@@ -537,7 +562,7 @@ public class SpringConfig {
     }
 
     @Bean
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @ConditionalOnExpression("${jama.enabled:false}")
     public JamaCache getJamaCache() {
         JamaCache jamaCache;
         if (USE_DEV_COUCH_DB_FOR_JAMA) {
@@ -563,8 +588,25 @@ public class SpringConfig {
         return jamaCache;
     }
 
+    @Bean(name="jama")
+    @Primary
+    @ConditionalOnExpression("${jama.enabled:false}")
+    public PerProcessArtifactUsagePersistor getJamaHibernatePerProcessArtifactUsagePersistor() {
+    	SessionFactory sf = impactassessment.artifactconnector.usage.ConnectionBuilder.createConnection(
+                env.getProperty("mysqlDBuser"),
+                env.getProperty("mysqlDBpassword"),
+                env.getProperty("mysqlURL")+"jamacache"
+				);
+    	return new HibernatePerProcessArtifactUsagePersistor(sf);
+    }
+    
+    @Bean(name="jama")    
+    public PerProcessArtifactUsagePersistor getJamaInMemoryPerProcessArtifactUsagePersistor() {
+    	return new InMemoryPerProcessArtifactUsagePersistor();
+    }
+    
     @Bean
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @ConditionalOnExpression("${jama.enabled:false}")
     public JamaInstance getJamaInstance(JamaCache cache) {
         JamaInstance jamaInst;
         if (USE_DEV_COUCH_DB_FOR_JAMA) {
@@ -608,7 +650,7 @@ public class SpringConfig {
     }
 
     @Bean
-    @ConditionalOnExpression("${jama.enabled:true}")
+    @ConditionalOnExpression("${jama.enabled:false}")
     public JamaUpdateTracingInstrumentation getUpdateTraceInstrumentation() {
         return new JamaUpdateTracingInstrumentation() {
             @Override
