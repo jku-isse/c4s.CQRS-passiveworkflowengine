@@ -50,8 +50,15 @@ import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.kiesession.IKieSessionService;
+import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.ProjectionModel;
+import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.ui.IFrontendPusher;
+import impactassessment.ui.SimpleFrontendPusher;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -79,7 +86,9 @@ public class DevelopmentConfig extends AbstractModule {
     private JiraInstance jiraI;
     private ArtifactRegistry artReg;
 
-
+    WorkflowProjection wfp;
+	ProjectionModel pModel;
+	IKieSessionService kieS;
 
     public DevelopmentConfig() {
         artReg = new ArtifactRegistry();
@@ -99,6 +108,12 @@ public class DevelopmentConfig extends AbstractModule {
         jamaI = configOnlineJamaInstance();
         jamaM = setupJamaMonitoringScheduler();
         jamaS = configJamaService();
+        pModel = new ProjectionModel(artReg);
+        kieS = new SimpleKieSessionService(gw, artReg);
+        IFrontendPusher fp = new SimpleFrontendPusher();
+        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg);
+		((MockCommandGateway)gw).setWorkflowProjection(wfp);
+
     }
 
     protected void configure() {
@@ -114,6 +129,9 @@ public class DevelopmentConfig extends AbstractModule {
         bind(JamaInstance.class).toInstance(jamaI);
         bind(JamaService.class).toInstance(jamaS);
         bind(WorkflowDefinitionRegistry.class).toInstance(registry);
+		bind(WorkflowProjection.class).toInstance(wfp);
+		bind(IKieSessionService.class).toInstance(kieS);
+		bind(ProjectionModel.class).toInstance(pModel);
     }
 
     private static JiraService configJiraService(JiraInstance jiraI, JiraChangeSubscriber jiraCS) {
@@ -275,7 +293,7 @@ public class DevelopmentConfig extends AbstractModule {
         Properties props = new Properties();
         // try to use external first
         try {
-            FileReader reader = new FileReader(new File("./main.properties"));
+            FileReader reader = new FileReader(new File("./application.properties"));
             props.load(reader);
             return props;
         } catch (IOException e1) {
