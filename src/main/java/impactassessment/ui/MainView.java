@@ -4,10 +4,7 @@ import artifactapi.ArtifactType;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -124,14 +121,18 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        pusher.setUi(attachEvent.getUI());
-        pusher.setView(this);
+        pusher.add(attachEvent.getUI().getUIId(), attachEvent.getUI(), this);
         //grids.stream()
         //        .filter(com.vaadin.flow.component.Component::isVisible)
         //        .forEach(this::refresh);
         if (grids.stream().anyMatch(com.vaadin.flow.component.Component::isVisible))
         	this.refresh(null);
-                
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        pusher.remove(detachEvent.getUI().getUIId());
     }
 
     @Override

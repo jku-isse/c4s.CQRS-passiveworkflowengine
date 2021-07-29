@@ -3,6 +3,7 @@ package impactassessment.ui;
 
 import java.util.Collection;
 
+import com.vaadin.flow.component.UI;
 import passiveprocessengine.instance.WorkflowInstance;
 
 public interface IFrontendPusher {
@@ -13,7 +14,7 @@ public interface IFrontendPusher {
     
     void remove(String wfiId);
 
-    void setUi(com.vaadin.flow.component.UI ui);
+    void add(int id, UI ui, MainView view);
 
-    void setView(MainView view);
+    void remove(int id);
 }

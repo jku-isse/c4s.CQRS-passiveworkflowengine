@@ -32,8 +32,10 @@ public abstract class AbstractRegisterService implements IRegisterService {
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
         registerAll();
-        if (replayer != null)
+        if (replayer != null) {
             replayer.replay("projection");
+            // TODO refresh cmd
+        }
     }
 
 }

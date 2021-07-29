@@ -4,7 +4,6 @@ import com.vaadin.flow.component.UI;
 import passiveprocessengine.instance.WorkflowInstance;
 
 import java.util.Collection;
-import java.util.List;
 
 public class SimpleFrontendPusher implements IFrontendPusher {
 
@@ -19,16 +18,16 @@ public class SimpleFrontendPusher implements IFrontendPusher {
     }
 
     @Override
-    public void setUi(UI ui) {
+    public void add(int id, UI ui, MainView view) {
         // no op
     }
 
     @Override
-    public void setView(MainView view) {
+    public void remove(int id) {
         // no op
     }
 
-	@Override
+    @Override
 	public void update(Collection<WorkflowInstance> wfis) {
 		// noop		
 	}
