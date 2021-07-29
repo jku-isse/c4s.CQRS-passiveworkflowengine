@@ -26,15 +26,21 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+
 public class JamaChangeSubscriber implements IJamaChangeSubscriber {
 
     private final CommandGateway commandGateway;
-    @Qualifier("jama")
-    @Autowired
+    
+     
     private final PerProcessArtifactUsagePersistor usage;
     private ConcurrentMap<String, JamaDataScope> scopes = new ConcurrentHashMap<>();
 
+    
+    public JamaChangeSubscriber(CommandGateway commandGateway,  @Qualifier("jama") PerProcessArtifactUsagePersistor usage) {
+    	this.commandGateway = commandGateway;
+    	this.usage = usage;
+    }
+    
     @Override
     public void handleChangedJamaItems(Set<JamaItem> set, CorrelationTuple correlationTuple) {
     	log.info("handleUpdateIssues");

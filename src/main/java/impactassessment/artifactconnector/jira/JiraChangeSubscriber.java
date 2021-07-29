@@ -20,16 +20,21 @@ import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+
 public class JiraChangeSubscriber implements ChangeSubscriber {
 
     private final CommandGateway commandGateway;
-    @Qualifier("jira")
-    @Autowired
+    
     private final PerProcessArtifactUsagePersistor usage;
     // Map<workflowId, Set<artifactKey>>
     //private ConcurrentMap<JiraDataScope, Set<String>> artifactUsages = new ConcurrentHashMap<>();
     private ConcurrentMap<String, JiraDataScope> scopes = new ConcurrentHashMap<>();
+
+    public JiraChangeSubscriber(CommandGateway commandGateway, @Qualifier("jira") PerProcessArtifactUsagePersistor usage) {
+    	this.commandGateway = commandGateway;
+    	this.usage = usage;
+    }
+    
     
     public void addUsage(JiraDataScope scope, ArtifactIdentifier id) {
         usage.addUsage(scope.getScopeId(), id);

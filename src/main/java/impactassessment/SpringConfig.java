@@ -318,7 +318,6 @@ public class SpringConfig {
 
     
     @Bean(name="jira")
-    @Primary
     @ConditionalOnExpression("${jira.live.enabled:false}")
     public PerProcessArtifactUsagePersistor getHibernatePerProcessArtifactUsagePersistor() {
     	SessionFactory sf = impactassessment.artifactconnector.usage.ConnectionBuilder.createConnection(
@@ -581,7 +580,7 @@ public class SpringConfig {
             SessionFactory sf = c4s.jamaconnector.cache.hibernate.ConnectionBuilder.createConnection(
                     env.getProperty("mysqlDBuser"),
                     env.getProperty("mysqlDBpassword"),
-                    env.getProperty("mysqlURL")+"jamacache"
+                    env.getProperty("mysqlURL")+"jamacache?serverTimezone=UTC"
             );
             jamaCache = new HibernateBackedCache(sf);
         }
@@ -589,18 +588,18 @@ public class SpringConfig {
     }
 
     @Bean(name="jama")
-    @Primary
     @ConditionalOnExpression("${jama.enabled:false}")
     public PerProcessArtifactUsagePersistor getJamaHibernatePerProcessArtifactUsagePersistor() {
     	SessionFactory sf = impactassessment.artifactconnector.usage.ConnectionBuilder.createConnection(
                 env.getProperty("mysqlDBuser"),
                 env.getProperty("mysqlDBpassword"),
-                env.getProperty("mysqlURL")+"jamacache"
+                env.getProperty("mysqlURL")+"jamacache?serverTimezone=UTC"
 				);
     	return new HibernatePerProcessArtifactUsagePersistor(sf);
     }
     
     @Bean(name="jama")    
+    @ConditionalOnExpression("${jama.enabled:false} == false")
     public PerProcessArtifactUsagePersistor getJamaInMemoryPerProcessArtifactUsagePersistor() {
     	return new InMemoryPerProcessArtifactUsagePersistor();
     }
