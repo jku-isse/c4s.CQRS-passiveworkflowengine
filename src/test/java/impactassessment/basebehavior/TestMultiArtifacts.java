@@ -4,13 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,22 +12,15 @@ import org.junit.Test;
 import com.google.inject.Injector;
 
 import artifactapi.ArtifactIdentifier;
-import artifactapi.IArtifact;
-import artifactapi.IArtifactRegistry;
-
 import impactassessment.api.Events.*;
 import impactassessment.api.Queries.PrintKBQuery;
+import impactassessment.artifactconnector.demo.Basic1Artifacts;
 import impactassessment.artifactconnector.demo.DemoRequirement;
 import impactassessment.artifactconnector.demo.DemoService;
-import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
-import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
-import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
-import impactassessment.ui.IFrontendPusher;
-import impactassessment.ui.SimpleFrontendPusher;
 import passiveprocessengine.definition.TaskLifecycle.State;
 import passiveprocessengine.instance.WorkflowInstance;
 

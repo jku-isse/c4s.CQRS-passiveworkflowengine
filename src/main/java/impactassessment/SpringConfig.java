@@ -42,6 +42,8 @@ import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaProject
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.artifactconnector.demo.Basic1Artifacts;
+import impactassessment.artifactconnector.demo.DemoService;
 import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
@@ -141,15 +143,20 @@ public class SpringConfig {
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(IInstanceService<PolarionArtifact> polarion, IJamaService jamaS, IJiraService jiraS) {
+    public IArtifactRegistry getArtifactRegistry(IInstanceService<PolarionArtifact> polarion, IJamaService jamaS, IJiraService jiraS, DemoService ds) {
         IArtifactRegistry registry = new ArtifactRegistry();
-//        SpringUtil.getBean(PolarionInstanceService.class).ifPresent(service -> registry.register(service));
-//        SpringUtil.getBean(IJiraService.class).ifPresent(service -> registry.register(service));
-//        SpringUtil.getBean(IJamaService.class).ifPresent(service -> registry.register(service));
         registry.register(polarion);
         registry.register(jamaS);
-        registry.register(jiraS);
+        registry.register(jiraS);        
+        registry.register(ds);
         return registry;
+    }
+    
+    @Bean
+    public DemoService getDemoArtifactService() {
+    	DemoService ds = new DemoService();
+    	Basic1Artifacts.initServiceWithReq(ds);
+    	return ds;
     }
     
     @Bean

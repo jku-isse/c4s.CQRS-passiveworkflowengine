@@ -1,7 +1,4 @@
-package impactassessment.basebehavior;
-
-import impactassessment.artifactconnector.demo.DemoRequirement;
-import impactassessment.artifactconnector.demo.DemoService;
+package impactassessment.artifactconnector.demo;
 
 public class Basic1Artifacts {
 
