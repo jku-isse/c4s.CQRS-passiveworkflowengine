@@ -162,7 +162,7 @@ public class SpringConfig {
     
     @Bean
     @Primary
-    @ConditionalOnExpression("${polarion.enabled:true}")
+    @ConditionalOnExpression("${polarion.enabled:false}")
     public IInstanceService<PolarionArtifact> getPolarionService(DesignspaceChangeSubscriber designspaceChangeSubscriber) {
     	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
     	PolarionInstanceService  polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
@@ -307,6 +307,8 @@ public class SpringConfig {
     //------------------------------------------------JIRA--------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
+
+
     @Bean
     @Primary
     @ConditionalOnExpression("${jira.live.enabled:false}")
@@ -345,6 +347,12 @@ public class SpringConfig {
                 env.getProperty("mysqlURL")+"jiracache"
 				);
     	return new HibernatePerProcessArtifactUsagePersistor(sf);
+    }
+
+    @Bean(name="jira")
+    @ConditionalOnExpression("${jama.enabled:false} == false")
+    public PerProcessArtifactUsagePersistor getJiraInMemoryPerProcessArtifactUsagePersistor() {
+        return new InMemoryPerProcessArtifactUsagePersistor();
     }
     
 //    @Bean(name="jira")    
@@ -424,7 +432,7 @@ public class SpringConfig {
     //---------------------------------------------JIRA via Designspace-------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
     @Bean
-    @ConditionalOnExpression("${jira.designspace.enabled:true}")
+    @ConditionalOnExpression("${jira.designspace.enabled:false}")
     public IJiraService getJiraDesignspaceService(DesignspaceChangeSubscriber jiraDesignspaceChangeSubscriber) {
         User user_ = DesignSpace.registerUser("felix");
         InstanceService<JiraArtifact> js_ = new InstanceService<JiraArtifact>(user_, Service.JIRA, JiraArtifact.class, IJiraArtifact.class);
