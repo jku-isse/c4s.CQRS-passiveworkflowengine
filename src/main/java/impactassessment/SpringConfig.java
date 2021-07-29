@@ -7,6 +7,7 @@ import artifactapi.jama.IJamaArtifact;
 import artifactapi.jama.subtypes.IJamaProjectArtifact;
 import artifactapi.jama.subtypes.IJamaUserArtifact;
 import artifactapi.jira.IJiraArtifact;
+import at.jku.designspace.sdk.clientservice.IDesignspaceChangeSubscriber;
 import at.jku.designspace.sdk.clientservice.InstanceService;
 import at.jku.designspace.sdk.clientservice.PolarionInstanceService;
 import at.jku.designspace.sdk.clientservice.Service;
@@ -162,10 +163,11 @@ public class SpringConfig {
     @Bean
     @Primary
     @ConditionalOnExpression("${polarion.enabled:false}")
-    public IInstanceService<PolarionArtifact> getPolarionService() {
+    public IInstanceService<PolarionArtifact> getPolarionService(DesignspaceChangeSubscriber designspaceChangeSubscriber) {
     	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
     	PolarionInstanceService  polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
-	    return polarionService;
+	    polarionService.addChangeSubscriber(designspaceChangeSubscriber);
+    	return polarionService;
     }
     
     @Bean
@@ -241,8 +243,18 @@ public class SpringConfig {
 			public Service getServiceType() {
 				return null;
 			}
-    		
-    	};
+
+            @Override
+            public void addChangeSubscriber(IDesignspaceChangeSubscriber iDesignspaceChangeSubscriber) {
+
+            }
+
+            @Override
+            public void removeChangeSubscriber(IDesignspaceChangeSubscriber iDesignspaceChangeSubscriber) {
+
+            }
+
+        };
     }
     
     //------------------------------------------------------------------------------------------------------------------
@@ -295,6 +307,8 @@ public class SpringConfig {
     //------------------------------------------------JIRA--------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
+
+
     @Bean
     @Primary
     @ConditionalOnExpression("${jira.live.enabled:false}")
@@ -333,6 +347,12 @@ public class SpringConfig {
                 env.getProperty("mysqlURL")+"jiracache?serverTimezone=UTC"
 				);
     	return new HibernatePerProcessArtifactUsagePersistor(sf);
+    }
+
+    @Bean(name="jira")
+    @ConditionalOnExpression("${jama.enabled:false} == false")
+    public PerProcessArtifactUsagePersistor getJiraInMemoryPerProcessArtifactUsagePersistor() {
+        return new InMemoryPerProcessArtifactUsagePersistor();
     }
     
 //    @Bean(name="jira")    
@@ -413,10 +433,14 @@ public class SpringConfig {
     //------------------------------------------------------------------------------------------------------------------
     @Bean
     @ConditionalOnExpression("${jira.designspace.enabled:false}")
-    public IJiraService getJiraDesignspaceService() {
+    public IJiraService getJiraDesignspaceService(DesignspaceChangeSubscriber jiraDesignspaceChangeSubscriber) {
+        User user_ = DesignSpace.registerUser("felix");
+        InstanceService<JiraArtifact> js_ = new InstanceService<JiraArtifact>(user_, Service.JIRA, JiraArtifact.class, IJiraArtifact.class);
+
+        js_.addChangeSubscriber(jiraDesignspaceChangeSubscriber);
     	return new IJiraService() {
-    		User user = DesignSpace.registerUser("felix");
-    		InstanceService<JiraArtifact> js = new InstanceService<JiraArtifact>(user, Service.JIRA, JiraArtifact.class, IJiraArtifact.class);
+            User user = user_;
+            InstanceService<JiraArtifact> js = js_;
 			
     		public boolean provides(String type) {
 				return js.provides(type);
