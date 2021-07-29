@@ -388,6 +388,8 @@ public class WorkflowInstanceWrapper {
             handle((AddedOutputToWorkflowEvt) evt);
         } else if (evt instanceof SetPreConditionsFulfillmentEvt) {
             handle((SetPreConditionsFulfillmentEvt) evt);
+        } else if (evt instanceof SetPostConditionsFulfillmentEvt) {
+            handle((SetPostConditionsFulfillmentEvt) evt);
         } else if (evt instanceof ActivatedTaskEvt) {
             handle((ActivatedTaskEvt) evt);
         } else if (evt instanceof SetPropertiesEvt) {
