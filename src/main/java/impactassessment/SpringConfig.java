@@ -330,7 +330,7 @@ public class SpringConfig {
     	SessionFactory sf = impactassessment.artifactconnector.usage.ConnectionBuilder.createConnection(
                 env.getProperty("mysqlDBuser"),
                 env.getProperty("mysqlDBpassword"),
-                env.getProperty("mysqlURL")+"jiracache"
+                env.getProperty("mysqlURL")+"jiracache?serverTimezone=UTC"
 				);
     	return new HibernatePerProcessArtifactUsagePersistor(sf);
     }
@@ -347,7 +347,7 @@ public class SpringConfig {
     	SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
                 env.getProperty("mysqlDBuser"),
                 env.getProperty("mysqlDBpassword"),
-                env.getProperty("mysqlURL")+"jiracache"
+                env.getProperty("mysqlURL")+"jiracache?serverTimezone=UTC"
 				);
     	return new c4s.jiralightconnector.hibernate.HibernateBackedCache(sf);
      }
@@ -360,7 +360,7 @@ public class SpringConfig {
         SessionFactory sf = c4s.jiralightconnector.hibernate.ConnectionBuilder.createConnection(
                 env.getProperty("mysqlDBuser"),
                 env.getProperty("mysqlDBpassword"),
-                env.getProperty("mysqlURL")+"jiracache"
+                env.getProperty("mysqlURL")+"jiracache?serverTimezone=UTC"
         );
         return new HibernateBackedMonitoringState(sf);
     }
