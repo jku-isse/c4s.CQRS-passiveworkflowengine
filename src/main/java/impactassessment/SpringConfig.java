@@ -45,6 +45,7 @@ import com.jamasoftware.services.restclient.jamadomain.lazyresources.JamaUser;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.demo.Basic1Artifacts;
 import impactassessment.artifactconnector.demo.DemoService;
+import impactassessment.artifactconnector.designspace.DesignspaceChangeSubscriber;
 import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jama.JamaService;
@@ -60,6 +61,8 @@ import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.Snapshotter;
@@ -93,8 +96,7 @@ public class SpringConfig {
 
     @Autowired
     private Environment env;
-
-
+    
     //------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------PROJECT COMPONENTS-----------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
@@ -163,13 +165,13 @@ public class SpringConfig {
     @Bean
     @Primary
     @ConditionalOnExpression("${polarion.enabled:false}")
-    public IInstanceService<PolarionArtifact> getPolarionService(DesignspaceChangeSubscriber designspaceChangeSubscriber) {
+    public IInstanceService<PolarionArtifact> getPolarionService(IDesignspaceChangeSubscriber dcs) {
     	User user = DesignSpace.registerUser("felix"); //TODO: make this configurable
     	PolarionInstanceService  polarionService = new PolarionInstanceService(user, Service.POLARION, "ArtifactConnector");
-	    polarionService.addChangeSubscriber(designspaceChangeSubscriber);
+	    polarionService.addChangeSubscriber(dcs);
     	return polarionService;
     }
-    
+                   
     @Bean
  //   @ConditionalOnExpression("${polarion.enabled:false} == false")
     public IInstanceService<PolarionArtifact> getPolarionServiceMock() {
@@ -433,11 +435,11 @@ public class SpringConfig {
     //------------------------------------------------------------------------------------------------------------------
     @Bean
     @ConditionalOnExpression("${jira.designspace.enabled:false}")
-    public IJiraService getJiraDesignspaceService(DesignspaceChangeSubscriber jiraDesignspaceChangeSubscriber) {
+    public IJiraService getJiraDesignspaceService(IDesignspaceChangeSubscriber dcs) {
         User user_ = DesignSpace.registerUser("felix");
         InstanceService<JiraArtifact> js_ = new InstanceService<JiraArtifact>(user_, Service.JIRA, JiraArtifact.class, IJiraArtifact.class);
 
-        js_.addChangeSubscriber(jiraDesignspaceChangeSubscriber);
+        js_.addChangeSubscriber(dcs);
     	return new IJiraService() {
             User user = user_;
             InstanceService<JiraArtifact> js = js_;
