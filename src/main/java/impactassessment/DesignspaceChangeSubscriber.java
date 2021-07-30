@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentMap;
 public class DesignspaceChangeSubscriber implements IDesignspaceChangeSubscriber {
 
     private final CommandGateway commandGateway;
-    private ConcurrentMap<JiraDataScope, Set<String>> artifactUsages = new ConcurrentHashMap<>();
 
     @Override
     public void handleUpdatedInstances(Collection<IArtifact> changedArtifacts, String scopeId) {
