@@ -2,6 +2,7 @@ package impactassessment.jira;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.ReplayStatus;
@@ -60,7 +61,7 @@ public class JiraLiveTest {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
 		ArtifactIdentifier ai = new ArtifactIdentifier("P2E2-1", "IJiraArtifact");
 
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		wfp.handle(new PrintKBQuery(workflowId));
 	}
 }
