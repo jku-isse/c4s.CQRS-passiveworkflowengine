@@ -37,12 +37,20 @@ public class LazyLoadingArtifactInput extends ArtifactInput {
 		super.setRole(role);
 	}
 	
+	@Override
+	public void addOrReplaceArtifact(IArtifact artifact) {
+		super.addOrReplaceArtifact(artifact);
+		this.ai.add(artifact.getArtifactIdentifier()); //to keep identifiers synced with artifacts
+	}
 	
+	public void addOrReplaceArtifact(ArtifactIdentifier ai) {
+		this.ai.add(ai);
+	}
 	
 	@Override
 	public Set<IArtifact> getArtifacts() {
 		Set<IArtifact> artifacts = super.getArtifacts();
-		if (artifacts.size() == 0) {
+		if (artifacts.size() != artifacts.size()) {
 			for (ArtifactIdentifier aId : ai) {
 				Optional<IArtifact> artOpt = reg.get(aId, wfi);
 				if (artOpt.isPresent()) {

@@ -1,0 +1,140 @@
+{
+	"dnds": [
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "DEMOJIRA",
+							"second": "req"
+						}
+					],
+					"to": [
+						{
+							"first": "FirstStep",
+							"second": "req"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowKickOff"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "FirstStep",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "SecondStep",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				},
+								{
+					"from": [
+						{
+							"first": "DEMOJIRA",
+							"second": "req"
+						}
+					],
+					"to": [
+						{
+							"first": "SecondStep",
+							"second": "req"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "FirstStep2SecondStep"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "SecondStep",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "DEMOJIRA",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowEnd"
+		}
+	],
+	"taskDefinitions": [
+		{
+			"expectedInput": {
+				"req": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"expectedOutput": {
+				"relItems": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": true,
+			"inDND": "workflowKickOff",
+			"outDND": "FirstStep2SecondStep",
+			"id": "FirstStep"
+		},
+		{
+			"expectedInput": {
+				"relItems": {
+					"id": "IJiraArtifact"
+				},
+				"req": {
+					"id": "IJiraArtifact"
+				}
+			},
+			"expectedOutput": {
+					"relItems": {
+						"id": "IJiraArtifact"
+					}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": true,
+			"inDND": "FirstStep2SecondStep",
+			"outDND": "workflowEnd",
+			"id": "SecondStep"
+		}
+	],
+	"hasPreCondition": false,
+	"hasPostCondition": false,
+	"expectedInput": {
+		"req": {
+			"id": "IJiraArtifact"
+		}
+	},
+	"expectedOutput": {
+		"relItems": {
+			"id": "IJiraArtifact"
+		}
+	},
+	"id": "DEMOJIRA"
+}

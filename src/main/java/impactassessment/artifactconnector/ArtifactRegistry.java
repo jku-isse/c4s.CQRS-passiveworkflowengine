@@ -28,7 +28,12 @@ public class ArtifactRegistry implements IArtifactRegistry {
 
     @Override
     public void register(IArtifactService service) {
-        services.add(service);
+       if (service == null) {
+    	   log.error("Registry received NULL service!");
+       } else {
+    	   log.info("Registered service of type: "+service.getClass());
+    	   services.add(service);
+       }
     }
 
     @Override

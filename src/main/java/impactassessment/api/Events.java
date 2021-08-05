@@ -154,5 +154,10 @@ public class Events {
         private final List<ArtifactInput> optionalInputs;
         private final List<ArtifactOutput> optionalOutputs;
     }
+    
+    @Data
+    public static class RefreshedTriggerEvent{
+    	 private final String id;
+    }
 }
 

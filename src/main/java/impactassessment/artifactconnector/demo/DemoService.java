@@ -1,5 +1,6 @@
 package impactassessment.artifactconnector.demo;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 import artifactapi.ArtifactIdentifier;
@@ -10,28 +11,38 @@ public class DemoService implements IArtifactService{
 
 	//public static final String
 	
+	protected HashMap<String, DemoArtifact> artifacts = new HashMap<String, DemoArtifact>();
+	
 	@Override
 	public boolean provides(String type) {
-		// TODO Auto-generated method stub
-		return false;
+		return (type.equalsIgnoreCase(DemoIssue.type.toString()) || 
+				type.equalsIgnoreCase(DemoRequirement.type.toString()) ||
+				type.equalsIgnoreCase(DemoTestCase.type.toString()) );
 	}
 
 	@Override
 	public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
-		// TODO Auto-generated method stub
-		return null;
+		return Optional.ofNullable(artifacts.get(id.getId())); //workflow is ignored for demo
+	}
+	
+	public DemoArtifact get(String id) {
+		return artifacts.get(id);
 	}
 
 	@Override
 	public void injectArtifactService(IArtifact artifact, String workflowId) {
-		// TODO Auto-generated method stub
-		
+		artifact.injectArtifactService(this);
 	}
 
 	@Override
 	public void deleteDataScope(String scopeId) {
-		// TODO Auto-generated method stub
-		
+		// remove all entries
+		artifacts.clear();
 	}
+	
+	public void addArtifact(DemoArtifact art) {
+		artifacts.put(art.id, art);
+	}
+	
 
 }

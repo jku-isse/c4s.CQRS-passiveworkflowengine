@@ -1,0 +1,140 @@
+{
+	"dnds": [
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "BASICTEST1",
+							"second": "req"
+						}
+					],
+					"to": [
+						{
+							"first": "Open",
+							"second": "req"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowKickOff"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "Open",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "Closed",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				},
+								{
+					"from": [
+						{
+							"first": "BASICTEST1",
+							"second": "req"
+						}
+					],
+					"to": [
+						{
+							"first": "Closed",
+							"second": "req"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "open2closed"
+		},
+		{
+			"hasExternalContextRules": false,
+			"inBranchingType": "AND",
+			"outBranchingType": "SYNC",
+			"mappings": [
+				{
+					"from": [
+						{
+							"first": "Closed",
+							"second": "relItems"
+						}
+					],
+					"to": [
+						{
+							"first": "BASICTEST1",
+							"second": "relItems"
+						}
+					],
+					"mappingType": "ANY"
+				}
+			],
+			"id": "workflowEnd"
+		}
+	],
+	"taskDefinitions": [
+		{
+			"expectedInput": {
+				"req": {
+					"id": "DemoRequirement"
+				}
+			},
+			"expectedOutput": {
+				"relItems": {
+					"id": "DemoRequirement"
+				}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": true,
+			"inDND": "workflowKickOff",
+			"outDND": "open2closed",
+			"id": "Open"
+		},
+		{
+			"expectedInput": {
+				"relItems": {
+					"id": "DemoRequirement"
+				},
+				"req": {
+					"id": "DemoRequirement"
+				}
+			},
+			"expectedOutput": {
+					"relItems": {
+						"id": "DemoRequirement"
+					}
+			},
+			"hasPreCondition": false,
+			"hasPostCondition": true,
+			"inDND": "open2closed",
+			"outDND": "workflowEnd",
+			"id": "Closed"
+		}
+	],
+	"hasPreCondition": false,
+	"hasPostCondition": false,
+	"expectedInput": {
+		"req": {
+			"id": "DemoRequirement"
+		}
+	},
+	"expectedOutput": {
+		"relItems": {
+			"id": "DemoRequirement"
+		}
+	},
+	"id": "BASICTEST1"
+}

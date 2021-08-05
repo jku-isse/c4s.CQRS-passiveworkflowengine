@@ -1,0 +1,148 @@
+package processdefinition;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
+
+import java.util.stream.Collectors;
+import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.Collections;
+import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.Set
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Iterator;
+import java.net.URL;
+
+import passiveprocessengine.definition.ArtifactTypes
+import passiveprocessengine.instance.*
+import passiveprocessengine.definition.*
+import passiveprocessengine.definition.TaskLifecycle.State;
+
+import artifactapi.ResourceLink
+import artifactapi.IArtifact
+import artifactapi.IArtifactRegistry
+import artifactapi.ArtifactIdentifier
+import artifactapi.IArtifactRegistry
+
+import impactassessment.artifactconnector.demo.*
+
+import c4s.impactassessment.tools.*
+
+import impactassessment.kiesession.KieSessionUtils
+import impactassessment.api.Commands.*
+import impactassessment.api.Events.*
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+
+global CommandGateway commandGateway;
+global IArtifactRegistry artifactRegistry;
+
+
+rule "LinksToOutputItems"
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								 , $item : getAnyOneInputByRole("req") 								
+							 ) 
+		eval ($item != null )					 
+	then
+		System.out.println("Convert links to output item collection: relItems");
+		DemoRequirement req = (DemoRequirement)$item;
+		for (DemoArtifact artL : req.getLinkedArtifacts()) {
+			if (! $wft.getAllOutputsByRole("relItems").stream().map(art -> art.getArtifactIdentifier()).anyMatch(ai -> ai.equals(artL.getArtifactIdentifier()))) {
+				// if no match, add to outputs
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), artL.getArtifactIdentifier().getId(), "relItems", artL.getArtifactIdentifier().getType()));
+			}
+		}
+end
+
+
+
+
+
+rule "TriggerCompletionOfOpenTask"
+no-loop
+	when // just some example based on demodata
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								, $req : getAnyOneInputByRole("req") 							
+							 ) 		 
+		eval ($req != null && (((DemoArtifact)$req).getProperty("status").equalsIgnoreCase("inprogress")) )
+	then
+		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), true));
+end
+
+
+rule "PrematureTriggerClosed"
+no-loop
+	when
+		not WorkflowTask ( getType().getId().equals("Closed") )
+		$wfi : WorkflowInstance ( $req : getAnyOneInputByRole("req")  )
+		eval ($req != null && (((DemoArtifact)$req).getProperty("assessment").equalsIgnoreCase("inpreparation") ))
+	then
+		commandGateway.send(new InstantiateTaskCmd($wfi.getId(), "Closed", Collections.emptyList(), Collections.emptyList()) );
+end
+
+rule "RegularTriggerClosed"
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Closed") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED))  
+								, $req : getAnyOneInputByRole("req") )							
+		eval ($req != null && (((DemoArtifact)$req).getProperty("assessment").equalsIgnoreCase("inpreparation") ))
+	then
+		commandGateway.send(new ActivateTaskCmd($wft.getWorkflow().getId(), $wft.getId()) );
+end
+
+rule "InputToOutputItems"
+salience 1010
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Closed") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) && 
+								getAllInputsByRole("relItems").size() > 0								
+							 ) 		 
+	then
+		System.out.println("Copy input to output item collection");
+//		Set<IArtifact> items = (Set<IArtifact> )$items;
+		for(IArtifact artIn : $wft.getAllInputsByRole("relItems") ) {
+			if (! $wft.getAllOutputsByRole("relItems").stream().map(art -> art.getArtifactIdentifier()).anyMatch(ai -> ai.equals(artIn.getArtifactIdentifier())) ) {
+				// if no match, add to outputs
+				commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), artIn.getArtifactIdentifier().getId(), "relItems", artIn.getArtifactIdentifier().getType() ));
+			}
+		}
+end
+
+rule "TriggerPrematureCompletionOfClosedTask"
+salience 990
+no-loop
+	when // this requires to know that the inputs in relItems comes from the task output of "Open" task that will now be available here yet (as not mapped)
+		$wft : WorkflowTask (   getType().getId().equals("Closed") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED))   								
+							 ) 		 
+		$wftOpen : WorkflowTask (   getType().getId().equals("Open") &&	
+									!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED))  
+									, $req : getAnyOneOutputByRole("relItems") 								
+							 	) 		 
+		eval ($req != null && ( ((DemoArtifact)$req).getProperty("status").equalsIgnoreCase("completed") ) )
+	then
+		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), true));
+end
+
+rule "TriggerCompletionOfClosedTask"
+salience 1000
+no-loop
+	when // the completion condition is the same as for premature completion, except the data access is different
+		$wft : WorkflowTask (   getType().getId().equals("Closed") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED))  
+								, $req : getAnyOneInputByRole("relItems") 								
+							 ) 		 
+		eval ($req != null && ( ((DemoArtifact)$req).getProperty("status").equalsIgnoreCase("completed") ) )
+	then
+		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), true));
+end
+

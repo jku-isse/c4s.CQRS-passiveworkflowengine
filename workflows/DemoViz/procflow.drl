@@ -1,0 +1,45 @@
+package processdefinition;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
+
+import java.util.stream.Collectors;
+import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.Collections;
+import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.Set
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Iterator;
+import java.net.URL;
+
+import passiveprocessengine.definition.ArtifactTypes
+import passiveprocessengine.instance.*
+import passiveprocessengine.definition.*
+import passiveprocessengine.definition.TaskLifecycle.State;
+
+import artifactapi.ResourceLink
+import artifactapi.IArtifact
+import artifactapi.IArtifactRegistry
+import artifactapi.ArtifactIdentifier
+import artifactapi.IArtifactRegistry
+
+import impactassessment.artifactconnector.demo.*
+
+import c4s.impactassessment.tools.*
+
+import impactassessment.kiesession.KieSessionUtils
+import impactassessment.api.Commands.*
+import impactassessment.api.Events.*
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+
+global CommandGateway commandGateway;
+global IArtifactRegistry artifactRegistry;
+
+
+/* empty */
+

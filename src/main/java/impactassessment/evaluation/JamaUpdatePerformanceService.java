@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor
 @ConditionalOnExpression("${jama.enabled:true}")
 public class JamaUpdatePerformanceService {

@@ -50,6 +50,8 @@ import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.artifactconnector.jira.JiraJsonService;
 import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.registry.LocalRegisterService;
+import impactassessment.registry.WorkflowDefinitionRegistry;
 
 public class DemoConfig extends AbstractModule {
 
@@ -59,17 +61,21 @@ public class DemoConfig extends AbstractModule {
 
 	private ArtifactRegistry artReg;
 
-
+	private WorkflowDefinitionRegistry registry;
 	
 	public DemoConfig() {
 		artReg = new ArtifactRegistry();
-		gw = new MockCommandGateway(artReg);
+		registry = new WorkflowDefinitionRegistry();
+		LocalRegisterService lrs = new LocalRegisterService(registry);
+		lrs.registerAll();
+		gw = new MockCommandGateway(artReg, registry);
 		
 	}
 	
 	protected void configure() {
 		bind(CommandGateway.class).toInstance(gw);
 		bind(IArtifactRegistry.class).toInstance(artReg);
+		bind(WorkflowDefinitionRegistry.class).toInstance(registry);
 	}
 	
 	

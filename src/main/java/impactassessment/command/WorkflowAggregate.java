@@ -39,7 +39,7 @@ public class WorkflowAggregate implements Serializable {
     private CmdWorkflow model;
 
     public WorkflowAggregate() {
-        log.debug("[AGG] empty constructor WorkflowAggregate invoked");
+        log.info("[AGG] empty constructor WorkflowAggregate invoked");
     }
 
     // -------------------------------- Constructors --------------------------------
@@ -54,6 +54,27 @@ public class WorkflowAggregate implements Serializable {
             log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
         }
     }
+    
+//    @CommandHandler
+//    @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+//    public void handle(CreateWorkflowCmd cmd, IArtifactRegistry artifactRegistry, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
+//        log.info("[AGG] handling {}", cmd);
+//        if (!this.isNew) {
+//        	log.warn("Attempt to create workflow again ignored "+cmd.getId());
+//        	return;
+//        } 
+//        Collection<Entry<String,IArtifact>> artifacts = mapWorkflowInput(cmd.getId(), artifactRegistry, cmd.getInput());
+//        WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
+//        if (wfdContainer != null) {
+//            apply(new CreatedWorkflowEvt(cmd.getId(), artifacts
+//            											.stream()
+//            											.map(entry -> new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(entry.getKey(), entry.getValue().getArtifactIdentifier())) 
+//            											.collect(Collectors.toList())
+//            								, cmd.getDefinitionName(), wfdContainer.getWfd()));
+//        } else {
+//            log.error("Workflow Definition named {} not found in registry!", cmd.getDefinitionName());
+//        }
+//    }
 
     @CommandHandler
     public WorkflowAggregate(CreateSubWorkflowCmd cmd, WorkflowDefinitionRegistry registry) {

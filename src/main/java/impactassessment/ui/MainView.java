@@ -5,10 +5,7 @@ import artifactapi.ArtifactType;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
 import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -34,10 +31,10 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import impactassessment.SpringUtil;
 import impactassessment.api.Commands.CreateWorkflowCmd;
-import impactassessment.api.Queries.GetStateQuery;
-import impactassessment.api.Queries.GetStateResponse;
+import impactassessment.api.Commands.RefreshFrontendDataCmd;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.api.Queries.PrintKBResponse;
+import impactassessment.command.RefreshForwarderAggregate;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 import impactassessment.query.Replayer;
@@ -50,7 +47,6 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import passiveprocessengine.instance.WorkflowInstance;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -60,15 +56,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
 import static impactassessment.ui.Helpers.showOutput;
+
+//import impactassessment.evaluation.JamaUpdatePerformanceService;
+//import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 
 @Slf4j
 @Route("home")
@@ -87,7 +82,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private WorkflowDefinitionRegistry registry;
     private IFrontendPusher pusher;
     private MonitoringScheduler jiraMonitoringScheduler;
-    private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
+ //   private c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -119,19 +114,26 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     public void setJiraMonitoringScheduler(MonitoringScheduler jiraMonitoringScheduler) {
         this.jiraMonitoringScheduler = jiraMonitoringScheduler;
     }
-    @Inject
-    public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
-        this.jamaMonitoringScheduler = jamaMonitoringScheduler;
-    }
+//    @Inject
+//    public void setJamaMonitoringScheduler(c4s.jamaconnector.MonitoringScheduler jamaMonitoringScheduler) {
+//        this.jamaMonitoringScheduler = jamaMonitoringScheduler;
+//    }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        pusher.setUi(attachEvent.getUI());
-        pusher.setView(this);
-        grids.stream()
-                .filter(com.vaadin.flow.component.Component::isVisible)
-                .forEach(this::refresh);
+        pusher.add(attachEvent.getUI().getUIId(), attachEvent.getUI(), this);
+        //grids.stream()
+        //        .filter(com.vaadin.flow.component.Component::isVisible)
+        //        .forEach(this::refresh);
+        if (grids.stream().anyMatch(com.vaadin.flow.component.Component::isVisible))
+        	this.refresh(null);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        pusher.remove(detachEvent.getUI().getUIId());
     }
 
     @Override
@@ -351,18 +353,22 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
-        try {
-            Notification.show("Refreshing Process Dashboard State");
-            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
-            grid.updateTreeGrid(response);
-        } catch (TimeoutException e1) {
-            log.error("GetStateQuery resulted in TimeoutException!");
-            Notification.show("TimeoutException");
-        } catch (InterruptedException | ExecutionException e2) {
-            log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
-        }
+    		commandGateway.send(new RefreshFrontendDataCmd(RefreshForwarderAggregate.class.getSimpleName()));
     }
+    
+//    private void refresh(WorkflowTreeGrid grid) {
+//        CompletableFuture<GetStateResponse> future = queryGateway.query(new GetStateQuery("*"), GetStateResponse.class);
+//        try {
+//            Notification.show("Refreshing Process Dashboard State");
+//            Collection<WorkflowInstance> response = future.get(5, TimeUnit.SECONDS).getState();
+//            grid.updateTreeGrid(response);
+//        } catch (TimeoutException e1) {
+//            log.error("GetStateQuery resulted in TimeoutException!");
+//            Notification.show("TimeoutException");
+//        } catch (InterruptedException | ExecutionException e2) {
+//            log.error("GetStateQuery resulted in Exception: "+e2.getMessage());
+//        }
+//    }
 
     private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {
         VerticalLayout layoutV = new VerticalLayout();
@@ -623,12 +629,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
             Notification.show("Success");
         });
+
         Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
             SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class).ifPresent(JamaWorkflowCreationPerformanceService::createAll);
         });
         Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
             SpringUtil.getBean(JamaUpdatePerformanceService.class).ifPresent(JamaUpdatePerformanceService::replayUpdates);
         });
+
         Button replay = new Button("Replay All Events", evt -> {
             Notification.show("Replay of Current State initiated. Replay gets executed..");
             replayer.replay("projection");
@@ -639,8 +647,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     private Component updates() {
         Button update = new Button("Fetch Updates Now", e -> {
-                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
-                jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
+               jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
+                //jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
         });
         return new VerticalLayout(new Paragraph("Updates are fetched every few minutes automatically. Additionally you can fetch updates manually."), update);
     }

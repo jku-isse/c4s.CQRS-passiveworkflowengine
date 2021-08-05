@@ -69,6 +69,7 @@ rule "InsertQAConstraintsStateOpen"
         }
 end
 
+/*
 rule "SetOpenTaskName"
 	when
 		$wft : WorkflowTask (   getType().getId().equals("Open") &&
@@ -79,6 +80,7 @@ rule "SetOpenTaskName"
 //		commandGateway.send(new SetPropertiesCmd($wft.getWorkflow().getId(), $wft.getId(), properties));
 		commandGateway.send(new Commands.AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), "DEMO-9", "TEST", "IJiraArtifact"));
 end
+*/
 
 //constraints for state in-progress
 rule "InsertQAConstraintsStateInProgress"
@@ -335,12 +337,4 @@ rule "CheckHazardIsMitigated"
                 commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), resources, $ct.getRequestCorrelation(), Instant.now()));
             }
         }
-end
-
-rule "RemoveConstraintTrigger"
-	salience -1000
-	when
-		$ct : ConstraintTrigger()
-	then
-		delete($ct);
 end
