@@ -71,7 +71,7 @@ rule "AssigneeNotEmpty"
 		boolean success = ( jira.getAssignee() != null );
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		result.put($jira.convertToResourceLink(), success);
-		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end	 
 
 rule "AuthorNotEmpty"
@@ -86,7 +86,7 @@ rule "AuthorNotEmpty"
 		boolean success = ( jira.getReporter() != null );
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		result.put($jira.convertToResourceLink(), success);
-		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end	 
 
 rule "CheckDoDisFilled"
@@ -104,7 +104,7 @@ rule "CheckDoDisFilled"
 
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		result.put($item.convertToResourceLink(), success);
-		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 rule "CheckDescriptionIsFilled"
@@ -122,7 +122,7 @@ rule "CheckDescriptionIsFilled"
 
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		result.put($item.convertToResourceLink(), success);
-		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 
@@ -137,7 +137,7 @@ rule "CheckPolarionDescriptionNotNull"
 		boolean success = ( $item instanceof IPolarionArtifact && ((IPolarionArtifact)$item).getDescription() != null && ((IPolarionArtifact)$item).getDescription().length() > 0);			
 		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
 		result.put($item.convertToResourceLink(), success);
-		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
 end
 
 
