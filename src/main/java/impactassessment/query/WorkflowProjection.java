@@ -121,18 +121,23 @@ public class WorkflowProjection {
 
 	@DisallowReplay
 	@EventHandler
+	public void on(UpdatedEvaluationTimeEvt evt) {
+		log.debug("[PRJ] projecting {}", evt);
+		projection.handle(evt);
+		if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+	}
+
+	@DisallowReplay
+	@EventHandler
 	public void on(CheckedConstraintEvt evt) {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		if (wfiWrapper != null) {
-			RuleEngineBasedConstraint rebc = wfiWrapper.getRebc(evt.getCorrId());
-			if (rebc != null) {
+			wfiWrapper.getRebc(evt.getConstrId()).ifPresentOrElse(rebc -> {
 				ensureInitializedKB(kieSessions, projection, evt.getId());
 				insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), rebc.getConstraintType(), "CheckedConstraintEvt");
 				kieSessions.fire(evt.getId());
-			} else {
-				log.warn("Concerned RuleEngineBasedConstraint wasn't found");
-			}
+			}, () -> log.warn("Concerned RuleEngineBasedConstraint wasn't found"));
 		} else {
 			log.warn("WFI not initialized");
 		}
@@ -161,7 +166,7 @@ public class WorkflowProjection {
 			kieSessions.insertOrUpdate(evt.getId(), wft);
 			insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "AddedInputEvt");
 			kieSessions.fire(evt.getId());
-			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getType());
+			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getArtifact().getType());
 			if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 		}
 	}

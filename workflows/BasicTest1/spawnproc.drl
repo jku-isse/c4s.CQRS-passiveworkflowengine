@@ -61,10 +61,9 @@ no-loop
 				// we create a workflow of this workflow for sake of demonstrations
 				// for each linked item, using the itemkey as process id
 				// as input we use the item,
-				Map<String, String> input = new HashMap<String, String>();
-				//TODO an input entry consists of the identifier of the artifact, and as value a concatination of role :: type for now, improvement needs to be merged and here adapted
-				input.put(key, "req::DemoRequirement"); //
-				commandGateway.send(new CreateWorkflowCmd(key, input ,"BASICTEST1" ));
+				Map<ArtifactIdentifier, String> inputs = new HashMap<>();
+				inputs.put(new ArtifactIdentifier(key,"DemoRequirement"), "req"); //
+				commandGateway.send(new CreateWorkflowCmd(key, inputs ,"BASICTEST1" ));
 			}
 		}
 end

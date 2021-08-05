@@ -1,5 +1,6 @@
 package impactassessment.ui;
 
+import artifactapi.ArtifactIdentifier;
 import artifactapi.ArtifactType;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 import c4s.jiralightconnector.MonitoringScheduler;
@@ -29,17 +30,13 @@ import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import impactassessment.SpringUtil;
-import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
-import impactassessment.api.Commands.DeleteCmd;
 import impactassessment.api.Commands.RefreshFrontendDataCmd;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.api.Queries.PrintKBResponse;
 import impactassessment.command.RefreshForwarderAggregate;
 import impactassessment.evaluation.JamaUpdatePerformanceService;
 import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
-//import impactassessment.evaluation.JamaUpdatePerformanceService;
-//import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 import impactassessment.query.Replayer;
 import impactassessment.query.Snapshotter;
 import impactassessment.registry.WorkflowDefinitionContainer;
@@ -50,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
+
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +61,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
 import static impactassessment.ui.Helpers.showOutput;
+
+//import impactassessment.evaluation.JamaUpdatePerformanceService;
+//import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
 
 @Slf4j
 @Route("home")
@@ -280,11 +281,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private void initAccordion(String key, String val, String name) {
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact(devMode));
-//        if (devMode) accordion.add("Create Mock-Process Instance", importMocked());
         accordion.add("Fetch Updates", updates());
         accordion.add("Filter", filterTable(key, val, name));
-//        accordion.add("Remove Workflow", remove()); // functionality provided via icon in the table
-//        accordion.add("Evaluate Constraint", evaluate()); // functionality provided via icon in the table
         if (devMode) accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
@@ -555,16 +553,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 String role = entry.getKey();
                 TextField tf = new TextField();
                 tf.setWidthFull();
-                //xxx // no hardcoded types here, implicit dependency to command handler very ugly!
-//                if (artT.getArtifactType().equals(IJiraArtifact.class.getSimpleName())) {
-//                    tf.setLabel(role+": JIRA");
-//                } else if (artT.getArtifactType().equals(IJamaArtifact.class.getSimpleName())) {
-//                    tf.setLabel(role+": JAMA");
-//                } else {
-//                    tf.setLabel(artT.getArtifactType());
-//                }
-                //FIXME: workaround to display type and role
-                tf.setLabel(role+"::"+artT.getArtifactType());
+                tf.setLabel(role);
+                tf.setHelperText(artT.getArtifactType());
                 source.add(tf);
             }
             if (wfdContainer.getWfd().getExpectedInput().size() == 0) {
@@ -578,7 +568,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             } else {
                 try {
                     // collect all input IDs
-                    Map<String, String> inputs = new HashMap<>();
+                    Map<ArtifactIdentifier, String> inputs = new HashMap<>();
                     AtomicInteger count = new AtomicInteger();
                     source.getChildren()
                             .filter(child -> child instanceof TextField)
@@ -588,9 +578,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                             })
                             .filter(tf -> !tf.getValue().equals(""))
                             .filter(tf -> !tf.getLabel().equals(""))
-                            // to be consistent with changes above
-                            .forEach(tf -> inputs.put(tf.getValue().trim(), tf.getLabel().trim()));
-                    //.forEach(tf -> inputs.put(tf.getValue(), tf.getLabel().substring(tf.getLabel().lastIndexOf(": ")+2)));
+                            .forEach(tf -> {
+                                ArtifactIdentifier ai = new ArtifactIdentifier(tf.getValue().trim(), tf.getHelperText().trim());
+                                inputs.put(ai, tf.getLabel().trim());
+                            });
                     // send command
                     if (count.get() == inputs.size()) {
                         commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
@@ -628,35 +619,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         return layout;
     }
 
-    private void enable(boolean enable, TextField... fields) {
-        for (TextField field : fields) {
-            field.setEnabled(enable);
-        }
-    }
-
-    private Component evaluate() {
-        TextField id = new TextField("Artifact ID");
-        id.setValue("A3");
-
-        TextField corr = new TextField("Constraint ID");
-        corr.setValue("CheckAllRelatedBugsClosed_Resolved_A3");
-        corr.setWidthFull();
-
-        Button check = new Button("Check");
-        check.addClickListener(evt -> {
-            commandGateway.sendAndWait(new CheckConstraintCmd(id.getValue(), corr.getValue()));
-            Notification.show("Success");
-        });
-
-        VerticalLayout layout = new VerticalLayout();
-        layout.setMargin(false);
-        layout.setPadding(false);
-        layout.setWidthFull();
-        layout.add(id, corr, check);
-
-        return layout;
-    }
-
     private Component backend() {
         Text description = new Text("Commands that get processed by the backend. Effects can only be observed on the server log.");
         TextField id = new TextField("ID");
@@ -667,49 +629,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
             Notification.show("Success");
         });
-
-        //---------------------------- Jira Poller -----------------------------
-//        timer.setHeight("20px");
-//        timer.addClassName("big-text");
-//        timer.setVisible(false);
-//        TextField textField = new TextField();
-//        textField.setLabel("Update Interval in Minutes");
-//        textField.setValue("1");
-//
-//        Checkbox checkbox = new Checkbox("Enable Automatic updates");
-//        checkbox.setValue(false);
-//        checkbox.addValueChangeListener(e -> {
-//            if (e.getValue()) {
-//                try {
-//                    int interval = Integer.parseInt(textField.getValue());
-//                    textField.setEnabled(false);
-//                    timer.setStartTime(new BigDecimal(interval*60));
-//                    timer.setVisible(true);
-//                    timer.start();
-//                    jiraPoller.setInterval(interval);
-//                    jiraPoller.start();
-//                } catch (NumberFormatException ex) {
-//                    Notification.show("Please enter a number");
-//                }
-//            } else {
-//                jiraPoller.interrupt();
-//                textField.setEnabled(true);
-//                timer.setVisible(false);
-//                timer.pause();
-//                timer.reset();
-//            }
-//        });
-        //---------------------------------------------------------
-
-
-//        Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
-//            JamaWorkflowCreationPerformanceService service1 = SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class);
-//            service1.createAll();
-//        });
-//        Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
-//            JamaUpdatePerformanceService service2 = SpringUtil.getBean(JamaUpdatePerformanceService.class);
-//            service2.replayUpdates();
-//        });
 
         Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
             SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class).ifPresent(JamaWorkflowCreationPerformanceService::createAll);
@@ -722,85 +641,11 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             Notification.show("Replay of Current State initiated. Replay gets executed..");
             replayer.replay("projection");
         });
-        return new VerticalLayout(description, id, print, /*timer, textField, checkbox,*/ jamaPerformancetest1, jamaPerformancetest2, replay);
+
+        return new VerticalLayout(description, id, print, jamaPerformancetest1, jamaPerformancetest2, replay);
     }
 
-    private Component remove() {
-        VerticalLayout layout = new VerticalLayout();
-        TextField id = new TextField("ID");
-        id.setValue("A3");
-
-        Button removeArtifactButton = new Button("Remove Artifact");
-        removeArtifactButton.addClickListener(evt -> {
-            commandGateway.send(new DeleteCmd(id.getValue()));
-        });
-        removeArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
-
-        layout.add(id, removeArtifactButton);
-        return layout;
-    }
-
-//    private Component importMocked() {
-//        VerticalLayout layout = new VerticalLayout();
-//        layout.setMargin(false);
-//        layout.setPadding(false);
-//        layout.setWidthFull();
-//
-//        // MOCK fields
-//        TextField id = new TextField("ID");
-//        id.setValue("JiraMock1");
-//        id.setWidthFull();
-//        TextField status = new TextField("Status");
-//        status.setValue(JiraMockService.DEFAULT_STATUS);
-//        status.setWidthFull();
-//        TextField issuetype = new TextField("Issue-Type");
-//        issuetype.setValue(JiraMockService.DEFAULT_ISSUETYPE);
-//        issuetype.setWidthFull();
-//        TextField priority = new TextField("Priority");
-//        priority.setValue(JiraMockService.DEFAULT_PRIORITY);
-//        priority.setWidthFull();
-//        TextField summary = new TextField("Summary");
-//        summary.setValue(JiraMockService.DEFAULT_SUMMARY);
-//        summary.setWidthFull();
-//
-//        Button importOrUpdateArtifactButton = new Button("Create", evt -> {
-//            try {
-//                commandGateway.sendAndWait(new CreateMockWorkflowCmd(id.getValue(), status.getValue(), issuetype.getValue(), priority.getValue(), summary.getValue()));
-//                Notification.show("Success");
-//            } catch (CommandExecutionException e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-//                log.error("CommandExecutionException: "+e.getMessage());
-//                Notification.show("Creation failed!");
-//            }
-//        });
-//        importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
-//
-//        VerticalLayout column1 = new VerticalLayout();
-//        column1.setMargin(false);
-//        column1.setPadding(false);
-//        column1.add(id, status);
-//        column1.setWidth("50%");
-//        VerticalLayout column2 = new VerticalLayout();
-//        column2.setMargin(false);
-//        column2.setPadding(false);
-//        column2.add(issuetype, priority);
-//        column2.setWidth("50%");
-//        HorizontalLayout row1 = new HorizontalLayout(column1, column2);
-//        row1.setWidthFull();
-//        row1.setMargin(false);
-//        row1.setPadding(false);
-//        VerticalLayout row2 = new VerticalLayout();
-//        row2.setMargin(false);
-//        row2.setPadding(false);
-//        row2.add(summary, importOrUpdateArtifactButton);
-//
-//        layout.add(new Paragraph("No actual artifact will be fetched, but a mocked version as specified below will be used."), row1, row2);
-//        return layout;
-//    }
-
-//    private @Getter
-//    SimpleTimer timer = new SimpleTimer(60);
     private Component updates() {
-
         Button update = new Button("Fetch Updates Now", e -> {
                jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
                 //jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?

@@ -40,10 +40,10 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
     
-    private void setInputArtifacts(Collection<Entry<String,IArtifact>> inputs) {
+    private void setInputArtifacts(Map<IArtifact, String> inputs) {
     	if (wfi != null) {
     	    // TODO use LazyLoadingArtifactInput here?
-    		inputs.forEach(in -> wfi.addInput(new ArtifactInput(in.getValue(), in.getKey())));
+    		inputs.forEach((key, value) -> wfi.addInput(new ArtifactInput(key, value)));
     	}
     }
 
@@ -61,14 +61,13 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Collection<Entry<String,ArtifactIdentifier>> art) {
+    private List<AbstractWorkflowInstanceObject> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
-        List<Entry<String,IArtifact>> artifacts = art.stream()
-        		.map(entry -> new AbstractMap.SimpleEntry<String, Optional<IArtifact>>(entry.getKey(), artReg.get(entry.getValue(), id)))
-        		.filter(entry -> entry.getValue().isPresent())
-        		.map(entry -> new AbstractMap.SimpleEntry<String, IArtifact>(entry.getKey(), entry.getValue().get()))
-        		.collect(Collectors.toList());
+        Map<IArtifact, String> artifacts = art.entrySet().stream()
+        		.map(entry -> new AbstractMap.SimpleEntry<>(artReg.get(entry.getKey(), id), entry.getValue()))
+        		.filter(entry -> entry.getKey().isPresent())
+        		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
         setInputArtifacts(artifacts);
         return wfi.enableWorkflowTasksAndDecisionNodes();
     }
@@ -95,7 +94,7 @@ public class WorkflowInstanceWrapper {
         qa.setLastChangeDueTo(corr);
         Map<String, String> rules = evt.getRules();
         for (Map.Entry<String, String> e : rules.entrySet()) {
-            String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId();
+            String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId(); // TODO pull id creation inside constructor!
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
             rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
             qa.addConstraint(rebc);
@@ -104,9 +103,8 @@ public class WorkflowInstanceWrapper {
     }
 
     public Set<AbstractWorkflowInstanceObject> handle(AddedEvaluationResultToConstraintEvt evt) {
-        RuleEngineBasedConstraint rebc = getRebc(evt.getQacId());
         Set<AbstractWorkflowInstanceObject> awos = new HashSet<>();
-        if (rebc != null) {
+        getRebc(evt.getWftId(), evt.getQacId()).ifPresent(rebc -> {
             boolean hasChanged = false;
             Instant oldTime = rebc.getLastChanged();
             for (Map.Entry<ResourceLink, Boolean> entry : evt.getRes().entrySet()) {
@@ -131,15 +129,23 @@ public class WorkflowInstanceWrapper {
             rebc.setLastEvaluated(evt.getTime());
             rebc.setEvaluated(evt.getCorr());
             if (evt.getRes().isEmpty()) {
-            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE);
+                rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.FAILURE); // TODO make explicit failed command
             } else {
-            	rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+                rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
             }
             // output state may change because QA constraints may be all fulfilled now
             wfi.getWorkflowTasksReadonly()
-                .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
-        }
+                    .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
+        });
         return awos;
+    }
+
+    public void handle(UpdatedEvaluationTimeEvt evt) {
+        getRebc(evt.getWftId(), evt.getQacId()).ifPresent(rebc -> {
+            rebc.setLastEvaluated(evt.getTime());
+            rebc.setEvaluated(evt.getCorr());
+            rebc.setEvaluationStatus(QACheckDocument.QAConstraint.EvaluationState.SUCCESS);
+        });
     }
 
     public IWorkflowTask handle(AddedInputEvt evt) {
@@ -151,7 +157,7 @@ public class WorkflowInstanceWrapper {
 
     public List<IWorkflowInstanceObject> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wft);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
         opt.ifPresent(artifactOutput -> awos.addAll(wft.addOutput(artifactOutput)));
         awos.add(wft);
@@ -165,7 +171,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public void handle(AddedOutputToWorkflowEvt evt) {
-        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getType(), evt.getRole(), wfi);
+        Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);
         opt.ifPresent(out -> wfi.addOutput(out));
     }
 
@@ -186,7 +192,7 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    private Optional<ArtifactOutput> addOutput(String id, ArtifactIdentifier artifact, String type, String role, IWorkflowTask iwft) {
+    private Optional<ArtifactOutput> addOutput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
         Optional<ArtifactOutput> opt = iwft.getOutput().stream()
                 .filter(o -> o.getRole().equals(role))
                 .findAny();
@@ -400,6 +406,8 @@ public class WorkflowInstanceWrapper {
             handle((RemovedInputEvt) evt);
         } else if (evt instanceof RemovedOutputEvt) {
             handle((RemovedOutputEvt) evt);
+        } else if (evt instanceof UpdatedEvaluationTimeEvt) {
+            handle((UpdatedEvaluationTimeEvt) evt);
         } else {
             log.warn("[MOD] Ignoring message of type: "+evt.getClass().getSimpleName());
         }
@@ -423,26 +431,38 @@ public class WorkflowInstanceWrapper {
         return optQACD.orElse(null);
     }
 
-    public RuleEngineBasedConstraint getRebc(String rebcId) {
-        if (wfi == null) return null;
-        List<WorkflowTask> wfts = wfi.getWorkflowTasksReadonly();
+    public Optional<RuleEngineBasedConstraint> getRebc(String rebcId) {
         for (WorkflowTask wft : wfi.getWorkflowTasksReadonly()) {
-            for (ArtifactOutput ao : wft.getOutput()) {
-                for (IArtifact a : ao.getArtifacts()) {
-                    if (a instanceof QACheckDocument) {
-                        QACheckDocument qacd = (QACheckDocument) a;
-                        for (QACheckDocument.QAConstraint rebc : qacd.getConstraintsReadonly()) {
-                            if (rebc.getId().equals(rebcId)) {
-                                if (rebc instanceof RuleEngineBasedConstraint) {
-                                    return (RuleEngineBasedConstraint) rebc;
-                                }
-                            }
-                        }
-                    }
-                }
+            Optional<RuleEngineBasedConstraint> opt = getRebc(wft, rebcId);
+            if (opt.isPresent()) {
+                return opt;
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    public Optional<RuleEngineBasedConstraint> getRebc(String wftId, String rebcId) {
+        IWorkflowTask wft = wfi.getWorkflowTask(wftId);
+        if (wft != null) {
+//            Optional<RuleEngineBasedConstraint> opt = getRebc(wft, rebcId);
+//            if (opt.isEmpty())
+//                log.debug("EMPTY!!! ({})", rebcId);
+            return getRebc(wft, rebcId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<RuleEngineBasedConstraint> getRebc(IWorkflowTask wft, String rebcId) {
+        return wft.getOutput().stream()
+                .map(ArtifactIO::getArtifacts)
+                .flatMap(Collection::stream)
+                .filter(a -> a instanceof QACheckDocument)
+                .map(a -> ((QACheckDocument)a).getConstraintsReadonly())
+                .flatMap(Collection::stream)
+                .filter(qac -> qac.getId().equals(rebcId))
+                .filter(qac -> qac instanceof RuleEngineBasedConstraint)
+                .map(qac -> (RuleEngineBasedConstraint)qac)
+                .findAny();
     }
 
     @Override

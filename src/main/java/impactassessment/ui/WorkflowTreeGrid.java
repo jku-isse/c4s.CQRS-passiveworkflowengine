@@ -438,6 +438,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         icon.setColor("red");
         icon.setSize("15px");
         icon.getStyle().set("cursor", "pointer");
+        icon.getStyle().set("flex-shrink", "0");
         icon.addClickListener(e -> {
             if (isIn) {
                 f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()));

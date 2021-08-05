@@ -23,7 +23,7 @@ public class Events {
     @Data
     public static class CreatedWorkflowEvt implements IdentifiableEvt {
         private final String id;
-        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Map<ArtifactIdentifier, String> artifacts;
         private final String definitionName;
         private final WorkflowDefinition wfd;
     }
@@ -34,7 +34,7 @@ public class Events {
         private final String parentWftId;
         private final String definitionName;
         private final WorkflowDefinition wfd;
-        private final Collection<Entry<String,ArtifactIdentifier>> artifacts; // TODO we probably need this to be a tuple of: role, type, and artifact or role and artifactWrapper
+        private final Map<ArtifactIdentifier, String> artifacts;
     }
     @Data
     public static class CompletedDataflowEvt implements IdentifiableEvt {
@@ -56,15 +56,24 @@ public class Events {
     @Data
     public static class AddedEvaluationResultToConstraintEvt implements IdentifiableEvt {
         private final String id;
+        private final String wftId;
         private final String qacId;
         private final Map<ResourceLink, Boolean> res;
         private final CorrelationTuple corr;
         private final Instant time;
     }
     @Data
+    public static class UpdatedEvaluationTimeEvt implements IdentifiableEvt {
+        private final String id;
+        private final String wftId;
+        private final String qacId;
+        private final CorrelationTuple corr;
+        private final Instant time;
+    }
+    @Data
     public static class CheckedConstraintEvt implements IdentifiableEvt {
         private final String id;
-        private final String corrId;
+        private final String constrId;
     }
     @Data
     public static class CheckedAllConstraintsEvt implements IdentifiableEvt {
@@ -76,7 +85,6 @@ public class Events {
         private final String wftId;
         private final ArtifactIdentifier artifact;
         private final String role;
-        private final String type; // TODO remove type, already inside ArtifactIdentifier
     }
     @Data
     public static class AddedOutputEvt implements IdentifiableEvt {
@@ -84,21 +92,18 @@ public class Events {
         private final String wftId;
         private final ArtifactIdentifier artifact;
         private final String role;
-        private final String type; // TODO remove type, already inside ArtifactIdentifier
     }
     @Data
     public static class AddedInputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
         private final ArtifactIdentifier artifact;
         private final String role;
-        private final String type; // TODO remove type, already inside ArtifactIdentifier
     }
     @Data
     public static class AddedOutputToWorkflowEvt implements IdentifiableEvt {
         private final String id;
         private final ArtifactIdentifier artifact;
         private final String role;
-        private final String type; // TODO remove type, already inside ArtifactIdentifier
     }
     @Data
     public static class RemovedOutputEvt implements IdentifiableEvt {

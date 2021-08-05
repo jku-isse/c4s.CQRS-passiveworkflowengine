@@ -76,9 +76,8 @@ rule "SpawnProcesses"
 				// we create a workflow of this workflow for sake of demonstrations
 				// for each linked item, using the itemkey as process id
 				// as input we use the item,
-				Map<String, String> input = new HashMap<String, String>();
-				// an input entry consists of the identifier of the artifact, and as value a concatination of role :: type
-				input.put(key, "jira::IJiraArtifact"); // role/type concatination is not nice
+				Map<ArtifactIdentifier, String> input = new HashMap<>();	
+				input.put(new ArtifactIdentifier(key, "IJiraArtifact"), "jira"); 
 				
 				if (!$tempData.containsKey(key)){
 					System.out.println("Spawning process for related item:"+key);
