@@ -201,13 +201,13 @@ public class SpringConfig {
 
 			@Override
 			public Optional<PolarionArtifact> get(String id, String workflow)
-					throws NotFoundException, TimeOutException {
+					 {
 				// noop
 				return Optional.empty();
 			}
 
 			@Override
-			public Optional<PolarionArtifact> get(String id) throws NotFoundException, TimeOutException {
+			public Optional<PolarionArtifact> get(String id)  {
 				// NOOP
 				return null;
 			}
@@ -459,19 +459,11 @@ public class SpringConfig {
 			}
 			@Override
 			public Optional<IJiraArtifact> getIssue(String id, String workflow) {
-				try {
-					return js.get(id, workflow).map(j -> j);
-				} catch (NotFoundException | TimeOutException e) {
-					return Optional.empty();
-				}
+				return js.get(id, workflow).map(j -> j);
 			}
 			@Override
 			public Optional<IJiraArtifact> getIssue(String key) {
-				try {
-					return js.get(key).map(j -> j);
-				} catch (NotFoundException | TimeOutException e) {
-					return Optional.empty();
-				}
+				return js.get(key).map(j -> j);
 			}			    		
     	} ;   	    
     }
@@ -558,7 +550,7 @@ public class SpringConfig {
     @Bean
     @Primary
     @ConditionalOnExpression("${jama.enabled:false}")
-    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
+    public c4s.jamaconnector.MonitoringScheduler getJamaMonitoringScheduler(CacheStatus status, JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber, JamaUpdateTracingInstrumentation jamaUpdateTracingInstrumentation) {
         c4s.jamaconnector.MonitoringScheduler scheduler = new c4s.jamaconnector.MonitoringScheduler();
         String projectIds = env.getProperty("jamaProjectIds");
         String[] ids = projectIds.split(",");
@@ -566,14 +558,12 @@ public class SpringConfig {
             c4s.jamaconnector.ChangeStreamPoller changeStreamPoller = new c4s.jamaconnector.ChangeStreamPoller(Integer.parseInt(id), status);
             changeStreamPoller.setInterval(Integer.parseInt(env.getProperty("pollIntervalInMinutes")));
             changeStreamPoller.setJi(jamaInstance);
+            changeStreamPoller.setJamaChangeSubscriber(jamaChangeSubscriber);
             changeStreamPoller.setJamaUpdateTracingInstrumentation(jamaUpdateTracingInstrumentation);
             scheduler.registerAndStartTask(changeStreamPoller);
         }
         return scheduler;
-    }
-
-
-    
+    }    
 
     @Bean
     public c4s.jamaconnector.MonitoringScheduler getEmptyJamaMonitoringScheduler() {
