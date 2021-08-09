@@ -54,10 +54,10 @@ public class TestUpdateEventReplay {
         ProjectionModel pModel = new ProjectionModel(aRegistry);
         MockCommandGateway gw = new MockCommandGateway(aRegistry, registry);
 
-        jiraCS = new JiraChangeSubscriber(gw);
+        jiraCS = new JiraChangeSubscriber(gw, null);
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
-        jamaCS = new JamaChangeSubscriber(gw);
+        jamaCS = new JamaChangeSubscriber(gw, null);
         jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 

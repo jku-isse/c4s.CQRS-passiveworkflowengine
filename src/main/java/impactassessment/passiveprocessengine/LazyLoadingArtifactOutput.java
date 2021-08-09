@@ -54,7 +54,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		Set<IArtifact> artifacts = super.getArtifacts();
 		if (artifacts.size() != ai.size()) { //then there is something to load
 			if (reg==null) {
-				String parent = super.getContainer() != null ? super.getContainer().getId() : "NOT SET";
+				String parent = /*super.getContainer() != null ? super.getContainer().getId() : */"NOT SET";
 				log.warn("Registry ref is null for: "+this.getRole()+ " of "+parent);
 			} else {
 			for (ArtifactIdentifier aId : ai) {

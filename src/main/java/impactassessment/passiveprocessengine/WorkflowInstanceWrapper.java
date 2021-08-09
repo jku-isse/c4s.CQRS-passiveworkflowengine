@@ -69,7 +69,7 @@ public class WorkflowInstanceWrapper {
         		.filter(entry -> entry.getKey().isPresent())
         		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
         setInputArtifacts(artifacts);
-        return wfi.enableWorkflowTasksAndDecisionNodes();
+        return wfi.enableWorkflowTasksAndDecisionNodes().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toList());
     }
 
 
@@ -81,7 +81,7 @@ public class WorkflowInstanceWrapper {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
             ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT);
             addConstraint(evt, qa, wft, awos);
-            awos.addAll(wft.addOutput(ao));
+            awos.addAll(wft.addOutput(ao).stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toList()));
             awos.add((WorkflowTask)wft); // TODO: fix for nested workflow, --> we assume a nested workflow task doesn have its own QAchecks but rather the steps inside the nested workflow have, thus not an issue here
         } // else { //We require that all constraints are set at once in a single command, 
 //            addConstraint(evt, qa, wft, awos);
@@ -135,7 +135,7 @@ public class WorkflowInstanceWrapper {
             }
             // output state may change because QA constraints may be all fulfilled now
             wfi.getWorkflowTasksReadonly()
-                    .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));
+                    .forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toList())));
         });
         return awos;
     }
@@ -159,7 +159,7 @@ public class WorkflowInstanceWrapper {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         Optional<ArtifactOutput> opt = addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
         List<IWorkflowInstanceObject> awos = new ArrayList<>();
-        opt.ifPresent(artifactOutput -> awos.addAll(wft.addOutput(artifactOutput)));
+        opt.ifPresent(artifactOutput -> awos.addAll(wft.addOutput(artifactOutput).stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toList())));
         awos.add(wft);
         return awos;
 
@@ -217,9 +217,9 @@ public class WorkflowInstanceWrapper {
         	return Collections.emptySet();
         } else {
         	if (evt.isFulfilled()) 
-        		return wft.preConditionsFulfilled();
+        		return wft.preConditionsFulfilled().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toSet());
         	else
-        		return wft.preConditionsFailed();
+        		return wft.preConditionsFailed().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toSet());
         }
     }
 
@@ -230,9 +230,9 @@ public class WorkflowInstanceWrapper {
         	return Collections.emptySet();
         } else {
         	if (evt.isFulfilled()) 
-        		return wft.postConditionsFulfilled();
+        		return wft.postConditionsFulfilled().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toSet());
         	else
-        		return wft.postConditionsFailed();
+        		return wft.postConditionsFailed().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toSet());
         }
     }
 
@@ -299,7 +299,7 @@ public class WorkflowInstanceWrapper {
             // add inputs/outputs
             if (optWft.isPresent()) {
                 WorkflowTask wft = optWft.get();
-                awos.addAll(wft.activate()); // activate task
+                awos.addAll(wft.activate().stream().map(WorkflowChangeEvent::getChangedObject).distinct().collect(Collectors.toList())); // activate task
                 for (ArtifactInput in : evt.getOptionalInputs()) {
                     if (in instanceof LazyLoadingArtifactInput) {
                     	((LazyLoadingArtifactInput) in).reinjectRegistry(artReg);
