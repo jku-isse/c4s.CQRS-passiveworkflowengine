@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
+
 public class Events {
 
     public interface IdentifiableEvt {
@@ -141,6 +143,14 @@ public class Events {
         private final String id;
         private final String wftId;
     }
+    @Data
+    public static class ChangedCanceledStateOfTaskEvt implements IdentifiableEvt{
+    	@TargetAggregateIdentifier
+        private final String id;
+        private final String wftId; // or wfi Id if whole process is to be canceled or uncanceled
+        private final boolean isCanceled;
+    }
+    
     @Data
     public static class SetPropertiesEvt implements IdentifiableEvt {
         private final String id;

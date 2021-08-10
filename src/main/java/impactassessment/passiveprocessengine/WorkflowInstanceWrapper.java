@@ -236,11 +236,26 @@ public class WorkflowInstanceWrapper {
         }
     }
 
-    public void handle(ActivatedTaskEvt evt) {
-        // TODO implement
-        log.warn("{} - handler not implemented", evt.getClass().getSimpleName());
+    public Set<AbstractWorkflowInstanceObject> handle(ActivatedTaskEvt evt) {
+        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+        	log.warn("{} - workflowtask not found", evt.getWftId());
+        	return Collections.emptySet();
+        } else {
+        	return wft.activate();
+        }
     }
 
+    public Set<AbstractWorkflowInstanceObject> handle(ChangedCanceledStateOfTaskEvt evt) {
+    	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        if (wft == null) {
+        	log.warn("{} - workflowtask not found", evt.getWftId());
+        	return Collections.emptySet();
+        } else {
+        	return wft.setCanceled(evt.isCanceled());
+        }
+    }
+    
     public void handle(SetPropertiesEvt evt) {
         if (evt.getIwftId().equals(wfi.getId())) { // WorkflowInstance is targeted
             for (Entry<String, String> entry : evt.getProperties().entrySet()) {
@@ -398,6 +413,8 @@ public class WorkflowInstanceWrapper {
             handle((SetPostConditionsFulfillmentEvt) evt);
         } else if (evt instanceof ActivatedTaskEvt) {
             handle((ActivatedTaskEvt) evt);
+        } else if (evt instanceof ChangedCanceledStateOfTaskEvt) {
+            handle((ChangedCanceledStateOfTaskEvt) evt);
         } else if (evt instanceof SetPropertiesEvt) {
             handle((SetPropertiesEvt) evt);
         } else if (evt instanceof InstantiatedTaskEvt) {

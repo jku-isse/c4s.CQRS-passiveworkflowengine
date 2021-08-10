@@ -1,5 +1,7 @@
 package impactassessment.command;
 
+import static org.axonframework.modelling.command.AggregateLifecycle.apply;
+
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Optional;
@@ -13,6 +15,7 @@ import impactassessment.registry.WorkflowDefinitionContainer;
 import impactassessment.registry.WorkflowDefinitionRegistry;
 
 import org.axonframework.commandhandling.CommandCallback;
+import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.common.Registration;
@@ -29,6 +32,7 @@ import impactassessment.api.Commands.AddInputCmd;
 import impactassessment.api.Commands.AddInputToWorkflowCmd;
 import impactassessment.api.Commands.AddOutputCmd;
 import impactassessment.api.Commands.AddOutputToWorkflowCmd;
+import impactassessment.api.Commands.ChangeCanceledStateOfTaskCmd;
 import impactassessment.api.Commands.CheckAllConstraintsCmd;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
@@ -44,6 +48,7 @@ import impactassessment.api.Events.AddedInputEvt;
 import impactassessment.api.Events.AddedInputToWorkflowEvt;
 import impactassessment.api.Events.AddedOutputEvt;
 import impactassessment.api.Events.AddedOutputToWorkflowEvt;
+import impactassessment.api.Events.ChangedCanceledStateOfTaskEvt;
 import impactassessment.api.Events.CheckedAllConstraintsEvt;
 import impactassessment.api.Events.CheckedConstraintEvt;
 import impactassessment.api.Events.CreatedWorkflowEvt;
@@ -157,6 +162,10 @@ public class MockCommandGateway implements CommandGateway {
 			ActivateTaskCmd cmd = (ActivateTaskCmd)command;
 			proj.on(new ActivatedTaskEvt(cmd.getId(), cmd.getWftId()));
 		} else
+	    if (command instanceof ChangeCanceledStateOfTaskCmd) {		        
+	    	ChangeCanceledStateOfTaskCmd cmd = (ChangeCanceledStateOfTaskCmd)command;
+	    	proj.on(new ChangedCanceledStateOfTaskEvt(cmd.getId(), cmd.getWftId(), cmd.isCanceled()));
+		} else					
 		if (command instanceof SetPropertiesCmd) {
 			SetPropertiesCmd cmd = (SetPropertiesCmd)command;
 			proj.on(new SetPropertiesEvt(cmd.getId(), cmd.getIwftId(), cmd.getProperties()));

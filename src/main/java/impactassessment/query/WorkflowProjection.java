@@ -394,7 +394,7 @@ public class WorkflowProjection {
 		log.debug("[PRJ] reset view db");
 		projection.reset();
 	}
-
+	
 	private void insertConstraintTrigger(String id, WorkflowInstance wfi, String constraintType, String correlationObjectType) {
 		ConstraintTrigger ct = new ConstraintTrigger(wfi, new CorrelationTuple(id, correlationObjectType));
 		ct.addConstraint(constraintType);
