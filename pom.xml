@@ -6,7 +6,7 @@
 
     <groupId>JKU.ISSE</groupId>
     <artifactId>CQRS-Passiveprocessengine</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <name>CQRS-Passiveprocessengine</name>
     <description>CQRS-Passiveprocessengine</description>
@@ -30,7 +30,7 @@
 
         <jiralightconnector.version>0.6.5-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>4.0.8-SNAPSHOT</passiveprocessengine.v2.version>
+        <passiveprocessengine.v2.version>5.0.0-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.0.2-SNAPSHOT</artifact.api.version>
         <designspace.client.version>4.0</designspace.client.version>
@@ -158,11 +158,25 @@
 			<groupId>at.jku.isse.sdk</groupId>
     		<artifactId>artifact-client</artifactId>
     		<version>${designspace.client.version}</version>
+            <exclusions>
+                <!-- exclude logging -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
         <dependency>
             <groupId>at.jku.isse.designspace.sdk</groupId>
             <artifactId>main</artifactId>
             <version>${designspace.main.version}</version>
+            <exclusions>
+                <!-- exclude logging -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Axon -->

@@ -16,6 +16,7 @@ import impactassessment.evaluation.JamaUpdatePerformanceService;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +27,7 @@ import java.util.Set;
 public class OnlyJamaConfig {
 
     @Bean
-    public JamaUpdatePerformanceService getJamaUpdatePerformanceService(JamaCache jamaCache, JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
+    public JamaUpdatePerformanceService getJamaUpdatePerformanceService(@Qualifier("onlyJama") JamaCache jamaCache, JamaInstance jamaInstance, JamaChangeSubscriber jamaChangeSubscriber) {
         return new JamaUpdatePerformanceService(jamaCache, jamaInstance, jamaChangeSubscriber);
     }
 
@@ -42,7 +43,7 @@ public class OnlyJamaConfig {
         return jamaConn;
     }
 
-    @Bean
+    @Bean(value = "onlyJama")
     public CouchDBJamaCache getCache(CouchDbClient dbClient) {
         return new CouchDBJamaCache(dbClient);
     }
@@ -85,7 +86,7 @@ public class OnlyJamaConfig {
 
     @Bean
     public JamaChangeSubscriber getJamaChangeSubscriber() {
-        return new JamaChangeSubscriber(null){
+        return new JamaChangeSubscriber(null, null){
             @Override
             public void handleChangedJamaItems(Set<JamaItem> set, CorrelationTuple correlationTuple) {
                 // do nothing

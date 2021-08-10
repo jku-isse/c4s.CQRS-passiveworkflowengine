@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
+
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +56,7 @@ public class TestMultiArtifacts {
 		Basic1Artifacts.initServiceWithReq(ds);
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
 
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		wfp.handle(new PrintKBQuery(workflowId));
 
 		Basic1Artifacts.req1.getPropertyMap().put(DemoRequirement.propKeys.status.toString(), DemoRequirement.statusValues.inprogress.toString());
@@ -75,7 +77,7 @@ public class TestMultiArtifacts {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
 		Basic1Artifacts.initServiceWithReq(ds);
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		
 		
 		// prematurely activate "closed"
@@ -119,7 +121,7 @@ public class TestMultiArtifacts {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
 		Basic1Artifacts.initServiceWithReq(ds);
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		WorkflowInstance wfi = pModel.getWorkflowModel(workflowId).getWorkflowInstance();
 		
 		// prematurely activate "closed"
@@ -176,7 +178,7 @@ public class TestMultiArtifacts {
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
 		Basic1Artifacts.req1.getPropertyMap().put(DemoRequirement.propKeys.type.toString(), DemoRequirement.typeValues.highlevel.toString());
 
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		wfp.handle(new PrintKBQuery(workflowId));
 		
 		// we should now have 2 additional spawned processes: for req2 and req4, note req2 should not spawn another as its of type lowlevel

@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
+
 import org.axonframework.eventhandling.ReplayStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +55,7 @@ public class TestMultiArtifactsAutoProgress {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
 		Basic1Artifacts.initServiceWithReq(ds);
 		ArtifactIdentifier ai = Basic1Artifacts.req1.getArtifactIdentifier();
-		wfp.on(new CreatedWorkflowEvt(workflowId, List.of(new AbstractMap.SimpleEntry<>("req", ai)), wfd, wfdReg.get(wfd).getWfd()), status);
+		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		
 		
 		// prematurely activate "closed"
