@@ -63,7 +63,7 @@ public class WorkflowHelpers {
     public static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, String role, String type) {
         if (wft instanceof WorkflowWrapperTaskInstance) {
             WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
-            commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), wwti.getId(), role, type));
+            commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), wwti.getId(), role, type)); //FIXME: how is this adding an artifact without providing the artifacts id?
         }
     }
 
