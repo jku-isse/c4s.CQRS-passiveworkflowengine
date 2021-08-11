@@ -41,11 +41,12 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
     
-    private void setInputArtifacts(Map<IArtifact, String> inputs) {
+    private List<WorkflowChangeEvent> setInputArtifacts(Map<IArtifact, String> inputs) {
     	if (wfi != null) {
-    	    // TODO use LazyLoadingArtifactInput here?
-    		inputs.forEach((key, value) -> wfi.addInput(new ArtifactInput(key, value)));
+    	    // use LazyLoadingArtifactInput here? --> fine, as we have the artifacts already available
+    		return inputs.entrySet().stream().flatMap(entry -> wfi.addInput(new ArtifactInput(entry.getKey(), entry.getValue())).stream()).collect(Collectors.toList());
     	}
+    	return Collections.emptyList();
     }
 
     public WorkflowInstance getWorkflowInstance() {
@@ -69,10 +70,10 @@ public class WorkflowInstanceWrapper {
         		.map(entry -> new AbstractMap.SimpleEntry<>(artReg.get(entry.getKey(), id), entry.getValue()))
         		.filter(entry -> entry.getKey().isPresent())
         		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
-        setInputArtifacts(artifacts);
         List<WorkflowChangeEvent> changes = new LinkedList<>();
-        changes.addAll(wfi.enableWorkflowTasksAndDecisionNodes());
         changes.add(new WorkflowChangeEvent(ChangeType.CREATED, wfi));
+        changes.addAll(setInputArtifacts(artifacts));        
+        changes.addAll(wfi.enableWorkflowTasksAndDecisionNodes());        
         return changes;
     }
 
@@ -85,8 +86,7 @@ public class WorkflowInstanceWrapper {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
             ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT);
             addConstraint(evt, qa, wft, awos);
-            awos.addAll(wft.addOutput(ao));
-            //TODO TOCHECK: we expect that the wft, if changes appears in the event stream
+            awos.addAll(wft.addOutput(ao));           
             //awos.add((WorkflowTask)wft); //  fix for nested workflow, --> we assume a nested workflow task doesn have its own QAchecks but rather the steps inside the nested workflow have, thus not an issue here
         } // else { //We require that all constraints are set at once in a single command, 
 //            addConstraint(evt, qa, wft, awos);
@@ -377,54 +377,64 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(RemovedInputEvt evt) {
+    	ArtifactInput ai = new LazyLoadingArtifactInput(evt.getArtifact() == null ? Collections.emptySet() : Set.of(evt.getArtifact()), artReg, wfi.getId(), evt.getRole());
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
-    	List<ArtifactInput> inputs;
+    	//List<ArtifactInput> inputs;
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft == null) {
             if (evt.getId().equals(evt.getWftId())) { // we remove inputs from the workflow instance
-                inputs = wfi.getInput();
+                //inputs = wfi.getInput();
+            	 awos.addAll(wfi.removeInput(ai));
             } else {
-                return null;
+            	log.info("No Task or Process found to apply event: "+evt.toString());
+                return Collections.emptyList();
             }
         } else {
-            inputs = wft.getInput();
+          //  inputs = wft.getInput();
+        	awos.addAll(wft.removeInput(ai));
         }
-        Optional<ArtifactInput> opt = inputs.stream()
-                .filter(i -> i.getRole().equals(evt.getRole()))
-                .findAny();
-        if (opt.isPresent()) {
-            ArtifactInput in = opt.get();
-            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(in::removeArtifact);
-            if (in.getArtifacts().size() == 0 && wft != null) {
-                awos.addAll(wft.removeInput(in)); //FIXME: this should return the events
-            }
-        }
+//        Optional<ArtifactInput> opt = inputs.stream()
+//                .filter(i -> i.getRole().equals(evt.getRole()))
+//                .findAny();
+//        if (opt.isPresent()) {
+//            ArtifactInput in = opt.get();
+//            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(in::removeArtifact);
+//            if (in.getArtifacts().size() == 0 && wft != null) {
+//                awos.addAll(wft.removeInput(in)); //FIXME: this should return the events
+//            }
+//        }
         return awos;
     }
 
     public List<WorkflowChangeEvent> handle(RemovedOutputEvt evt) {
+    	ArtifactOutput ao = new LazyLoadingArtifactOutput(evt.getArtifact() == null ? Collections.emptySet() : Set.of(evt.getArtifact()), artReg, wfi.getId(), evt.getRole());
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
-    	List<ArtifactOutput> outputs;
+    	//List<ArtifactOutput> outputs;
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
         if (wft == null) {
             if (evt.getId().equals(evt.getWftId())) {
-                outputs = wfi.getOutput();
+                //outputs = wfi.getOutput();
+                awos.addAll(wfi.removeOutput(ao));
             } else {
-                return null;
+            	log.info("No Task or Process found to apply event: "+evt.toString());
+                return Collections.emptyList();
             }
         } else {
-            outputs = wft.getOutput();
+        	awos.addAll(wft.removeOutput(ao));
+            //outputs = wft.getOutput();
         }
-        Optional<ArtifactOutput> opt = outputs.stream()
-                .filter(o -> o.getRole().equals(evt.getRole()))
-                .findAny();
-        if (opt.isPresent()) {
-            ArtifactOutput out = opt.get();
-            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(out::removeArtifact); //FIXME: this should be internalized into the task to allow for triggering if stateupdates
-            if (out.getArtifacts().size() == 0 && wft != null) { //FIXME: also internalized
-                awos.addAll(wft.removeOutput(out)); //FIXME: this should return the change events
-            }
-        }
+//        Optional<ArtifactOutput> opt = outputs.stream()
+//                .filter(o -> o.getRole().equals(evt.getRole()))
+//                .findAny();
+//        if (opt.isPresent()) {
+//            ArtifactOutput out = opt.get();
+//            awos.addAll(opt.get().re)
+//            
+//            artReg.get(evt.getArtifact(), evt.getId()).ifPresent(out::removeArtifact); 
+//            if (out.getArtifacts().size() == 0 && wft != null) { 
+//                awos.addAll(wft.removeOutput(out)); 
+//            }
+//        }
         return awos;
     }
 

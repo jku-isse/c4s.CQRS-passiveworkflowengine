@@ -157,7 +157,7 @@ public class WorkflowProjection {
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		List<WorkflowChangeEvent> wios = wfiWrapper.handle(evt);
 		if (!status.isReplay()) {
-			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getArtifact().getType()); //TODO: move this into initUpdate... method that checks for every change if there was output removed or added to a task or the process itself
+//			addToSubWorkflow(commandGateway, wft, evt.getRole(), evt.getArtifact().getType()); //TODO: move this into initUpdate... method that checks for every change if there was output removed or added to a task or the process itself
 //			ensureInitializedKB(kieSessions, projection, evt.getId());
 //			kieSessions.insertOrUpdate(evt.getId(), wft);			
 //			kieSessions.fire(evt.getId());
@@ -239,14 +239,17 @@ public class WorkflowProjection {
 	public void on(UpdatedArtifactsEvt evt) {
 		log.debug("[PRJ] projecting {}", evt); 
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
-		ensureInitializedKB(kieSessions, projection, evt.getId());
-		// Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
 		List<WorkflowChangeEvent> awos = wfiWrapper.handle(evt);
-		awos.stream().map(WorkflowChangeEvent::getChangedObject).distinct().forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
-		// insert Event as trigger for rule to react upon
-		kieSessions.insertOrUpdate(evt.getId(), evt);
-		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
-		kieSessions.fire(evt.getId());
+		initUpdateFireConstraintInsertAndUITrigger(evt, wfiWrapper, awos, createConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt"));
+		
+//		ensureInitializedKB(kieSessions, projection, evt.getId());
+//		// Is artifact used as Input/Output to workflow? --> update workflow, update in kieSession
+//		List<WorkflowChangeEvent> awos = wfiWrapper.handle(evt);
+//		awos.stream().map(WorkflowChangeEvent::getChangedObject).distinct().forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));
+//		// insert Event as trigger for rule to react upon
+//		kieSessions.insertOrUpdate(evt.getId(), evt);
+//		insertConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "UpdatedArtifactsEvt");
+//		kieSessions.fire(evt.getId());
 	}
 
 	@EventHandler

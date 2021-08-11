@@ -37,26 +37,13 @@ import impactassessment.api.Commands.CheckAllConstraintsCmd;
 import impactassessment.api.Commands.CheckConstraintCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
 import impactassessment.api.Commands.InstantiateTaskCmd;
+import impactassessment.api.Commands.RemoveInputCmd;
+import impactassessment.api.Commands.RemoveOutputCmd;
 import impactassessment.api.Commands.SetPostConditionsFulfillmentCmd;
 import impactassessment.api.Commands.SetPreConditionsFulfillmentCmd;
 import impactassessment.api.Commands.SetPropertiesCmd;
 import impactassessment.api.Commands.UpdateArtifactsCmd;
-import impactassessment.api.Events.ActivatedTaskEvt;
-import impactassessment.api.Events.AddedConstraintsEvt;
-import impactassessment.api.Events.AddedEvaluationResultToConstraintEvt;
-import impactassessment.api.Events.AddedInputEvt;
-import impactassessment.api.Events.AddedInputToWorkflowEvt;
-import impactassessment.api.Events.AddedOutputEvt;
-import impactassessment.api.Events.AddedOutputToWorkflowEvt;
-import impactassessment.api.Events.ChangedCanceledStateOfTaskEvt;
-import impactassessment.api.Events.CheckedAllConstraintsEvt;
-import impactassessment.api.Events.CheckedConstraintEvt;
-import impactassessment.api.Events.CreatedWorkflowEvt;
-import impactassessment.api.Events.InstantiatedTaskEvt;
-import impactassessment.api.Events.SetPostConditionsFulfillmentEvt;
-import impactassessment.api.Events.SetPreConditionsFulfillmentEvt;
-import impactassessment.api.Events.SetPropertiesEvt;
-import impactassessment.api.Events.UpdatedArtifactsEvt;
+import impactassessment.api.Events.*;
 import impactassessment.passiveprocessengine.LazyLoadingArtifactInput;
 import impactassessment.passiveprocessengine.LazyLoadingArtifactOutput;
 
@@ -133,6 +120,14 @@ public class MockCommandGateway implements CommandGateway {
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 			if (opt.isPresent())
 				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole()), ReplayStatus.REGULAR);
+		} else
+		if (command instanceof RemoveOutputCmd) {
+			RemoveOutputCmd cmd = (RemoveOutputCmd)command;
+			proj.on(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()), ReplayStatus.REGULAR);
+		} else
+		if (command instanceof RemoveInputCmd) {
+				RemoveInputCmd cmd = (RemoveInputCmd)command;
+				proj.on(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()), ReplayStatus.REGULAR);
 		} else
 		if (command instanceof AddInputToWorkflowCmd) {
 			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
