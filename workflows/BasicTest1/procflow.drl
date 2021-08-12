@@ -60,7 +60,17 @@ no-loop
 		}
 end
 
-
+rule "UndoLinksToOutputItems"
+no-loop
+	when
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&								
+								 getAnyOneInputByRole("req") == null &&
+								 getAnyOneOutputByRole("relItems") != null 								
+							 ) 		
+	then
+		System.out.println("Undo output item collection: relItems");			
+		commandGateway.send(new RemoveOutputCmd($wft.getWorkflow().getId(), $wft.getId(), null, "relItems"));
+end
 
 
 
@@ -74,6 +84,18 @@ no-loop
 		eval ($req != null && (((DemoArtifact)$req).getProperty("status").equalsIgnoreCase("inprogress")) )
 	then
 		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), true));
+end
+
+rule "TriggerUndoCompletionOfOpenTask"
+no-loop
+	when // just some example based on demodata
+		$wft : WorkflowTask (   getType().getId().equals("Open") &&
+								getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED) 
+								, $req : getAnyOneInputByRole("req") 							
+							 ) 		 
+		eval ($req == null || (((DemoArtifact)$req).getProperty("status").equalsIgnoreCase("open")) )
+	then
+		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), false));
 end
 
 
