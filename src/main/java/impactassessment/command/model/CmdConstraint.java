@@ -37,11 +37,17 @@ public class CmdConstraint {
                 .filter(Map.Entry::getValue)
                 .map(entry -> entry.getKey().getId())
                 .filter(resId -> !fulfilled.contains(resId))
+                .map(resId -> {
+                	unsatisfied.remove(resId); return resId;
+                }) // just in case make sure that the other doesn;t contain this entry
                 .forEach(resId -> fulfilled.add(resId));
         evaluationResult.entrySet().stream()
                 .filter(entry -> !entry.getValue())
                 .map(entry -> entry.getKey().getId())
                 .filter(resId -> !unsatisfied.contains(resId))
+                .map(resId -> {
+                	fulfilled.remove(resId); return resId;
+                }) // just in case make sure that the other doesn;t contain this entry
                 .forEach(resId -> unsatisfied.add(resId));
     }
 }
