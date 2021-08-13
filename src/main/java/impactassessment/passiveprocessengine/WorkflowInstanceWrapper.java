@@ -158,58 +158,20 @@ public class WorkflowInstanceWrapper {
 
     public List<WorkflowChangeEvent> handle(AddedInputEvt evt) {
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        return addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);
+        return wft.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
     }
 
     public List<WorkflowChangeEvent> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        return addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wft);        
+        return wft.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
     }
 
     public List<WorkflowChangeEvent> handle(AddedInputToWorkflowEvt evt) {
-        return addInput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);
+        return wfi.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
     }
 
     public List<WorkflowChangeEvent> handle(AddedOutputToWorkflowEvt evt) {
-        return addOutput(evt.getId(), evt.getArtifact(), evt.getRole(), wfi);        
-    }
-
-    private List<WorkflowChangeEvent> addInput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
-    	List<WorkflowChangeEvent> awos = new ArrayList<>();
-    	Optional<ArtifactInput> opt = iwft.getInput().stream()
-                .filter(o -> o.getRole().equals(role))
-                .findAny();
-        if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
-        	ArtifactInput ao = opt.get();
-        	if (ao instanceof LazyLoadingArtifactInput) { // then lets just store the identifier 
-        		return ((LazyLoadingArtifactInput) ao).addOrReplaceArtifact(artifact);
-        	} else { // otherwise fetch and store the artifacts
-        		artReg.get(artifact, id).ifPresent(a -> awos.addAll(opt.get().addOrReplaceArtifact(a))); 
-        		return awos;
-        	}        	
-        } else { // if no ArtifactInput with correct role is present, a new ArtifactInput is created
-            ArtifactInput input = new LazyLoadingArtifactInput(artifact, artReg, wfi.getId(), role);
-            return iwft.addInput(input);
-        }
-    }
-
-    private List<WorkflowChangeEvent> addOutput(String id, ArtifactIdentifier artifact, String role, IWorkflowTask iwft) {
-        Optional<ArtifactOutput> opt = iwft.getOutput().stream()
-                .filter(o -> o.getRole().equals(role))
-                .findAny();
-        if (opt.isPresent()) { // if ArtifactOutput with correct role is present, IArtifact is added to Set
-        	ArtifactOutput ao = opt.get();
-        	if (ao instanceof LazyLoadingArtifactOutput) { // then lets just store the identifier
-        		return ((LazyLoadingArtifactOutput) ao).addOrReplaceArtifact(artifact);
-        	} else { // otherwise fetch and store the artifacts
-        		List<WorkflowChangeEvent> awos = new ArrayList<>();
-        		artReg.get(artifact, id).ifPresent(a -> awos.addAll(opt.get().addOrReplaceArtifact(a))); 
-        		return awos;
-        	}            
-        } else { // if no ArtifactOutput with correct role is present, a new ArtifactOutput is created
-            ArtifactOutput output = new LazyLoadingArtifactOutput(artifact, artReg, wfi.getId(), role);
-            return iwft.addOutput(output);            
-        }
+        return wfi.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
     }
     
     public List<WorkflowChangeEvent> handle(UpdatedArtifactsEvt evt) {
