@@ -40,7 +40,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 global CommandGateway commandGateway;
 global IArtifactRegistry artifactRegistry;
 
-/**/
+/*
 rule "TempData"
 	no-loop
 	when
@@ -87,5 +87,5 @@ rule "SpawnProcesses"
 			}
 		}
 end
-/**/
+*/
 

@@ -1,0 +1,107 @@
+package processdefinition;
+
+import org.axonframework.commandhandling.gateway.CommandGateway;
+
+import java.util.stream.Collectors;
+import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Iterator;
+import java.net.URL;
+
+import passiveprocessengine.definition.ArtifactTypes
+import passiveprocessengine.instance.*
+import passiveprocessengine.definition.*
+import passiveprocessengine.definition.TaskLifecycle.State;
+
+import artifactapi.ResourceLink
+import artifactapi.IArtifactRegistry
+import artifactapi.ArtifactIdentifier
+import artifactapi.IArtifactRegistry
+import at.jku.designspace.sdk.polarion.interfaces.*
+import artifactapi.jira.IJiraArtifact
+import artifactapi.jira.subtypes.*
+
+import org.jsoup.Jsoup
+import org.jsoup.nodes.*
+import c4s.impactassessment.tools.*
+
+import impactassessment.kiesession.KieSessionUtils
+import impactassessment.api.Commands.*
+import impactassessment.api.Events.*
+import org.axonframework.commandhandling.gateway.CommandGateway
+
+
+global CommandGateway commandGateway;
+global IArtifactRegistry artifactRegistry;
+
+
+rule "InsertQAConstraintsStateResolved"
+salience 3000
+	when
+        $wft : WorkflowTask( getType().getId().equals("Open") &&
+                                    getAnyOneOutputByRole(ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT) == null) // when first created, thus no assocated QADocument
+	then
+		Map<String, String> constraints = new LinkedHashMap<>();
+		constraints.put("AssigneeNotEmpty", "Is the Assignee not empty?");				
+		constraints.put("CheckPolarionDescriptionNotNull", "Does the Polarion Description contain some content?");		
+		commandGateway.send(new AddConstraintsCmd($wft.getWorkflow().getId(), $wft.getId(), constraints));
+end
+
+
+
+
+rule "AssigneeNotEmpty"
+	no-loop
+	when
+		$ct : ConstraintTrigger()
+		$qac : RuleEngineBasedConstraint( isAffectedBy($ct) && getConstraintType().equals( "AssigneeNotEmpty" ))
+		$wft : WorkflowTask( getType().getId().equals("Open") ,  $item : getAnyOneInputByRole("workitem") )		
+		eval($item != null)
+	then
+		IPolarionArtifact item = (IPolarionArtifact)$item;		
+		boolean success = ( item.getAssignee().length > 0 );		
+		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
+		result.put($item.convertToResourceLink(), success);
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+end	 
+
+
+
+
+
+
+rule "CheckPolarionDescriptionNotNull"
+	no-loop
+	when
+		$ct : ConstraintTrigger()
+		$qac : RuleEngineBasedConstraint( isAffectedBy($ct) && getConstraintType().equals( "CheckPolarionDescriptionNotNull" ))
+		$wft : WorkflowTask( getType().getId().equals("Open") ,  $item : getAnyOneInputByRole("workitem") )							
+		eval ($item != null)	
+	then		
+		boolean success = ( $item instanceof IPolarionArtifact && ((IPolarionArtifact)$item).getDescription() != null && ((IPolarionArtifact)$item).getDescription().length() > 0);			
+		Map<ResourceLink, Boolean> result = new HashMap<ResourceLink, Boolean>();
+		result.put($item.convertToResourceLink(), success);
+		commandGateway.send(new AddEvaluationResultToConstraintCmd($qac.getWorkflow().getId(), $wft.getId(), $qac.getId(), result, $ct.getRequestCorrelation(), Instant.now()));
+end
+
+
+
+
+rule "SetWFName"
+	salience 3000
+	when
+		$wfi : WorkflowInstance( getName() == null )	
+		$wft : WorkflowTask( getType().getId().equals("Open") ,  $item : getAnyOneInputByRole("workitem") )
+		eval ($item != null )	
+	then
+		IPolarionArtifact pol = (IPolarionArtifact)$item;
+		LinkedHashMap propsToAdd = new LinkedHashMap<String,String>();
+		propsToAdd.put("name", pol.getTitle());
+		commandGateway.send(new SetPropertiesCmd($wfi.getId(), $wfi.getId(), propsToAdd));
+end
