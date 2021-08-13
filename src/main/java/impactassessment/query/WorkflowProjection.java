@@ -68,6 +68,8 @@ public class WorkflowProjection {
 		KieContainer kieContainer = registry.get(evt.getDefinitionName()).getKieContainer();
 		WorkflowInstanceWrapper wfiWrapper = projection.createAndPutWorkflowModel(evt.getId());
 		List<WorkflowChangeEvent> awos = wfiWrapper.handle(evt);
+		wfiWrapper.setParentWfiId(evt.getParentWfiId());
+		wfiWrapper.setParentWftId(evt.getParentWftId());
 		kieSessions.create(evt.getId(), kieContainer);
 		if (!status.isReplay()) {
 			initUpdateFireAndUITrigger(evt, wfiWrapper, awos);
@@ -291,17 +293,28 @@ public class WorkflowProjection {
 				.distinct()
 				.filter(WorkflowWrapperTaskInstance.class::isInstance)
 				.map(WorkflowWrapperTaskInstance.class::cast)
-				.forEach(wwti -> {
-					// all inputs are sent to the subworkflow (addInput of AbstractWorkflowTask adds only those that are not yet listed)
-					wwti.getInput().forEach(ai -> ai.getArtifacts().forEach(art -> commandGateway.send(
-							new Commands.AddInputToWorkflowCmd(
-									wwti.getSubWfiId(),
-									art.getArtifactIdentifier().getId(),
-									ai.getRole(),
-									art.getArtifactIdentifier().getType()
-							)
-					)));
-				});
+				// all inputs are sent to the subworkflow (addInput of AbstractWorkflowTask adds only those that are not yet listed)
+				.forEach(wwti -> wwti.getInput().forEach(ai -> ai.getArtifacts().forEach(art -> commandGateway.send(
+						new Commands.AddInputToWorkflowCmd(
+							wwti.getSubWfiId(),
+							art.getArtifactIdentifier().getId(),
+							ai.getRole(),
+							art.getArtifactIdentifier().getType())))));
+
+		// addoutputs to parentworkflow
+		events.stream()
+				.filter(cevt -> cevt.getChangeType().equals(NEW_OUTPUT))
+				.map(WorkflowChangeEvent::getChangedObject)
+				.distinct()
+				.filter(WorkflowInstance.class::isInstance)
+				.map(WorkflowInstance.class::cast)
+				.forEach(wfi -> wfi.getOutput().forEach(ao -> ao.getArtifacts().forEach(art -> commandGateway.send(
+						new Commands.AddOutputCmd(
+							projection.getWorkflowModel(evt.getId()).getParentWfiId(),
+							projection.getWorkflowModel(evt.getId()).getParentWftId(),
+							art.getArtifactIdentifier().getId(),
+							ao.getRole(),
+							art.getArtifactIdentifier().getType())))));
 
 		if (events.size() > 0)
 			if (ct != null)

@@ -3,6 +3,8 @@ package impactassessment.passiveprocessengine;
 
 import artifactapi.*;
 import impactassessment.api.Events.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.ArtifactTypes;
 import passiveprocessengine.definition.IWorkflowTask;
@@ -21,7 +23,10 @@ public class WorkflowInstanceWrapper {
 
     private WorkflowInstance wfi;
     private IArtifactRegistry artReg;
-    
+
+    private @Getter @Setter String parentWfiId;
+    private @Getter @Setter String parentWftId;
+
     public WorkflowInstanceWrapper(IArtifactRegistry artReg) {
     	this.artReg = artReg;
     }
