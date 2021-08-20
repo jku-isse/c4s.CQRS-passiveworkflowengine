@@ -6,14 +6,25 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 import impactassessment.ltlcheck.LTLFormulaProvider.AvailableFormulas;
-import impactassessment.ltlcheck.ValidationUtil.ValidationSelection;
+import impactassessment.ltlcheck.util.ValidationUtil.ValidationSelection;
 import lombok.extern.slf4j.Slf4j;
+import passiveprocessengine.instance.WorkflowInstance;
 
 /**
  * @author chris
  */
 @Slf4j
 public class LTLValidationManager {
+
+	/**
+	 * possible test invocations:
+	 *
+	 * checkTraceAndStoreResult("workflow1", null, AvailableFormulas.MULT_TEST, //
+	 * ValidationSelection.ANY); checkTraceAndStoreResult("workflow1", null,
+	 * AvailableFormulas.COMPLEX_FORMULA, ValidationSelection.SPECIAL);
+	 * evaluateResults("workflow1", AvailableFormulas.COMPLEX_FORMULA);
+	 *
+	 */
 
 	/** utility **/
 	private static LTLValidationManager instance = null;
@@ -48,10 +59,9 @@ public class LTLValidationManager {
 	 *
 	 * @param workflowID              The ID of the workflow the validation
 	 *                                procedure is to be invoked for.
-	 * @param processLogObj           Placeholder-object which will be the source
-	 *                                for the runtime-process-log creation (e.g. a
-	 *                                workflow-object that contains all necessary
-	 *                                information to derive a valid process log).
+	 * @param wfi                     WorkflowInstance from which all information
+	 *                                necessary to derive a valid process log is
+	 *                                extracted from.
 	 * @param ltlFormulaDefinitionKey Enum-value identifying which of the formulas
 	 *                                that have been defined in
 	 *                                {@link LTLFormulaProvider} should be validated
@@ -73,19 +83,17 @@ public class LTLValidationManager {
 	 *                                prefix MULT should be used, but there is no
 	 *                                necessity for it).
 	 */
-	private void checkTraceAndStoreResult(String workflowID, Object processLogObj,
+	private void checkTraceAndStoreResult(String workflowID, WorkflowInstance wfi,
 			AvailableFormulas ltlFormulaDefinitionKey, ValidationSelection validationSelection) {
-		// TODO adapt description of method and think of implementation for
-		// processLogObj and ltlFormulaDefinitionKey.
 		if (!checkResults.containsKey(workflowID)) {
 			HashMap<String, Stack<ArrayList<ValidationResult>>> workflowMap = new HashMap<>();
 			Stack<ArrayList<ValidationResult>> resultStack = new Stack<ArrayList<ValidationResult>>();
-			resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, validationSelection));
+			resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, wfi, validationSelection));
 			workflowMap.put(ltlFormulaDefinitionKey.toString(), resultStack);
 			checkResults.put(workflowID, workflowMap);
 		} else {
 			checkResults.get(workflowID).get(ltlFormulaDefinitionKey.toString())
-					.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, validationSelection));
+					.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, wfi, validationSelection));
 		}
 	}
 
@@ -150,12 +158,20 @@ public class LTLValidationManager {
 		return false;
 	}
 
-	public static void main(String[] args) {
-		// LTLValidationManager.getInstance().checkTraceAndStoreResult("workflow1",
-		// null, AvailableFormulas.MULT_TEST,
-		// ValidationSelection.ANY);
-		LTLValidationManager.getInstance().checkTraceAndStoreResult("workflow1", null,
-				AvailableFormulas.COMPLEX_FORMULA, ValidationSelection.SPECIAL);
-		LTLValidationManager.getInstance().evaluateResults("workflow1", AvailableFormulas.COMPLEX_FORMULA);
+	/**
+	 * Call the validation routine (parser, validator, etc.) and evaluate the
+	 * received results.
+	 *
+	 * @param workflowID The ID of the workflow to be validated.
+	 * @param wfInstance The object holding the information necessary for the
+	 *                   process log (e.g. XML) conversion process.
+	 * @param af         The formula to be validated against the wfInstance.
+	 * @param vs         The type of validation to be conducted (evaluate all
+	 *                   defined formulas, only a single one (that is named), or a
+	 *                   random one).
+	 */
+	public void validate(String workflowID, WorkflowInstance wfInstance, AvailableFormulas af, ValidationSelection vs) {
+		checkTraceAndStoreResult(workflowID, wfInstance, af, vs);
+		evaluateResults(workflowID, af);
 	}
 }

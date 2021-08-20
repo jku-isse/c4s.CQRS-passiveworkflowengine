@@ -1,4 +1,6 @@
-package impactassessment.ltlcheck;
+package impactassessment.ltlcheck.util;
+
+import impactassessment.ltlcheck.RuntimeValidator;
 
 /**
  * @author chris

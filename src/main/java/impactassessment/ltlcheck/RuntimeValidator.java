@@ -15,12 +15,14 @@ import org.processmining.analysis.ltlchecker.formulatree.FormulaNode;
 import org.processmining.analysis.ltlchecker.formulatree.RootNode;
 import org.processmining.analysis.ltlchecker.parser.LTLParser;
 import org.processmining.analysis.ltlchecker.parser.SimpleNode;
+import org.processmining.framework.log.AuditTrailEntries;
 import org.processmining.framework.log.AuditTrailEntry;
-import org.processmining.framework.log.AuditTrailEntryList;
 import org.processmining.framework.log.LogReader;
 import org.processmining.framework.log.ProcessInstance;
 
-import impactassessment.ltlcheck.ValidationUtil.ValidationSelection;
+import impactassessment.ltlcheck.framework.CustomSetsSet;
+import impactassessment.ltlcheck.util.ValidationUtil;
+import impactassessment.ltlcheck.util.ValidationUtil.ValidationSelection;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -146,22 +148,23 @@ public class RuntimeValidator {
 
 		log.debug("Validating formula " + node.getName() + "...");
 
-		Iterator<?> iter = logReader.instanceIterator();
+		logReader.reset();
 
-		while (iter.hasNext() && run) {
-			ProcessInstance pi = (ProcessInstance) iter.next();
-			AuditTrailEntryList ates = pi.getAuditTrailEntryList();
+		while (logReader.hasNext() && run) {
+			ProcessInstance pi = logReader.next();
+			AuditTrailEntries ates = pi.getAuditTrailEntries();
 
 			log.debug("Process Instance " + pi.getName() + " [" + (++piCntCurr) + "/" + piCntTotal + "]");
 
 			// The process instance must be walked through in reverse. As the ProM framework
 			// does not support this, the audit trail entries of the current process
 			// instance are first read into a list.
-			Iterator<?> atesIter = ates.iterator();
+
+			ates.reset();
 			LinkedList<AuditTrailEntry> atesList = new LinkedList<>();
 
-			while (atesIter.hasNext()) {
-				AuditTrailEntry ate = (AuditTrailEntry) atesIter.next();
+			while (ates.hasNext()) {
+				AuditTrailEntry ate = ates.next();
 				atesList.add(ate);
 			}
 

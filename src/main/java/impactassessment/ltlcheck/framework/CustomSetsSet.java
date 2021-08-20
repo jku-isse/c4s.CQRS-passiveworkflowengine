@@ -1,4 +1,4 @@
-package impactassessment.ltlcheck;
+package impactassessment.ltlcheck.framework;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,8 +8,8 @@ import java.util.TreeMap;
 import org.processmining.analysis.ltlchecker.SetsSet;
 import org.processmining.analysis.ltlchecker.parser.Attribute;
 import org.processmining.analysis.ltlchecker.parser.LTLParser;
+import org.processmining.framework.log.AuditTrailEntries;
 import org.processmining.framework.log.AuditTrailEntry;
-import org.processmining.framework.log.AuditTrailEntryList;
 import org.processmining.framework.log.LogReader;
 import org.processmining.framework.log.LogSummary;
 import org.processmining.framework.log.ProcessInstance;
@@ -173,18 +173,18 @@ public class CustomSetsSet extends SetsSet {
 	@Override
 	public void fill(LogReader log, Progress p) {
 
-		Iterator<?> iter = log.instanceIterator();
+		log.reset();
 
 		if (!standardSetsOnly) {
-			while (iter.hasNext()) {
-				ProcessInstance pi = (ProcessInstance) iter.next();
+			while (log.hasNext()) {
+
+				ProcessInstance pi = log.next();
 				fillPiSets(pi);
 
-				AuditTrailEntryList ates = pi.getAuditTrailEntryList();
-				Iterator<?> atesIter = ates.iterator();
+				AuditTrailEntries ates = pi.getAuditTrailEntries();
 
-				while (atesIter.hasNext()) {
-					AuditTrailEntry ate = (AuditTrailEntry) atesIter.next();
+				while (ates.hasNext()) {
+					AuditTrailEntry ate = ates.next();
 					fillAteSets(ate);
 				}
 			}
@@ -204,9 +204,9 @@ public class CustomSetsSet extends SetsSet {
 		while (iter.hasNext()) {
 			name = iter.next();
 
-			if (pi.getAttributes().containsKey(name)) {
+			if (pi.getData().containsKey(name)) {
 				setOfName = piSets.get(name);
-				setOfName.add(pi.getAttributes().get(name));
+				setOfName.add((String) pi.getData().get(name));
 			}
 		}
 	}
@@ -229,9 +229,9 @@ public class CustomSetsSet extends SetsSet {
 					setOfName = ateSets.get(name);
 					setOfName.add(ate.getTimestamp().toString());
 				} else {
-					if (ate.getAttributes().containsKey(name)) {
+					if (ate.getData().containsKey(name)) {
 						setOfName = ateSets.get(name);
-						setOfName.add(ate.getAttributes().get(name));
+						setOfName.add((String) ate.getData().get(name));
 					}
 				}
 			}
