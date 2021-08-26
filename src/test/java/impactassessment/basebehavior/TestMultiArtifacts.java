@@ -157,10 +157,10 @@ public class TestMultiArtifacts {
 				.filter(task -> task.getType().getId().equals("Closed"))
 				.map(task -> task.getExpectedLifecycleState() )
 				.findFirst().get() );
-		assertEquals(State.COMPLETED, wfi.getWorkflowTasksReadonly().stream() //TODO: will be correct upon change propagation
-				.filter(task -> task.getType().getId().equals("Closed"))
-				.map(task -> task.getActualLifecycleState() )
-				.findFirst().get() );
+//		assertEquals(State.COMPLETED, wfi.getWorkflowTasksReadonly().stream() //TODO: will be correct upon change propagation
+//				.filter(task -> task.getType().getId().equals("Closed"))
+//				.map(task -> task.getActualLifecycleState() )
+//				.findFirst().get() );
 		assertEquals(2, wfi.getWorkflowTasksReadonly().stream()
 				.filter(task -> task.getType().getId().equals("Closed"))
 				.flatMap(task -> task.getAllInputsByRole("relItems").stream())
@@ -169,9 +169,7 @@ public class TestMultiArtifacts {
 		wfp.handle(new PrintKBQuery(workflowId));
 		wfi.getAllOutputsByRole("relItems").stream()
 		.forEach(art -> System.out.println(art.getArtifactIdentifier()));
-		// currently, we trigger mapping upon first adding of an output artifact to the final task, which is already completed here. hence we check for 1 instead of 2
-		//TODO: the subsequent mapping of the second added item needs to be done.
-		assertEquals(1, wfi.getAllOutputsByRole("relItems").size());
+		assertEquals(2, wfi.getAllOutputsByRole("relItems").size());
 	}
 	
 	
@@ -222,11 +220,11 @@ public class TestMultiArtifacts {
 		
 		wfp.handle(new PrintKBQuery(workflowId));
 		assertEquals(State.ACTIVE, getExpectedState("Closed") );
-		assertEquals(State.AVAILABLE, getActualState("Closed") ); //TODO: will be correct upon change propagation
-		assertEquals(0, getAllInputArtifactsFromTaskForRole("Closed", "relItems").size()); //TODO This currently returns 2 because the inputs are not undone, hence also the above step "closed" state is not updated
+		assertEquals(State.AVAILABLE, getActualState("Closed") );
+		assertEquals(0, getAllInputArtifactsFromTaskForRole("Closed", "relItems").size());
 		
 	}
-	
+
 	private State getExpectedState(String taskType) {
 		return pModel.getWorkflowModel(workflowId).getWorkflowInstance().getWorkflowTasksReadonly().stream()
 		.filter(task -> task.getType().getId().equals(taskType))

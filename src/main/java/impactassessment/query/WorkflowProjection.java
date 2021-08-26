@@ -308,13 +308,17 @@ public class WorkflowProjection {
 				.distinct()
 				.filter(WorkflowInstance.class::isInstance)
 				.map(WorkflowInstance.class::cast)
-				.forEach(wfi -> wfi.getOutput().forEach(ao -> ao.getArtifacts().forEach(art -> commandGateway.send(
-						new Commands.AddOutputCmd(
-							projection.getWorkflowModel(evt.getId()).getParentWfiId(),
-							projection.getWorkflowModel(evt.getId()).getParentWftId(),
-							art.getArtifactIdentifier().getId(),
-							ao.getRole(),
-							art.getArtifactIdentifier().getType())))));
+				.forEach(wfi -> wfi.getOutput().forEach(ao -> ao.getArtifacts().forEach(art -> {
+					if (projection.getWorkflowModel(evt.getId()).getParentWfiId() != null && projection.getWorkflowModel(evt.getId()).getParentWftId() != null) {
+						commandGateway.send(
+								new Commands.AddOutputCmd(
+										projection.getWorkflowModel(evt.getId()).getParentWfiId(),
+										projection.getWorkflowModel(evt.getId()).getParentWftId(),
+										art.getArtifactIdentifier().getId(),
+										ao.getRole(),
+										art.getArtifactIdentifier().getType()));
+					}
+				})));
 
 		if (events.size() > 0)
 			if (ct != null)
