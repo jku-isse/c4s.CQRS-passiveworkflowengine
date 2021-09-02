@@ -25,6 +25,21 @@ import passiveprocessengine.instance.WorkflowInstance;
 @Slf4j
 public class RuntimeParser {
 
+	/**
+	 * Validate the passed LTL formula against the process log to be created for the
+	 * passed workflow instance.
+	 *
+	 * @param formulaDefinition   The formula to be validated against the workflow.
+	 * @param wfi                 The workflow instance from which a process log
+	 *                            will be generated.
+	 * @param validationSelection The "validation mode" to be used (validate a
+	 *                            specific formula, all defined formulas or a random
+	 *                            one).
+	 * @return an ArrayList containing the validation results for every single
+	 *         process instance generated from the passed workflow instance
+	 *         (essentially only one)
+	 *
+	 */
 	public static ArrayList<ValidationResult> checkLTLTrace(AvailableFormulas formulaDefinition, WorkflowInstance wfi,
 			ValidationSelection validationSelection) {
 		try {
@@ -66,6 +81,12 @@ public class RuntimeParser {
 		return null;
 	}
 
+	/**
+	 * Invoke the {@link LTLParser} which parses and verifies the formula to be
+	 * validated.
+	 *
+	 * @return the invoked {@link LTLParser} instance
+	 */
 	private static LTLParser invokeParser(String ltlFormulas) {
 		LTLParser localParser = new LTLParser(new ByteArrayInputStream(ltlFormulas.getBytes(StandardCharsets.UTF_8)));
 		localParser.init();

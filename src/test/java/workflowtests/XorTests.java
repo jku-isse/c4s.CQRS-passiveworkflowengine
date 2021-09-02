@@ -172,7 +172,8 @@ public class XorTests {
 		workflow.setTaskStateTransitionEventPublisher(event -> {
 			System.out.println(event);
 			LTLValidationManager.getInstance().validate(ID, event.getTask().getWorkflow(),
-					AvailableFormulas.OUTPUT_MISSING, ValidationSelection.SPECIAL);
+					AvailableFormulas.OUTPUT_MISSING, ValidationSelection.SPECIAL, true);
+			// LTLValidationManager.getInstance().clearResults(ID);
 		}); // publisher must be set to prevent NullPointer
 		// create an instance out of the workflow definition
 		WorkflowInstance wfi = workflow.createInstance(ID);

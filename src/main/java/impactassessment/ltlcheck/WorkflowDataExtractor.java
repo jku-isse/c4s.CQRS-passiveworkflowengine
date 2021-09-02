@@ -1,8 +1,11 @@
 package impactassessment.ltlcheck;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import impactassessment.ltlcheck.util.LTLProcessInstanceObject;
 import impactassessment.ltlcheck.util.LTLTaskObject;
@@ -30,6 +33,24 @@ public class WorkflowDataExtractor {
 
 		// new internal process instance object
 		LTLProcessInstanceObject pi = new LTLProcessInstanceObject(wfd.getId());
+
+		// attributes for the current process instance
+		HashMap<String, String> piAttributes = new HashMap<>();
+
+		Timestamp piTimestamp = new Timestamp(System.currentTimeMillis());
+		SimpleDateFormat sdf = new SimpleDateFormat(LTLWorkflowConstants.PI_CREATION_TIMESTAMP_FORMAT);
+		String formattedTimestamp = sdf.format(piTimestamp);
+		piAttributes.put(LTLWorkflowConstants.PI_CREATION_TIMESTAMP_IDENTIFIER, formattedTimestamp);
+
+		// if any workflow properties are present, store them as process instance
+		// attributes
+		if (wfi.getPropertiesReadOnly().size() != 0) {
+			for (Entry<String, String> entry : wfi.getPropertiesReadOnly()) {
+				piAttributes.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		pi.setAttributes(piAttributes);
 
 		// audit trail entries for the current process instance
 		List<LTLTaskObject> ates = new ArrayList<>();

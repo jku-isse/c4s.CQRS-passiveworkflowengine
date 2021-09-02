@@ -1,6 +1,7 @@
 package impactassessment.ltlcheck;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.processmining.analysis.ltlchecker.CheckResult;
 import org.processmining.framework.log.LogReader;
@@ -28,15 +29,24 @@ public class ValidationResult {
 	 **/
 	private ArrayList<CheckResult> badResults;
 
+	/**
+	 * HashMap containing key/value-pairs of type <processInstance, HashMap<audit
+	 * trail entry, passed (boolean)>>. This collection maps every process instance
+	 * to another map containing the evaluation results for the individual audit
+	 * trail entries of the aforementioned process instance.
+	 */
+	private HashMap<String, HashMap<String, Boolean>> ateResults;
+
 	/** name of the evaluated formula **/
 	private String formulaName;
 
 	public ValidationResult(String formulaName, LogReader log, ArrayList<CheckResult> goodResults,
-			ArrayList<CheckResult> badResults) {
+			ArrayList<CheckResult> badResults, HashMap<String, HashMap<String, Boolean>> ateResults) {
 		this.formulaName = formulaName;
 		this.logReader = log;
 		this.goodResults = goodResults;
 		this.badResults = badResults;
+		this.ateResults = ateResults;
 	}
 
 	public String getFormulaName() {
@@ -49,6 +59,10 @@ public class ValidationResult {
 
 	public ArrayList<CheckResult> getBadResults() {
 		return badResults;
+	}
+
+	public HashMap<String, HashMap<String, Boolean>> getAuditTrailEntryResults() {
+		return ateResults;
 	}
 
 	public LogReader getLogReader() {

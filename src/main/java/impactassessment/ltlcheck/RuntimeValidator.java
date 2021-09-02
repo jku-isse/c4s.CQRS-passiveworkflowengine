@@ -1,6 +1,7 @@
 package impactassessment.ltlcheck;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
@@ -150,9 +151,16 @@ public class RuntimeValidator {
 
 		logReader.reset();
 
+		// collect evaluation results of every audit trail entry of every process
+		// instance
+		HashMap<String, HashMap<String, Boolean>> ateResults = new HashMap<>();
+
 		while (logReader.hasNext() && run) {
 			ProcessInstance pi = logReader.next();
 			AuditTrailEntries ates = pi.getAuditTrailEntries();
+
+			// create result entry for current process instance in ateResults map
+			ateResults.put(pi.getName(), new HashMap<String, Boolean>());
 
 			log.debug("Process Instance " + pi.getName() + " [" + (++piCntCurr) + "/" + piCntTotal + "]");
 
@@ -173,6 +181,11 @@ public class RuntimeValidator {
 			for (int j = atesList.size(); j >= 0; j--) {
 				// start with n + 1
 				fulfill = root.value(pi, atesList, j);
+
+				// record evaluation result of current audit trail entry
+				if (j < atesList.size()) {
+					ateResults.get(pi.getName()).put(atesList.get(j).getElement(), fulfill);
+				}
 			}
 
 			// The computed boolean-value for the variable fulfill of the last audit trail
@@ -196,10 +209,10 @@ public class RuntimeValidator {
 			// current process instance as the appropriate numbering starts with 0.
 			currPiNumber++;
 		}
-		log.debug("\nValidation completed:\n" + "Passed process instances: " + goodResults.size() + "\n"
-				+ "Failed process instances: " + badResults.size());
+		log.debug("Validation completed:\n" + "\tPassed process instances: " + goodResults.size() + "\n"
+				+ "\tFailed process instances: " + badResults.size());
 
-		return new ValidationResult(formulaName, logReader, goodResults, badResults);
+		return new ValidationResult(formulaName, logReader, goodResults, badResults, ateResults);
 	}
 
 	private Substitutes getSubstitutes(SimpleNode node) {

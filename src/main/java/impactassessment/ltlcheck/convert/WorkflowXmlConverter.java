@@ -39,7 +39,7 @@ public class WorkflowXmlConverter {
 		if (instance == null) {
 			instance = new WorkflowXmlConverter();
 			try {
-				ProcessLogDirectoryWatcher.start();
+				ProcessLogDirectoryWatcher.start(true);
 			} catch (Exception ex) {
 				log.error("Could not start " + ProcessLogDirectoryWatcher.class.getSimpleName() + ".", ex);
 			}

@@ -32,11 +32,31 @@ public class ProcessLogDirectoryWatcher {
 
 	/**
 	 * Start the process log directory watcher.
+	 *
+	 * @param cleanupBeforeExecution If set to true, a thread will be started making
+	 *                               sure that all created process logs of a
+	 *                               previous validation session are deleted. This
+	 *                               can be useful as the <em>ProM-framework</em>
+	 *                               sometimes keeps file handles which prevent the
+	 *                               installed shutdown hook from automatically
+	 *                               removing created process logs. Albeit remaining
+	 *                               process logs will not disturb the validation
+	 *                               routine (if process logs for a workflow are
+	 *                               already present (e.g. logs with the exact same
+	 *                               name are present in the FS), the
+	 *                               {@link WorkflowXmlConverter} will simply
+	 *                               override them), its better to cleanup properly
+	 *                               before starting another validation session.
 	 */
-	public static void start() throws Exception {
+	public static void start(boolean cleanupBeforeExecution) throws Exception {
 		Path watchPath = Paths.get(WorkflowXmlUtility.tempBaseDir);
 		if (watchPath == null) {
 			throw new UnsupportedOperationException("Temp-directory could not be found.");
+		}
+
+		// invoke the cleanup worker
+		if (cleanupBeforeExecution) {
+			new ProcessLogCleanupWorker().start();
 		}
 
 		WatchService watcher = watchPath.getFileSystem().newWatchService();
@@ -110,10 +130,11 @@ public class ProcessLogDirectoryWatcher {
 		}
 	}
 
-	private static class ProcessLogDirWatcherShutdownHook extends Thread {
-
-		private static final String processLogRegex = WorkflowXmlUtility.WF_PROCESS_LOG_PREFIX + "(.*)"
-				+ WorkflowXmlUtility.WF_PROCESS_LOG_SUFFIX;
+	/**
+	 * Shutdown hook responsible for removing all process logs created during a
+	 * validation session.
+	 */
+	private static class ProcessLogDirWatcherShutdownHook extends ProcessLogCleanupWorker {
 
 		public ProcessLogDirWatcherShutdownHook() {
 			super("ProcessLogDirWatcherShutdownHook");
@@ -131,7 +152,6 @@ public class ProcessLogDirectoryWatcher {
 					cleanedFiles++;
 				}
 			}
-
 			log.info(cleanedFiles + " created process log file(s) have been removed.");
 		}
 	}
