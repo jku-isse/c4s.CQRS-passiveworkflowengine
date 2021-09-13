@@ -98,7 +98,7 @@ rule "CopyInToOut"
 	then
 		System.out.println("Copying into output relItems");
 		IJiraArtifact jira = (IJiraArtifact)$item;		
-		commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jira.getId(), "relItems", "IJiraArtifact"));			
+		commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jira.getKey(), "relItems", "IJiraArtifact"));			
 end
 
 rule "UndoCopyInToOut"
@@ -112,7 +112,7 @@ rule "UndoCopyInToOut"
 	then
 		System.out.println("Undoing Copying of output into relItems");
 		IJiraArtifact jira = (IJiraArtifact)$relItem;		
-		commandGateway.send(new RemoveOutputCmd($wft.getWorkflow().getId(), $wft.getId(), new ArtifactIdentifier(jira.getId(), "IJiraArtifact"), "relItems" ));			
+		commandGateway.send(new RemoveOutputCmd($wft.getWorkflow().getId(), $wft.getId(), new ArtifactIdentifier(jira.getKey(), "IJiraArtifact"), "relItems" ));			
 end
 
 rule "TriggerCompletionOfOpenTask"

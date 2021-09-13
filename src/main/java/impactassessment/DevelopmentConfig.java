@@ -16,6 +16,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.hibernate.SessionFactory;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -163,7 +164,7 @@ public class DevelopmentConfig extends AbstractModule {
         String uri =  getProp("jiraServerURI");
         String username =  getProp("jiraConnectorUsername");
         String pw =  getProp("jiraConnectorPassword");
-        return new AnonymizingAsyncJiraRestClientFactory()
+        return new AsynchronousJiraRestClientFactory()
                 .createWithBasicHttpAuthentication(URI.create(uri), username, pw);
     }
 

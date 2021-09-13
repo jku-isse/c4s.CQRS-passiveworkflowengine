@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.google.inject.Injector;
 
 import artifactapi.ArtifactIdentifier;
+import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
 import impactassessment.DevelopmentConfig;
 import impactassessment.api.Events.*;
@@ -59,8 +60,8 @@ public class JiraLiveTest {
 	@Test
 	public void runDemoJiraOnAtlassianTest() {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
-		ArtifactIdentifier ai = new ArtifactIdentifier("P2E2-1", "IJiraArtifact");
-
+		ArtifactIdentifier ai = new ArtifactIdentifier("DEMO-2", "IJiraArtifact");
+		IArtifact art = aRegistry.get(ai, workflowId).get();
 		wfp.on(new CreatedWorkflowEvt(workflowId, Map.of(ai, "req"), wfd, wfdReg.get(wfd).getWfd()), status);
 		wfp.handle(new PrintKBQuery(workflowId));
 	}
