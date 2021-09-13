@@ -98,7 +98,21 @@ rule "CopyInToOut"
 	then
 		System.out.println("Copying into output relItems");
 		IJiraArtifact jira = (IJiraArtifact)$item;		
-		commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jira.getId(), "relItems", "IJiraArtifact"));			
+		commandGateway.send(new AddOutputCmd($wft.getWorkflow().getId(), $wft.getId(), jira.getKey(), "relItems", "IJiraArtifact"));			
+end
+
+rule "UndoCopyInToOut"
+	when
+		$wft : WorkflowTask (   getType().getId().equals("FirstStep") &&
+								!(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) &&
+								 getAnyOneInputByRole("req") == null // removed input 
+								 , $relItem : getAnyOneOutputByRole("relItems") 								
+							 ) 
+		eval ($relItem != null )					 
+	then
+		System.out.println("Undoing Copying of output into relItems");
+		IJiraArtifact jira = (IJiraArtifact)$relItem;		
+		commandGateway.send(new RemoveOutputCmd($wft.getWorkflow().getId(), $wft.getId(), new ArtifactIdentifier(jira.getKey(), "IJiraArtifact"), "relItems" ));			
 end
 
 rule "TriggerCompletionOfOpenTask"
@@ -112,6 +126,19 @@ no-loop
 	then
 		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), true));
 end
+
+rule "UndoTriggerCompletionOfOpenTask"
+no-loop
+	when // just some example based on demodata
+		$wft : WorkflowTask (   getType().getId().equals("FirstStep") &&
+								(getActualLifecycleState().equals(TaskLifecycle.State.COMPLETED)) 
+								, $req : getAnyOneInputByRole("req") 							
+							 ) 		 
+		eval ($req == null || (((IJiraArtifact)$req).getStatus().getName().equalsIgnoreCase("Open")) )
+	then
+		commandGateway.send(new SetPostConditionsFulfillmentCmd($wft.getWorkflow().getId(), $wft.getId(), false));
+end
+
 
 rule "SetWFName"
 	salience 3000

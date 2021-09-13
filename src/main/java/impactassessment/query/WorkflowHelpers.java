@@ -57,14 +57,4 @@ public class WorkflowHelpers {
         CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), arts);
         commandGateway.send(cmd);
     }
-    
-    
-
-    public static void addToSubWorkflow(CommandGateway commandGateway, IWorkflowTask wft, String role, String type) {
-        if (wft instanceof WorkflowWrapperTaskInstance) {
-            WorkflowWrapperTaskInstance wwti = (WorkflowWrapperTaskInstance) wft;
-            commandGateway.send(new AddInputToWorkflowCmd(wwti.getSubWfiId(), wwti.getId(), role, type));
-        }
-    }
-
 }

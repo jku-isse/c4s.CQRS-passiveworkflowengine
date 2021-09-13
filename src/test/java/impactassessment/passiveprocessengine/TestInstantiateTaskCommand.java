@@ -49,10 +49,10 @@ public class TestInstantiateTaskCommand {
         ProjectionModel pModel = new ProjectionModel(aRegistry);
         MockCommandGateway gw = new MockCommandGateway(aRegistry, registry);
 
-        JiraChangeSubscriber jiraCS = new JiraChangeSubscriber(gw);
+        JiraChangeSubscriber jiraCS = new JiraChangeSubscriber(gw, null);
         jiraS = conf.getJiraService(conf.getJiraInstance(conf.getJiraCache(), jiraCS, conf.getJiraMonitoringState()), jiraCS);
         aRegistry.register(jiraS);
-        JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw);
+        JamaChangeSubscriber jamaCS = new JamaChangeSubscriber(gw, null);
         jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 

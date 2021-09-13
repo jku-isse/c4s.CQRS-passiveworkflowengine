@@ -195,6 +195,12 @@ public class WorkflowAggregate implements Serializable {
         log.debug("[AGG] handling {}", cmd);
         apply(new ActivatedTaskEvt(cmd.getId(), cmd.getWftId()));
     }
+    
+    @CommandHandler
+    public void handle(ChangeCanceledStateOfTaskCmd cmd) {
+        log.debug("[AGG] handling {}", cmd);
+        apply(new ChangedCanceledStateOfTaskEvt(cmd.getId(), cmd.getWftId(), cmd.isCanceled()));
+    }
 
     @CommandHandler
     public void handle(SetPropertiesCmd cmd) {

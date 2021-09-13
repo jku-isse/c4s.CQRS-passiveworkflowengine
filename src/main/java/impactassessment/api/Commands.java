@@ -153,6 +153,15 @@ public class Commands {
         private final String id;
         private final String wftId;
     }
+    
+    @Data
+    public static class ChangeCanceledStateOfTaskCmd {
+    	@TargetAggregateIdentifier
+        private final String id;
+        private final String wftId; // or wfi Id if whole process is to be canceled or uncanceled
+        private final boolean isCanceled;
+    }
+    
     @Data
     public static class SetPropertiesCmd {
         @TargetAggregateIdentifier

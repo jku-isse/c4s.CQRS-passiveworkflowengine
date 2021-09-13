@@ -50,6 +50,9 @@ public class TestMultiArtifactsAutoProgress {
 		kieS = inj.getInstance(IKieSessionService.class);
 	}
 	
+	/////////////// FIRST RENAME autoprogress.drl.deact back to ...drl /////////////////////////
+	
+	
 	@Test
 	public void runPrematureActivateTaskTest() {
 		wfp.on(new DeletedEvt(workflowId)); // to ensure any previous workflow is removed
