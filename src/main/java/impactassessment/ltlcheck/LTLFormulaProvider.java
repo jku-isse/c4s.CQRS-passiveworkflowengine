@@ -2,6 +2,10 @@ package impactassessment.ltlcheck;
 
 import java.util.HashMap;
 
+import impactassessment.ltlcheck.util.LTLFormulaConstants;
+import impactassessment.ltlcheck.util.LTLFormulaObject;
+import impactassessment.ltlcheck.util.ValidationUtil.ValidationMode;
+
 /**
  * Formulas (e.g. valid "LTL-files") will be constructed here and subsequently
  * passed on to the {@link RuntimeParser} which will check them for validity
@@ -12,126 +16,45 @@ import java.util.HashMap;
 public class LTLFormulaProvider {
 
 	/**
-	 * Entries in this enum must have the same name (including same case-usage,
-	 * etc.) as a defined formula or start with the prefix MULT if the definition
-	 * mapped to the enum value contains multiple formulas.
+	 * Enum holding the names of every defined formula.
 	 */
 	public enum AvailableFormulas {
-		SIMPLE_TEST, MULT_TEST, DOES_JOHN_DRIVE, COMPLEX_FORMULA, OUTPUT_MISSING
+		OUTPUT_MISSING
 	}
 
 	/**
-	 * Map storing entries of type <key=AvailableFormulas.xxx, value=STRING (formula
-	 * definition files)> for static (predefined) formulas.
+	 * Map containing defined formulas.
 	 **/
-	private static HashMap<AvailableFormulas, String> staticFormulas = new HashMap<>();
+	private static HashMap<AvailableFormulas, LTLFormulaObject> formulas = new HashMap<>();
 
+	/**
+	 * Statically build all available formulas.
+	 */
 	static {
-		staticFormulas.put(AvailableFormulas.SIMPLE_TEST, buildTestLTLDefinition());
-		staticFormulas.put(AvailableFormulas.MULT_TEST, buildTestForMultipleFormulas());
-		staticFormulas.put(AvailableFormulas.DOES_JOHN_DRIVE, buildDoesJohnDriveFormula());
-		staticFormulas.put(AvailableFormulas.COMPLEX_FORMULA, buildComplexFormula());
-		staticFormulas.put(AvailableFormulas.OUTPUT_MISSING, buildOutputMissingFormula());
-	}
-
-	/** constants for quantifiers **/
-	private static final String FORALL = "forall";
-	private static final String EXISTS = "exists";
-
-	/** constants for LTL operators **/
-	private static final String ALWAYS = "[]"; // e.g. A(...)
-	private static final String EVENTUALLY = "<>"; // e.g. F(...)
-	private static final String NEXT_TIME = "_O"; // e.g. X(...)
-	private static final String UNTIL = "_U"; // e.g. (... U ...)
-
-	/**
-	 * @return a string containing a single valid formula definition for testing
-	 *         purposes
-	 */
-	private static String buildTestLTLDefinition() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("# attributes\n");
-		sb.append("set ate.WorkflowModelElement;\n");
-		sb.append("set ate.Originator;\n");
-		sb.append("# renamings\n");
-		sb.append("rename ate.WorkflowModelElement as task;\n");
-		sb.append("rename ate.Originator as person;\n");
-		sb.append("# formulas\n");
-		sb.append("formula SIMPLE_TEST() := {\n");
-		sb.append("}\n");
-		sb.append(EVENTUALLY + "(task == \"asking\");");
-
-		return sb.toString();
+		buildOutputMissingFormula();
 	}
 
 	/**
-	 * @return a string containing multiple valid formula definitions for testing
-	 *         purposes
+	 * Build formula <em>OUTPUT_MISSING</em>.
 	 */
-	private static String buildTestForMultipleFormulas() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("# attributes\n");
-		sb.append("set ate.WorkflowModelElement;\n");
-		sb.append("set ate.Originator;\n");
-		sb.append("# renamings\n");
-		sb.append("rename ate.WorkflowModelElement as task;\n");
-		sb.append("rename ate.Originator as person;\n");
-		sb.append("# formulas\n");
-		sb.append("formula test_one() := {\n");
-		sb.append("}\n");
-		sb.append(EVENTUALLY + "(task == \"asking\");\n");
-		sb.append("formula test_two() := {\n");
-		sb.append("}\n");
-		sb.append(EVENTUALLY + "(person == \"Mary\");");
+	private static void buildOutputMissingFormula() {
+		String formulaName = AvailableFormulas.OUTPUT_MISSING.toString();
 
-		return sb.toString();
+		String formulaDefinition = buildOutputMissingFormulaDefinition(formulaName);
+
+		ValidationMode vm = ValidationMode.STATIC;
+
+		LTLFormulaObject formulaObj = new LTLFormulaObject(formulaName, formulaDefinition, vm);
+
+		formulas.put(AvailableFormulas.OUTPUT_MISSING, formulaObj);
 	}
 
 	/**
-	 * @return a string containing a single valid formula definition
-	 *         (DOES_JOHN_DRIVE) for testing purposes
+	 * @param formulaName The name of this formula.
+	 * @return a string containing a formula definition checking for missing output
+	 *         artifacts of individual tasks at a single point in time
 	 */
-	private static String buildDoesJohnDriveFormula() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("# attributes\n");
-		sb.append("set ate.WorkflowModelElement;\n");
-		sb.append("set ate.Originator;\n");
-		sb.append("# renamings\n");
-		sb.append("rename ate.WorkflowModelElement as task;\n");
-		sb.append("rename ate.Originator as person;\n");
-		sb.append("# formulas\n");
-		sb.append("formula DOES_JOHN_DRIVE() := {\n");
-		sb.append("}\n");
-		sb.append(EVENTUALLY + "( (task == \"driving\" /\\ person == \"John\") );");
-
-		return sb.toString();
-	}
-
-	/**
-	 * @return a string containing a single complex formula definition for testing
-	 *         purposes
-	 */
-	private static String buildComplexFormula() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("# attributes\n");
-		sb.append("set ate.WorkflowModelElement;\n");
-		sb.append("set ate.Originator;\n");
-		sb.append("# renamings\n");
-		sb.append("rename ate.WorkflowModelElement as task;\n");
-		sb.append("rename ate.Originator as person;\n");
-		sb.append("# formulas\n");
-		sb.append("formula COMPLEX_FORMULA() := {\n");
-		sb.append("}\n");
-		sb.append(EVENTUALLY + "(" + ALWAYS + "( task == \"flying\"));");
-
-		return sb.toString();
-	}
-
-	/**
-	 * @return a string containing a formula definition checking for missing outputs
-	 *         for individual tasks at a single point in time
-	 */
-	private static String buildOutputMissingFormula() {
+	private static String buildOutputMissingFormulaDefinition(String formulaName) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("set ate.WorkflowModelElement;\n");
 		sb.append("set ate.Originator;\n");
@@ -141,18 +64,20 @@ public class LTLFormulaProvider {
 		sb.append("rename ate.Originator as person;\n");
 		sb.append("rename ate.OUTPUT as output;\n");
 		sb.append("# formulas\n");
-		sb.append("formula OUTPUT_MISSING() := {\n");
+		sb.append("formula " + formulaName + "() := {\n");
 		sb.append("}\n");
-		sb.append(EVENTUALLY + "( output == \"OUTPUT_MISSING\");");
+		sb.append(LTLFormulaConstants.EVENTUALLY + "( output == \"OUTPUT_MISSING\");");
 
 		return sb.toString();
 	}
 
 	/**
-	 * @param key identifying a formula definition in map <code>formulas</code>
-	 * @return the formula definition mapped to key
+	 * @param key The formula name mapped to a {@link LTLFormulaObject} in map
+	 *            <code>formulas</code>.
+	 * @return the formula definition of the {@link LTLFormulaObject} identified
+	 *         by @param key
 	 */
-	public static String getFormulaDefinition(AvailableFormulas key) {
-		return (key == null) ? null : staticFormulas.get(key);
+	public static LTLFormulaObject getFormulaDefinition(AvailableFormulas key) {
+		return (key == null) ? null : formulas.get(key);
 	}
 }

@@ -10,25 +10,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import impactassessment.ltlcheck.LTLFormulaProvider.AvailableFormulas;
-import impactassessment.ltlcheck.util.ValidationUtil.ValidationSelection;
 import lombok.extern.slf4j.Slf4j;
-import passiveprocessengine.instance.WorkflowInstance;
+import passiveprocessengine.instance.TaskStateTransitionEvent;
 
 /**
  * @author chris
  */
 @Slf4j
 public class LTLValidationManager {
-
-	/**
-	 * possible test invocations:
-	 *
-	 * checkTraceAndStoreResult("workflow1", null, AvailableFormulas.MULT_TEST, //
-	 * ValidationSelection.ANY); checkTraceAndStoreResult("workflow1", null,
-	 * AvailableFormulas.COMPLEX_FORMULA, ValidationSelection.SPECIAL);
-	 * evaluateResults("workflow1", AvailableFormulas.COMPLEX_FORMULA);
-	 *
-	 */
 
 	/** {@link LTLValidationManager} instance **/
 	private static LTLValidationManager instance = null;
@@ -38,12 +27,12 @@ public class LTLValidationManager {
 
 	/**
 	 * If a periodic task is to be executed, the most recent
-	 * {@link WorkflowInstance} for the workflow identified by the key of this map
-	 * must be used for the evaluation.
+	 * {@link TaskStateTransitionEvent} for the workflow identified by the key of
+	 * this map must be used for the evaluation.
 	 **/
-	private ConcurrentHashMap<String, Stack<WorkflowInstance>> periodicTaskMap;
+	private ConcurrentHashMap<String, Stack<TaskStateTransitionEvent>> periodicTaskMap;
 
-	/** max. amount of evaluation periodic evaluation tasks **/
+	/** max. allowed amount of periodic evaluation tasks **/
 	private static final int MAX_TASK_COUNT = 10;
 
 	/**
@@ -79,9 +68,6 @@ public class LTLValidationManager {
 	 *
 	 * @param workflowID     The ID of the workflow to be validated.
 	 * @param af             The formula to be validated against the wfInstance.
-	 * @param vs             The type of validation to be conducted (evaluate all
-	 *                       defined formulas, only a single one (that is named), or
-	 *                       a random one).
 	 * @param detailedOutput Decides if the evaluation output for the most recent
 	 *                       validation result should also include detailed
 	 *                       information (e.g. what audit trail entries (tasks)
@@ -90,30 +76,31 @@ public class LTLValidationManager {
 	 *                       time.
 	 * @param delay          The delay between the periodic executions of the task.
 	 */
-	public void registerValidationTask(String workflowID, AvailableFormulas af, ValidationSelection vs,
-			boolean detailedOutput, long initialDelay, long delay, TimeUnit timeUnit) {
+	public void registerValidationTask(String workflowID, AvailableFormulas af, boolean detailedOutput,
+			long initialDelay, long delay, TimeUnit timeUnit) {
 
 		// register the validation task
-		validationScheduler.scheduleAtFixedRate(new ValidationTask(workflowID, af, vs, detailedOutput), initialDelay,
-				delay, timeUnit);
+		validationScheduler.scheduleAtFixedRate(new ValidationTask(workflowID, af, detailedOutput), initialDelay, delay,
+				timeUnit);
 	}
 
 	/**
 	 * Update the task stack with the most recent state of the workflow to be
 	 * checked periodically.
 	 *
-	 * @param workflowID The identifier of the passed workflow posing as key to find
-	 *                   the correct workflow instance stack.
-	 * @param wfi        The workflow instance to be pushed to the stack mapped to
-	 *                   the workflow identifier.
+	 * @param workflowID      The identifier of the passed workflow posing as key to
+	 *                        find the correct workflow instance stack.
+	 * @param transitionEvent Transition event (containing the workflow instance) to
+	 *                        be pushed to the stack mapped to the workflow
+	 *                        identifier.
 	 */
-	public void updateTaskStack(String workflowID, WorkflowInstance wfi) {
+	public void updateTaskStack(String workflowID, TaskStateTransitionEvent transitionEvent) {
 		if (!periodicTaskMap.containsKey(workflowID)) {
-			Stack<WorkflowInstance> tempStack = new Stack<>();
-			tempStack.push(wfi);
+			Stack<TaskStateTransitionEvent> tempStack = new Stack<>();
+			tempStack.push(transitionEvent);
 			periodicTaskMap.put(workflowID, tempStack);
 		} else {
-			periodicTaskMap.get(workflowID).push(wfi);
+			periodicTaskMap.get(workflowID).push(transitionEvent);
 		}
 	}
 
@@ -123,9 +110,9 @@ public class LTLValidationManager {
 	 *
 	 * @param workflowID              The ID of the workflow the validation
 	 *                                procedure is to be invoked for.
-	 * @param wfi                     WorkflowInstance from which all information
-	 *                                necessary to derive a valid process log is
-	 *                                extracted from.
+	 * @param transitionEvent         TaskStateTransitionEvent object from which all
+	 *                                information necessary to derive a valid
+	 *                                process log is extracted from.
 	 * @param ltlFormulaDefinitionKey Enum-value identifying which of the formulas
 	 *                                that have been defined in
 	 *                                {@link LTLFormulaProvider} should be validated
@@ -133,36 +120,23 @@ public class LTLValidationManager {
 	 *                                use of static formulas that are valid for
 	 *                                every workflow and can thus be defined at
 	 *                                design time).
-	 * @param validationSelection     Value indicating if a certain defined formula
-	 *                                should be validated against a process log
-	 *                                (e.g. ValidationSelection.SPECIAL), or if all
-	 *                                formulas (ValidationSelection.ALL)
-	 *                                respectively an arbitrary one
-	 *                                (ValidationSelection.ANY) should be evaluated.
-	 *                                For the last two options (ALL, ANY)
-	 *                                <code>ltlFormulaDefinitionKey</code> should be
-	 *                                mapped to a definition containing multiple
-	 *                                formulas to make sense (therefore a
-	 *                                <code>ltlFormulaDefinitionKey</code> with the
-	 *                                prefix MULT should be used, but there is no
-	 *                                necessity for it).
 	 */
-	private void checkTraceAndStoreResult(String workflowID, WorkflowInstance wfi,
-			AvailableFormulas ltlFormulaDefinitionKey, ValidationSelection validationSelection) {
+	private void checkTraceAndStoreResult(String workflowID, TaskStateTransitionEvent transitionEvent,
+			AvailableFormulas ltlFormulaDefinitionKey) {
 		if (!checkResults.containsKey(workflowID)) {
 			HashMap<String, Stack<ArrayList<ValidationResult>>> workflowMap = new HashMap<>();
 			Stack<ArrayList<ValidationResult>> resultStack = new Stack<ArrayList<ValidationResult>>();
-			resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, wfi, validationSelection));
+			resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, transitionEvent));
 			workflowMap.put(ltlFormulaDefinitionKey.toString(), resultStack);
 			checkResults.put(workflowID, workflowMap);
 		} else {
 			if (!checkResults.get(workflowID).containsKey(ltlFormulaDefinitionKey.toString())) {
 				Stack<ArrayList<ValidationResult>> resultStack = new Stack<ArrayList<ValidationResult>>();
-				resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, wfi, validationSelection));
+				resultStack.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, transitionEvent));
 				checkResults.get(workflowID).put(ltlFormulaDefinitionKey.toString(), resultStack);
 			} else {
 				checkResults.get(workflowID).get(ltlFormulaDefinitionKey.toString())
-						.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, wfi, validationSelection));
+						.push(RuntimeParser.checkLTLTrace(ltlFormulaDefinitionKey, transitionEvent));
 			}
 		}
 	}
@@ -192,7 +166,7 @@ public class LTLValidationManager {
 			return;
 		} else if (tempStack.size() < 2) {
 			log.debug("Only one validation of formula " + formulaDefinitionKey.toString()
-					+ " has been conducted for workflow " + workflowID + " yet. No result comparison possible.");
+					+ " has been conducted for workflow '" + workflowID + "' yet. No result comparison possible.");
 			return;
 		}
 
@@ -262,21 +236,18 @@ public class LTLValidationManager {
 	 * Call the validation routine (parser, validator, etc.) and evaluate the
 	 * received results.
 	 *
-	 * @param workflowID     The ID of the workflow to be validated.
-	 * @param wfInstance     The object holding the information necessary for the
-	 *                       process log (e.g. XML) conversion process.
-	 * @param af             The formula to be validated against the wfInstance.
-	 * @param vs             The type of validation to be conducted (evaluate all
-	 *                       defined formulas, only a single one (that is named), or
-	 *                       a random one).
-	 * @param detailedOutput Decides if the evaluation output for the most recent
-	 *                       validation result should also include detailed
-	 *                       information (e.g. what audit trail entries (tasks)
-	 *                       passed and which did not).
+	 * @param workflowID      The ID of the workflow to be validated.
+	 * @param transitionEvent The object holding the information necessary for the
+	 *                        process log (e.g. XML) conversion process.
+	 * @param af              The formula to be validated against the wfInstance.
+	 * @param detailedOutput  Decides if the evaluation output for the most recent
+	 *                        validation result should also include detailed
+	 *                        information (e.g. what audit trail entries (tasks)
+	 *                        passed and which did not).
 	 */
-	public void validate(String workflowID, WorkflowInstance wfInstance, AvailableFormulas af, ValidationSelection vs,
+	public void validate(String workflowID, TaskStateTransitionEvent transitionEvent, AvailableFormulas af,
 			boolean detailedOutput) {
-		checkTraceAndStoreResult(workflowID, wfInstance, af, vs);
+		checkTraceAndStoreResult(workflowID, transitionEvent, af);
 		evaluateResults(workflowID, af, detailedOutput);
 	}
 
@@ -287,26 +258,24 @@ public class LTLValidationManager {
 
 		private String workflowID;
 		private AvailableFormulas af;
-		private ValidationSelection vs;
 		private boolean detailedOutput;
 
-		public ValidationTask(String workflowID, AvailableFormulas af, ValidationSelection vs, boolean detailedOutput) {
+		public ValidationTask(String workflowID, AvailableFormulas af, boolean detailedOutput) {
 			this.workflowID = workflowID;
 			this.af = af;
-			this.vs = vs;
 			this.detailedOutput = detailedOutput;
 		}
 
 		@Override
 		public void run() {
 			// retrieve most recent workflow instance
-			WorkflowInstance wfi = periodicTaskMap.get(workflowID).firstElement();
+			TaskStateTransitionEvent transitionEvent = periodicTaskMap.get(workflowID).firstElement();
 
 			// reset the stack
 			periodicTaskMap.get(workflowID).clear();
 
 			// call the validation routine
-			checkTraceAndStoreResult(workflowID, wfi, af, vs);
+			checkTraceAndStoreResult(workflowID, transitionEvent, af);
 			evaluateResults(workflowID, af, detailedOutput);
 		}
 	}

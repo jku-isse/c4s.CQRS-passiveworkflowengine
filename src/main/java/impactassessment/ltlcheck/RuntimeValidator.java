@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Random;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.processmining.analysis.ltlchecker.CheckResult;
@@ -22,11 +21,11 @@ import org.processmining.framework.log.LogReader;
 import org.processmining.framework.log.ProcessInstance;
 
 import impactassessment.ltlcheck.framework.CustomSetsSet;
-import impactassessment.ltlcheck.util.ValidationUtil;
-import impactassessment.ltlcheck.util.ValidationUtil.ValidationSelection;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * This class is responsible for validating a formula against a process log.
+ *
  * @author chris
  */
 @Slf4j
@@ -57,22 +56,22 @@ public class RuntimeValidator {
 	private ArrayList<CheckResult> badResults;
 
 	/** the formula to be checked against the process log **/
-	private Pair<ValidationUtil.ValidationSelection, String> validationSelection;
+	private String formulaName;
 
 	public RuntimeValidator(LogReader logReader, LTLParser parser, Pair<Boolean, Boolean> processConstraints,
-			Pair<ValidationSelection, String> validationSelection) {
+			String formulaName) {
 		this.parser = parser;
 		this.logReader = logReader;
 
 		this.setOfSets = null;
-		this.validationSelection = (validationSelection == null) ? Pair.of(ValidationSelection.ANY, "")
-				: validationSelection;
+		this.formulaName = formulaName;
 
 		this.firstSuccess = (processConstraints == null) ? false : processConstraints.getKey();
 		this.firstFailure = (processConstraints == null) ? false : processConstraints.getValue();
 
 		formulaList = new ArrayList<String>();
 
+		// obtain all parsed formulas
 		Iterator<?> iter = this.parser.getVisibleFormulaNames().iterator();
 		while (iter.hasNext()) {
 			formulaList.add((String) iter.next());
@@ -89,6 +88,11 @@ public class RuntimeValidator {
 		return ((!this.firstSuccess) && (!this.firstFailure));
 	}
 
+	/**
+	 * Call the internal validation routine after checking if the formula to be
+	 * validated against a process log has been defined (e.g. has been successfully
+	 * parsed by the {@link RuntimeParser}.
+	 */
 	public ArrayList<ValidationResult> validate() {
 		if (formulaList.isEmpty()) {
 			log.debug("No formulas have been specified!");
@@ -96,23 +100,22 @@ public class RuntimeValidator {
 		}
 
 		ArrayList<ValidationResult> results = new ArrayList<>();
-		if (validationSelection.getKey().equals(ValidationSelection.ALL)) {
-			for (String s : formulaList) {
-				results.add(validateInternal(parser.getFormula(s)));
-			}
-		} else if (validationSelection.getKey().equals(ValidationSelection.ANY)) {
-			results.add(validateInternal(parser.getFormula(formulaList.get(new Random().nextInt(formulaList.size())))));
-		} else {
-			String selection = validationSelection.getValue();
-			if (selection.equals("") || !formulaList.contains(selection)) {
-				log.debug("The specified formula has not been defined!");
-				return null;
-			}
-			results.add(validateInternal(parser.getFormula(validationSelection.getValue())));
+		if (formulaName.equals("") || !formulaList.contains(formulaName)) {
+			log.debug("The specified formula has not been defined!");
+			return null;
 		}
+		results.add(validateInternal(parser.getFormula(formulaName)));
+
 		return results;
 	}
 
+	/**
+	 * Validate the desired formula against the created process log.
+	 *
+	 * @param node The formula to be validated against a process log as node object
+	 *             created by the {@link LTLParser}.
+	 * @return the validation result
+	 */
 	private ValidationResult validateInternal(SimpleNode node) {
 		String formulaName = node.getName();
 		int piCntTotal = 0;

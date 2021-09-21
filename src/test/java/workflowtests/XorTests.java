@@ -9,7 +9,6 @@ import artifactapi.ArtifactIdentifier;
 import artifactapi.ResourceLink;
 import impactassessment.ltlcheck.LTLFormulaProvider.AvailableFormulas;
 import impactassessment.ltlcheck.LTLValidationManager;
-import impactassessment.ltlcheck.util.ValidationUtil.ValidationSelection;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.definition.TaskLifecycle.State;
 import passiveprocessengine.instance.ArtifactInput;
@@ -171,8 +170,7 @@ public class XorTests {
 		ComplexXorWorkflow workflow = new ComplexXorWorkflow();
 		workflow.setTaskStateTransitionEventPublisher(event -> {
 			System.out.println(event);
-			LTLValidationManager.getInstance().validate(ID, event.getTask().getWorkflow(),
-					AvailableFormulas.OUTPUT_MISSING, ValidationSelection.SPECIAL, true);
+			LTLValidationManager.getInstance().validate(ID, event, AvailableFormulas.OUTPUT_MISSING, true);
 			// LTLValidationManager.getInstance().clearResults(ID);
 		}); // publisher must be set to prevent NullPointer
 		// create an instance out of the workflow definition

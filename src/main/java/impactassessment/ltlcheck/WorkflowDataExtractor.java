@@ -12,9 +12,13 @@ import impactassessment.ltlcheck.util.LTLTaskObject;
 import impactassessment.ltlcheck.util.LTLWorkflowConstants;
 import passiveprocessengine.definition.TaskDefinition;
 import passiveprocessengine.definition.WorkflowDefinition;
+import passiveprocessengine.instance.TaskStateTransitionEvent;
 import passiveprocessengine.instance.WorkflowInstance;
 
 /**
+ * This class is responsible for extracting all information required for
+ * building a valid process log from a {@link TaskStateTransitionEvent}.
+ *
  * @author chris
  */
 public class WorkflowDataExtractor {
@@ -25,9 +29,11 @@ public class WorkflowDataExtractor {
 	 *
 	 * @return instance of {@link LTLProcessInstanceObject} used in building a
 	 *         process log
-	 * @param wfi The workflow instance containing the desired information.
+	 * @param transitionEvent The transition event containing the desired
+	 *                        information.
 	 */
-	public static LTLProcessInstanceObject extractBasicWorkflowInformation(WorkflowInstance wfi) {
+	public static LTLProcessInstanceObject extractWorkflowInformation(TaskStateTransitionEvent transitionEvent) {
+		WorkflowInstance wfi = transitionEvent.getTask().getWorkflow();
 		WorkflowDefinition wfd = wfi.getType();
 		ArrayList<TaskDefinition> taskDefinitions = (ArrayList<TaskDefinition>) wfd.getWorkflowTaskDefinitions();
 
@@ -38,9 +44,9 @@ public class WorkflowDataExtractor {
 		HashMap<String, String> piAttributes = new HashMap<>();
 
 		Timestamp piTimestamp = new Timestamp(System.currentTimeMillis());
-		SimpleDateFormat sdf = new SimpleDateFormat(LTLWorkflowConstants.PI_CREATION_TIMESTAMP_FORMAT);
+		SimpleDateFormat sdf = new SimpleDateFormat(LTLWorkflowConstants.CREATION_TIMESTAMP_FORMAT);
 		String formattedTimestamp = sdf.format(piTimestamp);
-		piAttributes.put(LTLWorkflowConstants.PI_CREATION_TIMESTAMP_IDENTIFIER, formattedTimestamp);
+		piAttributes.put(LTLWorkflowConstants.CREATION_TIMESTAMP_IDENTIFIER, formattedTimestamp);
 
 		// if any workflow properties are present, store them as process instance
 		// attributes
@@ -60,9 +66,14 @@ public class WorkflowDataExtractor {
 			String eventType = LTLWorkflowConstants.DEFAULT_EVENT_TYPE;
 			String originator = wfd.getId();
 
+			// collect all required attributes for every AuditTrailEntry
 			HashMap<String, String> attributes = new HashMap<>();
 			attributes.put(LTLWorkflowConstants.INPUT_IDENTIFIER, td.calcInputState(wfi).toString());
 			attributes.put(LTLWorkflowConstants.OUTPUT_IDENTIFIER, td.calcOutputState(wfi).toString());
+			attributes.put(LTLWorkflowConstants.ACTUAL_TASK_STATE,
+					transitionEvent.getTask().getActualLifecycleState().toString());
+			attributes.put(LTLWorkflowConstants.EXPECTED_TASK_STATE,
+					transitionEvent.getTask().getExpectedLifecycleState().toString());
 
 			LTLTaskObject currTask = new LTLTaskObject(taskId, eventType, originator, attributes);
 			ates.add(currTask);

@@ -20,6 +20,7 @@ import org.xml.sax.InputSource;
 
 import impactassessment.ltlcheck.util.LTLProcessInstanceObject;
 import impactassessment.ltlcheck.util.LTLTaskObject;
+import impactassessment.ltlcheck.util.ValidationUtil.ValidationMode;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -47,7 +48,10 @@ public class WorkflowXmlConverter {
 		return instance;
 	}
 
-	public String processWorkflow(LTLProcessInstanceObject piObj) {
+	/**
+	 * Process the extracted workflow information.
+	 */
+	public String processWorkflow(LTLProcessInstanceObject piObj, ValidationMode mode) {
 		String xmlWorkflow = buildXmlWorkflowRepresentation(piObj);
 		Document xmlDoc = createXmlDocument(xmlWorkflow);
 		Pair<Boolean, String> resultPair = writeDocumentToFS(xmlDoc, piObj.getWorkflowID());
@@ -62,6 +66,13 @@ public class WorkflowXmlConverter {
 		return null;
 	}
 
+	/**
+	 * Create a XML string representation of a process log for the parameter piObj.
+	 *
+	 * @param piObj {@link LTLProcessInstanceObject} holding all necessary
+	 *              information for building the process log string
+	 * @return the XML process log string
+	 */
 	private static String buildXmlWorkflowRepresentation(LTLProcessInstanceObject piObj) {
 		StringBuilder sb = new StringBuilder();
 
@@ -127,6 +138,13 @@ public class WorkflowXmlConverter {
 		return sb.toString();
 	}
 
+	/**
+	 * Create the XML document from the XML string representation of a process log.
+	 *
+	 * @param xmlWorkflow The XML string from which an actual XML document should be
+	 *                    created.
+	 * @return the created XML document
+	 */
 	private static Document createXmlDocument(String xmlWorkflow) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = null;
@@ -141,6 +159,16 @@ public class WorkflowXmlConverter {
 		return null;
 	}
 
+	/**
+	 * Write the created XML document to the file system.
+	 *
+	 * @param xmlDoc     The XML process log document.
+	 * @param workflowID The identifier of the workflow associated with the created
+	 *                   process log.
+	 * @return pair either consisting of value true if the file system write
+	 *         operation was successful and the absolute path to the written file or
+	 *         false combined with an empty string if the write operation failed
+	 */
 	private static Pair<Boolean, String> writeDocumentToFS(Document xmlDoc, String workflowID) {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = null;
