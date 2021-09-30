@@ -26,4 +26,5 @@ public class LTLFormulaConstants {
 	/** constants used in instances of {@link LTLFormulaObject} **/
 	public static final String KEY_TRACE_START = "TRACE_START_POINT";
 	public static final String KEY_TRACE_END = "TRACE_END_POINT";
+	public static final String KEY_TRACE_VIOLATED = "TRACE_VIOLATED";
 }

@@ -44,7 +44,7 @@ public class WorkflowDataExtractor {
 		HashMap<String, String> piAttributes = new HashMap<>();
 
 		Timestamp piTimestamp = new Timestamp(System.currentTimeMillis());
-		SimpleDateFormat sdf = new SimpleDateFormat(LTLWorkflowConstants.CREATION_TIMESTAMP_FORMAT);
+		SimpleDateFormat sdf = new SimpleDateFormat(LTLWorkflowConstants.PROCESS_LOG_TIMESTAMP_FORMAT);
 		String formattedTimestamp = sdf.format(piTimestamp);
 		piAttributes.put(LTLWorkflowConstants.CREATION_TIMESTAMP_IDENTIFIER, formattedTimestamp);
 

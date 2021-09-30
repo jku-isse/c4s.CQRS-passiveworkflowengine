@@ -1,6 +1,7 @@
 package impactassessment.ltlcheck;
 
 import java.util.HashMap;
+import java.util.List;
 
 import impactassessment.ltlcheck.util.LTLFormulaConstants;
 import impactassessment.ltlcheck.util.LTLFormulaObject;
@@ -19,19 +20,20 @@ public class LTLFormulaProvider {
 	 * Enum holding the names of every defined formula.
 	 */
 	public enum AvailableFormulas {
-		OUTPUT_MISSING
+		OUTPUT_MISSING, DETECT_WF_INCONSISTENCY
 	}
 
 	/**
 	 * Map containing defined formulas.
 	 **/
-	private static HashMap<AvailableFormulas, LTLFormulaObject> formulas = new HashMap<>();
+	private static HashMap<String, LTLFormulaObject> formulas = new HashMap<>();
 
 	/**
 	 * Statically build all available formulas.
 	 */
 	static {
 		buildOutputMissingFormula();
+		buildDetectWorkflowInconsistencyFormula();
 	}
 
 	/**
@@ -46,7 +48,7 @@ public class LTLFormulaProvider {
 
 		LTLFormulaObject formulaObj = new LTLFormulaObject(formulaName, formulaDefinition, vm);
 
-		formulas.put(AvailableFormulas.OUTPUT_MISSING, formulaObj);
+		formulas.put(formulaName, formulaObj);
 	}
 
 	/**
@@ -72,12 +74,58 @@ public class LTLFormulaProvider {
 	}
 
 	/**
+	 * Build formula <em>DETECT_WF_INCONSISTENCY</em>.
+	 */
+	private static void buildDetectWorkflowInconsistencyFormula() {
+		String formulaName = AvailableFormulas.DETECT_WF_INCONSISTENCY.toString();
+
+		String formulaDefinition = buildDetectWorkflowInconsistencyDefinition(formulaName);
+
+		ValidationMode vm = ValidationMode.TRACE;
+
+		// default value for property KEY_TRACE_VIOLATED
+		HashMap<String, Boolean> traceProperties = new HashMap<>();
+		traceProperties.put(LTLFormulaConstants.KEY_TRACE_VIOLATED, Boolean.FALSE);
+
+		HashMap<String, List<String>> formulaProperties = new HashMap<>();
+		formulaProperties.put(LTLFormulaConstants.KEY_TRACE_START, List.of("Specifying"));
+		formulaProperties.put(LTLFormulaConstants.KEY_TRACE_END, List.of("Modeling"));
+
+		LTLFormulaObject formulaObj = new LTLFormulaObject(formulaName, formulaDefinition, vm, traceProperties,
+				formulaProperties);
+
+		formulas.put(formulaName, formulaObj);
+	}
+
+	/**
+	 * @param formulaName The name of this formula.
+	 * @return a string containing a formula definition checking for workflow
+	 *         inconsistencies such as a invalid state of a task following another
+	 *         one
+	 */
+	private static String buildDetectWorkflowInconsistencyDefinition(String formulaName) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("set ate.WorkflowModelElement;\n");
+		sb.append("string ate.ACTUAL_STATE;\n");
+		sb.append("# renamings\n");
+		sb.append("rename ate.WorkflowModelElement as task;\n");
+		sb.append("rename ate.ACTUAL_STATE as state;\n");
+		sb.append("# formulas\n");
+		sb.append("formula " + formulaName + "() := {\n");
+		sb.append("}\n");
+		sb.append(LTLFormulaConstants.EVENTUALLY + " ( ( task == \"Specifying\" /\\ ( state == \"ACTIVE\" /\\ "
+				+ LTLFormulaConstants.EVENTUALLY + " ( ( task == \"Modeling\" /\\ state == \"ACTIVE\" ) ) ) ) );");
+
+		return sb.toString();
+	}
+
+	/**
 	 * @param key The formula name mapped to a {@link LTLFormulaObject} in map
 	 *            <code>formulas</code>.
 	 * @return the formula definition of the {@link LTLFormulaObject} identified
 	 *         by @param key
 	 */
-	public static LTLFormulaObject getFormulaDefinition(AvailableFormulas key) {
-		return (key == null) ? null : formulas.get(key);
+	public static LTLFormulaObject getFormulaDefinition(String key) {
+		return (key != null && !key.isEmpty()) ? formulas.get(key) : null;
 	}
 }

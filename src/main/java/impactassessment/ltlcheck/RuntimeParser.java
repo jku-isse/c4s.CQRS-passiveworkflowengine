@@ -19,6 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.instance.TaskStateTransitionEvent;
 
 /**
+ * This class is responsible for calling the process log creation/expansion
+ * process, invoking the {@link LTLParser} for parsing the desired LTL formula,
+ * and calling the validation routine in the {@link RuntimeValidator} after the
+ * aforementioned steps have been completed.
+ *
  * @author chris
  */
 @Slf4j
@@ -28,6 +33,8 @@ public class RuntimeParser {
 	 * Validate the passed LTL formula against the process log to be created for the
 	 * passed workflow instance.
 	 *
+	 * @param workflowID        The ID of the workflow the validation procedure is
+	 *                          to be invoked for.
 	 * @param formulaDefinition The formula to be validated against the workflow.
 	 * @param transitionEvent   The transition event from which a process log will
 	 *                          be generated.
@@ -36,19 +43,19 @@ public class RuntimeParser {
 	 *         (essentially only one)
 	 *
 	 */
-	public static ArrayList<ValidationResult> checkLTLTrace(AvailableFormulas formulaDefinition,
+	public static ArrayList<ValidationResult> checkLTLTrace(String workflowID, AvailableFormulas formulaDefinition,
 			TaskStateTransitionEvent transitionEvent) {
 		try {
 			// retrieve the formula object associated with the parameter formulaDefinition
-			LTLFormulaObject formulaObj = LTLFormulaProvider.getFormulaDefinition(formulaDefinition);
+			LTLFormulaObject formulaObj = LTLFormulaProvider.getFormulaDefinition(formulaDefinition.toString());
 
 			// build the XML process log for the workflow encapsulated by parameter
 			// transitionEvent
 			LTLProcessInstanceObject piObj = WorkflowDataExtractor.extractWorkflowInformation(transitionEvent);
-			String processLogPath = WorkflowXmlConverter.getInstance().processWorkflow(piObj,
-					formulaObj.getValidationMode());
+			String processLogPath = WorkflowXmlConverter.getInstance().processWorkflow(workflowID, piObj,
+					formulaObj.getValidationMode(), formulaObj.getFormulaName());
 
-			// if the process log creation/expansion succeeded continue
+			// continue if the process log creation/expansion succeeded
 			if (processLogPath != null) {
 				LogReader logReader = new LogReader(new DefaultLogFilter(LogFilter.FAST),
 						LogFile.getInstance(processLogPath));

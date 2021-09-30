@@ -112,6 +112,50 @@ public class XorTests {
 	}
 
 	@Test
+	public void testViolation() {
+		// create a new workflow definition
+		ComplexXorWorkflow workflow = new ComplexXorWorkflow();
+		workflow.setTaskStateTransitionEventPublisher(event -> {
+			System.out.println(event);
+			// LTLValidationManager.getInstance().validate(ID, event,
+			// AvailableFormulas.DETECT_WF_INCONSISTENCY, true);
+		});
+
+		// create an instance out of the workflow definition
+		WorkflowInstance wfi = workflow.createInstance(ID);
+		qaDoc = new QACheckDocument("someid", wfi);
+		qaDoc.addConstraint(qac);
+		wfi.addInput(new ArtifactInput(rl, "INPUT_ROLE_WPTICKET"));
+		wfi.enableWorkflowTasksAndDecisionNodes();
+
+		// both tasks are complete
+		wfi.getWorkflowTask(TASKS.ImpactAssessment + "#" + ID).postConditionsFulfilled();
+		wfi.getWorkflowTask(TASKS.Specifying + "#" + ID).postConditionsFulfilled();
+
+		// get tasks of xor branch
+		IWorkflowTask modeling = wfi.getWorkflowTask(TASKS.Modeling + "#" + ID);
+		IWorkflowTask designing = wfi.getWorkflowTask(TASKS.Designing + "#" + ID);
+
+		// choose modeling and add necessary outputs
+		modeling.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_MODEL"));
+
+		// activate modeling
+		modeling.postConditionsFulfilled();
+
+		// reactivate parent task to create inconsistency
+		wfi.getWorkflowTask(TASKS.ImpactAssessment + "#" + ID).activate();
+		wfi.getWorkflowTask(TASKS.ImpactAssessment + "#" + ID).postConditionsFailed();
+
+		// repair next task (set back to active)
+		modeling.activate();
+		modeling.postConditionsFailed();
+
+		// complete repair by setting task back to completed
+		modeling.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_MODEL"));
+		modeling.postConditionsFulfilled();
+	}
+
+	@Test
 	public void testSingleXorOverride() {
 		// create a new workflow definition
 		ComplexXorWorkflow workflow = new ComplexXorWorkflow();
@@ -168,10 +212,12 @@ public class XorTests {
 	public void testStartOneXorBranchFinishOther() {
 		// create a new workflow definition
 		ComplexXorWorkflow workflow = new ComplexXorWorkflow();
+		String wfID = "StartOneXorBranchFinishOther";
 		workflow.setTaskStateTransitionEventPublisher(event -> {
 			System.out.println(event);
-			LTLValidationManager.getInstance().validate(ID, event, AvailableFormulas.OUTPUT_MISSING, true);
-			// LTLValidationManager.getInstance().clearResults(ID);
+			LTLValidationManager.getInstance().validate(wfID, event, AvailableFormulas.DETECT_WF_INCONSISTENCY, true);
+			LTLValidationManager.getInstance().validate(wfID, event, AvailableFormulas.OUTPUT_MISSING, true);
+			// LTLValidationManager.getInstance().clearResults(wfID);
 		}); // publisher must be set to prevent NullPointer
 		// create an instance out of the workflow definition
 		WorkflowInstance wfi = workflow.createInstance(ID);

@@ -1,9 +1,11 @@
 package impactassessment.ltlcheck;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.processmining.analysis.ltlchecker.CheckResult;
@@ -156,7 +158,18 @@ public class RuntimeValidator {
 
 		// collect evaluation results of every audit trail entry of every process
 		// instance
-		HashMap<String, HashMap<String, Boolean>> ateResults = new HashMap<>();
+		TreeMap<String, HashMap<String, Boolean>> ateResults = new TreeMap<>(new Comparator<String>() {
+
+			@Override
+			public int compare(String o1, String o2) {
+				return extractNumber(o1) - extractNumber(o2);
+			}
+
+			int extractNumber(String s) {
+				String number = s.replaceAll("\\D", "");
+				return number.isEmpty() ? 0 : Integer.parseInt(number);
+			}
+		});
 
 		while (logReader.hasNext() && run) {
 			ProcessInstance pi = logReader.next();
@@ -218,6 +231,13 @@ public class RuntimeValidator {
 		return new ValidationResult(formulaName, logReader, goodResults, badResults, ateResults);
 	}
 
+	/**
+	 * Get all substitute definitions (formula parameter renamings) from the passed
+	 * formula node.
+	 *
+	 * @param node The parsed formula definition.
+	 * @return the substitutes defined in the formula definition of param node
+	 */
 	private Substitutes getSubstitutes(SimpleNode node) {
 		return new ParamData(parser.getParameters(node.getName())).getSubstitutes(parser);
 	}
