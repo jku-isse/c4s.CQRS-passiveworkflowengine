@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.*;
+import passiveprocessengine.instance.WorkflowChangeEvent.ChangeType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -217,6 +218,10 @@ public class WorkflowProjection {
 		log.debug("[PRJ] projecting {}", evt); 
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		List<WorkflowChangeEvent> awos = wfiWrapper.handle(evt);
+		// we need to add the update artifact as well to have it replaced in the rule bases
+		if (awos.size() > 0) { // there was some change, thus artifact is relevant
+
+		}
 		initUpdateFireConstraintInsertAndUITrigger(
 				evt,
 				wfiWrapper,
@@ -241,8 +246,11 @@ public class WorkflowProjection {
 		log.debug("[PRJ] projecting {}", evt);
 		WorkflowInstanceWrapper wfiWrapper = projection.getWorkflowModel(evt.getId());
 		List<WorkflowChangeEvent> awos= wfiWrapper.handle(evt);
+		ConstraintTrigger ct = null;
+		if (evt.getOptionalOutputs().size() > 0) 
+			ct = createConstraintTrigger(evt.getId(), wfiWrapper.getWorkflowInstance(), "*", "InstantiatedTaskEvt");
 		if (!status.isReplay() && awos.size() > 0) {
-			initUpdateFireAndUITrigger(evt, wfiWrapper, awos);
+			initUpdateFireConstraintInsertAndUITrigger(evt, wfiWrapper, awos, ct);
 		}
 	}
 
@@ -320,10 +328,14 @@ public class WorkflowProjection {
 					}
 				})));
 
-		if (events.size() > 0)
-			if (ct != null)
-				kieSessions.insertOrUpdate(evt.getId(), ct);
+		//if (events.size() > 0) // even without changes in the process, the conditions might now fire
+		if  (ct != null) {
+			kieSessions.insertOrUpdate(evt.getId(), ct);
+		}
+		if (ct != null || events.size() > 0) {
+			kieSessions.insertOrUpdate(evt.getId(), evt);
 			kieSessions.fire(evt.getId());
+		}
 		if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
 	}
 	

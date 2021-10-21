@@ -49,6 +49,6 @@ public class JiraVersion implements IJiraVersion {
         @Nullable
         @Override
         public Date getReleaseDate() {
-            return version.getReleaseDate().toDate();
+            return version.getReleaseDate() != null ? version.getReleaseDate().toDate() : null;
         }
 }
