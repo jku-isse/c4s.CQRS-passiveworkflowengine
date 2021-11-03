@@ -27,7 +27,7 @@ public class DesignspaceChangeSubscriber implements IDesignspaceChangeSubscriber
         if (affectedArtifacts.size() > 0) {
             Commands.UpdateArtifactsCmd cmd = new Commands.UpdateArtifactsCmd(scopeId, affectedArtifacts);
             log.debug("send changes to {}", scopeId);
-            commandGateway.sendAndWait(cmd);
+            commandGateway.send(cmd);
         }
     }
 

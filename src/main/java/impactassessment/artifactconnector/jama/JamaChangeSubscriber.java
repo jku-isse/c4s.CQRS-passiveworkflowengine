@@ -64,7 +64,7 @@ public class JamaChangeSubscriber implements IJamaChangeSubscriber {
             if (affectedArtifacts.size() > 0) {
                 UpdateArtifactsCmd cmd = new UpdateArtifactsCmd(scopeId, affectedArtifacts);
                 log.debug("send changes to {}", scopeId);
-                commandGateway.sendAndWait(cmd);
+                commandGateway.send(cmd);
             }
         }
      }
