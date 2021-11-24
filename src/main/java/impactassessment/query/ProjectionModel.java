@@ -24,9 +24,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProjectionModel {
 
-	private final IArtifactRegistry artifactRegistry;
+	protected final IArtifactRegistry artifactRegistry;
 	
-    private @Getter
+    @Getter
+	protected
     ConcurrentMap<String, WorkflowInstanceWrapper> db;
 
     public ProjectionModel(IArtifactRegistry artifactRegistry) {

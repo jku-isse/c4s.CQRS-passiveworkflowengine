@@ -26,6 +26,7 @@ import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.*;
 import passiveprocessengine.instance.WorkflowChangeEvent.ChangeType;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ public class WorkflowProjection {
 	private final WorkflowDefinitionRegistry registry;
 	private final IFrontendPusher pusher;
 	private final IArtifactRegistry artifactRegistry;
+	private final EventList2Logger el2l;
 
 	private boolean updateFrontend = true;
 
@@ -280,7 +282,7 @@ public class WorkflowProjection {
 		projection.handle(evt);
 	}
 
-	private void initUpdateFireConstraintInsertAndUITrigger(IdentifiableEvt evt, WorkflowInstanceWrapper wfiWrapper, List<WorkflowChangeEvent> events, ConstraintTrigger ct) {
+	private void initUpdateFireConstraintInsertAndUITrigger(TimedEvt evt, WorkflowInstanceWrapper wfiWrapper, List<WorkflowChangeEvent> events, ConstraintTrigger ct) {
 		ensureInitializedKB(kieSessions, projection, evt.getId());
 		events.stream().map(WorkflowChangeEvent::getChangedObject).distinct().forEach(awo -> kieSessions.insertOrUpdate(evt.getId(), awo));		
 		
@@ -328,6 +330,13 @@ public class WorkflowProjection {
 					}
 				})));
 
+		if (events.size() > 0) { // we need to log first, to maintain correct order in logs
+			// log events
+			// log process id, event type, and consequence:
+			OffsetDateTime ts = evt.getTimestamp();
+			el2l.transformAndLogEventImpact(evt, events, ts);
+		}
+		
 		//if (events.size() > 0) // even without changes in the process, the conditions might now fire
 		if  (ct != null) {
 			kieSessions.insertOrUpdate(evt.getId(), ct);
@@ -337,9 +346,11 @@ public class WorkflowProjection {
 			kieSessions.fire(evt.getId());
 		}
 		if (updateFrontend) projection.getWfi(evt.getId()).ifPresent(pusher::update);
+		
+		
 	}
 	
-	private void initUpdateFireAndUITrigger(IdentifiableEvt evt, WorkflowInstanceWrapper wfiWrapper, List<WorkflowChangeEvent> events) {		
+	private void initUpdateFireAndUITrigger(TimedEvt evt, WorkflowInstanceWrapper wfiWrapper, List<WorkflowChangeEvent> events) {		
 		initUpdateFireConstraintInsertAndUITrigger(evt, wfiWrapper, events, null);
 	}
 	

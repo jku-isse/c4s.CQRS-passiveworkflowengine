@@ -15,7 +15,7 @@ import at.jku.designspace.sdk.clientservice.exceptions.NotFoundException;
 import at.jku.designspace.sdk.clientservice.exceptions.TimeOutException;
 import at.jku.designspace.sdk.clientservice.interfaces.IInstanceService;
 import at.jku.designspace.sdk.jira.JiraArtifact;
-import at.jku.designspace.sdk.polarion.implementations.PolarionArtifact;
+import at.jku.designspace.sdk.polarion.PolarionArtifact;
 import at.jku.isse.designspace.sdk.core.DesignSpace;
 import at.jku.isse.designspace.sdk.core.model.Instance;
 import at.jku.isse.designspace.sdk.core.model.User;
@@ -56,6 +56,8 @@ import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.artifactconnector.usage.HibernatePerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.PerProcessArtifactUsagePersistor;
+import impactassessment.query.IHistoryLogEventLogger;
+import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
 import impactassessment.registry.LocalRegisterService;
@@ -143,6 +145,11 @@ public class SpringConfig {
 //        return env.getProperty("pollIntervalInMinutes");
 //    }
 
+    @Bean
+    @Scope("singelton")
+    public IHistoryLogEventLogger getHistoryLogEventLogger() {
+    	return new NoOpHistoryLogEventLogger();
+    }
 
     @Bean
     @Scope("singleton")

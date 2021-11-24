@@ -53,6 +53,8 @@ import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsageP
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.EventList2Logger;
+import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
@@ -112,7 +114,7 @@ public class DevelopmentConfig extends AbstractModule {
         pModel = new ProjectionModel(artReg);
         kieS = new SimpleKieSessionService(gw, artReg);
         IFrontendPusher fp = new SimpleFrontendPusher();
-        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg);
+        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg, new EventList2Logger(new NoOpHistoryLogEventLogger()));
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 
     }

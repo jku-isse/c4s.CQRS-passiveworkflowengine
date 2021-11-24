@@ -2,6 +2,7 @@ package impactassessment.command;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
+import java.time.OffsetDateTime;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Optional;
@@ -52,6 +53,7 @@ public class MockCommandGateway implements CommandGateway {
 	WorkflowProjection proj;
 	IArtifactRegistry artifactRegistry;
 	WorkflowDefinitionRegistry workflowDefinitionRegistry;
+	OffsetDateTime currentTime;
 	
 	public MockCommandGateway(IArtifactRegistry artReg, WorkflowDefinitionRegistry workflowDefinitionRegistry) {
 		this.artifactRegistry = artReg;
@@ -60,6 +62,17 @@ public class MockCommandGateway implements CommandGateway {
 	
 	public void setWorkflowProjection(WorkflowProjection proj) {
 		this.proj = proj;
+	}
+	
+	public void setNewCurrentTime(OffsetDateTime timestamp) {
+		this.currentTime = timestamp;
+	}
+	
+	public OffsetDateTime getCurrentTime() {
+		if (this.currentTime == null)
+			return OffsetDateTime.now();
+		else
+			return currentTime;
 	}
 	
 	@Override
@@ -97,7 +110,9 @@ public class MockCommandGateway implements CommandGateway {
 		} else
 		if (command instanceof AddEvaluationResultToConstraintCmd) {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
-			proj.on(new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime()), ReplayStatus.REGULAR);
+			AddedEvaluationResultToConstraintEvt evt = new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof CheckConstraintCmd) {
 			CheckConstraintCmd cmd = (CheckConstraintCmd)command;
@@ -111,55 +126,81 @@ public class MockCommandGateway implements CommandGateway {
 			AddInputCmd cmd = (AddInputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			proj.on(new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole()));
+	        AddedInputEvt evt = new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole());
+	        evt.setTimestamp(getCurrentTime());
+	        proj.on(evt);
 
 		} else	
 		if (command instanceof AddOutputCmd) {
 			AddOutputCmd cmd = (AddOutputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-			if (opt.isPresent())
-				proj.on(new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole()), ReplayStatus.REGULAR);
+			if (opt.isPresent()) {
+				AddedOutputEvt evt = new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole());
+				evt.setTimestamp(getCurrentTime());
+				proj.on(evt, ReplayStatus.REGULAR);
+			}
 		} else
 		if (command instanceof RemoveOutputCmd) {
 			RemoveOutputCmd cmd = (RemoveOutputCmd)command;
-			proj.on(new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()), ReplayStatus.REGULAR);
+			RemovedOutputEvt evt = new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof RemoveInputCmd) {
 				RemoveInputCmd cmd = (RemoveInputCmd)command;
-				proj.on(new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole()), ReplayStatus.REGULAR);
+				RemovedInputEvt evt = new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole());
+				evt.setTimestamp(getCurrentTime());
+				proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof AddInputToWorkflowCmd) {
 			AddInputToWorkflowCmd cmd = (AddInputToWorkflowCmd) command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole())));
+	        opt.ifPresent(artifact -> { 
+	        	AddedInputToWorkflowEvt evt = new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole());
+	        	evt.setTimestamp(getCurrentTime());
+	        	proj.on(evt);
+	        	});
 		} else
 		if (command instanceof AddOutputToWorkflowCmd) {
 			AddOutputToWorkflowCmd cmd = (AddOutputToWorkflowCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
-	        opt.ifPresent(artifact -> proj.on(new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole())));
+	        opt.ifPresent(artifact -> { 
+	        	AddedOutputToWorkflowEvt evt = new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole());
+	        	evt.setTimestamp(getCurrentTime());
+	        	proj.on(evt); } );
 		} else
 		if(command instanceof UpdateArtifactsCmd) {
 			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;
-			proj.on(new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList())));
+			UpdatedArtifactsEvt evt = new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList()));
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt);
 		} else
 		if(command instanceof SetPreConditionsFulfillmentCmd) {
 			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;
-			proj.on(new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()), ReplayStatus.REGULAR);
+			SetPreConditionsFulfillmentEvt evt = new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if(command instanceof SetPostConditionsFulfillmentCmd) {
 			SetPostConditionsFulfillmentCmd cmd = (SetPostConditionsFulfillmentCmd)command;
-			proj.on(new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled()), ReplayStatus.REGULAR);
+			SetPostConditionsFulfillmentEvt evt = new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof ActivateTaskCmd) {
 			ActivateTaskCmd cmd = (ActivateTaskCmd)command;
-			proj.on(new ActivatedTaskEvt(cmd.getId(), cmd.getWftId()));
+			ActivatedTaskEvt evt = new ActivatedTaskEvt(cmd.getId(), cmd.getWftId());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt);
 		} else
 	    if (command instanceof ChangeCanceledStateOfTaskCmd) {		        
 	    	ChangeCanceledStateOfTaskCmd cmd = (ChangeCanceledStateOfTaskCmd)command;
-	    	proj.on(new ChangedCanceledStateOfTaskEvt(cmd.getId(), cmd.getWftId(), cmd.isCanceled()));
+	    	ChangedCanceledStateOfTaskEvt evt = new ChangedCanceledStateOfTaskEvt(cmd.getId(), cmd.getWftId(), cmd.isCanceled());
+	    	evt.setTimestamp(getCurrentTime());
+	    	proj.on(evt);
 		} else					
 		if (command instanceof SetPropertiesCmd) {
 			SetPropertiesCmd cmd = (SetPropertiesCmd)command;
@@ -167,14 +208,18 @@ public class MockCommandGateway implements CommandGateway {
 		} else 
 		if (command instanceof InstantiateTaskCmd) {
 			InstantiateTaskCmd cmd = (InstantiateTaskCmd)command;
-			proj.on(new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
+			InstantiatedTaskEvt evt = new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
 					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
-					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) ), ReplayStatus.REGULAR);
+					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) );
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof CreateWorkflowCmd) {
 			CreateWorkflowCmd cmd = (CreateWorkflowCmd)command;
 			WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
-			proj.on(new CreatedWorkflowEvt(cmd.getId(), cmd.getInput(), cmd.getDefinitionName(), wfdContainer.getWfd()), ReplayStatus.REGULAR);
+			CreatedWorkflowEvt evt = new CreatedWorkflowEvt(cmd.getId(), cmd.getInput(), cmd.getDefinitionName(), wfdContainer.getWfd());
+			evt.setTimestamp(getCurrentTime());
+			proj.on(evt, ReplayStatus.REGULAR);
 		}
 		else {
 		

@@ -8,8 +8,10 @@ import passiveprocessengine.instance.ArtifactIO;
 import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.WorkflowChangeEvent;
 import passiveprocessengine.instance.WorkflowChangeEvent.ChangeType;
+import passiveprocessengine.instance.events.TaskArtifactEvent;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,7 +56,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		boolean added = this.ai.add(ai);
 		if (added) {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new WorkflowChangeEvent(ChangeType.NEW_OUTPUT, container));
+			changes.add(new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, Set.of(ai)));
 			changes.addAll(container.triggerUponAddedOrRemovedOutput());
 			return changes;
 		}
@@ -109,7 +111,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 			return super.removeArtifact(a);
 		else {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new WorkflowChangeEvent(ChangeType.OUTPUT_DELETED, container));
+			changes.add(new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container,Set.of(a.getArtifactIdentifier()) ));
 			changes.addAll(container.triggerUponAddedOrRemovedOutput());
 			return changes;
 		}
@@ -133,25 +135,44 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		// worst case: some art is only known here, others is known also to super						
 		Set<ArtifactIdentifier> inSuper = ais.stream().filter(ai -> super.containsArtifactByIdentifier(ai)).collect(Collectors.toSet());		
 		//first remove all local ones
-		long localRemoveCount = ais.stream().map(aid -> ai.remove(aid)).filter(b -> true).count();				
+		Set<ArtifactIdentifier> locallyRemoved = new HashSet<>();
+		long localRemoveCount = ais.stream().map(aid -> { 
+					if (ai.remove(aid)) {
+						locallyRemoved.add(aid);
+						return true;
+					}
+					return false;
+				})
+				.filter(b -> true).count();				
+		
+		List<WorkflowChangeEvent> changes = new LinkedList<>();
+		if (locallyRemoved.size() > 0) {
+			changes.add(new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container, locallyRemoved));
+		}
 		// then remove those from super
+		
+		
 		List<WorkflowChangeEvent> superChanges = super.removeArtifactsById(inSuper);
 		if (superChanges.isEmpty() && localRemoveCount > 0 ) { //no ai was known there but some here so we need to trigger
-			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new WorkflowChangeEvent(ChangeType.OUTPUT_DELETED, container));
 			changes.addAll(container.triggerUponAddedOrRemovedOutput());
-			return changes;
 		} else { //super has already triggered change propagation incl local task listed, or local changes were also zero, then equally fine to pass on changes
-			return superChanges;
+			changes.addAll(superChanges);
 		}
+		return changes;
 	}
 
 	@Override
 	public List<WorkflowChangeEvent> addNewArtifactsFromArtifactIO(ArtifactIO aio) {
-		long newCount = aio.getArtifactIdentifiers().stream().map(aid -> ai.add(aid)).filter(b -> true).count();
-		if (newCount > 0) {
+		Set<ArtifactIdentifier> newCount = aio.getArtifactIdentifiers().stream()
+				.filter(aid -> !ai.contains(aid))
+				.map(aid -> { 
+					ai.add(aid);
+					return aid;
+				})
+				.collect(Collectors.toSet());
+		if (newCount.size() > 0) {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new WorkflowChangeEvent(ChangeType.NEW_OUTPUT, container));
+			changes.add(new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, newCount));
 			changes.addAll(container.triggerUponAddedOrRemovedOutput());
 			return changes;
 		} else

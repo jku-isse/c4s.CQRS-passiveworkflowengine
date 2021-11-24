@@ -12,6 +12,8 @@ import passiveprocessengine.definition.WorkflowDefinition;
 import passiveprocessengine.instance.*;
 import passiveprocessengine.instance.QACheckDocument.QAConstraint.EvaluationState;
 import passiveprocessengine.instance.WorkflowChangeEvent.ChangeType;
+import passiveprocessengine.instance.events.ConstraintEvaluationEvent;
+import passiveprocessengine.instance.events.WFOCreatedEvent;
 
 import java.time.Instant;
 import java.util.*;
@@ -21,8 +23,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WorkflowInstanceWrapper {
 
-    private WorkflowInstance wfi;
-    private IArtifactRegistry artReg;
+    protected WorkflowInstance wfi;
+    protected IArtifactRegistry artReg;
 
     private @Getter @Setter String parentWfiId;
     private @Getter @Setter String parentWftId;
@@ -46,7 +48,7 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
     
-    private List<WorkflowChangeEvent> setInputArtifacts(Map<IArtifact, String> inputs) {
+    protected List<WorkflowChangeEvent> setInputArtifacts(Map<IArtifact, String> inputs) {
     	if (wfi != null) {
     	    // use LazyLoadingArtifactInput here? --> fine, as we have the artifacts already available
     		return inputs.entrySet().stream().flatMap(entry -> wfi.addInput(new ArtifactInput(entry.getKey(), entry.getValue())).stream()).collect(Collectors.toList());
@@ -68,7 +70,7 @@ public class WorkflowInstanceWrapper {
         return initWfi(evt.getId(), wfd, evt.getArtifacts());
     }
 
-    private List<WorkflowChangeEvent> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art) {
+    protected List<WorkflowChangeEvent> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
         Map<IArtifact, String> artifacts = art.entrySet().stream()
@@ -76,7 +78,7 @@ public class WorkflowInstanceWrapper {
         		.filter(entry -> entry.getKey().isPresent())
         		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
         List<WorkflowChangeEvent> changes = new LinkedList<>();
-        changes.add(new WorkflowChangeEvent(ChangeType.CREATED, wfi));
+        changes.add(new WFOCreatedEvent(wfi));
         changes.addAll(setInputArtifacts(artifacts));        
         changes.addAll(wfi.enableWorkflowTasksAndDecisionNodes());        
         return changes;
@@ -108,7 +110,7 @@ public class WorkflowInstanceWrapper {
             RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
             rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
             qa.addConstraint(rebc);
-            awos.add(new WorkflowChangeEvent(ChangeType.CREATED, rebc));
+            awos.add(new WFOCreatedEvent(rebc));
         }
     }
 
@@ -145,10 +147,13 @@ public class WorkflowInstanceWrapper {
             }
             // output state may change because QA constraints may be all fulfilled now
             // FIXME: why trigger all of them and not just the one we received a trigger for??? as now implemented below
-            wfi.getWorkflowTasksReadonly()
-            	.stream()
-                .filter(wft -> wft.getId().equals(evt.getWftId()))    
-            	.forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));            
+            if (hasChanged) {
+            	awos.add(new ConstraintEvaluationEvent((QACheckDocument) rebc.getParentArtifact(), rebc, wfi.getWorkflowTask(evt.getWftId()))); 
+            	wfi.getWorkflowTasksReadonly()
+            		.stream()
+            		.filter(wft -> wft.getId().equals(evt.getWftId()))    
+            		.forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));         
+            }
         });
         return awos;
     }

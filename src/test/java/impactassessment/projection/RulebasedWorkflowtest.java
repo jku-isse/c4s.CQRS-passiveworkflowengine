@@ -13,6 +13,8 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.EventList2Logger;
+import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
@@ -42,7 +44,7 @@ class RulebasedWorkflowtest {
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
 		SimpleFrontendPusher fp = new SimpleFrontendPusher();
-		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
+		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Logger(new NoOpHistoryLogEventLogger()));
 		gw.setWorkflowProjection(wfp);
 		ReplayStatus status = ReplayStatus.REGULAR;
 		String id = "TestId1";

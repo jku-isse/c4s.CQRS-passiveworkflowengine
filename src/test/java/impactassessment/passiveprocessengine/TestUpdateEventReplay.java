@@ -14,6 +14,8 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.MockKieSessionService;
+import impactassessment.query.EventList2Logger;
+import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
@@ -66,7 +68,7 @@ public class TestUpdateEventReplay {
 
         SimpleFrontendPusher fp = new SimpleFrontendPusher();
 
-        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
+        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Logger(new NoOpHistoryLogEventLogger()));
         gw.setWorkflowProjection(wfp);
     }
 
