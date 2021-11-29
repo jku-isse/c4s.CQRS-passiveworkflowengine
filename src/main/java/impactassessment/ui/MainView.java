@@ -57,6 +57,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static impactassessment.general.IdGenerator.getNewId;
 import static impactassessment.ui.Helpers.createComponent;
@@ -568,7 +569,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             } else {
                 try {
                     // collect all input IDs
-                    Map<ArtifactIdentifier, String> inputs = new HashMap<>();
+                    Map<ArtifactIdentifier, String> inputs = new LinkedHashMap<>();
                     AtomicInteger count = new AtomicInteger();
                     source.getChildren()
                             .filter(child -> child instanceof TextField)
@@ -584,7 +585,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                             });
                     // send command
                     if (count.get() == inputs.size()) {
-                        commandGateway.sendAndWait(new CreateWorkflowCmd(getNewId(), inputs, processDefinition.getValue()));
+                    	//inputs.keySet().stream().map(ai -> ai.get)
+                        String id = inputs.keySet().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
+                    	commandGateway.sendAndWait(new CreateWorkflowCmd(id, inputs, processDefinition.getValue()));
                         Notification.show("Success");
                     } else {
                         Notification.show("Make sure to fill out all required artifact IDs!");

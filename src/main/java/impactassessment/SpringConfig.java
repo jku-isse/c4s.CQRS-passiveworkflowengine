@@ -56,7 +56,11 @@ import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.artifactconnector.usage.HibernatePerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.PerProcessArtifactUsagePersistor;
+import impactassessment.query.ChangeEventProcessor;
+import impactassessment.query.Event2JsonProcessor;
+import impactassessment.query.EventList2Forwarder;
 import impactassessment.query.IHistoryLogEventLogger;
+import impactassessment.query.JsonFileHistoryLogEventLogger;
 import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
@@ -146,19 +150,32 @@ public class SpringConfig {
 //    }
 
     @Bean
-    @Scope("singelton")
+    @Scope("singleton")
     public IHistoryLogEventLogger getHistoryLogEventLogger() {
-    	return new NoOpHistoryLogEventLogger();
+    	//IHistoryLogEventLogger lel = new NoOpHistoryLogEventLogger();
+    	IHistoryLogEventLogger lel = new JsonFileHistoryLogEventLogger("./");
+    	
+    	return lel;
     }
 
     @Bean
     @Scope("singleton")
-    public IArtifactRegistry getArtifactRegistry(IInstanceService<PolarionArtifact> polarion, IJamaService jamaS, IJiraService jiraS, DemoService ds) {
+    public ChangeEventProcessor getEvent2JsonProcessor(EventList2Forwarder el2f, IHistoryLogEventLogger lel) {
+    	Event2JsonProcessor cep = new Event2JsonProcessor(lel);
+    	el2f.registerProcessor(cep);
+    	log.info("ChangeEventProcessor - using "+lel.getClass().getSimpleName());
+    	return cep;
+    }
+    
+    @Bean
+    @Scope("singleton")
+    public IArtifactRegistry getArtifactRegistry(IInstanceService<PolarionArtifact> polarion, IJamaService jamaS, IJiraService jiraS, DemoService ds, ChangeEventProcessor cep) {
         IArtifactRegistry registry = new ArtifactRegistry();
         registry.register(polarion);
         registry.register(jamaS);
         registry.register(jiraS);        
         registry.register(ds);
+        // cep required to make sure its loaded
         return registry;
     }
     

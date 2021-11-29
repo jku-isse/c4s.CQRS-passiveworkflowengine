@@ -253,11 +253,13 @@ public class WorkflowInstanceWrapper {
 
     public List<WorkflowChangeEvent> handle(ChangedCanceledStateOfTaskEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        if (wft == null) {
+        if (wft != null) {
+        	return wft.setCanceled(evt.isCanceled());
+        } else if (evt.getWftId().equals(wfi.getId())){
+        	return wfi.setCanceled(evt.isCanceled());
+        } else {
         	log.warn("{} - workflowtask not found", evt.getWftId());
         	return Collections.emptyList();
-        } else {
-        	return wft.setCanceled(evt.isCanceled());
         }
     }
     

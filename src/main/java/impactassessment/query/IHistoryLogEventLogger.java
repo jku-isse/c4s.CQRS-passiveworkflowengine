@@ -1,6 +1,8 @@
 package impactassessment.query;
 
+import java.util.List;
+
 public interface IHistoryLogEventLogger {
 
-	public void log(String entryAsJson);
+	public void log(List<String> entriesAsJson);
 }

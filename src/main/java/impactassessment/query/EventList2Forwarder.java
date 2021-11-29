@@ -8,57 +8,44 @@ import static passiveprocessengine.definition.TaskLifecycle.State.NO_WORK_EXPECT
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import artifactapi.IArtifactRegistry;
 import impactassessment.api.Events.IdentifiableEvt;
-import impactassessment.kiesession.IKieSessionService;
-import impactassessment.registry.WorkflowDefinitionRegistry;
-import impactassessment.ui.IFrontendPusher;
-import lombok.RequiredArgsConstructor;
-import passiveprocessengine.definition.AbstractArtifact;
+import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.DecisionNodeDefinition;
-import passiveprocessengine.definition.IWorkflowTask;
-import passiveprocessengine.definition.TaskLifecycle.State;
-import passiveprocessengine.instance.IWorkflowInstanceObject;
 import passiveprocessengine.instance.WorkflowChangeEvent;
 import passiveprocessengine.instance.events.AugmentedTaskEvent;
 import passiveprocessengine.instance.events.StateTransitionEvent;
 import passiveprocessengine.instance.events.AugmentedTaskEvent.AugmentedTaskEventType;
-import passiveprocessengine.persistance.json.WorkflowObjectSerializer;
 
+@Slf4j
 @Component
-public class EventList2Logger {
+public class EventList2Forwarder {
 
-	protected Gson gson;
-	protected IHistoryLogEventLogger logger;
+	LinkedHashSet<ChangeEventProcessor> processors = new LinkedHashSet<>();
 	
-	public EventList2Logger(IHistoryLogEventLogger logger) {
-		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(IWorkflowInstanceObject.class, WorkflowObjectSerializer.getWFIOSerializer());
-		gsonBuilder.registerTypeAdapter(AbstractArtifact.class, WorkflowObjectSerializer.getAASerializer());
-		gsonBuilder.registerTypeAdapter(IWorkflowTask.class, WorkflowObjectSerializer.getWFTSerializer());
-		gson = gsonBuilder.create();
-		this.logger = logger;
+	public EventList2Forwarder() {
 	}
 	
-	public void transformAndLogEventImpact(IdentifiableEvt evt, List<WorkflowChangeEvent> events, OffsetDateTime zdt) {
-		// serialize each event to json structure and then log
-		AtomicInteger order = new AtomicInteger(0);
-		events.stream()
-		.map(event -> augmentEvent(event))
-		.map(event -> new HistoryLogEntry(evt.getId(), zdt.toString() , evt.getClass().getSimpleName(), event, order.getAndAdd(1)))
-		.map(entry -> gson.toJson(entry))
-		.forEach(str -> logger.log(str));
-		// TODO later add more root cause event details
+	public boolean registerProcessor(ChangeEventProcessor cep) {
+		log.info("Registering "+cep.getClass().getSimpleName());
+		return processors.add(cep);
+	}
+	
+	public boolean unregisterProcessor(ChangeEventProcessor cep) {
+		log.info("Unregistering "+cep.getClass().getSimpleName());
+		return processors.remove(cep);
+	}
+	
+	public void transformAndLogEventImpact(IdentifiableEvt evt, List<WorkflowChangeEvent> events, OffsetDateTime occurredOn) {
+		List<WorkflowChangeEvent> augmentedList = events.stream()
+				.map(event -> augmentEvent(event))
+				.collect(Collectors.toList());
+		processors.stream().forEach(p -> p.processChangeImpact(evt, augmentedList, occurredOn));
 	}
 	
 	HashMap<String, Boolean> step2prematureFlag = new HashMap<>();
@@ -105,23 +92,5 @@ public class EventList2Logger {
 	}
 	
 	
-	public static class HistoryLogEntry {
-		public String processId;
-		public String timestampOfRootCauseEvent;
-		public String rootCauseEventType;
-		public WorkflowChangeEvent effect;
-		public int order;
-		
-		public HistoryLogEntry(String processId, String timestampOfRootCauseEvent, String rootCauseEventType,
-				WorkflowChangeEvent effect, int order) {
-			super();
-			this.processId = processId;
-			this.timestampOfRootCauseEvent = timestampOfRootCauseEvent;
-			this.rootCauseEventType = rootCauseEventType;
-			this.effect = effect;
-			this.order = order;
-		}
-		
-		
-	}
+	
 }

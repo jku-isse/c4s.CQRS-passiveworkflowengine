@@ -14,7 +14,7 @@ import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.SimpleKieSessionService;
-import impactassessment.query.EventList2Logger;
+import impactassessment.query.EventList2Forwarder;
 import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
@@ -62,7 +62,7 @@ public class TestInstantiateTaskCommand {
 
         SimpleFrontendPusher fp = new SimpleFrontendPusher();
 
-        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Logger(new NoOpHistoryLogEventLogger()));
+        wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Forwarder());
         gw.setWorkflowProjection(wfp);
     }
 

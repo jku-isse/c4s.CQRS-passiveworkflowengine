@@ -11,6 +11,7 @@ import impactassessment.command.MockCommandGateway;
 
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
+import impactassessment.query.EventList2Forwarder;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
 import impactassessment.registry.LocalRegisterService;
@@ -32,7 +33,7 @@ class CompileTest {
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();
-		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry);
+		WorkflowProjection wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Forwarder());
 		((MockCommandGateway) gw).setWorkflowProjection(wfp);
 	}
 

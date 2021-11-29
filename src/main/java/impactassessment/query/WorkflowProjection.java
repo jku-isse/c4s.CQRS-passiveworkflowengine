@@ -46,7 +46,7 @@ public class WorkflowProjection {
 	private final WorkflowDefinitionRegistry registry;
 	private final IFrontendPusher pusher;
 	private final IArtifactRegistry artifactRegistry;
-	private final EventList2Logger el2l;
+	private final EventList2Forwarder el2l;
 
 	private boolean updateFrontend = true;
 
@@ -333,7 +333,7 @@ public class WorkflowProjection {
 		if (events.size() > 0) { // we need to log first, to maintain correct order in logs
 			// log events
 			// log process id, event type, and consequence:
-			OffsetDateTime ts = evt.getTimestamp();
+			OffsetDateTime ts = evt.getTimestamp() != null ? evt.getTimestamp() : OffsetDateTime.now();
 			el2l.transformAndLogEventImpact(evt, events, ts);
 		}
 		

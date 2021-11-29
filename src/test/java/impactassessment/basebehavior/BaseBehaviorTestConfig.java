@@ -20,7 +20,8 @@ import impactassessment.artifactconnector.demo.DemoService;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
-import impactassessment.query.EventList2Logger;
+import impactassessment.query.Event2JsonProcessor;
+import impactassessment.query.EventList2Forwarder;
 import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.ProjectionModel;
 import impactassessment.query.WorkflowProjection;
@@ -58,7 +59,7 @@ public class BaseBehaviorTestConfig extends AbstractModule {
 		pModel = new ProjectionModel(artReg);
 		IFrontendPusher fp = new SimpleFrontendPusher();
 		kieS = new SimpleKieSessionService(gw, artReg);
-		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg, new EventList2Logger(new NoOpHistoryLogEventLogger()));
+		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg, new EventList2Forwarder());
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 	}
 	

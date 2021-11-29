@@ -2,6 +2,7 @@
 package defaultrules
 
 import impactassessment.api.Events.UpdatedArtifactsEvt
+import impactassessment.api.Events.IdentifiableEvt
 import passiveprocessengine.instance.ConstraintTrigger
 
 
@@ -20,4 +21,12 @@ rule "RemoveArtifactUpdateEvent"
 		$aue : UpdatedArtifactsEvt()
 	then
 		delete($aue);
+end
+
+rule "RemoveAnyIdentifiableEvt"
+	salience 1999
+	when 
+		$ie : IdentifiableEvt()
+	then
+		delete($ie);
 end
