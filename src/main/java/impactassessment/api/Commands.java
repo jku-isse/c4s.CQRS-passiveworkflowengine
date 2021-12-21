@@ -3,6 +3,7 @@ package impactassessment.api;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
+import impactassessment.api.Events.IdentifiableEvt;
 import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import passiveprocessengine.definition.TaskLifecycle;
@@ -19,15 +20,40 @@ import java.util.Map.Entry;
 
 public class Commands {
 
+	public interface IdentifiableCmd {
+        String getId();
+        
+    }
+	
+	public static abstract class TrackableCmd implements IdentifiableCmd{
+		
+		String parentCauseRef;
+		public String getParentCauseRef() {
+			return parentCauseRef;
+		}
+		public TrackableCmd setParentCauseRef(String parentCauseRef) {
+			this.parentCauseRef = parentCauseRef;
+			return this;
+		}
+		
+	}
+	
+	@Data
+	public static class CompositeCmd extends TrackableCmd {
+		@TargetAggregateIdentifier
+        private final String id;
+		private final List<TrackableCmd> commandList;
+	}
+	
     @Data
-    public static class CreateWorkflowCmd {
+    public static class CreateWorkflowCmd extends TrackableCmd{
         @TargetAggregateIdentifier
         private final String id;
         private final Map<ArtifactIdentifier, String> input;
         private final String definitionName;
     }
     @Data
-    public static class CreateSubWorkflowCmd {
+    public static class CreateSubWorkflowCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String parentWfiId;
@@ -37,7 +63,7 @@ public class Commands {
     }
 
     @Data
-    public static class CompleteDataflowCmd {
+    public static class CompleteDataflowCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String dniId;
@@ -45,19 +71,19 @@ public class Commands {
     }
 
     @Data
-    public static class DeleteCmd {
+    public static class DeleteCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
     }
     @Data
-    public static class AddConstraintsCmd {
+    public static class AddConstraintsCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
         private final Map<String, String> rules;
     }
     @Data
-    public static class AddEvaluationResultToConstraintCmd {
+    public static class AddEvaluationResultToConstraintCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
@@ -67,27 +93,18 @@ public class Commands {
         private final Instant time;
     }
     @Data
-    public static class CheckConstraintCmd {
+    public static class CheckConstraintCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String constrId;
     }
     @Data
-    public static class CheckAllConstraintsCmd {
+    public static class CheckAllConstraintsCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
     }
     @Data
-    public static class AddInputCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String wftId;
-        private final String artifactId;
-        private final String role;
-        private final String type;
-    }
-    @Data
-    public static class AddOutputCmd {
+    public static class AddInputCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
@@ -96,31 +113,32 @@ public class Commands {
         private final String type;
     }
     @Data
-    public static class AddInputToWorkflowCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String artifactId;
-        private final String role;
-        private final String type;
-    }
-    @Data
-    public static class AddOutputToWorkflowCmd {
-        @TargetAggregateIdentifier
-        private final String id;
-        private final String artifactId;
-        private final String role;
-        private final String type;
-    }
-    @Data
-    public static class RemoveOutputCmd {
+    public static class AddOutputCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
-        private final ArtifactIdentifier artifactId;
+        private final String artifactId;
         private final String role;
+        private final String type;
     }
     @Data
-    public static class RemoveInputCmd {
+    public static class AddInputToWorkflowCmd extends TrackableCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String artifactId;
+        private final String role;
+        private final String type;
+    }
+    @Data
+    public static class AddOutputToWorkflowCmd extends TrackableCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String artifactId;
+        private final String role;
+        private final String type;
+    }
+    @Data
+    public static class RemoveOutputCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
@@ -128,34 +146,42 @@ public class Commands {
         private final String role;
     }
     @Data
-    public static class UpdateArtifactsCmd {
+    public static class RemoveInputCmd extends TrackableCmd {
+        @TargetAggregateIdentifier
+        private final String id;
+        private final String wftId;
+        private final ArtifactIdentifier artifactId;
+        private final String role;
+    }
+    @Data
+    public static class UpdateArtifactsCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final List<IArtifact> artifacts;
     }
     @Data
-    public static class SetPreConditionsFulfillmentCmd {
+    public static class SetPreConditionsFulfillmentCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
         private final boolean isFulfilled;
     }
     @Data
-    public static class SetPostConditionsFulfillmentCmd {
+    public static class SetPostConditionsFulfillmentCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
         private final boolean isFulfilled;
     }
     @Data
-    public static class ActivateTaskCmd {
+    public static class ActivateTaskCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String wftId;
     }
     
     @Data
-    public static class ChangeCanceledStateOfTaskCmd {
+    public static class ChangeCanceledStateOfTaskCmd extends TrackableCmd {
     	@TargetAggregateIdentifier
         private final String id;
         private final String wftId; // or wfi Id if whole process is to be canceled or uncanceled
@@ -163,14 +189,14 @@ public class Commands {
     }
     
     @Data
-    public static class SetPropertiesCmd {
+    public static class SetPropertiesCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String iwftId;
         private final Map<String, String> properties;
     }
     @Data
-    public static class InstantiateTaskCmd {
+    public static class InstantiateTaskCmd extends TrackableCmd {
         @TargetAggregateIdentifier
         private final String id;
         private final String taskDefinitionId;
@@ -179,7 +205,7 @@ public class Commands {
     }
     
     @Data
-    public static class RefreshFrontendDataCmd {
+    public static class RefreshFrontendDataCmd extends TrackableCmd {
     	 @TargetAggregateIdentifier
          private final String id;
     }

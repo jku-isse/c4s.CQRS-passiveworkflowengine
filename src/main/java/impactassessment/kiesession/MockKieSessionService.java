@@ -3,6 +3,8 @@ package impactassessment.kiesession;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
+import impactassessment.command.IGatewayProxy;
+
 public class MockKieSessionService implements IKieSessionService {
 
     @Override
@@ -11,8 +13,8 @@ public class MockKieSessionService implements IKieSessionService {
     }
 
     @Override
-    public void create(String id, KieContainer kieContainer) {
-
+    public IGatewayProxy create(String id, KieContainer kieContainer) {
+    	return null;
     }
 
     @Override

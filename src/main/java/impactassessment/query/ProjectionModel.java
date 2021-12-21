@@ -65,6 +65,7 @@ public class ProjectionModel {
 
     public void handle(IdentifiableEvt evt) {
         if (evt instanceof DeletedEvt) {
+        	//TODO: inspect any composite event for that
             this.delete(evt.getId());
             return;
         }

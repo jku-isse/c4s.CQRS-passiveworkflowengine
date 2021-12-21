@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import impactassessment.api.Events.IdentifiableEvt;
+import impactassessment.api.Events.TimedEvt;
 import passiveprocessengine.definition.AbstractArtifact;
 import passiveprocessengine.definition.IWorkflowTask;
 import passiveprocessengine.instance.IWorkflowInstanceObject;
@@ -31,11 +32,11 @@ public class Event2JsonProcessor implements ChangeEventProcessor{
 	
 	
 	@Override
-	public void processChangeImpact(IdentifiableEvt evt, List<WorkflowChangeEvent> effect, OffsetDateTime occurredOn) {
+	public void processChangeImpact(TimedEvt evt, List<WorkflowChangeEvent> flatListOfEffects, OffsetDateTime occurredOn) {
 		// serialize each event to json structure and then log
-		AtomicInteger order = new AtomicInteger(0);
-		logger.log(effect.stream()
-		.map(event -> new HistoryLogEntry(evt.getId(), occurredOn.toString() , evt.getClass().getSimpleName(), event, order.getAndAdd(1)))
+		AtomicInteger order = new AtomicInteger(0);	
+		logger.log(flatListOfEffects.stream()
+		.map(event -> new HistoryLogEntry(evt.getId(), occurredOn.toString() , evt.getClass().getSimpleName(), event.getParentCause(), event, order.getAndAdd(1)))
 		.map(entry -> gson.toJson(entry))
 		.collect(Collectors.toList()));
 	}
@@ -44,15 +45,17 @@ public class Event2JsonProcessor implements ChangeEventProcessor{
 		public String processId;
 		public String timestampOfRootCauseEvent;
 		public String rootCauseEventType;
+		public String parentCauseRef;
 		public WorkflowChangeEvent effect;
 		public int order;
 		
-		public HistoryLogEntry(String processId, String timestampOfRootCauseEvent, String rootCauseEventType,
+		public HistoryLogEntry(String processId, String timestampOfRootCauseEvent, String rootCauseEventType, WorkflowChangeEvent parentCause,
 				WorkflowChangeEvent effect, int order) {
 			super();
 			this.processId = processId;
 			this.timestampOfRootCauseEvent = timestampOfRootCauseEvent;
 			this.rootCauseEventType = rootCauseEventType;
+			this.parentCauseRef = parentCause != null ? parentCause.getId() : null;
 			this.effect = effect;
 			this.order = order;
 		}

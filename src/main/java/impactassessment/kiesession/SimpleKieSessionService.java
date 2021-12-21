@@ -2,6 +2,9 @@ package impactassessment.kiesession;
 
 import artifactapi.IArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraService;
+import impactassessment.command.IGatewayProxy;
+import impactassessment.command.IGatewayProxyFactory;
+
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
@@ -13,15 +16,16 @@ import java.util.Map;
 
 public class SimpleKieSessionService implements IKieSessionService {
 
-	CommandGateway cg;
+	//CommandGateway cg;
 	IArtifactRegistry artifactRegistry;
+	IGatewayProxyFactory gpf;
 
     private Map<String, KieSessionWrapper> kieSessions;
 
-    public SimpleKieSessionService(CommandGateway cg, IArtifactRegistry aRegistry) {
+    public SimpleKieSessionService(IArtifactRegistry aRegistry, IGatewayProxyFactory gpf) {
         kieSessions = new HashMap<>();
-        this.cg = cg;
-
+      //  this.cg = cg;
+        this.gpf = gpf;
         this.artifactRegistry = aRegistry;
 
     }
@@ -32,16 +36,20 @@ public class SimpleKieSessionService implements IKieSessionService {
         kieSessions.get(id).insertOrUpdate(o);
     }
 
+
     @Override
-    public void create(String id, KieContainer kieContainer) {
-        KieSessionWrapper kieSessionWrapper = new KieSessionWrapper(cg, artifactRegistry);
-        if (kieContainer == null) {
-            kieSessionWrapper.create();
-        } else {
-            kieSessionWrapper.create(kieContainer);
-        }
-        kieSessions.put(id, kieSessionWrapper);
+    public IGatewayProxy create(String id, KieContainer kieContainer) {
+    	IGatewayProxy gw;
+    	KieSessionWrapper kieSessionWrapper = new KieSessionWrapper(artifactRegistry, gpf);
+    	if (kieContainer == null) {
+    		gw = kieSessionWrapper.create();
+    	} else {
+    		gw = kieSessionWrapper.create(kieContainer);
+    	}
+    	kieSessions.put(id, kieSessionWrapper);
+    	return gw;
     }
+
 
     @Override
     public void fire(String id) {

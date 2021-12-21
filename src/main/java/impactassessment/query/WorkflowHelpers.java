@@ -45,7 +45,7 @@ public class WorkflowHelpers {
         }
     }
 
-    public static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId) {
+    public static void createSubWorkflow(CommandGateway commandGateway, WorkflowWrapperTaskInstance wwti, String wfiId, String parentCauseRef) {
         Map<ArtifactIdentifier, String> arts = new HashMap<>();
         for (ArtifactInput input : wwti.getInput()) {
             for (IArtifact a : input.getArtifacts()) {
@@ -54,7 +54,7 @@ public class WorkflowHelpers {
         }
         // This approach is not quite ok, as the artifact could be set/updated later and the datamapping among different role names is not considered
         // FIXME: proper subwp handling, i.e. input and output mapping propagation
-        CreateSubWorkflowCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), arts);
+        TrackableCmd cmd = new CreateSubWorkflowCmd(wwti.getSubWfiId(), wfiId, wwti.getId(), wwti.getSubWfdId(), arts).setParentCauseRef(parentCauseRef);
         commandGateway.send(cmd);
     }
 }

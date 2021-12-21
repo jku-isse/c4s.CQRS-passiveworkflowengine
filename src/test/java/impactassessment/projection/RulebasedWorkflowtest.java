@@ -10,6 +10,8 @@ import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jama.JamaService;
 import impactassessment.artifactconnector.jira.IJiraService;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
@@ -39,7 +41,9 @@ class RulebasedWorkflowtest {
 		IJiraService jiraS = DevelopmentConfig.getJiraService(false);
 		aRegistry.register(jiraS);
 		aRegistry.register(injector.getInstance(JamaService.class));
-		SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+		
+		IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+		IKieSessionService kieS = new SimpleKieSessionService(aRegistry, gpf);
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();

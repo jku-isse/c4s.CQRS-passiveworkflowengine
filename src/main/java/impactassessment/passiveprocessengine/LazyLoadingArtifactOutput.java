@@ -47,17 +47,18 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	
 	
 	@Override
-	public List<WorkflowChangeEvent> addOrReplaceArtifact(IArtifact artifact) {		
+	public List<WorkflowChangeEvent> addOrReplaceArtifact(IArtifact artifact, WorkflowChangeEvent wce) {		
 		this.ai.add(artifact.getArtifactIdentifier()); //to keep identifiers synced with artifacts
-		return super.addOrReplaceArtifact(artifact); //this will add container task in events
+		return super.addOrReplaceArtifact(artifact, wce); //this will add container task in events
 	}
 	
-	public List<WorkflowChangeEvent> addOrReplaceArtifact(ArtifactIdentifier ai) {
+	public List<WorkflowChangeEvent> addOrReplaceArtifact(ArtifactIdentifier ai, WorkflowChangeEvent wce) {
 		boolean added = this.ai.add(ai);
 		if (added) {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, Set.of(ai)));
-			changes.addAll(container.triggerUponAddedOrRemovedOutput());
+			WorkflowChangeEvent newWCE = new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, Set.of(ai), wce);
+			changes.add(newWCE);
+			newWCE.getCascadingEffect().addAll(container.triggerUponAddedOrRemovedOutput(wce));
 			return changes;
 		}
 		else
@@ -103,16 +104,17 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	}
 
 	@Override
-	public List<WorkflowChangeEvent> removeArtifact(IArtifact a) {
+	public List<WorkflowChangeEvent> removeArtifact(IArtifact a, WorkflowChangeEvent wce) {
 		//check if lazyoading art already known in parent artio, if not then it will not have an effect and we will have to trigger it		
 		boolean removed = ai.remove(a.getArtifactIdentifier());
 		if (removed) {
 		if (super.containsArtifactByIdentifier(a.getArtifactIdentifier()))
-			return super.removeArtifact(a);
+			return super.removeArtifact(a, wce);
 		else {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container,Set.of(a.getArtifactIdentifier()) ));
-			changes.addAll(container.triggerUponAddedOrRemovedOutput());
+			WorkflowChangeEvent newWCE = new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container,Set.of(a.getArtifactIdentifier()), wce );
+			changes.add(newWCE);
+			newWCE.getCascadingEffect().addAll(container.triggerUponAddedOrRemovedOutput(newWCE));
 			return changes;
 		}
 		} else { // even we dont know about it
@@ -131,7 +133,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	}
 
 	@Override
-	public List<WorkflowChangeEvent> removeArtifactsById(Set<ArtifactIdentifier> ais) {
+	public List<WorkflowChangeEvent> removeArtifactsById(Set<ArtifactIdentifier> ais, WorkflowChangeEvent wce) {
 		// worst case: some art is only known here, others is known also to super						
 		Set<ArtifactIdentifier> inSuper = ais.stream().filter(ai -> super.containsArtifactByIdentifier(ai)).collect(Collectors.toSet());		
 		//first remove all local ones
@@ -147,14 +149,14 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 		
 		List<WorkflowChangeEvent> changes = new LinkedList<>();
 		if (locallyRemoved.size() > 0) {
-			changes.add(new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container, locallyRemoved));
+			changes.add(new TaskArtifactEvent(ChangeType.OUTPUT_DELETED, container, locallyRemoved, wce));
 		}
 		// then remove those from super
 		
 		
-		List<WorkflowChangeEvent> superChanges = super.removeArtifactsById(inSuper);
+		List<WorkflowChangeEvent> superChanges = super.removeArtifactsById(inSuper, wce);
 		if (superChanges.isEmpty() && localRemoveCount > 0 ) { //no ai was known there but some here so we need to trigger
-			changes.addAll(container.triggerUponAddedOrRemovedOutput());
+			changes.addAll(container.triggerUponAddedOrRemovedOutput(wce));
 		} else { //super has already triggered change propagation incl local task listed, or local changes were also zero, then equally fine to pass on changes
 			changes.addAll(superChanges);
 		}
@@ -162,7 +164,7 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 	}
 
 	@Override
-	public List<WorkflowChangeEvent> addNewArtifactsFromArtifactIO(ArtifactIO aio) {
+	public List<WorkflowChangeEvent> addNewArtifactsFromArtifactIO(ArtifactIO aio, WorkflowChangeEvent wce) {
 		Set<ArtifactIdentifier> newCount = aio.getArtifactIdentifiers().stream()
 				.filter(aid -> !ai.contains(aid))
 				.map(aid -> { 
@@ -172,8 +174,9 @@ public class LazyLoadingArtifactOutput extends ArtifactOutput {
 				.collect(Collectors.toSet());
 		if (newCount.size() > 0) {
 			List<WorkflowChangeEvent> changes = new LinkedList<>();
-			changes.add(new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, newCount));
-			changes.addAll(container.triggerUponAddedOrRemovedOutput());
+			WorkflowChangeEvent newWCE = new TaskArtifactEvent(ChangeType.NEW_OUTPUT, container, newCount, wce);
+			changes.add(newWCE);
+			newWCE.getCascadingEffect().addAll(container.triggerUponAddedOrRemovedOutput(newWCE));
 			return changes;
 		} else
 			return Collections.emptyList();					

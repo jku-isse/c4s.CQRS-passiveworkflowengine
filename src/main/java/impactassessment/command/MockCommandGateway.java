@@ -36,6 +36,7 @@ import impactassessment.api.Commands.AddOutputToWorkflowCmd;
 import impactassessment.api.Commands.ChangeCanceledStateOfTaskCmd;
 import impactassessment.api.Commands.CheckAllConstraintsCmd;
 import impactassessment.api.Commands.CheckConstraintCmd;
+import impactassessment.api.Commands.CompositeCmd;
 import impactassessment.api.Commands.CreateWorkflowCmd;
 import impactassessment.api.Commands.InstantiateTaskCmd;
 import impactassessment.api.Commands.RemoveInputCmd;
@@ -103,7 +104,9 @@ public class MockCommandGateway implements CommandGateway {
 	@Override
 	public <R> CompletableFuture<R> send(Object command) {
 		
-
+		if (command instanceof CompositeCmd) {
+			WorkflowAggregate.mapToEvent((CompositeCmd)command, artifactRegistry, "", "").forEach(evt -> proj.on((CompositeEvt)evt,  ReplayStatus.REGULAR));
+		} else
 		if (command instanceof AddConstraintsCmd) {
 			AddConstraintsCmd cmd = (AddConstraintsCmd)command;
 			proj.on(new AddedConstraintsEvt(cmd.getId(), cmd.getWftId(), cmd.getRules()), ReplayStatus.REGULAR);
@@ -112,21 +115,29 @@ public class MockCommandGateway implements CommandGateway {
 			AddEvaluationResultToConstraintCmd cmd = (AddEvaluationResultToConstraintCmd)command;
 			AddedEvaluationResultToConstraintEvt evt = new AddedEvaluationResultToConstraintEvt(cmd.getId(), cmd.getWftId(), cmd.getQacId(), cmd.getRes(), cmd.getCorr(), cmd.getTime());
 			evt.setTimestamp(getCurrentTime());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof CheckConstraintCmd) {
 			CheckConstraintCmd cmd = (CheckConstraintCmd)command;
-	        proj.on(new CheckedConstraintEvt(cmd.getId(), cmd.getConstrId()));
+			CheckedConstraintEvt evt = new CheckedConstraintEvt(cmd.getId(), cmd.getConstrId());
+			evt.setTimestamp(getCurrentTime());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
+	        proj.on(evt);
 	    } else	
 		if (command instanceof CheckAllConstraintsCmd) {
 			CheckAllConstraintsCmd cmd = (CheckAllConstraintsCmd) command;
-			proj.on(new CheckedAllConstraintsEvt(cmd.getId()));
+			CheckedAllConstraintsEvt evt = new CheckedAllConstraintsEvt(cmd.getId());
+			evt.setTimestamp(getCurrentTime());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
+			proj.on(evt);
 		} else
 		if (command instanceof	AddInputCmd) {
 			AddInputCmd cmd = (AddInputCmd)command;
 			ArtifactIdentifier ai = new ArtifactIdentifier(cmd.getArtifactId(), cmd.getType());
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 	        AddedInputEvt evt = new AddedInputEvt(cmd.getId(), cmd.getWftId(), opt.get().getArtifactIdentifier(), cmd.getRole());
+	        evt.setParentCauseRef(cmd.getParentCauseRef());
 	        evt.setTimestamp(getCurrentTime());
 	        proj.on(evt);
 
@@ -137,6 +148,7 @@ public class MockCommandGateway implements CommandGateway {
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 			if (opt.isPresent()) {
 				AddedOutputEvt evt = new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole());
+				evt.setParentCauseRef(cmd.getParentCauseRef());
 				evt.setTimestamp(getCurrentTime());
 				proj.on(evt, ReplayStatus.REGULAR);
 			}
@@ -144,12 +156,14 @@ public class MockCommandGateway implements CommandGateway {
 		if (command instanceof RemoveOutputCmd) {
 			RemoveOutputCmd cmd = (RemoveOutputCmd)command;
 			RemovedOutputEvt evt = new RemovedOutputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof RemoveInputCmd) {
 				RemoveInputCmd cmd = (RemoveInputCmd)command;
 				RemovedInputEvt evt = new RemovedInputEvt(cmd.getId(), cmd.getWftId(), cmd.getArtifactId(), cmd.getRole());
+				evt.setParentCauseRef(cmd.getParentCauseRef());
 				evt.setTimestamp(getCurrentTime());
 				proj.on(evt, ReplayStatus.REGULAR);
 		} else
@@ -159,6 +173,7 @@ public class MockCommandGateway implements CommandGateway {
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 	        opt.ifPresent(artifact -> { 
 	        	AddedInputToWorkflowEvt evt = new AddedInputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole());
+	        	evt.setParentCauseRef(cmd.getParentCauseRef());
 	        	evt.setTimestamp(getCurrentTime());
 	        	proj.on(evt);
 	        	});
@@ -169,36 +184,42 @@ public class MockCommandGateway implements CommandGateway {
 	        Optional<IArtifact> opt = artifactRegistry.get(ai, cmd.getId());
 	        opt.ifPresent(artifact -> { 
 	        	AddedOutputToWorkflowEvt evt = new AddedOutputToWorkflowEvt(cmd.getId(), artifact.getArtifactIdentifier(), cmd.getRole());
+	        	evt.setParentCauseRef(cmd.getParentCauseRef());
 	        	evt.setTimestamp(getCurrentTime());
 	        	proj.on(evt); } );
 		} else
 		if(command instanceof UpdateArtifactsCmd) {
 			UpdateArtifactsCmd cmd = (UpdateArtifactsCmd)command;
 			UpdatedArtifactsEvt evt = new UpdatedArtifactsEvt(cmd.getId(), cmd.getArtifacts().stream().map(art -> art.getArtifactIdentifier()).collect(Collectors.toList()));
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt);
 		} else
 		if(command instanceof SetPreConditionsFulfillmentCmd) {
 			SetPreConditionsFulfillmentCmd cmd = (SetPreConditionsFulfillmentCmd)command;
 			SetPreConditionsFulfillmentEvt evt = new SetPreConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if(command instanceof SetPostConditionsFulfillmentCmd) {
 			SetPostConditionsFulfillmentCmd cmd = (SetPostConditionsFulfillmentCmd)command;
 			SetPostConditionsFulfillmentEvt evt = new SetPostConditionsFulfillmentEvt(cmd.getId(), cmd.getWftId(), cmd.isFulfilled());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt, ReplayStatus.REGULAR);
 		} else
 		if (command instanceof ActivateTaskCmd) {
 			ActivateTaskCmd cmd = (ActivateTaskCmd)command;
 			ActivatedTaskEvt evt = new ActivatedTaskEvt(cmd.getId(), cmd.getWftId());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt);
 		} else
 	    if (command instanceof ChangeCanceledStateOfTaskCmd) {		        
 	    	ChangeCanceledStateOfTaskCmd cmd = (ChangeCanceledStateOfTaskCmd)command;
 	    	ChangedCanceledStateOfTaskEvt evt = new ChangedCanceledStateOfTaskEvt(cmd.getId(), cmd.getWftId(), cmd.isCanceled());
+	    	evt.setParentCauseRef(cmd.getParentCauseRef());
 	    	evt.setTimestamp(getCurrentTime());
 	    	proj.on(evt);
 		} else					
@@ -211,6 +232,7 @@ public class MockCommandGateway implements CommandGateway {
 			InstantiatedTaskEvt evt = new InstantiatedTaskEvt(cmd.getId(), cmd.getTaskDefinitionId(), 
 					cmd.getOptionalInputs().stream().map(in -> LazyLoadingArtifactInput.generateFrom(in, artifactRegistry, cmd.getId())).collect(Collectors.toList())  , 
 					cmd.getOptionalOutputs().stream().map(out -> LazyLoadingArtifactOutput.generateFrom(out, artifactRegistry, cmd.getId())).collect(Collectors.toList()) );
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt, ReplayStatus.REGULAR);
 		} else
@@ -218,6 +240,7 @@ public class MockCommandGateway implements CommandGateway {
 			CreateWorkflowCmd cmd = (CreateWorkflowCmd)command;
 			WorkflowDefinitionContainer wfdContainer = workflowDefinitionRegistry.get(cmd.getDefinitionName());
 			CreatedWorkflowEvt evt = new CreatedWorkflowEvt(cmd.getId(), cmd.getInput(), cmd.getDefinitionName(), wfdContainer.getWfd());
+			evt.setParentCauseRef(cmd.getParentCauseRef());
 			evt.setTimestamp(getCurrentTime());
 			proj.on(evt, ReplayStatus.REGULAR);
 		}

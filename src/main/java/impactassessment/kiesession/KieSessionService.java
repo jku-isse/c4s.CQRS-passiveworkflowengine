@@ -5,6 +5,8 @@ import org.kie.api.runtime.KieSession;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import impactassessment.command.IGatewayProxy;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,14 +29,16 @@ public class KieSessionService implements IKieSessionService {
     }
 
     @Override
-    public void create(String id, KieContainer kieContainer) {
-        KieSessionWrapper kieSessionWrapper = appContext.getBean(KieSessionWrapper.class);
+    public IGatewayProxy create(String id, KieContainer kieContainer) {
+    	IGatewayProxy gw;
+    	KieSessionWrapper kieSessionWrapper = appContext.getBean(KieSessionWrapper.class);
         if (kieContainer == null) {
-            kieSessionWrapper.create();
+            gw = kieSessionWrapper.create();
         } else {
-            kieSessionWrapper.create(kieContainer);
+            gw = kieSessionWrapper.create(kieContainer);
         }
         kieSessions.put(id, kieSessionWrapper);
+        return gw;
     }
 
     @Override

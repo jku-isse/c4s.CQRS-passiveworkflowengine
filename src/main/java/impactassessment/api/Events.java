@@ -32,8 +32,23 @@ public class Events {
 		public OffsetDateTime getTimestamp() {
 			return timestamp;
 		}
+		
+		String parentCauseRef;
+		public String getParentCauseRef() {
+			return parentCauseRef;
+		}
+		public void setParentCauseRef(String parentCauseRef) {
+			this.parentCauseRef = parentCauseRef;
+		}
+		
     }
 
+    @Data
+    public static class CompositeEvt extends TimedEvt {
+    	private final String id;
+    	private final List<TimedEvt> eventList;
+    }
+    
     @Data
     public static class CreatedWorkflowEvt extends TimedEvt {
         private final String id;

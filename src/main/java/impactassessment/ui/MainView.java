@@ -587,7 +587,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                     if (count.get() == inputs.size()) {
                     	//inputs.keySet().stream().map(ai -> ai.get)
                         String id = inputs.keySet().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
-                    	commandGateway.sendAndWait(new CreateWorkflowCmd(id, inputs, processDefinition.getValue()));
+                    	commandGateway.sendAndWait(new CreateWorkflowCmd(id, inputs, processDefinition.getValue()).setParentCauseRef(id));
                         Notification.show("Success");
                     } else {
                         Notification.show("Make sure to fill out all required artifact IDs!");

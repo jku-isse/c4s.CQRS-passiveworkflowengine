@@ -48,10 +48,10 @@ public class WorkflowInstanceWrapper {
         return artifacts;
     }
     
-    protected List<WorkflowChangeEvent> setInputArtifacts(Map<IArtifact, String> inputs) {
+    protected List<WorkflowChangeEvent> setInputArtifacts(Map<IArtifact, String> inputs, WorkflowChangeEvent rootWCE) {
     	if (wfi != null) {
     	    // use LazyLoadingArtifactInput here? --> fine, as we have the artifacts already available
-    		return inputs.entrySet().stream().flatMap(entry -> wfi.addInput(new ArtifactInput(entry.getKey(), entry.getValue())).stream()).collect(Collectors.toList());
+    		return inputs.entrySet().stream().flatMap(entry -> wfi.addInput(new ArtifactInput(entry.getKey(), entry.getValue()),rootWCE).stream()).collect(Collectors.toList());
     	}
     	return Collections.emptyList();
     }
@@ -60,61 +60,69 @@ public class WorkflowInstanceWrapper {
         return wfi;
     }
 
-    public List<WorkflowChangeEvent> handle(CreatedWorkflowEvt evt) {
-        WorkflowDefinition wfd = evt.getWfd();
-        return initWfi(evt.getId(), wfd, evt.getArtifacts());
+    public List<WorkflowChangeEvent> handle(CreatedWorkflowEvt evt) {    
+    	WorkflowDefinition wfd = evt.getWfd();
+        return initWfi(evt.getId(), wfd, evt.getArtifacts(), evt.getParentCauseRef());
     }
 
     public List<WorkflowChangeEvent> handle(CreatedSubWorkflowEvt evt) {
         WorkflowDefinition wfd = evt.getWfd();
-        return initWfi(evt.getId(), wfd, evt.getArtifacts());
+        return initWfi(evt.getId(), wfd, evt.getArtifacts(), evt.getParentCauseRef());
     }
 
-    protected List<WorkflowChangeEvent> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art) {
+    protected List<WorkflowChangeEvent> initWfi(String id, WorkflowDefinition wfd, Map<ArtifactIdentifier, String> art, String root) {
         wfd.setTaskStateTransitionEventPublisher(event -> {/*No Op*/}); // NullPointer if event publisher is not set
         wfi = wfd.createInstance(id);
+        WorkflowChangeEvent rootWCE = new RootWorkflowChangeEvent(root, wfi);
         Map<IArtifact, String> artifacts = art.entrySet().stream()
         		.map(entry -> new AbstractMap.SimpleEntry<>(artReg.get(entry.getKey(), id), entry.getValue()))
         		.filter(entry -> entry.getKey().isPresent())
         		.collect(Collectors.toMap(k -> k.getKey().get(), v -> v.getValue()));
         List<WorkflowChangeEvent> changes = new LinkedList<>();
-        changes.add(new WFOCreatedEvent(wfi));
-        changes.addAll(setInputArtifacts(artifacts));        
-        changes.addAll(wfi.enableWorkflowTasksAndDecisionNodes());        
+        changes.add(new WFOCreatedEvent(wfi, wfi, rootWCE));
+        changes.addAll(setInputArtifacts(artifacts, rootWCE));        
+        changes.addAll(wfi.enableWorkflowTasksAndDecisionNodes(rootWCE));        
         return changes;
     }
 
 
     public List<WorkflowChangeEvent> handle(AddedConstraintsEvt evt) {
-        IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        List<WorkflowChangeEvent> awos = new ArrayList<>();
+    	
+    	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
+    	List<WorkflowChangeEvent> awos = new ArrayList<>();
         QACheckDocument qa = getQACDocOfWft(wft);
         if (qa == null) {
             qa = new QACheckDocument("QA-" + wft.getType().getId() + "-" + wft.getWorkflow().getId(), wft.getWorkflow());
             ArtifactOutput ao = new ArtifactOutput(qa, ArtifactTypes.ARTIFACT_TYPE_QA_CHECK_DOCUMENT);
-            addConstraint(evt, qa, wft, awos);
-            awos.addAll(wft.addOutput(ao));           
+            addConstraint(evt, qa, wft, awos, rootWCE);
+            awos.addAll(wft.addOutput(ao, rootWCE));           
             //awos.add((WorkflowTask)wft); //  fix for nested workflow, --> we assume a nested workflow task doesn have its own QAchecks but rather the steps inside the nested workflow have, thus not an issue here
-        } // else { //We require that all constraints are set at once in a single command, 
-//            addConstraint(evt, qa, wft, awos);
-//        }        
+        }  else { //We require that all constraints are set at once in a single command, ==> not possible
+            addConstraint(evt, qa, wft, awos, rootWCE);
+         }        
         return awos;
     }
 
-    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<WorkflowChangeEvent> awos) {
+    private void addConstraint(AddedConstraintsEvt evt, QACheckDocument qa, IWorkflowTask wft, List<WorkflowChangeEvent> awos, WorkflowChangeEvent rootWCE ) {
         CorrelationTuple corr = wft.getWorkflow().getLastChangeDueTo().orElse(new CorrelationTuple(qa.getId(), "INITIAL_TRIGGER"));
         qa.setLastChangeDueTo(corr);
         Map<String, String> rules = evt.getRules();
         for (Map.Entry<String, String> e : rules.entrySet()) {
             String rebcId = e.getKey()+"_"+wft.getType().getId()+"_"+ wft.getWorkflow().getId(); // TODO pull id creation inside constructor!
-            RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
-            rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
-            qa.addConstraint(rebc);
-            awos.add(new WFOCreatedEvent(rebc));
+            // check if constraint exists already
+            if (!qa.getConstraintsReadonly().parallelStream().anyMatch(qac -> qac.getId().equals(rebcId))) {
+            	// if not, then add
+            	RuleEngineBasedConstraint rebc = new RuleEngineBasedConstraint(rebcId, qa, e.getKey(), wft.getWorkflow(), e.getValue());
+            	rebc.setEvaluationStatus(EvaluationState.NOT_YET_EVALUATED);
+            	qa.addConstraint(rebc);
+            	awos.add(new WFOCreatedEvent(rebc, wft, rootWCE));
+            }
         }
     }
 
     public List<WorkflowChangeEvent> handle(AddedEvaluationResultToConstraintEvt evt) {
+    	
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
         getRebc(evt.getWftId(), evt.getQacId()).ifPresent(rebc -> {
             boolean hasChanged = false;
@@ -148,11 +156,12 @@ public class WorkflowInstanceWrapper {
             // output state may change because QA constraints may be all fulfilled now
             // FIXME: why trigger all of them and not just the one we received a trigger for??? as now implemented below
             if (hasChanged) {
-            	awos.add(new ConstraintEvaluationEvent((QACheckDocument) rebc.getParentArtifact(), rebc, wfi.getWorkflowTask(evt.getWftId()))); 
+            	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
+            	awos.add(new ConstraintEvaluationEvent((QACheckDocument) rebc.getParentArtifact(), rebc, wfi.getWorkflowTask(evt.getWftId()), rootWCE)); 
             	wfi.getWorkflowTasksReadonly()
             		.stream()
             		.filter(wft -> wft.getId().equals(evt.getWftId()))    
-            		.forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal()));         
+            		.forEach(wft -> awos.addAll(wft.triggerQAConstraintsEvaluatedSignal(rootWCE)));         
             }
         });
         return awos;
@@ -167,24 +176,30 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(AddedInputEvt evt) {
+    	
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        return wft.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
+        WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
+        return wft.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()), rootWCE);
     }
 
     public List<WorkflowChangeEvent> handle(AddedOutputEvt evt) {
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
-        return wft.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
+    	 WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
+        return wft.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()), rootWCE);
     }
 
     public List<WorkflowChangeEvent> handle(AddedInputToWorkflowEvt evt) {
-        return wfi.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
+        return wfi.addInput(new LazyLoadingArtifactInput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()), rootWCE);
     }
 
     public List<WorkflowChangeEvent> handle(AddedOutputToWorkflowEvt evt) {
-        return wfi.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()));
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
+        return wfi.addOutput(new LazyLoadingArtifactOutput(evt.getArtifact(), artReg, wfi.getId(), evt.getRole()), rootWCE);
     }
     
     public List<WorkflowChangeEvent> handle(UpdatedArtifactsEvt evt) {
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), getWorkflowInstance()) : null;
     	List<WorkflowChangeEvent> awos = new ArrayList<>();
 		for (ArtifactIdentifier updatedArtifact : evt.getArtifacts()) {
 			Optional<IArtifact> artOpt = artReg.get(updatedArtifact, evt.getId());
@@ -195,7 +210,7 @@ public class WorkflowInstanceWrapper {
 				wfiInOuts.addAll(getWorkflowInstance().getOutput());
 				for (ArtifactIO io : wfiInOuts) {
 					if (io.containsArtifact(art)) {
-						awos.addAll(io.addOrReplaceArtifact(art));
+						awos.addAll(io.addOrReplaceArtifact(art, rootWCE));
 					}
 				}
 				// check inputs and outputs of all workflow tasks
@@ -205,7 +220,7 @@ public class WorkflowInstanceWrapper {
 					wftInOuts.addAll(wft.getOutput());
 					for (ArtifactIO io : wftInOuts) {
 						if (io.containsArtifact(art)) {
-							awos.addAll(io.addOrReplaceArtifact(art));
+							awos.addAll(io.addOrReplaceArtifact(art, rootWCE));
 							//awos.add(wft); // WFTs must be updated in the kieSession
 						}
 					}
@@ -216,47 +231,55 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(SetPreConditionsFulfillmentEvt evt) {
+    	
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
         if (wft == null) {
         	log.warn("{} - workflowtask not found", evt.getWftId());
         	return Collections.emptyList();
         } else {
         	if (evt.isFulfilled()) 
-        		return wft.preConditionsFulfilled();
+        		return wft.preConditionsFulfilled(rootWCE);
         	else
-        		return wft.preConditionsFailed();
+        		return wft.preConditionsFailed(rootWCE);
         }
     }
 
     public List<WorkflowChangeEvent> handle(SetPostConditionsFulfillmentEvt evt) {
+    	
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+        WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
         if (wft == null) {
         	log.warn("{} - workflowtask not found", evt.getWftId());
         	return Collections.emptyList();
         } else {
         	if (evt.isFulfilled()) 
-        		return wft.postConditionsFulfilled();
+        		return wft.postConditionsFulfilled(rootWCE);
         	else
-        		return wft.postConditionsFailed();
+        		return wft.postConditionsFailed(rootWCE);
         }
     }
 
     public List<WorkflowChangeEvent> handle(ActivatedTaskEvt evt) {
+   
         IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+     	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
         if (wft == null) {
         	log.warn("{} - workflowtask not found", evt.getWftId());
         	return Collections.emptyList();
         } else {
-        	return wft.activate();
+        	return wft.activate(rootWCE);
         }
     }
 
     public List<WorkflowChangeEvent> handle(ChangedCanceledStateOfTaskEvt evt) {
+    	
     	IWorkflowTask wft = wfi.getWorkflowTask(evt.getWftId());
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wft) : null;
         if (wft != null) {
-        	return wft.setCanceled(evt.isCanceled());
+        	return wft.setCanceled(evt.isCanceled(), rootWCE);
         } else if (evt.getWftId().equals(wfi.getId())){
-        	return wfi.setCanceled(evt.isCanceled());
+        	return wfi.setCanceled(evt.isCanceled(), rootWCE);
         } else {
         	log.warn("{} - workflowtask not found", evt.getWftId());
         	return Collections.emptyList();
@@ -300,6 +323,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(InstantiatedTaskEvt evt) {
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
 
         // check if task already exists
@@ -311,7 +335,7 @@ public class WorkflowInstanceWrapper {
             wfi.getType().getWorkflowTaskDefinitions().stream()
                     .filter(td -> td.getId().equals(evt.getTaskDefinitionId()))
                     .findAny()
-                    .ifPresent(taskDefinition -> awos.addAll(wfi.createAndWireTask(taskDefinition)));
+                    .ifPresent(taskDefinition -> awos.addAll(wfi.createAndWireTask(taskDefinition, rootWCE)));
             // find WFT
             Optional<WorkflowTask> optWft = awos.stream()
                     .filter(cevt -> cevt.getChangeType().equals(ChangeType.CREATED))
@@ -324,7 +348,7 @@ public class WorkflowInstanceWrapper {
             // add inputs/outputs
             if (optWft.isPresent()) {
                 WorkflowTask wft = optWft.get();
-                awos.addAll(wft.activate()); // activate task
+                awos.addAll(wft.activate(rootWCE)); // activate task
                 for (ArtifactInput in : evt.getOptionalInputs()) {
                     if (in instanceof LazyLoadingArtifactInput) {
                     	((LazyLoadingArtifactInput) in).reinjectRegistry(artReg);
@@ -333,7 +357,7 @@ public class WorkflowInstanceWrapper {
                             artReg.injectArtifactService(a, evt.getId());
                         }
                     }
-                    awos.addAll(wft.addInput(in)); //FIXME: also input might lead to events
+                    awos.addAll(wft.addInput(in, rootWCE)); 
                 }
                 for (ArtifactOutput out : evt.getOptionalOutputs()) {
                    if (out instanceof LazyLoadingArtifactOutput) {
@@ -343,7 +367,7 @@ public class WorkflowInstanceWrapper {
                            artReg.injectArtifactService(a, evt.getId());
                        }
                    }
-                   awos.addAll(wft.addOutput(out));
+                   awos.addAll(wft.addOutput(out, rootWCE));
                 }
             }
         }
@@ -351,6 +375,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(RemovedInputEvt evt) {
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
     	ArtifactInput ai = new LazyLoadingArtifactInput(evt.getArtifact() == null ? Collections.emptySet() : Set.of(evt.getArtifact()), artReg, wfi.getId(), evt.getRole());
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
     	//List<ArtifactInput> inputs;
@@ -358,14 +383,14 @@ public class WorkflowInstanceWrapper {
         if (wft == null) {
             if (evt.getId().equals(evt.getWftId())) { // we remove inputs from the workflow instance
                 //inputs = wfi.getInput();
-            	 awos.addAll(wfi.removeInput(ai));
+            	 awos.addAll(wfi.removeInput(ai, rootWCE));
             } else {
             	log.info("No Task or Process found to apply event: "+evt.toString());
                 return Collections.emptyList();
             }
         } else {
           //  inputs = wft.getInput();
-        	awos.addAll(wft.removeInput(ai));
+        	awos.addAll(wft.removeInput(ai, rootWCE));
         }
 //        Optional<ArtifactInput> opt = inputs.stream()
 //                .filter(i -> i.getRole().equals(evt.getRole()))
@@ -381,6 +406,7 @@ public class WorkflowInstanceWrapper {
     }
 
     public List<WorkflowChangeEvent> handle(RemovedOutputEvt evt) {
+    	WorkflowChangeEvent rootWCE = evt.getParentCauseRef() != null ? new RootWorkflowChangeEvent(evt.getParentCauseRef(), wfi) : null;
     	ArtifactOutput ao = new LazyLoadingArtifactOutput(evt.getArtifact() == null ? Collections.emptySet() : Set.of(evt.getArtifact()), artReg, wfi.getId(), evt.getRole());
     	List<WorkflowChangeEvent> awos = new LinkedList<>();
     	//List<ArtifactOutput> outputs;
@@ -388,13 +414,13 @@ public class WorkflowInstanceWrapper {
         if (wft == null) {
             if (evt.getId().equals(evt.getWftId())) {
                 //outputs = wfi.getOutput();
-                awos.addAll(wfi.removeOutput(ao));
+                awos.addAll(wfi.removeOutput(ao, rootWCE));
             } else {
             	log.info("No Task or Process found to apply event: "+evt.toString());
                 return Collections.emptyList();
             }
         } else {
-        	awos.addAll(wft.removeOutput(ao));
+        	awos.addAll(wft.removeOutput(ao, rootWCE));
             //outputs = wft.getOutput();
         }
 //        Optional<ArtifactOutput> opt = outputs.stream()

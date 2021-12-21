@@ -7,6 +7,8 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import com.google.inject.Injector;
 import impactassessment.DevelopmentConfig;
 import impactassessment.artifactconnector.ArtifactRegistry;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
 
 import impactassessment.kiesession.IKieSessionService;
@@ -29,7 +31,8 @@ class CompileTest {
 		IArtifactRegistry aRegistry = new ArtifactRegistry();
 		ProjectionModel pModel = new ProjectionModel(aRegistry);
 		IFrontendPusher fp = new SimpleFrontendPusher();
-		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+		IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+		IKieSessionService kieS = new SimpleKieSessionService(aRegistry, gpf);
 		WorkflowDefinitionRegistry registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();

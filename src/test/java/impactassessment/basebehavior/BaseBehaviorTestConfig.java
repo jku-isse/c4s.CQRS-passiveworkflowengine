@@ -17,6 +17,8 @@ import com.google.inject.Injector;
 import artifactapi.IArtifactRegistry;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.demo.DemoService;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
@@ -58,7 +60,8 @@ public class BaseBehaviorTestConfig extends AbstractModule {
 		artReg.register(ds);
 		pModel = new ProjectionModel(artReg);
 		IFrontendPusher fp = new SimpleFrontendPusher();
-		kieS = new SimpleKieSessionService(gw, artReg);
+		IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+        kieS = new SimpleKieSessionService(artReg, gpf);
 		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, artReg, new EventList2Forwarder());
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);
 	}

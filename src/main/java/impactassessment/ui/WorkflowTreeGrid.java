@@ -151,7 +151,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                 icon.setColor("red");
                 icon.getStyle().set("cursor", "pointer");
                 icon.addClickListener(e -> {
-                    f.apply(new DeleteCmd(wfi.getId()));
+                    f.apply(new DeleteCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
                 });
                 icon.getElement().setProperty("title", "Remove this workflow");
                 return icon;
@@ -170,7 +170,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                     icon.setColor("#1565C0");
                     icon.getStyle().set("cursor", "pointer");
                     icon.addClickListener(e -> {
-                        f.apply(new CheckAllConstraintsCmd(wfi.getId()));
+                        f.apply(new CheckAllConstraintsCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
                         Notification.show("Evaluation of "+wfi.getId()+" requested");
                     });
                     icon.getElement().setProperty("title", "Request a explicit re-evaluation of all rules for this artifact..");
@@ -181,7 +181,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
                     icon.setColor("#1565C0");
                     icon.getStyle().set("cursor", "pointer");
                     icon.addClickListener(e -> {
-                        f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()));
+                        f.apply(new CheckConstraintCmd(rebc.getWorkflow().getId(), rebc.getId()).setParentCauseRef(rebc.getId()));
                         Notification.show("Evaluation of "+rebc.getId()+" requested");
                     });
                     icon.getElement().setProperty("title", "Request a explicit re-evaluation of this rule for this artifact..");
@@ -340,18 +340,18 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         Button submit = new Button(title, evt -> {
             if (wft instanceof WorkflowTask) {
                 if (isIn) {
-                    f.apply(new AddInputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    f.apply(new AddInputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type).setParentCauseRef(wft.getId()));
                     Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
                 } else {
-                    f.apply(new AddOutputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type));
+                    f.apply(new AddOutputCmd(wft.getWorkflow().getId(), wft.getId(), id.getValue(), role, type).setParentCauseRef(wft.getId()));
                     Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
                 }
             } else if (wft instanceof WorkflowInstance) {
                 if (isIn) {
-                    f.apply(new AddInputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    f.apply(new AddInputToWorkflowCmd(wft.getId(), id.getValue(), role, type).setParentCauseRef(wft.getId()));
                     Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
                 } else {
-                    f.apply(new AddOutputToWorkflowCmd(wft.getId(), id.getValue(), role, type));
+                    f.apply(new AddOutputToWorkflowCmd(wft.getId(), id.getValue(), role, type).setParentCauseRef(wft.getId()));
                     Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
                 }
             }
@@ -441,9 +441,9 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
         icon.getStyle().set("flex-shrink", "0");
         icon.addClickListener(e -> {
             if (isIn) {
-                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()));
+                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
             } else {
-                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()));
+                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getId(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
             }
         });
         return icon;

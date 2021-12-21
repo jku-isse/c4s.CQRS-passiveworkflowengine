@@ -56,6 +56,9 @@ import impactassessment.artifactconnector.jira.JiraService;
 import impactassessment.artifactconnector.usage.HibernatePerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.InMemoryPerProcessArtifactUsagePersistor;
 import impactassessment.artifactconnector.usage.PerProcessArtifactUsagePersistor;
+import impactassessment.command.CollectingGatewayProxyFactory;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.query.ChangeEventProcessor;
 import impactassessment.query.Event2JsonProcessor;
 import impactassessment.query.EventList2Forwarder;
@@ -288,6 +291,11 @@ public class SpringConfig {
     //------------------------------------------------------------------------------------------------------------------
 
 
+    @Bean
+    public IGatewayProxyFactory getGatewayProxyFactory(CommandGateway gw) {
+		//return new DefaultGatewayProxyFactory(gw);
+    	return new CollectingGatewayProxyFactory(gw);
+    }
     
     // SETUP TOKEN DB:
     

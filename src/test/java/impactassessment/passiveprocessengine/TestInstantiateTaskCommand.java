@@ -12,7 +12,10 @@ import impactassessment.artifactconnector.jama.IJamaService;
 import impactassessment.artifactconnector.jama.JamaChangeSubscriber;
 import impactassessment.artifactconnector.jira.IJiraService;
 import impactassessment.artifactconnector.jira.JiraChangeSubscriber;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
+import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
 import impactassessment.query.EventList2Forwarder;
 import impactassessment.query.NoOpHistoryLogEventLogger;
@@ -58,7 +61,8 @@ public class TestInstantiateTaskCommand {
         jamaS = conf.getJamaService(conf.getJamaInstance(conf.getJamaCache()), jamaCS);
         aRegistry.register(jamaS);
 
-        SimpleKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+        IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+		IKieSessionService kieS = new SimpleKieSessionService(aRegistry, gpf);
 
         SimpleFrontendPusher fp = new SimpleFrontendPusher();
 

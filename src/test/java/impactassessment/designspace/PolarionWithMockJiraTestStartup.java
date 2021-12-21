@@ -24,6 +24,8 @@ import impactassessment.api.Commands.*;
 import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.artifactconnector.jira.IJiraService;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
@@ -58,7 +60,8 @@ public class PolarionWithMockJiraTestStartup {
 		//aRegistry.register(DevelopmentConfig.getJiraService());
 		aRegistry.register(injector.getInstance(IJiraService.class));
 		IFrontendPusher fp = new SimpleFrontendPusher();
-		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+		IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+		IKieSessionService kieS = new SimpleKieSessionService(aRegistry, gpf);
 		registry = injector.getInstance(WorkflowDefinitionRegistry.class);
 		wfp = new WorkflowProjection(pModel, kieS,  gw, registry, fp, aRegistry, new EventList2Forwarder());
 		((MockCommandGateway)gw).setWorkflowProjection(wfp);

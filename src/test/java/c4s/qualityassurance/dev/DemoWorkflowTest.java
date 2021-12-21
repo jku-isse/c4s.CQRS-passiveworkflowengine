@@ -8,6 +8,8 @@ import impactassessment.api.Events.CreatedWorkflowEvt;
 import impactassessment.api.Queries.PrintKBQuery;
 import impactassessment.artifactconnector.ArtifactRegistry;
 import impactassessment.artifactconnector.jira.IJiraService;
+import impactassessment.command.DefaultGatewayProxyFactory;
+import impactassessment.command.IGatewayProxyFactory;
 import impactassessment.command.MockCommandGateway;
 import impactassessment.kiesession.IKieSessionService;
 import impactassessment.kiesession.SimpleKieSessionService;
@@ -42,7 +44,8 @@ class DemoWorkflowTest {
 		jiraS = DemoConfig.getJiraDemoService();
 		aRegistry.register(jiraS);
 		IFrontendPusher fp = new SimpleFrontendPusher();
-		IKieSessionService kieS = new SimpleKieSessionService(gw, aRegistry);
+		IGatewayProxyFactory gpf = new DefaultGatewayProxyFactory(gw);
+		IKieSessionService kieS = new SimpleKieSessionService(aRegistry, gpf);
 		registry = new WorkflowDefinitionRegistry();
 		LocalRegisterService lrs = new LocalRegisterService(registry);
 		lrs.registerAll();

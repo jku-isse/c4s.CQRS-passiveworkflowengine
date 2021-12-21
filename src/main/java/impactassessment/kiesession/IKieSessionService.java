@@ -3,10 +3,12 @@ package impactassessment.kiesession;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
+import impactassessment.command.IGatewayProxy;
+
 public interface IKieSessionService {
     void insertOrUpdate(String id, Object o);
 
-    void create(String id, KieContainer kieContainer);
+    IGatewayProxy create(String id, KieContainer kieContainer);
 
     void fire(String id);
 

@@ -4,7 +4,7 @@ package defaultrules
 import impactassessment.api.Events.UpdatedArtifactsEvt
 import impactassessment.api.Events.IdentifiableEvt
 import passiveprocessengine.instance.ConstraintTrigger
-
+import passiveprocessengine.instance.WorkflowChangeEvent
 
 
 rule "RemoveConstraintTrigger"
@@ -29,4 +29,12 @@ rule "RemoveAnyIdentifiableEvt"
 		$ie : IdentifiableEvt()
 	then
 		delete($ie);
+end
+
+rule "RemoveAnyWorkflowChangeEvents"
+	salience -1000
+	when
+		$wce : WorkflowChangeEvent()
+	then
+		delete($wce);
 end

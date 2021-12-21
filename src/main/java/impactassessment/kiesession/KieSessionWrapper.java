@@ -2,6 +2,8 @@ package impactassessment.kiesession;
 
 import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
+import impactassessment.command.IGatewayProxy;
+import impactassessment.command.IGatewayProxyFactory;
 import lombok.Getter;
 import lombok.Setter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -27,18 +29,20 @@ public class KieSessionWrapper {
     private Map<String, FactHandle> sessionHandles;
     private @Getter @Setter boolean isInitialized;
 
-    private final CommandGateway commandGateway;
+   // private final CommandGateway commandGateway;
     private final IArtifactRegistry artifactRegistry;
+    private final IGatewayProxyFactory gpf;
 
-    public KieSessionWrapper(CommandGateway commandGateway, IArtifactRegistry artifactRegistry) {
-        this.commandGateway = commandGateway;
+    public KieSessionWrapper(IArtifactRegistry artifactRegistry, IGatewayProxyFactory gpf) {
+    //    this.commandGateway = commandGateway;
         this.artifactRegistry = artifactRegistry;
+        this.gpf = gpf;
         sessionHandles = new HashMap<>();
         isInitialized = false;
     }
 
     @Deprecated
-    public void create() {
+    public IGatewayProxy create() {
         Properties props = new Properties();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -53,19 +57,21 @@ public class KieSessionWrapper {
         String[] ruleFilesArray = ruleFiles.split(",");
 
         this.kieSession = new KieSessionFactory().getKieSession(ruleFilesArray);
-        setGlobals();
+        return setGlobals();
     }
 
-    public void create(KieContainer kieContainer) {
+    public IGatewayProxy create(KieContainer kieContainer) {
         this.kieSession = kieContainer.newKieSession();
         KieSessionLogger.addRuleRuntimeEventListener(this.kieSession);
         KieSessionLogger.addAgendaEventListener(this.kieSession);
-        setGlobals();
+        return setGlobals();
     }
 
-    private void setGlobals() {
-        this.kieSession.setGlobal("commandGateway", commandGateway);
+    private IGatewayProxy setGlobals() {
+    	IGatewayProxy gw = gpf.instantiateNewProxy();// new GatewayProxy(commandGateway);
+        this.kieSession.setGlobal("commandGateway", gw);
         this.kieSession.setGlobal("artifactRegistry", artifactRegistry);
+        return gw;
     }
 
     public void insertOrUpdate(Object o) {
