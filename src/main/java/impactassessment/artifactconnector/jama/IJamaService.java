@@ -1,10 +1,8 @@
 package impactassessment.artifactconnector.jama;
 
-import java.util.Collection;
 import java.util.Optional;
 
 import artifactapi.IArtifactService;
-import com.jamasoftware.services.restclient.exception.RestClientException;
 import com.jamasoftware.services.restclient.jamadomain.lazyresources.*;
 
 import artifactapi.jama.IJamaArtifact;
@@ -16,6 +14,8 @@ public interface IJamaService extends IArtifactService {
 	public Optional<IJamaArtifact> get(Integer id, String workflow);
 	
 	public Optional<IJamaArtifact> get(Integer id);
+	
+	public Optional<IJamaArtifact> get(String docKey);
 //	
 //	public Optional<IJamaProjectArtifact> getProject(Integer id);
 //	
@@ -28,5 +28,7 @@ public interface IJamaService extends IArtifactService {
 	public IJamaUserArtifact convertUser(JamaUser user);
 
 	public String getJamaServerUrl(JamaItem jamaItem);
+
+	Optional<IJamaArtifact> get(String docKey, String workflowId);
 
 }

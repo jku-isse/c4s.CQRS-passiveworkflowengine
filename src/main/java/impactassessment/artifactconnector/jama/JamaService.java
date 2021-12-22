@@ -43,20 +43,39 @@ public class JamaService implements IJamaService {
     }
 
     
+    protected boolean isParseableAsInt(String str) {
+    	try {
+			Integer.parseInt(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+    }
+    
     // redirects to a workflow scope
     @Override
     public Optional<IArtifact> get(ArtifactIdentifier id, String workflowId) {
     	if (workflowId != null) {
     		//TODO: some method to purge scope entries when workflow is removed
     		IJamaService scope = perProcessCaches.computeIfAbsent(workflowId, k -> new JamaDataScope(k, this));
-    		Optional<IJamaArtifact> opt = scope.get(Integer.parseInt(id.getId())); // no need to pass the workflow, as scope has that id;
+    		Optional<IJamaArtifact> opt;
+    		if (isParseableAsInt(id.getId()))
+    			opt = scope.get(Integer.parseInt(id.getId())); // no need to pass the workflow, as scope has that id;
+    		else
+    			opt = scope.get(id.getId());
     		return  opt.map(jArt -> (IArtifact)jArt);
     	}
     	else { // 
-    		Optional<IJamaArtifact> opt = get(Integer.parseInt(id.getId())); // local passthrough to backend cache without change tracking
+    		Optional<IJamaArtifact> opt;
+    		if (isParseableAsInt(id.getId()))
+    			opt = get(Integer.parseInt(id.getId())); // no need to pass the workflow, as scope has that id;
+    		else
+    			opt = get(id.getId());
     		return  opt.map(jArt -> (IArtifact)jArt);
     	}
     }
+    
+    
 
     @Override
     public void injectArtifactService(IArtifact artifact, String workflowId) {
@@ -88,6 +107,22 @@ public class JamaService implements IJamaService {
         }
 	}
     
+    @Override
+	public Optional<IJamaArtifact> get(String docKey) {
+    	JamaItem jamaItem;
+        try {
+            jamaItem = jamaInstance.fetchItemViaKey(docKey);
+        } catch (Exception e) { // FIXME
+            log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
+            return Optional.empty();
+        }
+        if (jamaItem != null) {
+            return Optional.of(new JamaArtifact(jamaItem, this));
+        } else {
+            return Optional.empty();
+        }
+	}
+    
 	@Override
 	public Optional<IJamaArtifact> get(Integer id, String workflowId) {
         JamaItem jamaItem;
@@ -100,6 +135,26 @@ public class JamaService implements IJamaService {
         }
         if (jamaItem != null) {
             jamaChangeSubscriber.addUsage(perProcessCaches.get(workflowId), new ArtifactIdentifier(id+"", IJamaArtifact.class.getSimpleName()));
+            IJamaService scope = perProcessCaches.get(workflowId);
+            if (scope == null) scope = this;
+            return Optional.of(new JamaArtifact(jamaItem, scope));
+        } else {
+            return Optional.empty();
+        }
+	}
+	
+	@Override
+	public Optional<IJamaArtifact> get(String docKey, String workflowId) {
+        JamaItem jamaItem;
+        try {
+            jamaItem = jamaInstance.fetchItemViaKey(docKey);
+        } catch (Exception e) {
+            log.error("Jama Item could not be retrieved: "+e.getClass().getSimpleName());
+            e.printStackTrace();
+            return Optional.empty();
+        }
+        if (jamaItem != null) {
+            jamaChangeSubscriber.addUsage(perProcessCaches.get(workflowId), new ArtifactIdentifier(jamaItem.getId()+"", IJamaArtifact.class.getSimpleName()));
             IJamaService scope = perProcessCaches.get(workflowId);
             if (scope == null) scope = this;
             return Optional.of(new JamaArtifact(jamaItem, scope));

@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.swing.plaf.basic.BasicToolBarUI.DockingListener;
+
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import com.jamasoftware.services.restclient.exception.RestClientException;
@@ -24,6 +26,7 @@ public class JamaDataScope implements IJamaService {
 	private String scopeId;
 	private IJamaService origin;
 	private ConcurrentMap<String, WeakReference<Object>> cache = new ConcurrentHashMap<>();
+	private ConcurrentMap<String, Integer> keyToIdMap = new ConcurrentHashMap<String, Integer>();
 	
 	public JamaDataScope(String scopeId, IJamaService origin) {
 		this.scopeId = scopeId;
@@ -98,6 +101,7 @@ public class JamaDataScope implements IJamaService {
 			Optional<IJamaArtifact> opt = origin.get(id, workflow);
 			if (opt.isPresent()) {
 				cache.put("JamaItem"+id, new WeakReference<Object>(opt.get()));
+				this.keyToIdMap.putIfAbsent(opt.get().getDocumentKey(), id);
 				return opt;
 			} else {
 				return Optional.empty();
@@ -105,6 +109,28 @@ public class JamaDataScope implements IJamaService {
 		} else {
 			return Optional.ofNullable((IJamaArtifact)ref.get());
 		}
+	}
+	
+	@Override
+	public Optional<IJamaArtifact> get(String docKey, String workflow) {
+		// first check map
+		if (keyToIdMap.containsKey(docKey)) {
+			return get(keyToIdMap.get(docKey), workflow);
+		} else {
+			Optional<IJamaArtifact> opt = origin.get(docKey, workflow);
+			if (opt.isPresent()) {
+				cache.put("JamaItem"+opt.get().getId(), new WeakReference<Object>(opt.get()));
+				this.keyToIdMap.putIfAbsent(opt.get().getDocumentKey(), opt.get().getId());
+				return opt;
+			} else {
+				return Optional.empty();
+			}
+		}
+	}
+	
+	@Override
+	public Optional<IJamaArtifact> get(String docKey) {
+		return get(docKey, scopeId);
 	}
 
 	@Override

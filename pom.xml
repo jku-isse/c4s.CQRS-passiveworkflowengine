@@ -29,7 +29,7 @@
         <drool.version>7.32.0.Final</drool.version>
 
         <jiralightconnector.version>0.6.5-SNAPSHOT</jiralightconnector.version>
-        <jamaconnector.version>0.7.5-SNAPSHOT</jamaconnector.version>
+        <jamaconnector.version>0.7.6-SNAPSHOT</jamaconnector.version>
         <passiveprocessengine.v2.version>5.3.0-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
         <artifact.api.version>4.1.1-SNAPSHOT</artifact.api.version>

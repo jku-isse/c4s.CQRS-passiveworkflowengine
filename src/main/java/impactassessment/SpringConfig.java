@@ -576,6 +576,18 @@ public class SpringConfig {
 			public String getJamaServerUrl(JamaItem jamaItem) {
 				// noop
 				return null;
+			}
+
+			@Override
+			public Optional<IJamaArtifact> get(String docKey) {
+				// noop
+				return null;
+			}
+
+			@Override
+			public Optional<IJamaArtifact> get(String docKey, String workflowId) {
+				// noop
+				return null;
 			}};
     }
     
