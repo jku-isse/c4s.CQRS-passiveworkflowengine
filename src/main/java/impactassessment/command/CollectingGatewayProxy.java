@@ -44,8 +44,8 @@ public class CollectingGatewayProxy implements IGatewayProxy {
 				cc.setParentCauseRef(rootCause.getId());
 			return cc;
 		} ).collect(Collectors.toList());
-		dispatchList.forEach(cmd -> gw.send(cmd));
 		cmdList.clear();
+		dispatchList.forEach(cmd -> gw.send(cmd));
 		return dispatchList;
 	}
 }

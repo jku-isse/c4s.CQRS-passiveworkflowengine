@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class JiraMockArtifact implements IJiraArtifact {
 
@@ -166,17 +167,17 @@ public class JiraMockArtifact implements IJiraArtifact {
     }
 
     @Override
-    public Iterable<IJiraIssueLink> getIssueLinks() {
+    public List<IJiraIssueLink> getIssueLinks() {
         return Collections.emptyList();
     }
 
     @Override
-    public Iterable<IJiraSubtask> getSubtasks() {
+    public List<IJiraSubtask> getSubtasks() {
         return Collections.emptyList();
     }
 
     @Override
-    public Iterable<IJiraIssueField> getFields() {
+    public List<IJiraIssueField> getFields() {
         return Collections.emptyList();
     }
 
@@ -231,7 +232,7 @@ public class JiraMockArtifact implements IJiraArtifact {
     }
 
     @Override
-    public Iterable<IJiraVersion> getFixVersions() {
+    public List<IJiraVersion> getFixVersions() {
         return Collections.emptyList();
     }
 

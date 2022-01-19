@@ -26,13 +26,13 @@
         <axon.version>4.4.4</axon.version> <!--  <axon.version>4.5.2</axon.version> does not work due to lib/dependency conflict with designspace grpc lib-->
         <vaadin.version>14.4.9</vaadin.version>
         <lombok.version>1.18.0</lombok.version>
-        <drool.version>7.32.0.Final</drool.version>
+        <drool.version>7.63.0.Final</drool.version>
 
         <jiralightconnector.version>0.6.5-SNAPSHOT</jiralightconnector.version>
         <jamaconnector.version>0.7.6-SNAPSHOT</jamaconnector.version>
         <passiveprocessengine.v2.version>5.3.0-SNAPSHOT</passiveprocessengine.v2.version>
         <analytics.version>0.0.1-SNAPSHOT</analytics.version>
-        <artifact.api.version>4.1.1-SNAPSHOT</artifact.api.version>
+        <artifact.api.version>4.1.5-SNAPSHOT</artifact.api.version>
         <designspace.client.version>4.0</designspace.client.version>
         <designspace.main.version>4.0</designspace.main.version>
     </properties>
@@ -45,7 +45,12 @@
             </properties>
         </profile>
     </profiles>
-
+	<distributionManagement>
+    	<repository>
+        	<id>JKU.ISSE</id>
+        	<url>http://3.66.206.6:9999/snapshots</url>
+    	</repository>
+    </distributionManagement>
     <repositories>
         <!-- The order of definitions matters. Explicitly defining central here to make sure it has the highest priority. -->
         <!-- Main Maven repository -->
@@ -68,6 +73,14 @@
         <repository>
             <id>atlassian-public</id>
             <url>https://packages.atlassian.com/maven/repository/public</url>
+        </repository>
+        <!-- own ones -->
+        <repository>
+            <id>JKU.ISSE</id>
+            <url>http://3.66.206.6:9999/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -392,7 +405,7 @@
                 <artifactId>maven-install-plugin</artifactId>
                 <version>3.0.0-M1</version>
                 <executions>
-                    <execution>
+                   <!--  <execution>
                         <id>install-analytics</id>
                         <phase>initialize</phase>
                         <goals>
@@ -405,8 +418,8 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.analytics-${analytics.version}.jar</file>
                         </configuration>
-                    </execution>
-                    <execution>
+                    </execution> -->
+                   <!--  <execution>
                         <id>install-artifact-api</id>
                         <phase>initialize</phase>
                         <goals>
@@ -419,8 +432,8 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.artifact.api-${artifact.api.version}.jar</file>
                         </configuration>
-                    </execution>
-                    <execution>
+                    </execution> -->
+                  <!--   <execution>
                         <id>install-jiralightconnector</id>
                         <phase>initialize</phase>
                         <goals>
@@ -433,8 +446,8 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.jiralightconnector-${jiralightconnector.version}.jar</file>
                         </configuration>
-                    </execution>
-                    <execution>
+                    </execution> -->
+<!--                     <execution>
                         <id>install-passiveprocessengine</id>
                         <phase>initialize</phase>
                         <goals>
@@ -447,8 +460,8 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.passiveprocessengine.v2-${passiveprocessengine.v2.version}.jar</file>
                         </configuration>
-                    </execution>
-                    <execution>
+                    </execution> -->
+                   <!--  <execution>
                         <id>install-jamaconnector</id>
                         <phase>initialize</phase>
                         <goals>
@@ -461,7 +474,7 @@
                             <packaging>jar</packaging>
                             <file>${basedir}/libs/c4s.jamaconnector-${jamaconnector.version}.jar</file>
                         </configuration>
-                    </execution>
+                    </execution> -->
                     <execution>
 						<id>install-designspaceconnector</id>
 						<phase>initialize</phase>

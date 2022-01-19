@@ -176,17 +176,17 @@ public class JiraArtifact implements IJiraArtifact {
     }
 
     @Override
-    public Iterable<IJiraIssueLink> getIssueLinks() {
+    public List<IJiraIssueLink> getIssueLinks() {
         return issueLinks;
     }
 
     @Override
-    public Iterable<IJiraSubtask> getSubtasks() {
+    public List<IJiraSubtask> getSubtasks() {
         return subTasks;
     }
 
     @Override
-    public Iterable<IJiraIssueField> getFields() {
+    public List<IJiraIssueField> getFields() {
         return issueFields;
     }
 
@@ -226,7 +226,7 @@ public class JiraArtifact implements IJiraArtifact {
     }
 
     @Override
-    public Iterable<IJiraVersion> getFixVersions() {
+    public List<IJiraVersion> getFixVersions() {
         return versions;
     }
 

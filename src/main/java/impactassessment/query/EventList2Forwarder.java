@@ -19,6 +19,7 @@ import impactassessment.api.Events.TimedEvt;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.DecisionNodeDefinition;
 import passiveprocessengine.instance.WorkflowChangeEvent;
+import passiveprocessengine.instance.WorkflowInstance;
 import passiveprocessengine.instance.events.StateTransitionEvent;
 import passiveprocessengine.instance.events.TaskTransitionEventAugmentation;
 import passiveprocessengine.instance.events.TaskTransitionEventAugmentation.AugmentedTaskTransitionEventType;
@@ -57,15 +58,17 @@ public class EventList2Forwarder {
 			StateTransitionEvent event = (StateTransitionEvent)wce;
 			if (event.getFromState().equals(AVAILABLE) && !event.getToState().equals(ENABLED) && !event.getToState().equals(CANCELED) && !event.getToState().equals(NO_WORK_EXPECTED) ) { // a premature step
 				// we should also check if this was not due to a race condition
-				event.getTask().getWorkflow().getDecisionNodeInstancesReadonly().stream() 
-				.filter(dni -> dni.getDefinition().equals(event.getTask().getType().getInDND()) )							
-				.findAny().ifPresent(dni -> { // there must be exactly one
-					if (!dni.getState().equals(DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS)) {
-						step2prematureFlag.put(event.getTask().getId(), true);
-						wce.getAugmentations().put(TaskTransitionEventAugmentation.class.getSimpleName(), new TaskTransitionEventAugmentation(AugmentedTaskTransitionEventType.PREMATURE_START));
-						//return AugmentedTaskEvent.fromStateTransitionEvent(event, AugmentedTaskEventType.PREMATURE_START);
-					} 
-				});						
+				if (!(event.getTask() instanceof WorkflowInstance)) {
+					event.getTask().getWorkflow().getDecisionNodeInstancesReadonly().stream() 
+					.filter(dni -> dni.getDefinition().equals(event.getTask().getType().getInDND()) )							
+					.findAny().ifPresent(dni -> { // there must be exactly one
+						if (!dni.getState().equals(DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS)) {
+							step2prematureFlag.put(event.getTask().getId(), true);
+							wce.getAugmentations().put(TaskTransitionEventAugmentation.class.getSimpleName(), new TaskTransitionEventAugmentation(AugmentedTaskTransitionEventType.PREMATURE_START));
+							//return AugmentedTaskEvent.fromStateTransitionEvent(event, AugmentedTaskEventType.PREMATURE_START);
+						} 
+					});	
+				}
 			}
 			if (event.getToState().equals(ACTIVE) && 
 					!(event.getFromState().equals(AVAILABLE) || event.getFromState().equals(ENABLED))) { // a reactivated/repeated step
@@ -81,7 +84,8 @@ public class EventList2Forwarder {
 			StateTransitionEvent event = (StateTransitionEvent)wce;
 			if (event.getFromState().equals(AVAILABLE) && event.getToState().equals(ENABLED) && step2prematureFlag.getOrDefault(event.getTask().getId(), false) == true) {
 				// AND WE NEED TO CHECK if preceeding tasks are fulfilled, as the precondition of this step is ignorant of the other QA conditions and just might trigger this transition anyway
-				event.getTask().getWorkflow().getDecisionNodeInstancesReadonly().stream() 
+				if (!(event.getTask() instanceof WorkflowInstance)) {
+					event.getTask().getWorkflow().getDecisionNodeInstancesReadonly().stream() 
 					.filter(dni -> dni.getDefinition().equals(event.getTask().getType().getInDND()) )							
 					.findAny().ifPresent(dni -> { // there must be exactly one
 						if (dni.getState().equals(DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS)) {
@@ -90,6 +94,7 @@ public class EventList2Forwarder {
 							//return AugmentedTaskEvent.fromStateTransitionEvent(event, AugmentedTaskEventType.FIXED_PREMATURE_START); // only if the previous DNI has triggered progress, and hence all prev Tasks QA constraints are fulfilled, can we assume prematurity fixed
 						} 
 					});
+				}
 			}
 		} 
 		return wce;

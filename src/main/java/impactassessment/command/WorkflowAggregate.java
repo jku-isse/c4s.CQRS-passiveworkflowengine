@@ -274,7 +274,7 @@ public class WorkflowAggregate implements Serializable {
         	TimedEvt evt = new AddedOutputEvt(cmd.getId(), cmd.getWftId(), ai, cmd.getRole());
             evt.setParentCauseRef(cmd.getParentCauseRef());
             eventList.add(evt);
-            if (parentWfiId != null && parentWftId != null) {
+            if (parentWfiId != null && parentWftId != null && parentWfiId.length() > 0 && parentWftId.length() > 0) {
             	TimedEvt evt2 = new AddedOutputEvt(parentWfiId, parentWftId, ai, cmd.getRole());
                  evt2.setParentCauseRef(cmd.getParentCauseRef());
                  eventList.add(evt2);
