@@ -69,6 +69,8 @@ public class LTLFormulaProvider {
 		sb.append("formula " + formulaName + "() := {\n");
 		sb.append("}\n");
 		sb.append(LTLFormulaConstants.EVENTUALLY + "( output == \"OUTPUT_MISSING\");");
+		// sb.append("(output == \"OUTPUT_MISSING\" " + LTLFormulaConstants.UNTIL + "
+		// output == \"OUTPUT_SUFFICIENT\");");
 
 		return sb.toString();
 	}
@@ -107,14 +109,20 @@ public class LTLFormulaProvider {
 		StringBuilder sb = new StringBuilder();
 		sb.append("set ate.WorkflowModelElement;\n");
 		sb.append("string ate.ACTUAL_STATE;\n");
+		sb.append("string ate.PREVIOUS_STATE;\n");
 		sb.append("# renamings\n");
 		sb.append("rename ate.WorkflowModelElement as task;\n");
 		sb.append("rename ate.ACTUAL_STATE as state;\n");
+		sb.append("rename ate.PREVIOUS_STATE as pstate;\n");
 		sb.append("# formulas\n");
 		sb.append("formula " + formulaName + "() := {\n");
 		sb.append("}\n");
-		sb.append(LTLFormulaConstants.EVENTUALLY + " ( ( task == \"Specifying\" /\\ ( state == \"ACTIVE\" /\\ "
-				+ LTLFormulaConstants.EVENTUALLY + " ( ( task == \"Modeling\" /\\ state == \"ACTIVE\" ) ) ) ) );");
+		sb.append(LTLFormulaConstants.EVENTUALLY
+				+ " ( ( task == \"Specifying\" /\\ ( pstate == \"COMPLETED\" /\\ ( state == \"ENABLED\" /\\ "
+				+ LTLFormulaConstants.EVENTUALLY
+				+ " ( ( task == \"Modeling\" /\\ (pstate == \"COMPLETED\" /\\ state == \"ENABLED\" ) ) ) ) ) ) );");
+//				+ LTLFormulaConstants.EVENTUALLY
+//				+ " ( ( task == \"Modeling\" /\\ pstate == \"COMPLETED\" ) ) ) ) ) );");
 
 		return sb.toString();
 	}

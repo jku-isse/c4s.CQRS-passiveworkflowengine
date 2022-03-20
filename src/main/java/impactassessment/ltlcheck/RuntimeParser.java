@@ -49,30 +49,35 @@ public class RuntimeParser {
 			// retrieve the formula object associated with the parameter formulaDefinition
 			LTLFormulaObject formulaObj = LTLFormulaProvider.getFormulaDefinition(formulaDefinition.toString());
 
-			// build the XML process log for the workflow encapsulated by parameter
-			// transitionEvent
-			LTLProcessInstanceObject piObj = WorkflowDataExtractor.extractWorkflowInformation(transitionEvent);
-			String processLogPath = WorkflowXmlConverter.getInstance().processWorkflow(workflowID, piObj,
-					formulaObj.getValidationMode(), formulaObj.getFormulaName());
+			// parse the defined formula
+			String formulaStructure = formulaObj.getFormulaDefinition();
+			LTLParser parser = invokeParser(formulaStructure);
 
-			// continue if the process log creation/expansion succeeded
-			if (processLogPath != null) {
-				LogReader logReader = new LogReader(new DefaultLogFilter(LogFilter.FAST),
-						LogFile.getInstance(processLogPath));
-				log.debug("" + logReader.getLogSummary().getNumberOfProcessInstances());
-				log.debug("" + logReader.getLogSummary().getNumberOfAuditTrailEntries());
-
-				// parse the defined formula
-				String formulaStructure = formulaObj.getFormulaDefinition();
-				LTLParser p = invokeParser(formulaStructure);
-				for (Object o : p.getAttributes()) {
+			if (parser != null) {
+				for (Object o : parser.getAttributes()) {
 					System.out.println(o.toString());
 				}
 
 				String formulaName = formulaDefinition.toString();
-				RuntimeValidator r = new RuntimeValidator(logReader, p, null, formulaName);
 
-				return r.validate();
+				// build the XML process log for the workflow encapsulated by parameter
+				// transitionEvent
+				LTLProcessInstanceObject piObj = WorkflowDataExtractor.extractWorkflowInformation(workflowID,
+						formulaName, transitionEvent);
+				String processLogPath = WorkflowXmlConverter.getInstance().processWorkflow(workflowID, piObj,
+						formulaObj.getValidationMode(), formulaObj.getFormulaName());
+
+				// continue if the process log creation/expansion succeeded
+				if (processLogPath != null) {
+					LogReader logReader = new LogReader(new DefaultLogFilter(LogFilter.FAST),
+							LogFile.getInstance(processLogPath));
+					log.debug("" + logReader.getLogSummary().getNumberOfProcessInstances());
+					log.debug("" + logReader.getLogSummary().getNumberOfAuditTrailEntries());
+
+					RuntimeValidator r = new RuntimeValidator(logReader, parser, null, formulaName);
+
+					return r.validate();
+				}
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();

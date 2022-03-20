@@ -2,6 +2,8 @@ package workflowtests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,6 +29,7 @@ public class XorTests {
 	private ResourceLink rl2;
 
 	@Before
+	@SuppressWarnings("deprecation")
 	public void setup() {
 		rl = new ResourceLink("context", "href", "rel", "as", "linkType", "title");
 		rl2 = new ResourceLink("context2", "href2", "rel2", "as2", "linkType2", "title2");
@@ -107,7 +110,7 @@ public class XorTests {
 		assertEquals(State.CANCELED, manTesting.getExpectedLifecycleState()); // only when we reset() which is not
 																				// publicly exposed yet, should it be
 																				// expected no work expected, which
-																				// again is not implemented yed
+																				// again is not implemented yet
 		assertEquals(State.ACTIVE, manTesting.getActualLifecycleState());
 	}
 
@@ -115,10 +118,11 @@ public class XorTests {
 	public void testViolation() {
 		// create a new workflow definition
 		ComplexXorWorkflow workflow = new ComplexXorWorkflow();
+		String wfID = "Violation";
 		workflow.setTaskStateTransitionEventPublisher(event -> {
 			System.out.println(event);
-			// LTLValidationManager.getInstance().validate(ID, event,
-			// AvailableFormulas.DETECT_WF_INCONSISTENCY, true);
+			LTLValidationManager.getInstance().validate(wfID, event,
+					List.of(AvailableFormulas.OUTPUT_MISSING, AvailableFormulas.DETECT_WF_INCONSISTENCY), true);
 		});
 
 		// create an instance out of the workflow definition
@@ -139,12 +143,14 @@ public class XorTests {
 		// choose modeling and add necessary outputs
 		modeling.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_MODEL"));
 
-		// activate modeling
+		// complete modeling
 		modeling.postConditionsFulfilled();
 
 		// reactivate parent task to create inconsistency
 		wfi.getWorkflowTask(TASKS.ImpactAssessment + "#" + ID).activate();
 		wfi.getWorkflowTask(TASKS.ImpactAssessment + "#" + ID).postConditionsFailed();
+		wfi.getWorkflowTask(TASKS.Specifying + "#" + ID).activate();
+		wfi.getWorkflowTask(TASKS.Specifying + "#" + ID).postConditionsFailed();
 
 		// repair next task (set back to active)
 		modeling.activate();
@@ -153,6 +159,26 @@ public class XorTests {
 		// complete repair by setting task back to completed
 		modeling.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_MODEL"));
 		modeling.postConditionsFulfilled();
+
+		// finish workflow
+//		designing.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_SPEC"));
+//		designing.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_SSDDREVIEW"));
+//		designing.postConditionsFulfilled();
+
+		IWorkflowTask proofing = wfi.getWorkflowTask(TASKS.Proofing + "#" + ID);
+		proofing.addOutput(new ArtifactOutput(rl, "OUTPUT_ROLE_PROOF"));
+		proofing.postConditionsFulfilled();
+
+//		IWorkflowTask coding = wfi.getWorkflowTask(TASKS.Coding + "#" + ID);
+//		coding.postConditionsFulfilled();
+//		IWorkflowTask manTesting = wfi.getWorkflowTask(TASKS.ManualTesting + "#" + ID);
+//		IWorkflowTask autoTesting = wfi.getWorkflowTask(TASKS.AutomatedTesting + "#" + ID);
+//		IWorkflowTask noTesting = wfi.getWorkflowTask(TASKS.NoTesting + "#" + ID);
+//		autoTesting.activate();
+//		manTesting.setCanceled(true);
+//		noTesting.activate();
+//		autoTesting.postConditionsFulfilled();
+//		manTesting.activate();
 	}
 
 	@Test
@@ -215,8 +241,8 @@ public class XorTests {
 		String wfID = "StartOneXorBranchFinishOther";
 		workflow.setTaskStateTransitionEventPublisher(event -> {
 			System.out.println(event);
-			LTLValidationManager.getInstance().validate(wfID, event, AvailableFormulas.DETECT_WF_INCONSISTENCY, true);
-			LTLValidationManager.getInstance().validate(wfID, event, AvailableFormulas.OUTPUT_MISSING, true);
+//			LTLValidationManager.getInstance().validate(wfID, event,
+//					List.of(AvailableFormulas.DETECT_WF_INCONSISTENCY, AvailableFormulas.OUTPUT_MISSING), true);
 			// LTLValidationManager.getInstance().clearResults(wfID);
 		}); // publisher must be set to prevent NullPointer
 		// create an instance out of the workflow definition
@@ -296,6 +322,6 @@ public class XorTests {
 		// as there is no other unfullfilled condition to complete (neither postCond,
 		// nor QA), we immediately transition from ACTIVE back into COMPLETED
 		// assertEquals(State.COMPLETED, docT.getActualLifecycleState());
-
+//		System.out.println();
 	}
 }

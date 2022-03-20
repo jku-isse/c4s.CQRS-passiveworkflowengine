@@ -59,6 +59,7 @@ public class LTLValidationManager {
 
 	private LTLValidationManager() {
 		checkResults = new ConcurrentHashMap<>();
+		periodicTaskMap = new ConcurrentHashMap<>();
 		validationScheduler = Executors.newScheduledThreadPool(MAX_TASK_COUNT);
 	}
 
@@ -99,8 +100,8 @@ public class LTLValidationManager {
 	}
 
 	/**
-	 * Update the task stack with the most recent state of the workflow to be
-	 * checked periodically.
+	 * Update the desired task stack with the most recent state of the workflow to
+	 * be checked periodically.
 	 *
 	 * @param workflowID      The workflow identifier mapped to a certain formula.
 	 * @param formulaName     The formulaName (enum-value, see
@@ -109,7 +110,7 @@ public class LTLValidationManager {
 	 * @param transitionEvent Transition event (containing the workflow instance) to
 	 *                        be pushed to the stack mapped to the formulaName.
 	 */
-	public void updateTaskStack(String workflowID, AvailableFormulas formulaName,
+	private void updateTaskStack(String workflowID, AvailableFormulas formulaName,
 			TaskStateTransitionEvent transitionEvent) {
 		if (!periodicTaskMap.containsKey(workflowID)) {
 			HashMap<String, Stack<TaskStateTransitionEvent>> tempMap = new HashMap<>();
@@ -124,6 +125,26 @@ public class LTLValidationManager {
 				periodicTaskMap.get(workflowID).put(formulaName.toString(), tempStack);
 			} else {
 				periodicTaskMap.get(workflowID).get(formulaName.toString()).push(transitionEvent);
+			}
+		}
+	}
+
+	/**
+	 * Update the respective task stacks with the most recent state of the workflow
+	 * to be checked periodically.
+	 *
+	 * @param workflowID      The workflow identifier mapped to a certain formula.
+	 * @param formulas        The formula names (enum-values, see
+	 *                        {@link LTLFormulaProvider}) mapped to the correct
+	 *                        transition event stack.
+	 * @param transitionEvent Transition event (containing the workflow instance) to
+	 *                        be pushed to the stack mapped to the formulaName.
+	 */
+	public void updateTaskStack(String workflowID, List<AvailableFormulas> formulas,
+			TaskStateTransitionEvent transitionEvent) {
+		if (formulas != null) {
+			for (AvailableFormulas af : formulas) {
+				updateTaskStack(workflowID, af, transitionEvent);
 			}
 		}
 	}
@@ -186,6 +207,7 @@ public class LTLValidationManager {
 		ValidationMode evalMode = LTLFormulaProvider.getFormulaDefinition(formulaDefinitionKey.toString())
 				.getValidationMode();
 
+		log.debug("WORKFLOW NAME: {}", workflowID);
 		if (evalMode.equals(ValidationMode.STATIC)) {
 			Stack<ArrayList<ValidationResult>> tempStack = checkResults.get(workflowID)
 					.get(formulaDefinitionKey.toString());
@@ -335,10 +357,45 @@ public class LTLValidationManager {
 	 *                        information (e.g. what audit trail entries (tasks)
 	 *                        passed and which did not).
 	 */
-	public void validate(String workflowID, TaskStateTransitionEvent transitionEvent, AvailableFormulas af,
+	private void validate(String workflowID, TaskStateTransitionEvent transitionEvent, AvailableFormulas af,
 			boolean detailedOutput) {
+		long startTime = System.currentTimeMillis();
+
+		// conduct validation
 		checkTraceAndStoreResult(workflowID, transitionEvent, af);
 		evaluateResults(workflowID, af, detailedOutput);
+
+		long endTime = System.currentTimeMillis();
+		long duration = (endTime - startTime);
+
+		// report time taken
+		log.info("Validation of formula {} took {} milliseconds.", af.toString(), duration);
+	}
+
+	/**
+	 * Call the validation routine (parser, validator, etc.) and evaluate the
+	 * received results.
+	 *
+	 * @param workflowID      The unique ID of the workflow the validation procedure
+	 *                        is to be invoked for. This identifier can be reused
+	 *                        for validating additional formulas for the same
+	 *                        workflow.
+	 * @param transitionEvent The object holding the information necessary for the
+	 *                        process log (e.g. XML) conversion process.
+	 * @param formulas        List of all formulas to be validated against the
+	 *                        converted process log.
+	 * @param detailedOutput  Decides if the evaluation output for the most recent
+	 *                        validation result should also include detailed
+	 *                        information (e.g. what audit trail entries (tasks)
+	 *                        passed and which did not).
+	 */
+	public void validate(String workflowID, TaskStateTransitionEvent transitionEvent, List<AvailableFormulas> formulas,
+			boolean detailedOutput) {
+		if (formulas != null) {
+			for (AvailableFormulas af : formulas) {
+				validate(workflowID, transitionEvent, af, detailedOutput);
+			}
+		}
 	}
 
 	/**
@@ -358,18 +415,22 @@ public class LTLValidationManager {
 
 		@Override
 		public void run() {
-			// retrieve most recent transition event
-			TaskStateTransitionEvent transitionEvent = periodicTaskMap.get(workflowID).get(af.toString()).peek();
+			try {
+				// retrieve most recent transition event
+				TaskStateTransitionEvent transitionEvent = periodicTaskMap.get(workflowID).get(af.toString()).peek();
 
-			// if the stack is empty at this point in time (e.g. if the top element is
-			// null), there is nothing to evaluate yet
-			if (transitionEvent != null) {
-				// reset the stack
-				periodicTaskMap.get(workflowID).get(af.toString()).clear();
+				// if the stack is empty at this point in time (e.g. if the top element is
+				// null), there is nothing to evaluate yet
+				if (transitionEvent != null) {
+					// reset the stack
+					periodicTaskMap.get(workflowID).get(af.toString()).clear();
 
-				// call the validation routine
-				checkTraceAndStoreResult(workflowID, transitionEvent, af);
-				evaluateResults(workflowID, af, detailedOutput);
+					// call the validation routine
+					checkTraceAndStoreResult(workflowID, transitionEvent, af);
+					evaluateResults(workflowID, af, detailedOutput);
+				}
+			} catch (Exception ex) {
+				log.error("Could not execute periodic validation task.");
 			}
 		}
 	}
