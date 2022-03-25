@@ -20,8 +20,8 @@ public class FrontendPusher implements IFrontendPusher {
 
     private Map<Integer, MainViewState> views;
 
-    private Instant lastUpdate = Instant.now();
-    private final boolean PERFORMANCE_MODE = false;
+//    private Instant lastUpdate = Instant.now();
+//    private final boolean PERFORMANCE_MODE = false;
 
     @Override
     public void add(int id, UI ui, MainView view) {
@@ -40,15 +40,15 @@ public class FrontendPusher implements IFrontendPusher {
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-            if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
-                log.debug("update frontend");
-                lastUpdate = Instant.now();
-                if (ui != null && view != null) {
-                    ui.access(() -> view.getGrids().stream()
-                            .filter(com.vaadin.flow.component.Component::isVisible)
-                            .forEach(grid -> grid.updateTreeGrid(wfi)));
-                }
-            }
+//            if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
+//                log.debug("update frontend");
+//                lastUpdate = Instant.now();
+//                if (ui != null && view != null) {
+//                    ui.access(() -> view.getGrids().stream()
+//                            .filter(com.vaadin.flow.component.Component::isVisible)
+//                            .forEach(grid -> grid.updateTreeGrid(wfi)));
+//                }
+//            }
         }
     }
 
@@ -57,15 +57,15 @@ public class FrontendPusher implements IFrontendPusher {
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-            if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
-                log.debug("update frontend");
-                lastUpdate = Instant.now();
-                if (ui != null && view != null) {
-                    ui.access(() -> view.getGrids().stream()
-                            .filter(com.vaadin.flow.component.Component::isVisible)
-                            .forEach(grid -> grid.removeWorkflow(wfiId)));
-                }
-            }
+//            if (!PERFORMANCE_MODE || Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
+//                log.debug("update frontend");
+//                lastUpdate = Instant.now();
+//                if (ui != null && view != null) {
+//                    ui.access(() -> view.getGrids().stream()
+//                            .filter(com.vaadin.flow.component.Component::isVisible)
+//                            .forEach(grid -> grid.removeWorkflow(wfiId)));
+//                }
+//            }
         }
     }
 

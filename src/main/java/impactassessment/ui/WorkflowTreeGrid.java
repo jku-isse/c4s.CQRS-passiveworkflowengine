@@ -3,8 +3,6 @@ package impactassessment.ui;
 import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
-import artifactapi.jama.IJamaArtifact;
-import artifactapi.jira.IJiraArtifact;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -20,7 +18,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import impactassessment.api.Commands;
 import impactassessment.api.Commands.*;
 import lombok.extern.slf4j.Slf4j;
 import passiveprocessengine.definition.AbstractIdentifiableObject;
@@ -98,7 +95,7 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
             } else {
                 return new Paragraph(o.getClass().getSimpleName() + ": " + o.getId());
             }
-        }).setHeader("Workflow Instance").setWidth("35%");
+        }).setHeader("Process Instance").setWidth("35%");
 
         // Column "Info"
 
@@ -451,16 +448,17 @@ public class WorkflowTreeGrid extends TreeGrid<AbstractIdentifiableObject> {
 
     private Component tryToConvertToResourceLink(IArtifact artifact) {
         // for now only jira and jama artifacts have a web resource
-        if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
-            ResourceLink rl = artifact.convertToResourceLink();
-            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
-            a.setTarget("_blank");
-            return a;
-        } else {
-            Paragraph p = new Paragraph(artifact.getArtifactIdentifier().getId());
-            p.setClassName("bold");
-            return p;
-        }
+       // if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
+    	ResourceLink rl = artifact.convertToResourceLink();
+    	if (rl != null) {
+    		Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+    		a.setTarget("_blank");
+    		return a;
+    	} else {
+    		Paragraph p = new Paragraph(artifact.getArtifactIdentifier().getId());
+    		p.setClassName("bold");
+    		return p;
+    	}
     }
 
     private <T extends ArtifactIO> Optional<Component> otherInOut(Map<String, ArtifactType> expected, List<T> present) {

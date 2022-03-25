@@ -3,20 +3,15 @@ package impactassessment.api;
 import artifactapi.ArtifactIdentifier;
 import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
-import impactassessment.api.Events.IdentifiableEvt;
 import lombok.Data;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
-import passiveprocessengine.definition.TaskLifecycle;
 import passiveprocessengine.instance.ArtifactInput;
 import passiveprocessengine.instance.ArtifactOutput;
 import passiveprocessengine.instance.CorrelationTuple;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 
 public class Commands {
 

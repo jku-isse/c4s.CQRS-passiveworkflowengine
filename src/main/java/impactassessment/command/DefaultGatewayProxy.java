@@ -26,4 +26,9 @@ public class DefaultGatewayProxy implements IGatewayProxy {
 	public void setRootCause(WorkflowChangeEvent rootCause) {
 		this.rootCause = rootCause;
 	}
+
+	@Override
+	public Object send(Object x) {
+		return gw.send(x);
+	}
 }

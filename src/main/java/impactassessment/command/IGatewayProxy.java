@@ -9,4 +9,6 @@ public interface IGatewayProxy {
 
 	void setRootCause(WorkflowChangeEvent rootCause);
 
+	Object send(Object x);
+
 }

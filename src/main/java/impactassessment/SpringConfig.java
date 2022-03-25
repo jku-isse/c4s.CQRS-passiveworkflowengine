@@ -20,6 +20,7 @@ import at.jku.isse.designspace.sdk.core.DesignSpace;
 import at.jku.isse.designspace.sdk.core.model.Instance;
 import at.jku.isse.designspace.sdk.core.model.User;
 import at.jku.isse.designspace.sdk.core.model.Workspace;
+import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import c4s.analytics.monitoring.tracemessages.CorrelationTuple;
 
 import c4s.jamaconnector.OfflineHttpClientMock;
@@ -67,8 +68,7 @@ import impactassessment.query.JsonFileHistoryLogEventLogger;
 import impactassessment.query.NoOpHistoryLogEventLogger;
 import impactassessment.query.Replayer;
 import impactassessment.registry.IRegisterService;
-import impactassessment.registry.LocalRegisterService;
-import impactassessment.registry.WorkflowDefinitionRegistry;
+import impactassessment.registry.ProcessRegisterService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -110,47 +110,11 @@ public class SpringConfig {
     //-------------------------------------------PROJECT COMPONENTS-----------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
-//    @Bean
-//    @Primary
-//    @ConditionalOnExpression("(${jira.live.enabled:true} or ${jira.demo.enabled:true}) and ${jama.enabled:true}")
-//    public IArtifactRegistry getIArtifactRegistry(IJiraService jiraService, IJamaService jamaService) {
-//        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
-//        artifactRegistry.register(jamaService);
-//        artifactRegistry.register(jiraService);
-//        return artifactRegistry;
-//    }
-//
-//    @Bean
-//    @ConditionalOnExpression("${jira.live.enabled:true} or ${jira.demo.enabled:true}")
-//    public IArtifactRegistry getIArtifactRegistryOnlyJira(IJiraService jiraService) {
-//        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
-//        artifactRegistry.register(jiraService);
-//        return artifactRegistry;
-//    }
-//
-//    @Bean
-//    @ConditionalOnExpression("${jama.enabled:true}")
-//    public IArtifactRegistry getIArtifactRegistryOnlyJama(IJamaService jamaService) {
-//        IArtifactRegistry artifactRegistry = new ArtifactRegistry();
-//        artifactRegistry.register(jamaService);
-//        return artifactRegistry;
-//    }
-//
-//    @Bean
-//    @ConditionalOnExpression("not(${jira.live.enabled:true} and ${jira.demo.enabled:true} and ${jama.enabled:true})")
-//    public IArtifactRegistry getEmptyIArtifactRegistry() {
-//        return new ArtifactRegistry();
-//    }
-
     @Bean
-    public IRegisterService getIRegisterService(WorkflowDefinitionRegistry registry, Replayer replayer) {
-        return new LocalRegisterService(registry, replayer);
+    public IRegisterService getIRegisterService(ProcessRegistry registry) {
+        return new ProcessRegisterService(registry);
     }
 
-//    @Bean(name="pollIntervalInMinutes")
-//    public String pollInterval() {
-//        return env.getProperty("pollIntervalInMinutes");
-//    }
 
     @Bean
     @Scope("singleton")

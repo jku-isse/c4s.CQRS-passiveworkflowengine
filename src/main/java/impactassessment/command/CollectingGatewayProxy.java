@@ -48,4 +48,9 @@ public class CollectingGatewayProxy implements IGatewayProxy {
 		dispatchList.forEach(cmd -> gw.send(cmd));
 		return dispatchList;
 	}
+	
+	@Override
+	public Object send(Object x) {
+		return gw.send(x);
+	}
 }

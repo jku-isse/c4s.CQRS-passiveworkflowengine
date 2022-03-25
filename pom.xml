@@ -133,6 +133,11 @@
             <version>2.14.0</version>
         </dependency>
 
+		<dependency>
+			<groupId>JKU.ISSE</groupId>
+			<artifactId>c4s.passiveprocessengine.v3</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
         <!-- custom developed components provided as JAR in the libs folder (see maven install plugin) -->
         <dependency>
             <groupId>JKU.ISSE</groupId>
