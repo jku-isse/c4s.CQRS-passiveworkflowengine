@@ -1,574 +1,364 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>JKU.ISSE</groupId>
-    <artifactId>CQRS-Passiveprocessengine</artifactId>
-    <version>4.4.0-SNAPSHOT</version>
+	<groupId>JKU.ISSE</groupId>
+	<artifactId>ppeV3frontend</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 
-    <name>CQRS-Passiveprocessengine</name>
-    <description>CQRS-Passiveprocessengine</description>
+	<name>PPE V3 Frontend</name>
+	<description>Frontend for Passive Process Engine V3</description>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.1.RELEASE</version>
-    </parent>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.5</version>
+	</parent>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <java.version>11</java.version>
-        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-        <axon.version>4.4.4</axon.version> <!--  <axon.version>4.5.2</axon.version> does not work due to lib/dependency conflict with designspace grpc lib-->
-        <vaadin.version>14.4.9</vaadin.version>
-        <lombok.version>1.18.0</lombok.version>
-        <drool.version>7.63.0.Final</drool.version>
+		<java.version>11</java.version>
+		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+		<vaadin.version>14.4.9</vaadin.version>
+		<lombok.version>1.18.0</lombok.version>
+		<passiveprocessengine.v3.version>0.0.2-SNAPSHOT</passiveprocessengine.v3.version>
+		<artifact.api.version>4.1.10-SNAPSHOT</artifact.api.version>
+	</properties>
 
-        <jiralightconnector.version>0.6.5-SNAPSHOT</jiralightconnector.version>
-        <jamaconnector.version>0.7.6-SNAPSHOT</jamaconnector.version>
-        <passiveprocessengine.v2.version>5.3.0-SNAPSHOT</passiveprocessengine.v2.version>
-        <analytics.version>0.0.1-SNAPSHOT</analytics.version>
-        <artifact.api.version>4.1.5-SNAPSHOT</artifact.api.version>
-        <designspace.client.version>4.0</designspace.client.version>
-        <designspace.main.version>4.0</designspace.main.version>
-    </properties>
-
-    <profiles>
-        <profile>
-            <id>production</id>
-            <properties>
-                <vaadin.productionMode>true</vaadin.productionMode>
-            </properties>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>production</id>
+			<properties>
+				<vaadin.productionMode>true</vaadin.productionMode>
+			</properties>
+		</profile>
+	</profiles>
 	<distributionManagement>
-    	<repository>
-        	<id>JKU.ISSE</id>
-        	<url>http://3.66.206.6:9999/snapshots</url>
-    	</repository>
-    </distributionManagement>
-    <repositories>
-        <!-- The order of definitions matters. Explicitly defining central here to make sure it has the highest priority. -->
-        <!-- Main Maven repository -->
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <!-- Repository used by many Vaadin add-ons -->
-        <repository>
-            <id>Vaadin Directory</id>
-            <url>https://maven.vaadin.com/vaadin-addons</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <!-- JIRA -->
-        <repository>
-            <id>atlassian-public</id>
-            <url>https://packages.atlassian.com/maven/repository/public</url>
-        </repository>
-        <!-- own ones -->
-        <repository>
-            <id>JKU.ISSE</id>
-            <url>http://3.66.206.6:9999/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+		<repository>
+			<id>JKU.ISSE</id>
+			<url>http://3.66.206.6:9999/snapshots</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<!-- The order of definitions matters. Explicitly defining central here 
+			to make sure it has the highest priority. -->
+		<!-- Main Maven repository -->
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- Repository used by many Vaadin add-ons -->
+		<repository>
+			<id>Vaadin Directory</id>
+			<url>https://maven.vaadin.com/vaadin-addons</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
 
-    <pluginRepositories>
-        <!-- Main Maven repository -->
-        <pluginRepository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+		<!-- own ones -->
+		<repository>
+			<id>JKU.ISSE</id>
+			<url>http://3.66.206.6:9999/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-bom</artifactId>
-                <version>${vaadin.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+	<pluginRepositories>
+		<!-- Main Maven repository -->
+		<pluginRepository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 
-    <dependencies>
-        <!-- Vanilla Spring Boot to start with -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-to-slf4j</artifactId>
-            <version>2.14.0</version>
-        </dependency>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-bom</artifactId>
+				<version>${vaadin.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
+	<dependencies>
+		<!-- Vanilla Spring Boot to start with -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<!-- exclude logging -->
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-to-slf4j</artifactId>
+
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<!-- needed for frontend file upload component (IOUtils) -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
 		<dependency>
 			<groupId>JKU.ISSE</groupId>
 			<artifactId>c4s.passiveprocessengine.v3</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
-        <!-- custom developed components provided as JAR in the libs folder (see maven install plugin) -->
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.analytics</artifactId>
-            <version>${analytics.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.artifact.api</artifactId>
-            <version>${artifact.api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.jiralightconnector</artifactId>
-            <version>${jiralightconnector.version}</version>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.jamaconnector</artifactId>
-            <version>${jamaconnector.version}</version>
-        </dependency>
-        <!-- passiveprocessengine contains JKU.ISSE:c4s.artifact.api:version -->
-        <dependency>
-            <groupId>JKU.ISSE</groupId>
-            <artifactId>c4s.passiveprocessengine.v2</artifactId>
-            <version>${passiveprocessengine.v2.version}</version>
-        </dependency>
+		<!-- custom developed components provided as JAR in the libs folder (see 
+			maven install plugin) -->
 		<dependency>
-			<groupId>at.jku.isse.sdk</groupId>
-    		<artifactId>artifact-client</artifactId>
-    		<version>${designspace.client.version}</version>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-            </exclusions>
+			<groupId>JKU.ISSE</groupId>
+			<artifactId>c4s.artifact.api</artifactId>
+			<version>${artifact.api.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>at.jku.isse.designspace.sdk</groupId>
-            <artifactId>main</artifactId>
-            <version>${designspace.main.version}</version>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+		<dependency>
+			<groupId>JKU.ISSE</groupId>
+			<artifactId>git-connector</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- Vaadin -->
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<!-- Replace artifactId with vaadin-core to use only free components -->
+			<artifactId>vaadin</artifactId>
+			<exclusions>
+				<!-- Webjars are only needed when running in Vaadin 13 compatibility 
+					mode -->
+				<exclusion>
+					<groupId>com.vaadin.webjar</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.webjars.bowergithub.insites</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.webjars.bowergithub.polymer</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.webjars.bowergithub.polymerelements</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.webjars.bowergithub.vaadin</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.webjars.bowergithub.webcomponents</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-spring-boot-starter</artifactId>
+			<exclusions>
+				<!-- Excluding so that webjars are not included. -->
+				<exclusion>
+					<groupId>com.vaadin</groupId>
+					<artifactId>vaadin-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
-        <!-- Axon -->
-        <dependency>
-            <groupId>org.axonframework</groupId>
-            <artifactId>axon-spring-boot-starter</artifactId>
-            <version>${axon.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.axonframework</groupId>
-            <artifactId>axon-test</artifactId>
-            <version>4.2.2</version>
-            <scope>test</scope>
-        </dependency>
 
-        <!-- Vaadin -->
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <!-- Replace artifactId with vaadin-core to use only free components -->
-            <artifactId>vaadin</artifactId>
-            <exclusions>
-                <!-- Webjars are only needed when running in Vaadin 13 compatibility mode -->
-                <exclusion>
-                    <groupId>com.vaadin.webjar</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.webjars.bowergithub.insites</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.webjars.bowergithub.polymer</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.webjars.bowergithub.polymerelements</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.webjars.bowergithub.vaadin</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.webjars.bowergithub.webcomponents</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-spring-boot-starter</artifactId>
-            <exclusions>
-                <!-- Excluding so that webjars are not included. -->
-                <exclusion>
-                    <groupId>com.vaadin</groupId>
-                    <artifactId>vaadin-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
-        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-        <!-- needed for frontend file upload component (IOUtils) -->
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-        </dependency>
+		<!-- additional frontend components -->
+		<dependency>
+			<groupId>com.flowingcode.addons</groupId>
+			<artifactId>simple-timer</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin.componentfactory</groupId>
+			<artifactId>togglebutton</artifactId>
+			<version>1.0.1</version>
+		</dependency>
 
-        <!-- additional frontend components -->
-        <dependency>
-            <groupId>com.flowingcode.addons</groupId>
-            <artifactId>simple-timer</artifactId>
-            <version>2.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin.componentfactory</groupId>
-            <artifactId>togglebutton</artifactId>
-            <version>1.0.1</version>
-        </dependency>
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+		</dependency>
 
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
 
-        <!-- Drools -->
-        <dependency>
-            <groupId>org.kie</groupId>
-            <artifactId>kie-api</artifactId>
-            <version>${drool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.drools</groupId>
-            <artifactId>drools-core</artifactId>
-            <version>${drool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.drools</groupId>
-            <artifactId>drools-decisiontables</artifactId>
-            <version>${drool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.drools</groupId>
-            <artifactId>drools-compiler</artifactId>
-            <version>${drool.version}</version>
-        </dependency>
+		<!-- Statemachine <dependency> <groupId>com.github.oxo42</groupId> <artifactId>stateless4j</artifactId> 
+			<version>2.5.0</version> <exclusions> -->
+		<!-- exclude logging <exclusion> <groupId>org.slf4j</groupId> <artifactId>slf4j-jdk14</artifactId> 
+			</exclusion> </exclusions> </dependency> -->
 
-        <!-- Statemachine -->
-        <dependency>
-            <groupId>com.github.oxo42</groupId>
-            <artifactId>stateless4j</artifactId>
-            <version>2.5.0</version>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+		<!-- Inject -->
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.2.3</version>
+		</dependency>
 
-        <!-- Inject -->
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.2.3</version>
-        </dependency>
 
-        <!-- JIRA -->
-        <dependency>
-            <groupId>com.atlassian.jira</groupId>
-            <artifactId>jira-rest-java-client-core</artifactId>
-            <version>5.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.atlassian.fugue</groupId>
-            <artifactId>fugue</artifactId>
-            <version>4.5.1</version>
-        </dependency>
 
-        <!-- CouchDB cache -->
-        <dependency>
-            <groupId>org.lightcouch</groupId>
-            <artifactId>lightcouch</artifactId>
-            <version>0.2.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 
-        <!-- mySQL cache -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.22</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>5.4.0.Final</version>
-            <exclusions>
-                <!-- exclude logging -->
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>2.2.6.RELEASE</version>
-        </dependency>
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.5.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>2.2.5.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-        <!-- JSON -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-        </dependency>
+	<build>
+		<defaultGoal>spring-boot:run</defaultGoal>
+		<plugins>
+			<!-- maven install plugin installs custom JARs from libs folder -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.0.0-M1</version>
+				<executions>
+					<!-- <execution> <id>install-analytics</id> <phase>initialize</phase> 
+						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+						<artifactId>c4s.analytics</artifactId> <version>${analytics.version}</version> 
+						<packaging>jar</packaging> <file>${basedir}/libs/c4s.analytics-${analytics.version}.jar</file> 
+						</configuration> </execution> -->
+					<!-- <execution> <id>install-artifact-api</id> <phase>initialize</phase> 
+						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+						<artifactId>c4s.artifact.api</artifactId> <version>${artifact.api.version}</version> 
+						<packaging>jar</packaging> <file>${basedir}/libs/c4s.artifact.api-${artifact.api.version}.jar</file> 
+						</configuration> </execution> -->
+					<!-- <execution> <id>install-jiralightconnector</id> <phase>initialize</phase> 
+						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+						<artifactId>c4s.jiralightconnector</artifactId> <version>${jiralightconnector.version}</version> 
+						<packaging>jar</packaging> <file>${basedir}/libs/c4s.jiralightconnector-${jiralightconnector.version}.jar</file> 
+						</configuration> </execution> -->
+					<!-- <execution> <id>install-passiveprocessengine</id> <phase>initialize</phase> 
+						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+						<artifactId>c4s.passiveprocessengine.v2</artifactId> <version>${passiveprocessengine.v2.version}</version> 
+						<packaging>jar</packaging> <file>${basedir}/libs/c4s.passiveprocessengine.v2-${passiveprocessengine.v2.version}.jar</file> 
+						</configuration> </execution> -->
+					<!-- <execution> <id>install-jamaconnector</id> <phase>initialize</phase> 
+						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+						<artifactId>c4s.jamaconnector</artifactId> <version>${jamaconnector.version}</version> 
+						<packaging>jar</packaging> <file>${basedir}/libs/c4s.jamaconnector-${jamaconnector.version}.jar</file> 
+						</configuration> </execution> <execution> <id>install-designspaceconnector</id> 
+						<phase>initialize</phase> <configuration> <file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file> 
+						<groupId>at.jku.isse.sdk</groupId> <artifactId>artifact-client</artifactId> 
+						<version>${designspace.client.version}</version> <packaging>jar</packaging> 
+						</configuration> <goals> <goal>install-file</goal> </goals> </execution> 
+						<execution> <id>install-designspacemain</id> <phase>initialize</phase> <configuration> 
+						<file>${basedir}/libs/main-${designspace.main.version}-jar-with-dependencies.jar</file> 
+						<groupId>at.jku.isse.designspace.sdk</groupId> <artifactId>main</artifactId> 
+						<version>${designspace.main.version}</version> <packaging>jar</packaging> 
+						</configuration> <goals> <goal>install-file</goal> </goals> </execution> -->
+				</executions>
+			</plugin>
 
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.5.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.2.5.RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <defaultGoal>spring-boot:run</defaultGoal>
-        <plugins>
-            <!-- maven install plugin installs custom JARs from libs folder -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.0.0-M1</version>
-                <executions>
-                   <!--  <execution>
-                        <id>install-analytics</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>JKU.ISSE</groupId>
-                            <artifactId>c4s.analytics</artifactId>
-                            <version>${analytics.version}</version>
-                            <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.analytics-${analytics.version}.jar</file>
-                        </configuration>
-                    </execution> -->
-                   <!--  <execution>
-                        <id>install-artifact-api</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>JKU.ISSE</groupId>
-                            <artifactId>c4s.artifact.api</artifactId>
-                            <version>${artifact.api.version}</version>
-                            <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.artifact.api-${artifact.api.version}.jar</file>
-                        </configuration>
-                    </execution> -->
-                  <!--   <execution>
-                        <id>install-jiralightconnector</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>JKU.ISSE</groupId>
-                            <artifactId>c4s.jiralightconnector</artifactId>
-                            <version>${jiralightconnector.version}</version>
-                            <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jiralightconnector-${jiralightconnector.version}.jar</file>
-                        </configuration>
-                    </execution> -->
-<!--                     <execution>
-                        <id>install-passiveprocessengine</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>JKU.ISSE</groupId>
-                            <artifactId>c4s.passiveprocessengine.v2</artifactId>
-                            <version>${passiveprocessengine.v2.version}</version>
-                            <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.passiveprocessengine.v2-${passiveprocessengine.v2.version}.jar</file>
-                        </configuration>
-                    </execution> -->
-                   <!--  <execution>
-                        <id>install-jamaconnector</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>JKU.ISSE</groupId>
-                            <artifactId>c4s.jamaconnector</artifactId>
-                            <version>${jamaconnector.version}</version>
-                            <packaging>jar</packaging>
-                            <file>${basedir}/libs/c4s.jamaconnector-${jamaconnector.version}.jar</file>
-                        </configuration>
-                    </execution> -->
-                    <execution>
-						<id>install-designspaceconnector</id>
-						<phase>initialize</phase>
-						<configuration>
-							<file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file>
-							<groupId>at.jku.isse.sdk</groupId>
-    						<artifactId>artifact-client</artifactId>
-    						<version>${designspace.client.version}</version>
-							<packaging>jar</packaging>
-						</configuration>
+			<!-- compiler plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.plugin.version}</version>
+				<executions>
+					<!-- Replacing default-compile as it is treated specially by maven -->
+					<execution>
+						<id>default-compile</id>
+						<phase>none</phase>
+					</execution>
+					<!-- Replacing default-testCompile as it is treated specially by maven -->
+					<execution>
+						<id>default-testCompile</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>java-compile</id>
+						<phase>compile</phase>
 						<goals>
-							<goal>install-file</goal>
+							<goal>compile</goal>
 						</goals>
 					</execution>
-                    <execution>
-                        <id>install-designspacemain</id>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <file>${basedir}/libs/main-${designspace.main.version}-jar-with-dependencies.jar</file>
-                            <groupId>at.jku.isse.designspace.sdk</groupId>
-                            <artifactId>main</artifactId>
-                            <version>${designspace.main.version}</version>
-                            <packaging>jar</packaging>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+					<execution>
+						<id>java-test-compile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
-            <!-- compiler plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.plugin.version}</version>
-                <executions>
-                    <!-- Replacing default-compile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <!-- Replacing default-testCompile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>compile</phase>
-                        <goals> <goal>compile</goal> </goals>
-                    </execution>
-                    <execution>
-                        <id>java-test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals> <goal>testCompile</goal> </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Vaadin -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <!-- Clean build and startup time for Vaadin apps sometimes may exceed
-                     the default Spring Boot's 30sec timeout.  -->
-                <configuration>
-                    <wait>500</wait>
-                    <maxAttempts>240</maxAttempts>
-                </configuration>
-            </plugin>
-            <!--
-                Take care of synchronizing java dependencies and imports in
-                package.json and main.js files.
-                It also creates webpack.config.js if not exists yet.
-            -->
-            <plugin>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-maven-plugin</artifactId>
-                <version>${vaadin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-frontend</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+			<!-- Vaadin -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<!-- Clean build and startup time for Vaadin apps sometimes may exceed 
+					the default Spring Boot's 30sec timeout. -->
+				<configuration>
+					<wait>500</wait>
+					<maxAttempts>240</maxAttempts>
+				</configuration>
+			</plugin>
+			<!-- Take care of synchronizing java dependencies and imports in package.json 
+				and main.js files. It also creates webpack.config.js if not exists yet. -->
+			<plugin>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-maven-plugin</artifactId>
+				<version>${vaadin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-frontend</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
