@@ -1,0 +1,112 @@
+{
+  "steps": [
+    {
+      "inDNDid": "dnd1",
+      "outDNDid": "dnd2",
+      "input": {
+        "jiraIn": "DemoIssue"
+      },
+      "output": {
+        "jiraOut": "DemoIssue"
+      },
+      "ioMapping": {
+        "jiraIn2jiraOutTest": "self.in_jiraIn-\u003easList()-\u003efirst()-\u003easType(\u003croot/types/DemoIssue\u003e).requirementIDs-\u003eforAll(id | self.out_jiraOut-\u003eexists(art  | art.name \u003d id)) and self.out_jiraOut-\u003eforAll(out | self.in_jiraIn-\u003easList()-\u003efirst()-\u003easType(\u003croot/types/DemoIssue\u003e).requirementIDs-\u003eexists(artId | artId \u003d out.name))"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_jiraOut-\u003esize() \u003d self.in_jiraIn-\u003easList()-\u003efirst()-\u003easType(\u003croot/types/DemoIssue\u003e).requirementIDs-\u003esize()",
+        "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_jiraOut-\u003eforAll( issue | issue.state \u003d \u0027Open\u0027)",
+          "_type": "QAConstraint",
+          "code": "sd1-qa1-state",
+          "description": "All issue states must be \u0027Open\u0027"
+        },
+        {
+          "arlRule": "self.out_jiraOut-\u003eforAll( issue | issue.state \u003c\u003e \u0027InProgress\u0027)",
+          "_type": "QAConstraint",
+          "code": "sd1-qa2-state",
+          "description": "None of the issue states must be \u0027InProgress\u0027"
+        }
+      ],
+      "_type": "Step",
+      "code": "sd1"
+    },
+    {
+      "inDNDid": "dnd2",
+      "outDNDid": "dnd3",
+      "input": {
+        "jiraIn": "DemoIssue"
+      },
+      "output": {
+        "jiraOut": "DemoIssue"
+      },
+      "ioMapping": {
+        "jiraIn2jiraOut2": "self.in_jiraIn-\u003eforAll(artIn | self.out_jiraOut-\u003eexists(artOut  | artOut \u003d artIn)) and  self.out_jiraOut-\u003eforAll(artOut2 | self.in_jiraIn-\u003eexists(artIn2  | artOut2 \u003d artIn2))"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_jiraOut-\u003esize() \u003e\u003d 0",
+        "PRECONDITION": "self.in_jiraIn-\u003esize() \u003e\u003d 1"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)",
+          "_type": "QAConstraint",
+          "code": "sd2-qa3-state",
+          "description": "All in issue states must be \u0027Closed\u0027"
+        }
+      ],
+      "_type": "Step",
+      "code": "sd2"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "sd1",
+          "fromParam": "jiraOut",
+          "toStep": "sd2",
+          "toParam": "jiraIn"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "dnd2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "DemoProcess2",
+          "fromParam": "jiraIn",
+          "toStep": "sd1",
+          "toParam": "jiraIn"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "dnd1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "dnd3"
+    }
+  ],
+  "input": {
+    "jiraIn": "DemoIssue"
+  },
+  "output": {
+    "jiraOut": "DemoIssue"
+  },
+  "ioMapping": {},
+  "conditions": {
+    "POSTCONDITION": "self.out_jiraOut-\u003esize() \u003e 0",
+    "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1"
+  },
+  "qaConstraints": [],
+  "_type": "Process",
+  "code": "DemoProcess2"
+}

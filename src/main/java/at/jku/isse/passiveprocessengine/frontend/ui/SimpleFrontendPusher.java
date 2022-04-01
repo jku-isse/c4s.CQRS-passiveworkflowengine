@@ -32,4 +32,10 @@ public class SimpleFrontendPusher implements IFrontendPusher {
 	public void update(Collection<ProcessInstance> wfis) {
 		// noop		
 	}
+
+	@Override
+	public void updateAll() {
+		// TODO Auto-generated method stub
+		
+	}
 }

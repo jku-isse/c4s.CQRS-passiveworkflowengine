@@ -21,6 +21,8 @@ public class FrontendPusher implements IFrontendPusher {
     private Map<Integer, MainViewState> views;
 
     private Instant lastUpdate = Instant.now();
+    private HashMap<String,ProcessInstance> processes = new HashMap<>();
+    
 
     @Override
     public void add(int id, UI ui, MainView view) {
@@ -33,13 +35,16 @@ public class FrontendPusher implements IFrontendPusher {
     public void remove(int id) {
         views.remove(id);
     }
+    
+    
 
     @Override
     public void update(ProcessInstance wfi) {
+    	processes.put(wfi.getName(), wfi);
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-            if (Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
+        //    if (Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
                 log.debug("update frontend");
                 lastUpdate = Instant.now();
                 if (ui != null && view != null) {
@@ -47,7 +52,7 @@ public class FrontendPusher implements IFrontendPusher {
                             .filter(com.vaadin.flow.component.Component::isVisible)
                             .forEach(grid -> grid.updateTreeGrid(wfi)));
                 }
-            }
+       //     }
         }
     }
 
@@ -56,7 +61,7 @@ public class FrontendPusher implements IFrontendPusher {
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-            if (Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
+         //   if (Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
                 log.debug("update frontend");
                 lastUpdate = Instant.now();
                 if (ui != null && view != null) {
@@ -64,12 +69,14 @@ public class FrontendPusher implements IFrontendPusher {
                             .filter(com.vaadin.flow.component.Component::isVisible)
                             .forEach(grid -> grid.removeWorkflow(wfiId)));
                 }
-            }
+        //    }
         }
+        processes.remove(wfiId);
     }
 
 	@Override
 	public void update(Collection<ProcessInstance> wfis) {
+		wfis.forEach(wfi -> processes.put(wfi.getName(), wfi));
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
@@ -77,6 +84,19 @@ public class FrontendPusher implements IFrontendPusher {
                 ui.access(() -> view.getGrids().stream()
                         .filter(com.vaadin.flow.component.Component::isVisible)
                         .forEach(grid -> grid.updateTreeGrid(wfis)));
+            }
+        }
+	}
+
+	@Override
+	public void updateAll() {
+		for (MainViewState state : views.values()) {
+            UI ui = state.getUi();
+            MainView view = state.getView();
+            if (ui != null && view != null) {
+                ui.access(() -> view.getGrids().stream()
+                        .filter(com.vaadin.flow.component.Component::isVisible)
+                        .forEach(grid -> grid.updateTreeGrid(processes.values())));
             }
         }
 	}

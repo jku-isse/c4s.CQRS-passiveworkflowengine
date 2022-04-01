@@ -4,13 +4,13 @@
       "inDNDid": "dndParentStart",
       "outDNDid": "dndParentEnd",
       "input": {
-        "jiraIn": "JiraArtifact"
+        "jiraIn": "DemoIssue"
       },
       "output": {},
       "ioMapping": {},
       "conditions": {
-        "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)",
-        "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1"
+        "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
       },
       "qaConstraints": [],
       "_type": "Step",
@@ -22,17 +22,17 @@
           "inDNDid": "dndSubStart",
           "outDNDid": "dndSubEnd",
           "input": {
-            "jiraIn": "JiraArtifact"
+            "jiraIn": "DemoIssue"
           },
           "output": {
-            "jiraOut": "JiraArtifact"
+            "jiraOut": "DemoIssue"
           },
           "ioMapping": {
             "jiraIn2jiraOut": "self.in_jiraIn-\u003eforAll(artIn | self.out_jiraOut-\u003eexists(artOut  | artOut \u003d artIn)) and self.out_jiraOut-\u003eforAll(artOut2 | self.in_jiraIn-\u003eexists(artIn2  | artOut2 \u003d artIn2))"
           },
           "conditions": {
-            "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)",
-            "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1"
+            "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1",
+            "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
           },
           "qaConstraints": [],
           "_type": "Step",
@@ -42,13 +42,13 @@
           "inDNDid": "dndSubStart",
           "outDNDid": "dndSubEnd",
           "input": {
-            "jiraIn": "JiraArtifact"
+            "jiraIn": "DemoIssue"
           },
           "output": {},
           "ioMapping": {},
           "conditions": {
-            "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)",
-            "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1"
+            "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1",
+            "POSTCONDITION": "self.in_jiraIn-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
           },
           "qaConstraints": [],
           "_type": "Step",
@@ -92,10 +92,10 @@
       "inDNDid": "dndParentStart",
       "outDNDid": "dndParentEnd",
       "input": {
-        "jiraIn": "JiraArtifact"
+        "jiraIn": "DemoIssue"
       },
       "output": {
-        "jiraOut": "JiraArtifact"
+        "jiraOut": "DemoIssue"
       },
       "ioMapping": {},
       "conditions": {
@@ -142,10 +142,10 @@
     }
   ],
   "input": {
-    "jiraIn": "JiraArtifact"
+    "jiraIn": "DemoIssue"
   },
   "output": {
-    "jiraOut": "JiraArtifact"
+    "jiraOut": "DemoIssue"
   },
   "ioMapping": {},
   "conditions": {

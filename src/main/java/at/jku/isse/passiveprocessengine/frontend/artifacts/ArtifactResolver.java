@@ -22,22 +22,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ArtifactResolver {
 
-	private Set<IResponder> connectors = new HashSet<>();
+	private Set<IArtifactProvider> connectors = new HashSet<>();
 
 	private Workspace ws;
-	private Long wsId;
 	
 	public ArtifactResolver() {
 		
 	}
 	
 	public Instance get(ArtifactIdentifier artId) throws ProcessException {
-		Optional<IResponder> optConn = connectors.stream()
-		//TODO	.filter(conn1 -> conn1.provides(artId.getType()))
+		Optional<IArtifactProvider> optConn = connectors.stream()
+			.filter(conn1 -> conn1.isProviding(artId.getType()))
 			.findAny();
 		if (optConn.isPresent()) {
 			ServiceResponse resp = optConn.get().getServiceResponse(artId.getId(), artId.getType());
 			if (resp.getKind() == ServiceResponse.SUCCESS) {
+				ws.update();
 				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));
 				if (el == null) {
 					String msg = String.format("Able to resolve artifact %s %s but unable to find element by id %s in process engine workspace", artId.getId(), artId.getType(), resp.getInstanceId());
@@ -46,7 +46,7 @@ public class ArtifactResolver {
 				} else if (el instanceof Instance) {
 					return (Instance)el;
 				} else {
-					String msg = String.format("Able to resolve artifact %s %s but not if instance type", artId.getId(), artId.getType());
+					String msg = String.format("Able to resolve artifact %s %s but not of 'instance' type", artId.getId(), artId.getType());
 					log.error(msg);
 					throw new ProcessException(msg);
 				}
@@ -60,7 +60,7 @@ public class ArtifactResolver {
 		}
 	}
 
-	public void register(IResponder connector) {
+	public void register(IArtifactProvider connector) {
 		assert(connector != null);
 		connectors.add(connector);
 	}

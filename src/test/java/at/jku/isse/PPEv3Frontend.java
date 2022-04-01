@@ -1,6 +1,5 @@
 package at.jku.isse;
 
-import at.jku.isse.designspace.artifactconnector.core.IService;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.*;
@@ -26,7 +25,7 @@ import java.util.List;
 import java.util.Properties;
 
 //@RestController
-@SpringBootApplication
+//@SpringBootApplication
 //@CrossOrigin(origins = "*")//to allow incoming calls from other ports
 public class PPEv3Frontend extends SpringBootServletInitializer implements ApplicationListener<ApplicationReadyEvent> {
     public static String persistenceFileName = null;
@@ -36,7 +35,6 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
    // @Autowired
    // ApplicationContext ctx;
     
-    public static final ArrayList<IService> SERVICES_TO_INITIALIZE = new ArrayList<>();
 
     public static void main(String[] args) {
         if (args.length>0) {
@@ -54,7 +52,7 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
         user.clearNotifications();
 
         initializePersistence();
-        initializeServices();
+
 
         
         
@@ -85,14 +83,7 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
         }
     }
 
-    public static void initializeServices() {
-        Workspace.logger.debug("Initializing Services");
-        for (IService service : SERVICES_TO_INITIALIZE) {
-            service.initialize();
-        }
-        System.out.println("Successfully initialized Services");
-        System.out.println("======================================================================================================");
-    }
+
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {

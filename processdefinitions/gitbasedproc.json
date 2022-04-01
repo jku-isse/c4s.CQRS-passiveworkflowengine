@@ -1,0 +1,64 @@
+{
+  "steps": [
+    {
+      "inDNDid": "dndGitProcStart",
+      "outDNDid": "dndGitProcEnd",
+      "input": {
+        "issueIn": "git_issue"
+      },
+      "output": {
+        "testcaseOut": "git_issue"
+      },
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issueIn-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.out_testcaseOut-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
+      },
+      "qaConstraints": [],
+      "_type": "Step",
+      "code": "single1"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "DemoMinimalGithubProcesses",
+          "fromParam": "issueIn",
+          "toStep": "single1",
+          "toParam": "issueIn"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "dndGitProcStart"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "single1",
+          "fromParam": "testcaseOut",
+          "toStep": "DemoMinimalGithubProcesses",
+          "toParam": "testcaseOut"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "dndGitProcEnd"
+    }
+  ],
+  "input": {
+    "issueIn": "git_issue"
+  },
+  "output": {
+    "testcaseOut": "git_issue"
+  },
+  "ioMapping": {},
+  "conditions": {
+    "PRECONDITION": "self.in_issueIn-\u003esize() \u003d 1"
+  },
+  "qaConstraints": [],
+  "_type": "Process",
+  "code": "DemoMinimalGithubProcesses",
+  "description": "Test Accessing Github"
+}

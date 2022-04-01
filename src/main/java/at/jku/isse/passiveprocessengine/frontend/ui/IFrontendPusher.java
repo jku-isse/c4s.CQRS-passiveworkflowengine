@@ -10,6 +10,8 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 public interface IFrontendPusher {
 
     void update(ProcessInstance wfi);
+    
+    void updateAll();
 
     void update(Collection<ProcessInstance> wfis);
     

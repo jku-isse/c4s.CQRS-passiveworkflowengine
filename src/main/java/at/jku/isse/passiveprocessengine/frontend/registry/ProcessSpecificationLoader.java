@@ -25,21 +25,32 @@ public class ProcessSpecificationLoader extends AbstractProcessLoader {
 		int i = 0;
         // external resources (same directory as JAR)
         try {
-            File[] directories = new File("./processdefinitions/").listFiles(File::isDirectory);
-            for (File dir : directories) {
-                FileFilter fileFilter = new WildcardFileFilter("*.json");
-                File[] jsonFiles = dir.listFiles(fileFilter);
-                if (jsonFiles.length != 1) continue;
-                byte[] encoded = Files.readAllBytes(jsonFiles[0].toPath());
+//            File[] directories = new File("./processdefinitions/").listFiles(File::isDirectory);
+//            for (File dir : directories) {
+//                FileFilter fileFilter = new WildcardFileFilter("*.json");
+//                File[] jsonFiles = dir.listFiles(fileFilter);
+//                if (jsonFiles.length != 1) continue;
+//                byte[] encoded = Files.readAllBytes(jsonFiles[0].toPath());
+//                DTOs.Process procD = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
+//                registry.storeProcessDefinitionIfNotExists(procD);
+//                i++;
+//            }
+            File directory = new File("./processdefinitions/"); // no longer files in separate directories, all in a single one now
+            FileFilter fileFilter = new WildcardFileFilter("*.json");
+            File[] jsonFiles = directory.listFiles(fileFilter);
+            for (File jsonFile : jsonFiles) {
+                byte[] encoded = Files.readAllBytes(jsonFile.toPath());
                 DTOs.Process procD = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
-                registry.storeProcessDefinitionIfNotExists(procD);
-                i++;
+                if (procD != null) {
+                	registry.storeProcessDefinitionIfNotExists(procD);
+                	i++;
+                }
             }
         } catch (NullPointerException | IOException e) {
             log.warn("No external process definitions found!");
         }
 
-        log.info("ProcessRegisterService registered {} process definitions from resources/processdefinition", i);
+        log.info("ProcessRegisterService registered {} process definitions from folder ./processdefinitions/", i);
         return i;
 	}
 

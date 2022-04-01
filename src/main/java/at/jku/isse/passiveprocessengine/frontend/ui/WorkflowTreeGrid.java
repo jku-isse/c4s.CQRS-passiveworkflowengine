@@ -5,11 +5,15 @@ import artifactapi.IArtifact;
 import artifactapi.ResourceLink;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
+import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
+import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -44,7 +48,7 @@ import java.util.stream.Stream;
         value= "./styles/dialog-overlay.css",
         themeFor = "vaadin-dialog-overlay"
 )
-public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
+public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find better class to use rather than just Object
 
     /**
 	 * 
@@ -74,39 +78,44 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             if (o instanceof ProcessInstance) {
                 ProcessInstance wfi = (ProcessInstance) o;
                 int i = wfi.getId().indexOf("WF-");
-                String id = i < 0 ? wfi.getId() : wfi.getId().substring(0, i+2).concat("...").concat(wfi.getId().substring(wfi.getId().length()-5));
+                String id = i < 0 ? wfi.getName() : wfi.getName().substring(0, i+2).concat("...").concat(wfi.getName().substring(wfi.getName().length()-5));
                 Span span;
-                if (wfi.getName() != null) {
-                    span = new Span(wfi.getName() + " (" + id + ")");
-                } else {
+                //if (wfi.getName() != null) {
+               //     span = new Span(wfi.getName() + " (" + id + ")");
+                //} else {
                     span = new Span(wfi.getDefinition().getName() + " (" + id + ")");
-                }
+               // }
                 span.getElement().setProperty("title", wfi.getDefinition().getName() + " (" + wfi.getId() + ")");
                 return span;
             } else if (o instanceof ProcessStep) {
                 ProcessStep wft = (ProcessStep) o;
-                if (wft.getName() != null) {
-                    Span span = new Span(wft.getName());
-                    span.getElement().setProperty("title", wft.getDefinition().getName());
-                    return span;
-                } else {
+//                if (wft.getName() != null) {
+//                    Span span = new Span(wft.getName());
+//                    span.getElement().setProperty("title", wft.getDefinition().getName());
+//                    return span;
+//                } else {
                     Span span = new Span(wft.getDefinition().getName());
                     span.getElement().setProperty("title", wft.getDefinition().getName());
                     return span;
-                }
-//            } else if (o instanceof ConstraintWrapper) {
-//                ConstraintWrapper rebc = (ConstraintWrapper) o;
-//                Span span = new Span(rebc.getDescription());
-//                span.getElement().setProperty("title", rebc.getDescription());
-//                return span;
+                //}
+            } else if (o instanceof ConstraintWrapper) {
+                ConstraintWrapper rebc = (ConstraintWrapper) o;
+                Span span = new Span(rebc.getQaSpec().getHumanReadableDescription());
+                span.getElement().setProperty("title", rebc.getName());
+                return span;
+            } else if (o instanceof RepairNode) {
+            	RepairNode rn = (RepairNode) o;
+            	Span span = new Span(rn.toString());
+                span.getElement().setProperty("title", rn.toString());
+                return span;
             } else {
-                return new Paragraph(o.getClass().getSimpleName() + ": " + o.getId());
+                return new Paragraph(o.getClass().getSimpleName() );
             }
         }).setHeader("Process Instance").setWidth("35%");
 
         // Column "Info"
 
-        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
             if (o instanceof ProcessInstance) {
                 return infoDialog((ProcessInstance)o);
             } else if (o instanceof ProcessStep) {
@@ -118,19 +127,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         // Column "Last Evaluated"
 
-        this.addColumn(o -> {
-            return "";
-//        	if (o instanceof ConstraintWrapper) {
-//                ConstraintWrapper rebc = (ConstraintWrapper) o;
-//                try {
-//                    return formatter.format(rebc.getLastChanged());
-//                } catch (DateTimeException e) {
-//                    return "not available";
-//                }
-//            } else {
-//                return "";
-//            }
-        }).setHeader("Last Evaluated");
+//        this.addColumn(o -> {
+//            return "";
+////        	if (o instanceof ConstraintWrapper) {
+////                ConstraintWrapper rebc = (ConstraintWrapper) o;
+////                try {
+////                    return formatter.format(rebc.getLastChanged());
+////                } catch (DateTimeException e) {
+////                    return "not available";
+////                }
+////            } else {
+////                return "";
+////            }
+//        }).setHeader("Last Evaluated");
 
         // Column "Last Changed"
 
@@ -149,14 +158,14 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         // Column delete
 
-        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
             if (o instanceof ProcessInstance) {
                 ProcessInstance wfi = (ProcessInstance) o;
                 Icon icon = new Icon(VaadinIcon.TRASH);
                 icon.setColor("red");
                 icon.getStyle().set("cursor", "pointer");
                 icon.addClickListener(e -> {
-                    reqDel.deleteProcessInstance(wfi.getId());
+                    reqDel.deleteProcessInstance(wfi.getName());
                 	//reqDel.apply(new DeleteCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
                 });
                 icon.getElement().setProperty("title", "Remove this workflow");
@@ -166,13 +175,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             }
         })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
 
-        // Column "Reevaluate"
-
-
-
         // Column "Unsatisfied" or "Fulfilled"
 
-        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
             if (o instanceof ProcessInstance) {
                 ProcessInstance wfi = (ProcessInstance) o;
                 boolean unsatisfied = wfi.getProcessSteps().stream()
@@ -225,7 +230,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Paragraph p = new Paragraph("Process Instance ID:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(wfi.getId());
+        H3 h3 = new H3(wfi.getName());
         h3.setClassName("info-header");
         l.add(h3);
 //        if (wfi.getPropertiesReadOnly().size() > 0) {
@@ -239,6 +244,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //            l.add(list);
 //        }
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
+        if (wfi.getActualLifecycleState() != null)
+            l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wfi.getActualLifecycleState().name(), wfi.getExpectedLifecycleState().name())));
+        augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
         
         Dialog dialog = new Dialog();
@@ -249,7 +257,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         icon.setColor("#1565C0");
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show more information about this workflow instance");
+        icon.getElement().setProperty("title", "Show more information about this process instance");
 
         dialog.add(l);
 
@@ -262,12 +270,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Paragraph p = new Paragraph("Process Step ID:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(wft.getId());
+        H3 h3 = new H3(wft.getDefinition().getName());
         h3.setClassName("info-header");
         l.add(h3);
 
         if (wft.getActualLifecycleState() != null)
-            l.add(new Paragraph("Process Step Lifecycle State: "+wft.getActualLifecycleState().name()));
+            l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
+        augmentWithConditions(wft, l);
         infoDialogInputOutput(l,  wft);
         Dialog dialog = new Dialog();
         dialog.setMaxHeight("80%");
@@ -277,13 +286,23 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         icon.setColor("#1565C0");
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show more information about this workflow task");
+        icon.getElement().setProperty("title", "Show more information about this process step");
 
         dialog.add(l);
 
         return icon;
     }
 
+    private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
+    	for (Conditions cond : Conditions.values()) {
+    		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
+    			l.add(new H5(cond.toString()+":"));
+    			l.add(new Paragraph(arl));
+    			
+    		});
+    	}
+    }
+    
     private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setClassName("upload-background");
@@ -292,23 +311,29 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         id.setPlaceholder("Artifact ID");
 
         Button submit = new Button(title, evt -> {
-            if (wft instanceof ProcessStep) {
-                if (isIn) {
-                    reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
-                } else {
-                    reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
-                }
-            } else if (wft instanceof ProcessInstance) {
-                if (isIn) {
-                	reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
-                    Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
-                } else {
-                	 reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
-                    Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
-                }
-            }
+            try {
+				if (wft instanceof ProcessStep) {
+				    if (isIn) {
+				        reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+				        Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
+				    } else {
+				        reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+				        Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
+				    }
+				    Notification.show("Success");
+				} else if (wft instanceof ProcessInstance) {
+				    if (isIn) {
+				    	reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
+				        Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
+				    } else {
+				    	 reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
+				        Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
+				    }
+				    Notification.show("Success");
+				}
+			} catch (ProcessException e) {
+				Notification.show(e.getMessage());
+			}
         });
 
         hLayout.add(id, submit);
@@ -349,7 +374,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                     line.add(tryToConvertToResourceLink(a));
                     // ADDING/DELETING NOT SUPPORTED CURRENTLY
                    // line.add(deleteInOut(wft, isIn, entry, a));
-                   // line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
+                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                 } else if (artifactList.size() > 1) {
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
@@ -405,7 +430,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		a.setTarget("_blank");
     		return a;
     	} else {
-    		Paragraph p = new Paragraph(artifact.getInstanceType().name());
+    		Paragraph p = new Paragraph(artifact.getInstanceType().name()+":"+artifact.name());
     		p.setClassName("bold");
     		return p;
     	}
@@ -415,15 +440,17 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         VerticalLayout l = new VerticalLayout();
         l.setClassName("scrollable");
 
-        Paragraph p = new Paragraph("Quality Assurance Document ID:");
+        Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(rebc.getName());
+        H3 h3 = new H3(rebc.getQaSpec().getName());
         h3.setClassName("info-header");
         l.add(h3);
 
         l.add(h3);
         l.add(new H4(rebc.getQaSpec().getHumanReadableDescription()));
+        l.add(new H5(rebc.getQaSpec().getQaConstraintSpec()));
+        
         // Unsatisfied resources
 //        List<Anchor> unsatisfiedLinks = new ArrayList<>();
 //TODO: replace with repair list
@@ -505,13 +532,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
     public void updateTreeGrid(Collection<ProcessInstance> content) {
-        this.content = new HashMap<>();
-        content.forEach(wfi -> this.content.put(wfi.getId(), wfi));
+        //this.content = new HashMap<>();
+        content.forEach(wfi -> this.content.put(wfi.getName(), wfi));
         updateTreeGrid();
     }
 
     public void updateTreeGrid(ProcessInstance wfi) {
-        this.content.put(wfi.getId(), wfi);
+        this.content.put(wfi.getName(), wfi);
         updateTreeGrid();
     }
 
@@ -539,8 +566,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                     } else if (o instanceof ProcessStep) {
                         ProcessStep wft = (ProcessStep) o;
                         return wft.getQAstatus().stream().map(x -> (ConstraintWrapper)x);
+                    } else if (o instanceof ConstraintWrapper) { 
+                    	ConstraintWrapper cw = (ConstraintWrapper) o;
+                    	if (cw.getEvalResult() == true || cw.getCr() == null)
+                    		return Stream.empty();
+                    	else {
+                    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
+                    		return repairTree.getChildren().stream().map(x -> (RepairNode)x);
+                    	}
+                    } else if (o instanceof RepairNode) { 
+                    	RepairNode rn = (RepairNode) o;
+                    	return rn.getChildren().stream().map(x -> (RepairNode)x);
                     } else {
-                        log.error("TreeGridPanel got unknown artifact: " + o.getClass().getSimpleName());
+                        log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                         return Stream.empty();
                     }
                 });

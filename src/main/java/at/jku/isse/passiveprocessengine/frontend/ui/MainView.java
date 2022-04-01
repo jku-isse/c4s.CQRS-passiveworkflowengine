@@ -38,9 +38,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-//import impactassessment.evaluation.JamaUpdatePerformanceService;
-//import impactassessment.evaluation.JamaWorkflowCreationPerformanceService;
-
 
 @Slf4j
 @Route("home")
@@ -126,13 +123,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         firstPart.setSizeFull();
         firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
 
-        ToggleButton toggle = new ToggleButton("Dev Mode ");
+        ToggleButton toggle = new ToggleButton("Refresher ");
         toggle.setClassName("med");
         toggle.addValueChangeListener(evt -> {
             devMode = !devMode;
-            if (devMode) {
-                Notification.show("Development mode enabled! Additional features activated.");
-            }
+//            if (devMode) {
+//                Notification.show("Development mode enabled! Additional features activated.");
+//            }
             initAccordion();
             content();
         });
@@ -169,7 +166,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     VerticalLayout pageContent = new VerticalLayout();
     private Component content() {
-        Tab tab1 = new Tab("Current State");
+       // Tab tab1 = new Tab("Current State");
         VerticalLayout cur = statePanel(false);
         cur.setHeight("100%");
 
@@ -187,24 +184,24 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 //        split.add(statePanel(true), snapshotPanel(true));
 //        split.setVisible(false);
 
-        Map<Tab, Component> tabsToPages = new HashMap<>();
-        tabsToPages.put(tab1, cur);
+ //       Map<Tab, Component> tabsToPages = new HashMap<>();
+  //      tabsToPages.put(tab1, cur);
 //        tabsToPages.put(tab2, snap);
 //        tabsToPages.put(tab3, split);
-        Tabs tabs = new Tabs(tab1); //, tab2, tab3
+//        Tabs tabs = new Tabs(tab1); //, tab2, tab3
         Div pages = new Div(cur); //, snap, split
         pages.setHeight("97%");
         pages.setWidthFull();
 
-        tabs.addSelectedChangeListener(event -> {
-            tabsToPages.values().forEach(page -> page.setVisible(false));
-            Component selectedPage = tabsToPages.get(tabs.getSelectedTab());
-            selectedPage.setVisible(true);
-        });
+//        tabs.addSelectedChangeListener(event -> {
+//            tabsToPages.values().forEach(page -> page.setVisible(false));
+//            Component selectedPage = tabsToPages.get(tabs.getSelectedTab());
+//            selectedPage.setVisible(true);
+//        });
 
         pageContent.removeAll();
         pageContent.setClassName("layout-style");
-        pageContent.add(tabs, pages);
+        pageContent.add(/*tabs,*/ pages);
         return pageContent;
     }
 
@@ -232,7 +229,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     private void initAccordion(String key, String val, String name) {
         accordion.getChildren().forEach(c -> accordion.remove(c));
-        accordion.add("Create Process Instance", importArtifact(devMode));
+        accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
         accordion.add("Filter", filterTable(key, val, name));
     //    if (devMode) accordion.add("Backend Queries", backend());
@@ -305,7 +302,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-//TODO:    		commandGateway.send(new RefreshFrontendDataCmd(RefreshForwarderAggregate.class.getSimpleName()));
+    	pusher.updateAll();
     }
     
 
@@ -421,7 +418,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 //    }
 
 
-    private Component importArtifact(boolean devMode) {
+    private Component importArtifact() {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setWidth("90%");
@@ -625,8 +622,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
-        if (addHeader)
-            layout.add(new Text("Current State"));
+//        if (addHeader)
+//            layout.add(new Text("Current State"));
         layout.add(
                 grid,
                 currentStateControls(grid)

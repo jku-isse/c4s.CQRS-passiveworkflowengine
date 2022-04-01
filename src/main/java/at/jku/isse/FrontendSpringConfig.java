@@ -9,6 +9,8 @@ import at.jku.isse.designspace.git.connector.GitService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.GitServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,7 @@ public class FrontendSpringConfig {
 	@Bean
 	public UpdateManager initUpdateManager() {
 		this.updateManager = new UpdateManager();
+		updateManager.init();
 		return this.updateManager;
 	}
 
@@ -66,28 +69,27 @@ public class FrontendSpringConfig {
 	}
 
 	@Bean
-	public ArtifactResolver getArtifactResolver(GitService github, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(GitServiceWrapper github, DemoServiceWrapper demo, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(github);
+		ar.register(demo);
 		return ar;
 	}
 
-	@Bean
-	@ConditionalOnExpression(value = "${git.enabled:false}")
-	public GitService initGitService(UpdateManager updateManager, UpdateMemory updateMemory) {
-		updateManager.init();
-		return new GitService(updateManager, updateMemory);
-	}
+//	@Bean
+//	@ConditionalOnExpression(value = "${git.enabled:false}")
+//	public GitService initGitService(UpdateManager updateManager, UpdateMemory updateMemory) {
+//		updateManager.init();
+//		return new GitService(updateManager, updateMemory);
+//	}
 
-	@Bean
-	public RequestDelegate getRequestDelegate() {
-		return new RequestDelegate();
-	}
+//	@Bean
+//	public RequestDelegate getRequestDelegate() {
+//		return new RequestDelegate();
+//	}
 	
 	// from: https://spring.io/guides/gs/messaging-jms/
 
-	public static final String QUEUE_JIRA = "jira";
-	public static final String QUEUE_GITHUB = "github";
 
 	@Bean
 	public JmsListenerContainerFactory<?> myFactory(ConnectionFactory connectionFactory,
