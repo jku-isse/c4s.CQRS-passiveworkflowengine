@@ -48,7 +48,7 @@ import java.util.stream.Stream;
         value= "./styles/dialog-overlay.css",
         themeFor = "vaadin-dialog-overlay"
 )
-public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find better class to use rather than just Object
+public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { //FIXME: ugly, find better class to use rather than just Object
 
     /**
 	 * 
@@ -109,21 +109,21 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
                 span.getElement().setProperty("title", rn.toString());
                 return span;
             } else {
-                return new Paragraph(o.getClass().getSimpleName() );
+                return new Paragraph(o.getClass().getSimpleName() +": " + o.getName());
             }
-        }).setHeader("Process Instance").setWidth("35%");
+        }).setHeader("Process Instance").setWidth("60%");
 
         // Column "Info"
-
-        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
-            if (o instanceof ProcessInstance) {
-                return infoDialog((ProcessInstance)o);
-            } else if (o instanceof ProcessStep) {
-                return infoDialog((ProcessStep)o);
-            } else {
-                return new Label("");
-            }
-        })).setWidth("5%").setFlexGrow(0);
+//
+//        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+//            if (o instanceof ProcessInstance) {
+//                return infoDialog((ProcessInstance)o);
+//            } else if (o instanceof ProcessStep) {
+//                return infoDialog((ProcessStep)o);
+//            } else {
+//                return new Label("");
+//            }
+//        })).setWidth("5%").setFlexGrow(0);
 
         // Column "Last Evaluated"
 
@@ -156,50 +156,65 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
             }
         }).setHeader("Last Changed");
 
-        // Column delete
+        // Column status
 
-        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
-            if (o instanceof ProcessInstance) {
-                ProcessInstance wfi = (ProcessInstance) o;
-                Icon icon = new Icon(VaadinIcon.TRASH);
-                icon.setColor("red");
+        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+            if (o instanceof ProcessStep) {
+                ProcessStep wfi = (ProcessStep) o;
+                String color = (wfi.getExpectedLifecycleState().equals(wfi.getActualLifecycleState())) ? "green" : "orange";
+                Icon icon;
+                switch(wfi.getExpectedLifecycleState()) {
+				case ACTIVE:
+					icon = new Icon(VaadinIcon.SPARK_LINE);
+					icon.setColor(color);
+					break;
+				case AVAILABLE:
+					icon = new Icon(VaadinIcon.LOCK);
+					icon.setColor("grey");
+					break;
+				case CANCELED:
+					icon = new Icon(VaadinIcon.EYE_SLASH);
+					icon.setColor(color);
+					break;
+				case COMPLETED:
+					icon = new Icon(VaadinIcon.CHECK);
+					icon.setColor(color);
+					break;
+				case ENABLED:
+					icon = new Icon(VaadinIcon.EYE);
+					icon.setColor(color);
+					break;
+				case NO_WORK_EXPECTED:
+					icon = new Icon(VaadinIcon.BAN);
+					icon.setColor(color);
+					break;
+				default:
+					icon = new Icon(VaadinIcon.ASTERISK);
+					break;
+                }
+
                 icon.getStyle().set("cursor", "pointer");
-                icon.addClickListener(e -> {
-                    reqDel.deleteProcessInstance(wfi.getName());
-                	//reqDel.apply(new DeleteCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
-                });
-                icon.getElement().setProperty("title", "Remove this workflow");
+                
+                icon.getElement().setProperty("title", "Workflow Lifecycle State: "+wfi.getActualLifecycleState());
                 return icon;
             } else {
                 return new Label("");
             }
-        })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
+        })).setClassNameGenerator(x -> "column-center").setHeader("State").setWidth("5%").setFlexGrow(0);
 
         // Column "Unsatisfied" or "Fulfilled"
 
-        this.addColumn(new ComponentRenderer<Component, Object>(o -> {
-            if (o instanceof ProcessInstance) {
-                ProcessInstance wfi = (ProcessInstance) o;
-                boolean unsatisfied = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
-                boolean fulfilled = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
-                        
-                return getIcon(unsatisfied, fulfilled);
+        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {      	
+        	if (o instanceof ProcessInstance) {
+                return infoDialog((ProcessInstance)o);                                
             } else if (o instanceof ProcessStep) {
-                ProcessStep wft = (ProcessStep) o;
-                
-                boolean unsatisfied = wft.getQAstatus().stream()
-                        .anyMatch(a -> a.getEvalResult() == false);
-                boolean fulfilled = wft.getQAstatus().stream()
-                        .anyMatch(a -> a.getEvalResult() == true);
-                return getIcon(unsatisfied, fulfilled);
+                return infoDialog((ProcessStep)o);
             } else if (o instanceof ConstraintWrapper) {
                 return infoDialog((ConstraintWrapper)o);
             } else {
                 return new Label("");
             }
-        })).setClassNameGenerator(x -> "column-center").setWidth("5%").setFlexGrow(0);
+        })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
     }
 
     private Icon getIcon(boolean unsatisfied, boolean fulfilled) {
@@ -245,16 +260,31 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
 //        }
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
         if (wfi.getActualLifecycleState() != null)
-            l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wfi.getActualLifecycleState().name(), wfi.getExpectedLifecycleState().name())));
+            l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
+        
+        Icon delIcon = new Icon(VaadinIcon.TRASH);
+        delIcon.setColor("red");
+        delIcon.getStyle().set("cursor", "pointer");
+        delIcon.addClickListener(e -> {
+            reqDel.deleteProcessInstance(wfi.getName());
+        	//reqDel.apply(new DeleteCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
+        });
+        delIcon.getElement().setProperty("title", "Remove this workflow");
+        l.add(delIcon);
+        
         
         Dialog dialog = new Dialog();
         dialog.setWidth("80%");
         dialog.setMaxHeight("80%");
 
-        Icon icon = new Icon(VaadinIcon.INFO_CIRCLE);
-        icon.setColor("#1565C0");
+        boolean unsatisfied = wfi.getProcessSteps().stream()
+                .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
+        boolean fulfilled = wfi.getProcessSteps().stream()
+                .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
+       
+        Icon icon = getIcon(unsatisfied, fulfilled);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
         icon.getElement().setProperty("title", "Show more information about this process instance");
@@ -282,8 +312,11 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
         dialog.setMaxHeight("80%");
         dialog.setWidth("80%");
 
-        Icon icon = new Icon(VaadinIcon.INFO_CIRCLE_O);
-        icon.setColor("#1565C0");
+        boolean unsatisfied = wft.getQAstatus().stream()
+                .anyMatch(a -> a.getEvalResult() == false);
+        boolean fulfilled = wft.getQAstatus().stream()
+                .anyMatch(a -> a.getEvalResult() == true); 
+        Icon icon = getIcon(unsatisfied, fulfilled);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
         icon.getElement().setProperty("title", "Show more information about this process step");
@@ -389,7 +422,7 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
                     }
                     list.add(nestedList);
                 } else { // artifactList.size() == 0
-                    Paragraph p = new Paragraph("missing");
+                    Paragraph p = new Paragraph("none");
                     p.setClassName("red");
                     line.add(p);
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
@@ -424,9 +457,8 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
     private Component tryToConvertToResourceLink(Instance artifact) {
         // for now only jira and jama artifacts have a web resource
        // if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
-    	ResourceLink rl = null; //FIXME: artifact.convertToResourceLink();
-    	if (rl != null) {
-    		Anchor a = new Anchor(rl.getHref(), rl.getTitle());
+    	if (artifact.hasProperty("html_url")) {
+    		Anchor a = new Anchor(artifact.getPropertyAsValue("html_url").toString(), artifact.name());
     		a.setTarget("_blank");
     		return a;
     	} else {
@@ -450,6 +482,20 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
         l.add(h3);
         l.add(new H4(rebc.getQaSpec().getHumanReadableDescription()));
         l.add(new H5(rebc.getQaSpec().getQaConstraintSpec()));
+        
+        if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
+        	HorizontalLayout h = new HorizontalLayout();
+        	h.setWidthFull();
+        	h.setMargin(false);
+        	h.setPadding(false);
+        	RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+    		RepairTreeGrid rtg = new RepairTreeGrid();
+            rtg.initTreeGrid();
+            rtg.updateTreeGrid(repairTree);
+            h.add(rtg);
+            l.add(h);
+        }
+        
         
         // Unsatisfied resources
 //        List<Anchor> unsatisfiedLinks = new ArrayList<>();
@@ -495,7 +541,7 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
 //        }
 
         Dialog dialog = new Dialog();
-        dialog.add(l);
+        
         dialog.setMaxHeight("80%");
         dialog.setMaxWidth("80%");
 
@@ -520,8 +566,9 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
         }
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show all resources of this rule");
-
+        icon.getElement().setProperty("title", "Show details");
+        
+        dialog.add(l);
         return icon;
     }
 
@@ -568,15 +615,7 @@ public class WorkflowTreeGrid extends TreeGrid<Object> { //FIXME: ugly, find bet
                         return wft.getQAstatus().stream().map(x -> (ConstraintWrapper)x);
                     } else if (o instanceof ConstraintWrapper) { 
                     	ConstraintWrapper cw = (ConstraintWrapper) o;
-                    	if (cw.getEvalResult() == true || cw.getCr() == null)
-                    		return Stream.empty();
-                    	else {
-                    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
-                    		return repairTree.getChildren().stream().map(x -> (RepairNode)x);
-                    	}
-                    } else if (o instanceof RepairNode) { 
-                    	RepairNode rn = (RepairNode) o;
-                    	return rn.getChildren().stream().map(x -> (RepairNode)x);
+                    	return Stream.empty();
                     } else {
                         log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                         return Stream.empty();

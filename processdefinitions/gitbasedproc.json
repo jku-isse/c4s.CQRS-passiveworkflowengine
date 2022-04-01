@@ -12,7 +12,7 @@
       "ioMapping": {},
       "conditions": {
         "PRECONDITION": "self.in_issueIn-\u003esize() \u003d 1",
-        "POSTCONDITION": "self.out_testcaseOut-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
+        "POSTCONDITION": "self.out_testcaseOut-\u003esize() \u003d 1 and self.out_testcaseOut-\u003eforAll( issue | issue.state \u003d \u0027Closed\u0027)"
       },
       "qaConstraints": [],
       "_type": "Step",
