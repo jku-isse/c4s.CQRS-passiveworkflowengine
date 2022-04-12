@@ -1,9 +1,16 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
 import at.jku.isse.designspace.core.model.Element;
@@ -39,57 +46,76 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
             } else if (o instanceof RepairNode) {
-            	RepairNode rn = (RepairNode) o;
-            	Span span = new Span(nodeToDescription(rn));
-                span.getElement().setProperty("title", rn.toString());
-                return span;
+            	RepairNode rn = (RepairNode) o;  	
+            	HorizontalLayout hl = new HorizontalLayout();
+            	//Span span = new Span();
+            	nodeToDescription(rn).stream().forEach(comp -> hl.add(comp));
+                hl.getElement().setProperty("title", rn.toString());
+                return hl;
             } else {
                 return new Paragraph(o.getClass().getSimpleName() );
             }
-        }).setHeader("Repair Tree: execute any of the following").setWidth("100%");
+        }).setHeader("Execute any of the following to repair/fulfill:"); //.setWidth("100%");
     }
 	
-	private String nodeToDescription(RepairNode rn) {
+	public static Collection<Component> nodeToDescription(RepairNode rn) {
 		switch(rn.getNodeType()) {
 		case ALTERNATIVE:
-			return "Execute one of:";
+			return Set.of(new Paragraph("Execute one of:"));
 		case SEQUENCE:
-			return "Execute all of:";
+			return Set.of(new Paragraph("Execute all of:"));
 		case MULTIVALUE: //fallthrough
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
-			String target = ra.getElement() != null ? ((Instance)ra.getElement()).name() : "";
-			String change = object2String(ra);
+			Component target = ra.getElement() != null ? new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Paragraph("");
+			Collection<Component> change = object2String(ra);
 			switch(ra.getOperator()) {
 			case ADD:
-				return String.format("Add %s to %s of %s",change, ra.getProperty(), target);
+				List<Component> list = new ArrayList<>();
+				list.add(new Paragraph("Add "));
+				change.stream().forEach(comp -> list.add(comp)); 
+				list.add(new Paragraph(String.format(" to %s of ", ra.getProperty())));
+				list.add(target);
+				return list;
 			case MOD_EQ:
 			case MOD_GT:
 			case MOD_LT:
 			case MOD_NEQ:
-				return String.format("Change %s of %s to %s %s", ra.getProperty(), target, ra.getOperator().toString(), change);
+				List<Component> list3 = new ArrayList<>();
+				list3.add(new Paragraph(String.format("Change %s of ", ra.getProperty())));
+				list3.add(target);
+				list3.add(new Paragraph(String.format(" to %s ", ra.getOperator().toString())));
+				change.stream().forEach(comp -> list3.add(comp));
+				return list3;
+				//return String.format("Change %s of %s to %s %s", ra.getProperty(), target, ra.getOperator().toString(), change);
 			case REMOVE:
-				return String.format("Remove %s from %s of %s",change, ra.getProperty(), target);
+				List<Component> list2 = new ArrayList<>();
+				list2.add(new Paragraph("Remove "));
+				change.stream().forEach(comp -> list2.add(comp)); 
+				list2.add(new Paragraph(String.format(" from %s of ", ra.getProperty())));
+				list2.add(target);
+				return list2;
+				//return String.format("Remove %s from %s of %s",change, ra.getProperty(), target);
 			default:
 				break;
 			}
 			break;
 		default:
-			return rn.toString();
+			return List.of(new Paragraph(rn.toString()));
 		}
-		return "";
+		return Collections.emptyList();
 	}
 		
-	private String object2String(AbstractRepairAction ra) {
+	public static Collection<Component> object2String(AbstractRepairAction ra) {
 		if (ra.getValue() instanceof Instance) {
-			return ((Instance) ra.getValue()).name();
+			return Set.of(new Paragraph(((Instance) ra.getValue()).name()));
 		} else if (ra.getValue() instanceof InstanceType) {
-			return "a type of "+((InstanceType) ra.getValue()).name();
+			return List.of(new Paragraph("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget((InstanceType) ra.getValue()));
 		} else
-			return ra.getValue()!=null ? ra.getValue().toString() : "unknown";
+			return List.of(new Paragraph(ra.getValue()!=null ? ra.getValue().toString() : "something"));
 	}
 	
-	public void updateTreeGrid(RepairNode rootNode) {
+	public void updateQAConstraintTreeGrid(RepairNode rootNode) {
 		rtf.filterRepairTree(rootNode);
 		this.setItems(rootNode.getChildren().stream()
                 .map(x->x),
@@ -105,9 +131,25 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		this.getDataProvider().refreshAll();
 	}
 	
-	private static RepairTreeFilter rtf = new ReducedRepairTreeFilter();
+	public void updateConditionTreeGrid(RepairNode rootNode) {
+		rtfCond.filterRepairTree(rootNode);
+		this.setItems(rootNode.getChildren().stream()
+                .map(x->x),
+        o -> {
+            if (o instanceof RepairNode) { 
+            	RepairNode rn = (RepairNode) o;
+            	return rn.getChildren().stream().map(x -> (RepairNode)x);
+            } else {
+                log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
+                return Stream.empty();
+            }
+        });
+		this.getDataProvider().refreshAll();
+	}
 	
-	private static class ReducedRepairTreeFilter extends RepairTreeFilter {
+	private static RepairTreeFilter rtf = new QARepairTreeFilter();
+	
+	private static class QARepairTreeFilter extends RepairTreeFilter {
 
 		@Override
 		public boolean compliesTo(RepairAction ra) {
@@ -119,5 +161,17 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		}
 		
 	}
+	
+	private static RepairTreeFilter rtfCond = new ConditionRepairTreeFilter();
+	
+	private static class ConditionRepairTreeFilter extends RepairTreeFilter {
 
+		@Override
+		public boolean compliesTo(RepairAction ra) {
+			return ra.getProperty() != null 
+					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace
+		
+		}
+		
+	}
 }

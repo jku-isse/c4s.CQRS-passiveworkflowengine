@@ -15,7 +15,7 @@ import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.jms.ConnectionFactory;
+//import javax.jms.ConnectionFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -24,10 +24,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.config.JmsListenerContainerFactory;
-import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
+//import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+//import org.springframework.jms.config.JmsListenerContainerFactory;
+//import org.springframework.jms.support.converter.MessageConverter;
+//import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 
 
@@ -91,22 +91,22 @@ public class FrontendSpringConfig {
 	// from: https://spring.io/guides/gs/messaging-jms/
 
 
-	@Bean
-	public JmsListenerContainerFactory<?> myFactory(ConnectionFactory connectionFactory,
-			DefaultJmsListenerContainerFactoryConfigurer configurer) {
-		DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-		// This provides all boot's default to this factory, including the message converter
-		factory.setMessageConverter(simpleJmsMessageConverter());
-		configurer.configure(factory, connectionFactory);
-		// You could still override some of Boot's default if necessary.
-		return factory;
-	}
-
-	@Bean // Serialize message content to json using TextMessage
-	public MessageConverter simpleJmsMessageConverter() {
-		SimpleMessageConverter converter = new SimpleMessageConverter();
-		return converter;
-	}
+//	@Bean
+//	public JmsListenerContainerFactory<?> myFactory(ConnectionFactory connectionFactory,
+//			DefaultJmsListenerContainerFactoryConfigurer configurer) {
+//		DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+//		// This provides all boot's default to this factory, including the message converter
+//		factory.setMessageConverter(simpleJmsMessageConverter());
+//		configurer.configure(factory, connectionFactory);
+//		// You could still override some of Boot's default if necessary.
+//		return factory;
+//	}
+//
+//	@Bean // Serialize message content to json using TextMessage
+//	public MessageConverter simpleJmsMessageConverter() {
+//		SimpleMessageConverter converter = new SimpleMessageConverter();
+//		return converter;
+//	}
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {

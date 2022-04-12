@@ -48,7 +48,6 @@ public class PPE3Webfrontend extends SpringBootServletInitializer implements App
        // application.setBanner(new CustomBanner());
        // application.run(args);
 
-        //ControlEventEngine.initWithPath(PublicWorkspace.persistencePath());
 
         var user = User.users.get(1l);
         user.clearNotifications();

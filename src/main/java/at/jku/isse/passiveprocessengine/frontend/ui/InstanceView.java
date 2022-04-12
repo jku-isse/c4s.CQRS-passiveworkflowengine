@@ -1,0 +1,255 @@
+package at.jku.isse.passiveprocessengine.frontend.ui;
+
+import at.jku.isse.designspace.core.model.CollectionProperty;
+import at.jku.isse.designspace.core.model.Element;
+import at.jku.isse.designspace.core.model.Id;
+import at.jku.isse.designspace.core.model.Instance;
+import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.ListProperty;
+import at.jku.isse.designspace.core.model.MapProperty;
+import at.jku.isse.designspace.core.model.Property;
+import at.jku.isse.designspace.core.model.SingleProperty;import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+
+import com.vaadin.componentfactory.ToggleButton;
+import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.TemplateRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.UIScope;
+
+import artifactapi.ArtifactIdentifier;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+
+@Slf4j
+@Route("instance")
+@Push
+@CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
+@CssImport(value="./styles/theme.css")
+@PageTitle("Instance overview")
+public class InstanceView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
+
+    
+    
+    private RequestDelegate commandGateway;
+
+    private Id id = null;
+    
+    @Inject
+    public void setCommandGateway(RequestDelegate commandGateway) {
+        this.commandGateway = commandGateway;
+    }
+
+    @Override
+    public void setParameter(BeforeEvent beforeEvent, String s) {
+        // example link: http://localhost:8080/home/?key=DEMO-9&value=Task
+        Location location = beforeEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        String strid = parametersMap.getOrDefault("id", List.of("")).get(0);
+        try {
+        	long lId = Long.parseLong(strid);
+        	id = Id.of(lId);
+        	content();
+        } catch(Exception e) {
+        	
+        	log.warn("Parameter id cannot be parsed to long");
+        }
+        
+    }
+    
+    
+    public InstanceView() {
+        setSizeFull();
+        setMargin(false);
+        setPadding(false);
+
+        HorizontalLayout header = new HorizontalLayout();
+        header.setClassName("header-theme");
+        header.setMargin(false);
+        header.setPadding(true);
+        header.setSizeFull();
+        header.setHeight("6%");
+        HorizontalLayout firstPart = new HorizontalLayout();
+        firstPart.setClassName("header-theme");
+        firstPart.setMargin(false);
+        firstPart.setPadding(true);
+        firstPart.setSizeFull();
+        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Instance Overview"));
+
+        header.add(firstPart/*, toggle, shutdown*/);
+        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setClassName("footer-theme");
+        footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+
+        add(
+                header,
+                main(),
+                footer
+        );
+    }
+
+    private Component main() {
+        HorizontalLayout main = new HorizontalLayout();
+        main.setClassName("layout-style");
+        main.setHeight("91%");
+        main.add( content());
+        return main;
+    }
+
+    VerticalLayout pageContent = new VerticalLayout();
+    
+    private Component content() {
+       // Tab tab1 = new Tab("Current State");
+        VerticalLayout cur = statePanel(false);
+        cur.setHeight("100%");
+
+        Div pages = new Div(cur); //, snap, split
+        pages.setHeight("97%");
+        pages.setWidthFull();
+
+        pageContent.removeAll();
+        pageContent.setClassName("layout-style");
+        pageContent.add(/*tabs,*/ pages);
+        return pageContent;
+    }
+  
+
+
+    private VerticalLayout statePanel(boolean addHeader) {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setClassName("big-text");
+        layout.setMargin(false);
+        layout.setHeight("50%");
+        layout.setWidthFull();
+        layout.setFlexGrow(0);
+        if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
+        	Element el = commandGateway.getWorkspace().findElement(id);
+        	if (el instanceof Instance) {
+        		layout.add(
+        			instanceAsList((Instance) el)
+        			);
+        	}
+        }
+        return layout;
+    }
+    
+    private Component instanceAsList(Instance inst) {
+    	Grid<Property> grid = new Grid<Property>();
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setResizable(true).setSortable(true);
+    	Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
+    	List<Property> content = inst.getProperties().stream().filter(prop -> !prop.name.startsWith("@")).sorted(new PropertyComparator()).collect(Collectors.toList()) ;
+    	grid.setItems(content);
+    	//grid.setItems(inst.getProperties());
+    	return grid;
+    }
+    
+    private static class PropertyComparator implements Comparator<Property> {
+
+		@Override
+		public int compare(Property o1, Property o2) {
+			return o1.name.compareTo(o2.name);
+		}
+    	
+    }
+    
+    private static ComponentRenderer<Span, Property> createValueRenderer() {
+    	return new ComponentRenderer<>(Span::new, propertyComponentUpdated);
+    }
+    
+    private static final SerializableBiConsumer<Span, Property> propertyComponentUpdated = (span, prop) -> {
+    	if (prop instanceof SingleProperty) {
+    		span.add(singleValueToComponent(prop.get()));
+    	} else     	
+    	if (prop instanceof CollectionProperty) {
+    		span.add(collectionValueToComponent((Collection) prop.get()));
+    	} else
+    	if (prop instanceof MapProperty) {
+    		// not supported yet
+    		span.add(mapValueToComponent(((MapProperty)prop).get()));
+    	}
+    	else span.setText("Unknown Property ");
+    }; 
+    
+    private static Component singleValueToComponent(Object value) {
+    	if (value instanceof Instance) {
+    		Instance inst = (Instance)value;
+    		return new Paragraph(new Anchor("/instance/show?id="+inst.id(), inst.name()));
+    	} else
+    		return new Paragraph( value != null ? value.toString() : "null");
+    }
+    
+    private static Component collectionValueToComponent(Collection value) {
+    	if (value == null || value.size() == 0)	
+    		return new Paragraph( "[ ]");
+    	else if (value.size() == 1)
+    		return singleValueToComponent(value.iterator().next());
+    	else {
+    		UnorderedList list = new UnorderedList();
+    		list.setClassName("no-padding");
+    		value.stream().forEach(val -> list.add(singleValueToComponent(val)));
+    		return list;
+    	}
+    }
+    
+    private static Component mapValueToComponent(Map value) {
+    	Grid<Map.Entry<String, Object>> grid = new Grid<Map.Entry<String, Object>>();
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<Map.Entry<String, Object>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Key").setResizable(true).setSortable(true);
+    	Grid.Column<Map.Entry<String, Object>> valueColumn = grid.addColumn(createMapValueRenderer()).setHeader("Value").setResizable(true);
+    	grid.setItems(value.entrySet());
+    	grid.setHeightByRows(true);
+    	return grid;
+    }
+    
+    private static ComponentRenderer<Span, Map.Entry<String, Object>> createMapValueRenderer() {
+    	return new ComponentRenderer<>(Span::new, propertyMapUpdated);
+    }
+    
+    private static final SerializableBiConsumer<Span, Map.Entry<String, Object>> propertyMapUpdated = (span, obj) -> {
+    	if (obj.getValue() instanceof Collection) {
+    		span.add(collectionValueToComponent((Collection)obj.getValue()));
+    	} else     	
+    	if (obj.getValue() instanceof Map) {
+    		span.add(mapValueToComponent((Map)obj.getValue()));
+    	} else {
+    		span.add(singleValueToComponent(obj.getValue()));
+    	}
+    	
+    };
+}

@@ -26,7 +26,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
-import at.jku.isse.passiveprocessengine.instance.commands.Responses.IOResponse;
+import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -62,6 +62,11 @@ public class RequestDelegate {
 	public ProcessRegistry getRegistry() {
 		if (!isInitialized) initialize();
 		return procReg;
+	}
+	
+	public Workspace getWorkspace() {
+		if (!isInitialized) initialize();
+		return ws;
 	}
 	
 	public void instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
@@ -131,7 +136,7 @@ public class RequestDelegate {
 		if (pex.getErrorMessages().size() > 0)
 			throw pex;
 		else
-			ws.commit();
+			ws.concludeTransaction();
 	}
 	
 	public void addInput(String procId, String stepId, String param, String artId, String artType) throws ProcessException {
@@ -150,7 +155,7 @@ public class RequestDelegate {
 		ProcessInstance pi = pInstances.remove(id);
 		if (pi != null) {
 			pi.deleteCascading();
-			ws.commit();
+			ws.concludeTransaction();
 		}
 	}
 

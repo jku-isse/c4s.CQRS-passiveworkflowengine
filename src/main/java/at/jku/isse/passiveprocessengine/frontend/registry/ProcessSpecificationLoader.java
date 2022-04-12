@@ -9,6 +9,7 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,16 +26,6 @@ public class ProcessSpecificationLoader extends AbstractProcessLoader {
 		int i = 0;
         // external resources (same directory as JAR)
         try {
-//            File[] directories = new File("./processdefinitions/").listFiles(File::isDirectory);
-//            for (File dir : directories) {
-//                FileFilter fileFilter = new WildcardFileFilter("*.json");
-//                File[] jsonFiles = dir.listFiles(fileFilter);
-//                if (jsonFiles.length != 1) continue;
-//                byte[] encoded = Files.readAllBytes(jsonFiles[0].toPath());
-//                DTOs.Process procD = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
-//                registry.storeProcessDefinitionIfNotExists(procD);
-//                i++;
-//            }
             File directory = new File("./processdefinitions/"); // no longer files in separate directories, all in a single one now
             FileFilter fileFilter = new WildcardFileFilter("*.json");
             File[] jsonFiles = directory.listFiles(fileFilter);
@@ -42,8 +33,14 @@ public class ProcessSpecificationLoader extends AbstractProcessLoader {
                 byte[] encoded = Files.readAllBytes(jsonFile.toPath());
                 DTOs.Process procD = serializer.fromJson(new String(encoded, Charset.defaultCharset()));
                 if (procD != null) {
-                	registry.storeProcessDefinitionIfNotExists(procD);
-                	i++;
+                	try {
+						registry.storeProcessDefinitionIfNotExists(procD);
+						i++;
+					} catch (ProcessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                	
                 }
             }
         } catch (NullPointerException | IOException e) {

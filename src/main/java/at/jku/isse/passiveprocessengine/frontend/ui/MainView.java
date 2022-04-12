@@ -557,61 +557,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         return layout;
     }
 
-//    private Component backend() {
-//        Text description = new Text("Commands that get processed by the backend. Effects can only be observed on the server log.");
-//        TextField id = new TextField("ID");
-//        id.setValue("A3");
-//
-//        Button print = new Button("Log KB-Content to Console");
-//        print.addClickListener(evt -> {
-//            queryGateway.query(new PrintKBQuery(id.getValue()), PrintKBResponse.class);
-//            Notification.show("Success");
-//        });
-//
-//        Button jamaPerformancetest1 = new Button("Process Creation Performance Test", e -> {
-//            SpringUtil.getBean(JamaWorkflowCreationPerformanceService.class).ifPresent(JamaWorkflowCreationPerformanceService::createAll);
-//        });
-//        Button jamaPerformancetest2 = new Button("Update Artifacts Performance Test", e -> {
-//            SpringUtil.getBean(JamaUpdatePerformanceService.class).ifPresent(JamaUpdatePerformanceService::replayUpdates);
-//        });
-//
-//        Button replay = new Button("Replay All Events", evt -> {
-//            Notification.show("Replay of Current State initiated. Replay gets executed..");
-//            replayer.replay("projection");
-//        });
-//
-//        return new VerticalLayout(description, id, print, jamaPerformancetest1, jamaPerformancetest2, replay);
-//    }
-
-//    private Component updates() {
-//        Button update = new Button("Fetch Updates Now", e -> {
-//               jiraMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
-//                //jamaMonitoringScheduler.runAllMonitoringTasksSequentiallyOnceNow(new CorrelationTuple()); // TODO which corr is needed?
-//        });
-//        return new VerticalLayout(new Paragraph("Updates are fetched every few minutes automatically. Additionally you can fetch updates manually."), update);
-//    }
-
-//    private VerticalLayout snapshotPanel(boolean addHeader) {
-//        WorkflowTreeGrid grid = new WorkflowTreeGrid(x -> commandGateway.send(x), false);
-//        grid.initTreeGrid();
-//        VerticalLayout layout = new VerticalLayout();
-//        layout.setClassName("big-text");
-//        layout.setMargin(false);
-//        layout.setHeight("50%");
-//        layout.setWidthFull();
-//        layout.setFlexGrow(0);
-//        if (addHeader)
-//            layout.add(new Text("Snapshot State"));
-//        ProgressBar progressBar = new ProgressBar();
-//        progressBar.setValue(0);
-//        layout.add(
-//                progressBar,
-//                grid,
-//                snapshotStateControls(grid, progressBar)
-//        );
-//        return layout;
-//    }
-
     private VerticalLayout statePanel(boolean addHeader) {
         WorkflowTreeGrid grid = new WorkflowTreeGrid(commandGateway);
         grid.initTreeGrid();

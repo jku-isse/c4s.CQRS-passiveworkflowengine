@@ -6,6 +6,7 @@ import artifactapi.ResourceLink;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
         value= "./styles/dialog-overlay.css",
         themeFor = "vaadin-dialog-overlay"
 )
-public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { //FIXME: ugly, find better class to use rather than just Object
+public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { 
 
     /**
 	 * 
@@ -113,34 +114,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
             }
         }).setHeader("Process Instance").setWidth("60%");
 
-        // Column "Info"
-//
-//        this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
-//            if (o instanceof ProcessInstance) {
-//                return infoDialog((ProcessInstance)o);
-//            } else if (o instanceof ProcessStep) {
-//                return infoDialog((ProcessStep)o);
-//            } else {
-//                return new Label("");
-//            }
-//        })).setWidth("5%").setFlexGrow(0);
-
-        // Column "Last Evaluated"
-
-//        this.addColumn(o -> {
-//            return "";
-////        	if (o instanceof ConstraintWrapper) {
-////                ConstraintWrapper rebc = (ConstraintWrapper) o;
-////                try {
-////                    return formatter.format(rebc.getLastChanged());
-////                } catch (DateTimeException e) {
-////                    return "not available";
-////                }
-////            } else {
-////                return "";
-////            }
-//        }).setHeader("Last Evaluated");
-
         // Column "Last Changed"
 
         this.addColumn(o -> {
@@ -154,7 +127,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
             } else {
                 return "";
             }
-        }).setHeader("Last Changed");
+        }).setHeader("Last Changed").setWidth("15%").setFlexGrow(0);
 
         // Column status
 
@@ -194,13 +167,17 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
                 }
 
                 icon.getStyle().set("cursor", "pointer");
-                
+               // getTestDialog(wfi, icon);
                 icon.getElement().setProperty("title", "Workflow Lifecycle State: "+wfi.getActualLifecycleState());
                 return icon;
             } else {
-                return new Label("");
+//                Icon icon = new Icon(VaadinIcon.ASTERISK);
+//                icon.getStyle().set("cursor", "pointer");
+//                getTestDialog(o, icon);
+//                return icon;
+            		return new Label("");
             }
-        })).setClassNameGenerator(x -> "column-center").setHeader("State").setWidth("5%").setFlexGrow(0);
+        })).setClassNameGenerator(x -> "column-center").setHeader("State").setWidth("10%").setFlexGrow(0);
 
         // Column "Unsatisfied" or "Fulfilled"
 
@@ -238,6 +215,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         }
         return icon;
     }
+    
+
 
     private Component infoDialog(ProcessInstance wfi) {
         VerticalLayout l = new VerticalLayout();
@@ -248,19 +227,11 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         H3 h3 = new H3(wfi.getName());
         h3.setClassName("info-header");
         l.add(h3);
-//        if (wfi.getPropertiesReadOnly().size() > 0) {
-//            H4 h4 = new H4("Properties");
-//            h4.setClassName("const-margin");
-//            l.add(h4);
-//            UnorderedList list = new UnorderedList();
-//            for (Map.Entry<String, String> e : wfi.getPropertiesReadOnly()) {
-//                list.add(new ListItem(e.getKey() + ": " + e.getValue()));
-//            }
-//            l.add(list);
-//        }
+
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
         if (wfi.getActualLifecycleState() != null)
             l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
+       
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
         
@@ -268,8 +239,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         delIcon.setColor("red");
         delIcon.getStyle().set("cursor", "pointer");
         delIcon.addClickListener(e -> {
-            reqDel.deleteProcessInstance(wfi.getName());
-        	//reqDel.apply(new DeleteCmd(wfi.getId()).setParentCauseRef(wfi.getId()));
+            if (reqDel != null)
+            	reqDel.deleteProcessInstance(wfi.getName());
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
@@ -308,6 +279,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
             l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
         augmentWithConditions(wft, l);
         infoDialogInputOutput(l,  wft);
+        
         Dialog dialog = new Dialog();
         dialog.setMaxHeight("80%");
         dialog.setWidth("80%");
@@ -329,8 +301,47 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
     private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
     	for (Conditions cond : Conditions.values()) {
     		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
-    			l.add(new H5(cond.toString()+":"));
+    			
+    			HorizontalLayout line = new HorizontalLayout();
+    			line.add(new H5(cond.toString()+":"));
+    			// now fetch rule instance and check if fulfilled, if not, show repair tree:
+    			Icon icon;
+    			Optional<ConsistencyRule> crOpt = pStep.getConditionStatus(cond);
+    			if (crOpt.isPresent()) {
+    				if (crOpt.get().isConsistent()) {
+    					icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+    					icon.setColor("green");
+    				} else {
+    					icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
+    					icon.setColor("red");
+    				}
+    			} else {
+    				icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+    				icon.setColor("grey");
+    			}
+    			line.add(new H5(icon));	
+    			l.add(line);
     			l.add(new Paragraph(arl));
+    			
+    			if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
+//    				HorizontalLayout h = new HorizontalLayout();
+//    				h.setWidthFull();
+//    				h.setMargin(false);
+//    				h.setPadding(false);
+    				RepairNode repairTree = RuleService.repairTree(crOpt.get());
+    				RepairTreeGrid rtg = new RepairTreeGrid();
+    				rtg.initTreeGrid();
+    				rtg.updateConditionTreeGrid(repairTree);
+    				rtg.setHeightByRows(true);
+//    				h.setClassName("const-margin");
+//    				h.setWidthFull();
+//    				h.add(rtg);
+    				//Details details = new Details("Repair Instructions", rtg);
+    				//details.setOpened(true);
+    				//rtg.setClassName("width80");
+
+    				l.add(rtg);
+    			} 
     			
     		});
     	}
@@ -376,21 +387,22 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
     }
 
     private void infoDialogInputOutput(VerticalLayout l, ProcessStep wft) {
-        H4 h4 = new H4("Inputs");
-        inOut(l, h4, expectedInOut(wft, wft.getDefinition().getExpectedInput(), true));
+        H5 h5 = new H5("Inputs");
+        inOut(l, h5, expectedInOut(wft, wft.getDefinition().getExpectedInput(), true));
 
-        H4 h41 = new H4("Outputs");
-        inOut(l, h41, expectedInOut(wft, wft.getDefinition().getExpectedOutput(), false));
+        H5 h51 = new H5("Outputs");
+        inOut(l, h51, expectedInOut(wft, wft.getDefinition().getExpectedOutput(), false));
     }
 
-    private void inOut(VerticalLayout l, H4 h41, Component expectedInOut) {
-        h41.setClassName("const-margin");
+    private void inOut(VerticalLayout l, H5 h41, Component expectedInOut) {
+        //h41.setClassName("const-margin");
         l.add(h41);
-        VerticalLayout outLayout = new VerticalLayout();
-        outLayout.setClassName("card-border");
-        outLayout.add(new H5("Expected"));
-        outLayout.add(expectedInOut);
-        l.add(outLayout);
+        //VerticalLayout outLayout = new VerticalLayout();
+        //outLayout.setClassName("card-border");
+        //outLayout.add(new H5("Expected"));
+        //outLayout.add(expectedInOut);
+        //l.add(outLayout);
+        l.add(expectedInOut);
     }
 
     private Component expectedInOut(ProcessStep wft, Map<String, InstanceType> io, boolean isIn) {
@@ -404,7 +416,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
                 Set<Instance> artifactList = isIn ? wft.getInput(entry.getKey()) : wft.getOutput(entry.getKey());
                 if (artifactList.size() == 1) {
                     Instance a = artifactList.iterator().next();
-                    line.add(tryToConvertToResourceLink(a));
+                    line.add(ComponentUtils.convertToResourceLinkWithBlankTarget(a));
                     // ADDING/DELETING NOT SUPPORTED CURRENTLY
                    // line.add(deleteInOut(wft, isIn, entry, a));
                     line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
@@ -416,7 +428,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
                     for (Instance a : artifactList) {
                         HorizontalLayout nestedLine = new HorizontalLayout();
                         nestedLine.setClassName("line");
-                        nestedLine.add(new ListItem(tryToConvertToResourceLink(a)));
+                        nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
                       //  nestedLine.add(deleteInOut(wft, isIn, entry, a));
                         nestedList.add(nestedLine);
                     }
@@ -454,24 +466,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         return icon;
     }
 
-    private Component tryToConvertToResourceLink(Instance artifact) {
-        // for now only jira and jama artifacts have a web resource
-       // if (artifact instanceof IJamaArtifact || artifact instanceof IJiraArtifact) {
-    	if (artifact.hasProperty("html_url")) {
-    		Anchor a = new Anchor(artifact.getPropertyAsValue("html_url").toString(), artifact.name());
-    		a.setTarget("_blank");
-    		return a;
-    	} else {
-    		Paragraph p = new Paragraph(artifact.getInstanceType().name()+":"+artifact.name());
-    		p.setClassName("bold");
-    		return p;
-    	}
-    }
-
     private Component infoDialog(ConstraintWrapper rebc) {
-        VerticalLayout l = new VerticalLayout();
+    	VerticalLayout l = new VerticalLayout();
+        //l.setWidthFull();
         l.setClassName("scrollable");
-
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
@@ -479,71 +477,28 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         h3.setClassName("info-header");
         l.add(h3);
 
-        l.add(h3);
         l.add(new H4(rebc.getQaSpec().getHumanReadableDescription()));
-        l.add(new H5(rebc.getQaSpec().getQaConstraintSpec()));
+        l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         
         if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
-        	HorizontalLayout h = new HorizontalLayout();
-        	h.setWidthFull();
-        	h.setMargin(false);
-        	h.setPadding(false);
+//        	HorizontalLayout h = new HorizontalLayout();
+//        	h.setWidthFull();
+//        	h.setMargin(false);
+//        	h.setPadding(false);
         	RepairNode repairTree = RuleService.repairTree(rebc.getCr());
     		RepairTreeGrid rtg = new RepairTreeGrid();
             rtg.initTreeGrid();
-            rtg.updateTreeGrid(repairTree);
-            h.add(rtg);
-            l.add(h);
+            rtg.updateQAConstraintTreeGrid(repairTree);
+            rtg.setHeightByRows(true);
+//            h.setClassName("const-margin");
+//            h.add(rtg);
+            
+            l.add(rtg);
         }
         
-        
-        // Unsatisfied resources
-//        List<Anchor> unsatisfiedLinks = new ArrayList<>();
-//TODO: replace with repair list
-        //        for (ResourceLink rl : rebc.getUnsatisfiedForReadOnly()) {
-//            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
-//            a.setTarget("_blank");
-//            unsatisfiedLinks.add(a);
-//        }
-//        if (unsatisfiedLinks.size() > 0) {
-//            l.add(new H5("Unsatisfied by:"));
-//            for (Anchor a : unsatisfiedLinks) {
-//                HorizontalLayout h = new HorizontalLayout();
-//                h.setWidthFull();
-//                h.setMargin(false);
-//                h.setPadding(false);
-//                Icon icon = new Icon(VaadinIcon.CLOSE_CIRCLE_O);
-//                icon.setColor("red");
-//                h.add(icon, a);
-//                l.add(h);
-//            }
-//        }
-        // Fulfilled resources
-        //TODO: any way to obtain fulfilling instances? Not possible with current InconsistencyRule beyond the context of the rule
-//        List<Anchor> fulfilledLinks = new ArrayList<>();
-//        for (ResourceLink rl : rebc.getFulfilledForReadOnly()) {
-//            Anchor a = new Anchor(rl.getHref(), rl.getTitle());
-//            a.setTarget("_blank");
-//            fulfilledLinks.add(a);
-//        }
-//        if (fulfilledLinks.size() > 0) {
-//            l.add(new H5("Fulfilled by:"));
-//            for (Anchor a : fulfilledLinks) {
-//                HorizontalLayout h = new HorizontalLayout();
-//                h.setWidthFull();
-//                h.setMargin(false);
-//                h.setPadding(false);
-//                Icon icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
-//                icon.setColor("green");
-//                h.add(icon, a);
-//                l.add(h);
-//            }
-//        }
-
         Dialog dialog = new Dialog();
-        
+        dialog.setWidth("80%");
         dialog.setMaxHeight("80%");
-        dialog.setMaxWidth("80%");
 
         Icon icon;
         if (rebc.getCr() == null) {
@@ -571,6 +526,51 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { /
         dialog.add(l);
         return icon;
     }
+    
+//    private Component getTestDialog(ProcessInstanceScopedElement step, Icon icon) {
+//    	VerticalLayout l = new VerticalLayout();
+//        //l.setWidthFull();
+//        l.setClassName("scrollable");
+//        Paragraph p = new Paragraph("Test:");
+//        p.setClassName("info-header");
+//        l.add(p);
+//        H3 h3 = new H3(step.getName());
+//        h3.setClassName("info-header");
+//        l.add(h3);
+//        l.add(new H4(step.getId()));
+//        l.add(new H5(step.getInstance().getInstanceType().toString()));
+//        
+////        if (step instanceof ConstraintWrapper) {
+////        	ConstraintWrapper rebc = (ConstraintWrapper)step;
+////        	 if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
+//////             	HorizontalLayout h = new HorizontalLayout();
+//////             	h.setWidthFull();
+//////             	h.setMargin(false);
+//////             	h.setPadding(false);
+////             	RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+////         		RepairTreeGrid rtg = new RepairTreeGrid();
+////                 rtg.initTreeGrid();
+////                 rtg.updateQAConstraintTreeGrid(repairTree);
+//////                 h.setClassName("const-margin");
+//////                 h.add(rtg);
+////                 
+////                 l.add(rtg);
+////             }
+////        }
+//        
+//        
+//        Dialog dialog = new Dialog();
+//        dialog.setWidth("80%");
+//        dialog.setMaxHeight("80%");
+//        
+//        icon.addClickListener(e -> dialog.open());
+//        dialog.add(l);
+//
+//        return icon;
+//    }
+    
+    
+    
 
     public void setFilters(Map<String, String> filter, String name) {
         propertiesFilter = filter;

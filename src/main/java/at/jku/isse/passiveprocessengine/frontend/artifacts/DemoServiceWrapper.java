@@ -113,7 +113,9 @@ public class DemoServiceWrapper implements IArtifactProvider{
 					break;
 				}
 				log.debug("Updating: "+inst.name());
+				ws.concludeTransaction();
 				ws.commit();
+				
 			}
 		}
     	
