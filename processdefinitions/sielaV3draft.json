@@ -1,0 +1,212 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "story": "git_issue"
+      },
+      "output": {
+        "cscSubtask": "git_issue",
+        "sucSubtask": "git_issue",
+        "mmfSubtask": "git_issue"
+      },
+      "ioMapping": {
+        "OutputRefFromInput": "self.out_mmfSubtask\n-\u003eforAll(out | self.in_story\n           -\u003easList()\n           -\u003efirst()\n           -\u003easType(\u003croot/types/git_issue\u003e)\n           .linkedIssues\n           -\u003eexists(ref | ref \u003d out))\nand\nself.out_sucSubtask\n-\u003eforAll(out2 | self.in_story\n           -\u003easList()\n           -\u003efirst()\n           -\u003easType(\u003croot/types/git_issue\u003e)\n           .linkedIssues\n           -\u003eexists(ref2 | ref2 \u003d out2))\nand\nself.out_cscSubtask\n-\u003eforAll(out3 | self.in_story\n           -\u003easList()\n           -\u003efirst()\n           -\u003easType(\u003croot/types/git_issue\u003e)\n           .linkedIssues\n           -\u003eexists(ref3 | ref3 \u003d out3))",
+        "Story2MMF": "self.in_story-\u003eany()\n  -\u003easType(\u003croot/types/git_issue\u003e)\n     .linkedIssues\n-\u003eselect( ref | ref.title.substring(1,16).equalsIgnoreCase(\u0027WriteOrReviseMMF\u0027))\n -\u003eforAll( child |  self.out_mmfSubtask-\u003eexists(art | child.asType(\u003croot/types/git_issue\u003e)  \u003d art))"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_mmfSubtask-\u003esize() \u003d 1 and self.out_sucSubtask-\u003esize() \u003d 1 and self.out_cscSubtask-\u003esize() \u003d 1",
+        "PRECONDITION": "self.in_story-\u003esize() \u003d 1 and self.in_story-\u003eany() -\u003easType(\u003croot/types/git_issue\u003e).labels-\u003eincludes(\u0027Story\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_story-\u003eany()-\u003easType(\u003croot/types/git_issue\u003e).linkedIssues-\u003eselect( ref | ref.labels-\u003eincludes(\u0027CR\u0027)) -\u003esize() \u003e\u003d 1",
+          "_type": "QAConstraint",
+          "code": "ProcessTraceToSR",
+          "description": "Each Process (story) must trace to at least one Stakeholder Request (SR)"
+        }
+      ],
+      "_type": "Step",
+      "code": "PrepareProcess"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "mmfSubtask": "git_issue"
+      },
+      "output": {
+        "buc": "git_issue",
+        "mmf": "git_issue"
+      },
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [
+        {
+          "arlRule": "self.name \u003c\u003e \"\"",
+          "_type": "QAConstraint",
+          "code": "SRtraceToBUC",
+          "description": "Each SR linked via an MMF must trace to at least one  Business Use Case (BUC)."
+        },
+        {
+          "arlRule": "self.name \u003c\u003e \"\"",
+          "_type": "QAConstraint",
+          "code": "MMFtraceToSR",
+          "description": "Each linked MMF must trace to at least one Stakeholder Request (SR)."
+        },
+        {
+          "arlRule": "self.name \u003c\u003e \"\"",
+          "_type": "QAConstraint",
+          "code": "MMFtraceToBUC",
+          "description": "Each linked MMF must trace to at least one Business Use Case (BUC)."
+        }
+      ],
+      "_type": "Step",
+      "code": "WriteOrReviseMMF"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "4",
+      "input": {
+        "sucSubtask": "git_issue"
+      },
+      "output": {
+        "suc": "git_issue"
+      },
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [
+        {
+          "arlRule": "self.name \u003c\u003e \"\"",
+          "_type": "QAConstraint",
+          "code": "SUCtraceToSUCorBUC",
+          "description": "Each SUC must trace to at least one (parent) System Use Case (SUC) or a Business Use Case (BUC)"
+        }
+      ],
+      "_type": "Step",
+      "code": "RefineToSuc"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "1",
+      "input": {
+        "cscSubtask": "git_issue"
+      },
+      "output": {
+        "csc": "git_issue"
+      },
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [
+        {
+          "arlRule": "self.name \u003c\u003e \"\"",
+          "_type": "QAConstraint",
+          "code": "CSCtraceToSUC",
+          "description": "Each CSC must trace to at least one System Use Case (SUC)."
+        }
+      ],
+      "_type": "Step",
+      "code": "CreateOrRefineCSC"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SIELAv3draft",
+          "fromParam": "story",
+          "toStep": "PrepareProcess",
+          "toParam": "story"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CreateOrRefineCSC",
+          "fromParam": "csc",
+          "toStep": "SIELAv3draft",
+          "toParam": "csc"
+        },
+        {
+          "fromStep": "WriteOrReviseMMF",
+          "fromParam": "buc",
+          "toStep": "SIELAv3draft",
+          "toParam": "buc"
+        },
+        {
+          "fromStep": "WriteOrReviseMMF",
+          "fromParam": "mmf",
+          "toStep": "SIELAv3draft",
+          "toParam": "mmf"
+        },
+        {
+          "fromStep": "RefineToSuc",
+          "fromParam": "suc",
+          "toStep": "SIELAv3draft",
+          "toParam": "suc"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "mmfSubtask",
+          "toStep": "WriteOrReviseMMF",
+          "toParam": "mmfSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "sucSubtask",
+          "toStep": "RefineToSuc",
+          "toParam": "sucSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "cscSubtask",
+          "toStep": "CreateOrRefineCSC",
+          "toParam": "cscSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "4"
+    }
+  ],
+  "input": {
+    "story": "git_issue"
+  },
+  "output": {
+    "suc": "git_issue",
+    "buc": "git_issue",
+    "csc": "git_issue",
+    "mmf": "git_issue"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "_type": "Process",
+  "code": "SIELAv3draft"
+}

@@ -529,6 +529,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                     }
                 } catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                     log.error("CommandExecutionException: " + e.getMessage());
+                    e.printStackTrace();
                     Notification.show("Creation failed! \r\n"+e.getMessage());
                 }
             }

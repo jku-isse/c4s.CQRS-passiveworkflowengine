@@ -193,7 +193,7 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         		else {
         			
         			try {
-						Map<Instance, Boolean> evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
+						Map<Instance, String> evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
 															comboBox.getValue(),
 															""+counter.getAndIncrement(), 
 															arlArea.getValue());

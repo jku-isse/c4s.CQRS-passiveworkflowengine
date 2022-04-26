@@ -1,10 +1,12 @@
 package at.jku.isse.passiveprocessengine.frontend;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.LazyLoadingListener;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
@@ -46,6 +49,7 @@ public class RequestDelegate {
 	@Autowired IFrontendPusher frontend;
 	
 	ProcessInstanceChangeProcessor picp;
+	
 	Map<String, ProcessInstance> pInstances = new HashMap<>();
 	
 	boolean isInitialized = false;
@@ -102,16 +106,41 @@ public class RequestDelegate {
 			.map(entry -> pInst.addInput(entry.getKey(), entry.getValue()))
 			.filter(resp -> resp.getError() != null)
 			.collect(Collectors.toList());
-		ws.commit();
+		//ws.commit();
+		
 		if (errResp.isEmpty()) {
 			pInstances.put(pInst.getName(), pInst);
-			frontend.update(pInst);
+			ws.concludeTransaction();
+			//ws.commit();
+			//fetchLazyLoaded();
+			//frontend.update(pInst);
 		} else {
+			pInst.deleteCascading();
+			ws.concludeTransaction();
 			ProcessException ex = new ProcessException("Unable to instantiate process");
 			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
 			throw ex;
 		}
 	}
+	
+//	private void fetchLazyLoaded() {
+//		Set<ArtifactIdentifier> ais = lazyLoader.getLazyLoadedAndReset();
+//		while (!ais.isEmpty()) {
+//			ais.stream()
+//			.forEach(artId -> {
+//				try {
+//					log.debug("Trying to fetch lazyloaded artifact: "+artId.toString());
+//					Instance inst =  resolver.get(artId);
+//				} catch (ProcessException e) {
+//					log.warn("Could not fetch lazyloaded artifact: "+artId.toString()+" due to: "+e.getMessage());
+//				}
+//			});
+//			//ws.concludeTransaction();
+//			//ws.commit();
+//			ais = lazyLoader.getLazyLoadedAndReset();
+//		}
+//		
+//	}
 	
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {
 		if (!isInitialized) initialize();
@@ -135,8 +164,11 @@ public class RequestDelegate {
 		}
 		if (pex.getErrorMessages().size() > 0)
 			throw pex;
-		else
+		else {
 			ws.concludeTransaction();
+			//ws.commit();
+			//fetchLazyLoaded();
+		}
 	}
 	
 	public void addInput(String procId, String stepId, String param, String artId, String artType) throws ProcessException {
@@ -161,11 +193,15 @@ public class RequestDelegate {
 
 	public void initialize() {
 		Tool tool = new Tool("PPEv3", "v1.0");
-		ws = WorkspaceService.createWorkspace("PPEv3", WorkspaceService.PUBLIC_WORKSPACE, WorkspaceService.ANY_USER, tool, true, false);
+		//ws = WorkspaceService.createWorkspace("PPEv3", WorkspaceService.PUBLIC_WORKSPACE, WorkspaceService.ANY_USER, tool, true, false);
+		ws = WorkspaceService.PUBLIC_WORKSPACE;
 		resolver.inject(ws);
 		procReg.inject(ws);
 		RuleService.setEvaluator(new ArlRuleEvaluator());
-		picp = new ProcessInstanceChangeProcessor(ws);
+		RuleService.currentWorkspace = ws;
+		//lazyLoader = new LazyLoadingListener(ws, resolver);
+		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver);
+		
 		isInitialized = true;
 	}
 }

@@ -8,6 +8,7 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.ListProperty;
 import at.jku.isse.designspace.core.model.MapProperty;
 import at.jku.isse.designspace.core.model.Property;
+import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
@@ -163,7 +164,11 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         		layout.add(
         			instanceAsList((Instance) el)
         			);
-        	}
+        	} else if (el instanceof InstanceType) {
+        		layout.add(
+            			instanceAsList((InstanceType) el)
+            			);
+            	}
         }
         return layout;
     }
@@ -173,9 +178,18 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     	grid.setColumnReorderingAllowed(false);
     	Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setResizable(true).setSortable(true);
     	Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
-    	List<Property> content = inst.getProperties().stream().filter(prop -> !prop.name.startsWith("@")).sorted(new PropertyComparator()).collect(Collectors.toList()) ;
+    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
     	grid.setItems(content);
-    	//grid.setItems(inst.getProperties());
+    	return grid;
+    }
+    
+    private Component instanceAsList(InstanceType inst) {
+    	Grid<Property> grid = new Grid<Property>();
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setResizable(true).setSortable(true);
+    	Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
+    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
+    	grid.setItems(content);
     	return grid;
     }
     
@@ -210,8 +224,14 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     	if (value instanceof Instance) {
     		Instance inst = (Instance)value;
     		return new Paragraph(new Anchor("/instance/show?id="+inst.id(), inst.name()));
-    	} else
-    		return new Paragraph( value != null ? value.toString() : "null");
+    	} else if (value instanceof InstanceType) {
+        		InstanceType inst = (InstanceType)value;
+        		return new Paragraph(new Anchor("/instance/show?id="+inst.id(), inst.name()));
+        } else if (value instanceof PropertyType) {
+        	PropertyType pt = (PropertyType)value;
+        	return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.name(), pt.cardinality(), pt.referencedInstanceType()));
+        } else
+    	return new Paragraph( value != null ? value.toString() : "null");
     }
     
     private static Component collectionValueToComponent(Collection value) {

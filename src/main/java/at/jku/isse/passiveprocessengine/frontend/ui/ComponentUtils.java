@@ -9,7 +9,7 @@ public class ComponentUtils {
 
 	public static Anchor convertToResourceLinkWithBlankTarget(Instance artifact) {
 		Anchor a;
-		if (artifact.hasProperty("html_url")) {
+		if (artifact.hasProperty("html_url") && artifact.getPropertyAsValue("html_url") != null) {
 			a = new Anchor(artifact.getPropertyAsValue("html_url").toString(), artifact.name());
 		} else {
 			a = new Anchor("/instance/show?id="+artifact.id(), artifact.name());

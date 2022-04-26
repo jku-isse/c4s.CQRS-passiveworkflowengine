@@ -1,0 +1,68 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="af5vpGPJ~:a@S=)?sT}F">procspec</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id=",yI@Ag_BcI}g-b]ae@ia" x="113" y="62">
+    <mutation>
+      <arg name="procspec" varid="af5vpGPJ~:a@S=)?sT}F"></arg>
+    </mutation>
+    <field name="NAME">MetaModelingProcess</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="xzhca)J/5qZb4lY44j%B">
+        <field name="VAR" id="af5vpGPJ~:a@S=)?sT}F">procspec</field>
+        <value name="VALUE">
+          <block type="artifact" id="9ZFCKb?_W5YG2_f4a^4B">
+            <field name="Type">IJiraArtifact</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="dQQg+49fM1BH/[dY%b#^">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="^:JwjBy#vsV]a:w@NJxp">
+                <field name="VAR" id="af5vpGPJ~:a@S=)?sT}F">procspec</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id="Ur8$3}/[pd%DQfsJq.7l">
+                <field name="StepId">InitProcess</field>
+                <statement name="Input">
+                  <block type="artuse" id="kW{Ty^v6)$dr/9nm;#mj">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="?W+e0WE*wVabCF9si^+$">
+                        <field name="VAR" id="af5vpGPJ~:a@S=)?sT}F">procspec</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="!n]UMLoBOUQoJm5P;*0u">
+                    <field name="qacheckId">HasSteps</field>
+                    <field name="description">At least one step</field>
+                    <value name="constraint">
+                      <block type="text" id="?$gzu.a;p3_-@kDbfil5">
+                        <field name="TEXT">self.in_procspec-&gt;any().stepDefinitions-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="qacheck" id="m!?.9+SgC~DuKoLi$9ys" x="263" y="437">
+    <field name="qacheckId">AllInput</field>
+    <field name="description">All steps have at least one input definition</field>
+    <comment pinned="true" h="70" w="256">Does not work as MAPs are not supported in ARL yet.</comment>
+    <value name="constraint">
+      <block type="text" id="EV831afQst/*fcH+{v6Z">
+        <field name="TEXT">self.in_procspec-&gt;any().stepDefinitions-&gt;forAll(sd | not sd.expectedInput-&gt;isEmpty())</field>
+      </block>
+    </value>
+  </block>
+</xml>

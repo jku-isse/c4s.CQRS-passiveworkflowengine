@@ -17,7 +17,7 @@ public class ARLPlaygroundEvaluator {
 
 	private static Workspace playground = null;
 	
-	public static Map<Instance, Boolean> evaluateRule(Workspace ws, InstanceType type, String id, String arlString) throws ProcessException {
+	public static Map<Instance, String> evaluateRule(Workspace ws, InstanceType type, String id, String arlString) throws ProcessException {
 		assert(ws != null);
 		initPlayground(ws);
 		ProcessException pex = new ProcessException("Errors while evaluating: "+arlString);
@@ -36,9 +36,14 @@ public class ARLPlaygroundEvaluator {
 				throw pex;
 			}
 			// now evaluate on instances:
-			Map<Instance, Boolean> result = new HashMap<Instance, Boolean>();
+			Map<Instance, String> result = new HashMap<Instance, String>();
 			crt.ruleEvaluations().get().stream()
-					.forEach(rule -> result.put(((Rule)rule).contextInstance(), ((Rule)rule).result()));
+					.forEach(rule -> { 
+							Rule r = (Rule)rule;
+							Instance ctx = r.contextInstance();
+							String res = r.hasEvaluationError() ? r.evaluationError() : ""+r.result();
+							result.put( ctx, res); 
+							});
 			return result;
 		} catch (Exception e) {
 			if (!(e instanceof ProcessException))  

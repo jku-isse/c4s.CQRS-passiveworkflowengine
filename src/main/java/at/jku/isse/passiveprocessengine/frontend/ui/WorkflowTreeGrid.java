@@ -28,6 +28,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -253,7 +254,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         boolean unsatisfied = wfi.getProcessSteps().stream()
                 .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
         boolean fulfilled = wfi.getProcessSteps().stream()
-                .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
+                .anyMatch(wft -> wft.areQAconstraintsFulfilled());
        
         Icon icon = getIcon(unsatisfied, fulfilled);
         icon.getStyle().set("cursor", "pointer");
@@ -354,33 +355,35 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         TextField id = new TextField();
         id.setPlaceholder("Artifact ID");
 
-        Button submit = new Button(title, evt -> {
-            try {
-				if (wft instanceof ProcessStep) {
-				    if (isIn) {
-				        reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-				        Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
-				    } else {
-				        reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-				        Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
-				    }
-				    Notification.show("Success");
-				} else if (wft instanceof ProcessInstance) {
-				    if (isIn) {
-				    	reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
-				        Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
-				    } else {
-				    	 reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
-				        Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
-				    }
-				    Notification.show("Success");
-				}
-			} catch (ProcessException e) {
-				Notification.show(e.getMessage());
-			}
-        });
+        if (reqDel != null) {
+        	Button submit = new Button(title, evt -> {
+        		try {
+        			if (wft instanceof ProcessStep) {
+        				if (isIn) {
+        					reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
+        				} else {
+        					reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
+        				}
+        				Notification.show("Success");
+        			} else if (wft instanceof ProcessInstance) {
+        				if (isIn) {
+        					reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
+        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
+        				} else {
+        					reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
+        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
+        				}
+        				Notification.show("Success");
+        			}
+        		} catch (ProcessException e) {
+        			Notification.show(e.getMessage());
+        		}
+        	});
 
-        hLayout.add(id, submit);
+        	hLayout.add(id, submit);
+        }
         Details details = new Details(title, hLayout);
         details.addThemeVariants(DetailsVariant.SMALL);
         return details;
@@ -485,15 +488,24 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        	h.setWidthFull();
 //        	h.setMargin(false);
 //        	h.setPadding(false);
-        	RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-    		RepairTreeGrid rtg = new RepairTreeGrid();
-            rtg.initTreeGrid();
-            rtg.updateQAConstraintTreeGrid(repairTree);
-            rtg.setHeightByRows(true);
-//            h.setClassName("const-margin");
-//            h.add(rtg);
-            
-            l.add(rtg);
+        	try {
+        		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+        		RepairTreeGrid rtg = new RepairTreeGrid();
+        		rtg.initTreeGrid();
+        		rtg.updateQAConstraintTreeGrid(repairTree);
+        		rtg.setHeightByRows(true);
+        		//            h.setClassName("const-margin");
+        		//            h.add(rtg);
+
+        		l.add(rtg); 
+            } catch(Exception e) {
+            	TextArea resultArea = new TextArea();
+            	resultArea.setWidthFull();
+            	resultArea.setMinHeight("100px");
+            	resultArea.setLabel("Error evaluating Repairtree");
+            	resultArea.setValue(e.toString());
+            	l.add(resultArea);
+        	}
         }
         
         Dialog dialog = new Dialog();

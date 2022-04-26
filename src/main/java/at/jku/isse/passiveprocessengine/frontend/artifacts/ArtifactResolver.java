@@ -37,7 +37,7 @@ public class ArtifactResolver {
 		if (optConn.isPresent()) {
 			ServiceResponse resp = optConn.get().getServiceResponse(artId.getId(), artId.getType());
 			if (resp.getKind() == ServiceResponse.SUCCESS) {
-				ws.update();
+				//ws.update();
 				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));
 				if (el == null) {
 					String msg = String.format("Able to resolve artifact %s %s but unable to find element by id %s in process engine workspace", artId.getId(), artId.getType(), resp.getInstanceId());

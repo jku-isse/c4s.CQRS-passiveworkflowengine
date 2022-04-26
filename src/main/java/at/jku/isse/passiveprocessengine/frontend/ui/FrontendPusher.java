@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 public class FrontendPusher implements IFrontendPusher {
 
-    private Map<Integer, MainViewState> views;
+    private Map<Integer, MainViewState> views = new HashMap<>();
 
     private Instant lastUpdate = Instant.now();
     private HashMap<String,ProcessInstance> processes = new HashMap<>();
@@ -26,8 +26,6 @@ public class FrontendPusher implements IFrontendPusher {
 
     @Override
     public void add(int id, UI ui, MainView view) {
-        if (views == null)
-            views = new HashMap<>();
         views.put(id, new MainViewState(ui, view));
     }
 
@@ -76,6 +74,7 @@ public class FrontendPusher implements IFrontendPusher {
 
 	@Override
 	public void update(Collection<ProcessInstance> wfis) {
+		if (wfis.isEmpty()) return;
 		wfis.forEach(wfi -> processes.put(wfi.getName(), wfi));
         for (MainViewState state : views.values()) {
             UI ui = state.getUi();
