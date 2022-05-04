@@ -1,0 +1,54 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "story": "git_issue"
+      },
+      "output": {
+        "mmfSubtask": "git_issue"
+      },
+      "ioMapping": {
+        "Story2MMF": "self.in_story-\u003eany()\n  -\u003easType(\u003croot/types/git_issue\u003e)\n     .linkedIssues\n-\u003eselect( ref | ref.title.substring(1,16).equalsIgnoreCase(\u0027WriteOrReviseMMF\u0027))\n -\u003easSet()\n-\u003esymmetricDifference(self.out_mmfSubtask)\n-\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_mmfSubtask-\u003esize() \u003d 1",
+        "PRECONDITION": "self.in_story-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [],
+      "_type": "Step",
+      "code": "PrepareProcess"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SymDiffTest",
+          "fromParam": "story",
+          "toStep": "PrepareProcess",
+          "toParam": "story"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "input": {
+    "story": "git_issue"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "_type": "Process",
+  "code": "SymDiffTest"
+}
