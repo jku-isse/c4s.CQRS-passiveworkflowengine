@@ -9,6 +9,7 @@ import at.jku.isse.designspace.git.connector.GitService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.AzureServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.GitServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
@@ -69,8 +70,9 @@ public class FrontendSpringConfig {
 	}
 
 	@Bean
-	public ArtifactResolver getArtifactResolver(GitServiceWrapper github, DemoServiceWrapper demo, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(AzureServiceWrapper azure, GitServiceWrapper github, DemoServiceWrapper demo, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
+		ar.register(azure);
 		ar.register(github);
 		ar.register(demo);
 		return ar;

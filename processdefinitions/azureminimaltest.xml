@@ -1,0 +1,97 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="Kxry/z:M|%j6*1#i[y|Q">issue</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="koTRe2hH+1cxN+$G7vDA" x="88" y="38">
+    <field name="NAME">AzureTestProc</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=".Q=|@tXLg@{_JyW5+IkM">
+        <field name="VAR" id="Kxry/z:M|%j6*1#i[y|Q">issue</field>
+        <value name="VALUE">
+          <block type="artifact" id="cdQ/nYSW]?OTQ!gH-TYQ">
+            <field name="Type">azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="xTyX0O)Q3EzZz0zx~9wU">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="j#2YO?ca%iL={MT.5zz#">
+                <field name="VAR" id="Kxry/z:M|%j6*1#i[y|Q">issue</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",%Df#rxt+Ekf%ap-oxi0">
+                <field name="StepId">TestStep</field>
+                <statement name="Input">
+                  <block type="artuse" id="F}k+AgU/73Z9`[Pj]_+p">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="-{GWs5_0$^LNXAH~|stw">
+                        <field name="VAR" id="Kxry/z:M|%j6*1#i[y|Q">issue</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="K%$2`L~5g^DAr3b5OApY">
+                    <field name="State">PRECONDITION</field>
+                    <value name="condition">
+                      <block type="text" id=")WY}BuB_1Hu7)s6G|=5d">
+                        <field name="TEXT">self.in_issue-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="1xsg;!f^~iLe||xUVK*q">
+                        <field name="State">POSTCONDITION</field>
+                        <value name="condition">
+                          <block type="text" id="XbE.(#%%JkXy_BdO5IY,">
+                            <field name="TEXT">self.in_issue-&gt;forAll(issue | issue.state.name.equalsIgnoreCase('Released'))</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id=":C.oJn{b8Xosz8JLOwZ?">
+                    <field name="qacheckId">AssigneeNotNull</field>
+                    <field name="description">Ensure the assignee is set</field>
+                    <value name="constraint">
+                      <block type="text" id="GR5RcAyuh.lK!x|/3KMl">
+                        <field name="TEXT">self.in_issue-&gt;forAll(issue | issue.assignedTo &lt;&gt; null)</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="eUE(7}jl1Mc7fbO%[hSO">
+                        <field name="qacheckId">stateEqual</field>
+                        <field name="description">testViaEqual</field>
+                        <value name="constraint">
+                          <block type="text" id="WBWDr-kCQB`).VJ^ESQw">
+                            <field name="TEXT">self.in_issue-&gt;forAll(issue | issue.state.name = 'Released')</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="gG-i1u[aukn#e~{E(q3Z">
+                            <field name="qacheckId">stateReverseEqualIgnoreCase</field>
+                            <field name="description">testViaEqualIgnoreCase</field>
+                            <value name="constraint">
+                              <block type="text" id="oh@ef7+naBr|@Zc-/9K/">
+                                <field name="TEXT">self.in_issue-&gt;forAll(issue | 'Released'.equalsIgnoreCase(issue.state.name))</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

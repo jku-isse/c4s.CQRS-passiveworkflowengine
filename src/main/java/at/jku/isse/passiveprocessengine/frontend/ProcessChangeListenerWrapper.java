@@ -7,8 +7,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.events.Operation;
 import at.jku.isse.designspace.core.events.PropertyUpdateAdd;
@@ -16,7 +14,6 @@ import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.LazyLoadingListener;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
