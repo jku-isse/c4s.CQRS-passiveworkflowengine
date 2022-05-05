@@ -230,9 +230,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         l.add(h3);
 
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
-        if (wfi.getActualLifecycleState() != null)
+        if (wfi.getActualLifecycleState() != null) {
             l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
-       
+            l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));
+        }
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
         

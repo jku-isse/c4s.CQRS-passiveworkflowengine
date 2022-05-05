@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.azure.connector.model.AzureBaseElementType;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
@@ -34,10 +35,11 @@ class ConnectorTests {
 	
 	@Test
 	void testFetch() throws ProcessException {
-		Instance gitIssue = artRes.get(new ArtifactIdentifier("p2f.processguidance/issues/4", "git_issue"));
-		assert(gitIssue.name().equalsIgnoreCase("p2f.processguidance/issues/4"));
+//		Instance gitIssue = artRes.get(new ArtifactIdentifier("p2f.processguidance/issues/4", "git_issue"));
+//		assert(gitIssue.name().equalsIgnoreCase("p2f.processguidance/issues/4"));
 		Instance azureIssue = artRes.get(new ArtifactIdentifier("CEPS-1/23", "azure_workitem"));
 		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("CEPS-1/23"));
+		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 	}
 
 }
