@@ -1,15 +1,18 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
@@ -231,6 +234,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
+        if (commandGateway != null)
+        	accordion.add("Fetch Artifact", fetchArtifact(commandGateway.getArtifactResolver()));
+        
         accordion.add("Filter", filterTable(key, val, name));
     //    if (devMode) accordion.add("Backend Queries", backend());
         accordion.close();
@@ -556,6 +562,42 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 source,
                 importOrUpdateArtifactButton);
         return layout;
+    }
+    
+    private Component fetchArtifact(ArtifactResolver artRes) {
+    	VerticalLayout layout = new VerticalLayout();
+        Paragraph p1 = new Paragraph("Fetch Artifact:");
+        TextField artIdField = new TextField();
+    	ComboBox<String> comboBox = new ComboBox<>("Instance Type");
+    	List<String> instTypes = List.of("git_issue", "azure_workitem");
+    	comboBox.setItems(instTypes);
+    	//comboBox.setMinWidth("400px");
+    	
+    	Button importArtifactButton = new Button("Fetch", evt -> {
+            
+                try {
+                	if (comboBox.getOptionalValue().isEmpty())
+            			Notification.show("Make sure to select an Artifact Type!");
+                	else if (artIdField.getValue().length() < 1)
+                		Notification.show("Make sure to provide an identifier!");
+                	else {
+                		ArtifactIdentifier ai = new ArtifactIdentifier(artIdField.getValue().trim(), comboBox.getOptionalValue().get());
+                		Instance inst = artRes.get(ai);
+                		if (inst != null) {
+                			// redirect to new page:
+                			UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));
+                		}
+                	}
+                } catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+                    log.error("Artifact Fetching Exception: " + e.getMessage());
+                    e.printStackTrace();
+                    Notification.show("Fetching failed! \r\n"+e.getMessage());
+                }
+        });
+        importArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
+        layout.add(p1, comboBox, artIdField, importArtifactButton);
+        return layout;
+    
     }
 
     private VerticalLayout statePanel(boolean addHeader) {

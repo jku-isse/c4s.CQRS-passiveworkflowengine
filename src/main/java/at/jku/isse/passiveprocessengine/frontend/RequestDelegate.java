@@ -70,6 +70,11 @@ public class RequestDelegate {
 		return ws;
 	}
 	
+	public ArtifactResolver getArtifactResolver() {
+		if (!isInitialized) initialize();
+		return resolver;
+	}
+	
 	public void instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
 		if (!isInitialized) initialize();
 		

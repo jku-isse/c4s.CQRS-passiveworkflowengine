@@ -9,16 +9,21 @@ import at.jku.isse.designspace.core.model.ListProperty;
 import at.jku.isse.designspace.core.model.MapProperty;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
-import at.jku.isse.designspace.core.model.SingleProperty;import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
+import at.jku.isse.designspace.core.model.SingleProperty;
+import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.ui.ARLPlaygroundView.InstanceTypeComparator;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
@@ -136,7 +141,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     
     private Component content() {
        // Tab tab1 = new Tab("Current State");
-        VerticalLayout cur = statePanel(false);
+        VerticalLayout cur = statePanel();
         cur.setHeight("100%");
 
         Div pages = new Div(cur); //, snap, split
@@ -151,7 +156,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
   
 
 
-    private VerticalLayout statePanel(boolean addHeader) {
+    private VerticalLayout statePanel() {
         VerticalLayout layout = new VerticalLayout();
         layout.setClassName("big-text");
         layout.setMargin(false);
@@ -160,6 +165,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         layout.setFlexGrow(0);
         if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
         	Element el = commandGateway.getWorkspace().findElement(id);
+        	layout.add(new Paragraph(el.name()));
         	if (el instanceof Instance) {
         		layout.add(
         			instanceAsList((Instance) el)
@@ -172,6 +178,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         }
         return layout;
     }
+    
+    
     
     private Component instanceAsList(Instance inst) {
     	Grid<Property> grid = new Grid<Property>();

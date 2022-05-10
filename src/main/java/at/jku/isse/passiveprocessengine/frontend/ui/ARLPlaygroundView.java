@@ -188,8 +188,8 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         	button.addClickListener(clickEvent -> {
         		if (arlArea.getValue().length() < 5)
         			Notification.show("Make sure to enter a non-empty ARL rule!");
-        		if (comboBox.getOptionalValue().isEmpty())
-        			Notification.show("Make sure to select and Instance Type!");
+        		else if (comboBox.getOptionalValue().isEmpty())
+        			Notification.show("Make sure to select an Instance Type!");
         		else {
         			
         			try {
