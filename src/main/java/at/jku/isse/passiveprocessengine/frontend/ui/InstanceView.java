@@ -165,7 +165,10 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         layout.setFlexGrow(0);
         if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
         	Element el = commandGateway.getWorkspace().findElement(id);
-        	layout.add(new Paragraph(el.name()));
+        	Paragraph elName = new Paragraph(el.name());
+        	if (el.isDeleted) 
+        		elName.getStyle().set("background-color", "#ffbf00");
+        	layout.add(elName);
         	if (el instanceof Instance) {
         		layout.add(
         			instanceAsList((Instance) el)

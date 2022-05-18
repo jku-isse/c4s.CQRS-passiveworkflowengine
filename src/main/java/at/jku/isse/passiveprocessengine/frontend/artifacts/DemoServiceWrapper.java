@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
@@ -19,7 +20,6 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Tool;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts.JiraStates;
 import lombok.extern.slf4j.Slf4j;

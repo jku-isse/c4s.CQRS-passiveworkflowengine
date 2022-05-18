@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,6 +19,12 @@ import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.ConditionChangedCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.IOMappingConsistencyCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.OutputChangedCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.PrematureStepTriggerCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScopedCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.QAConstraintChangedCmd;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,7 +33,7 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	AtomicInteger counter = new AtomicInteger(0);
 	
 	Set<ProcessInstance> updatedInstances = Collections.synchronizedSet(new HashSet<>());
-	Set<ArtifactIdentifier> lazyLoaded = new HashSet<>();
+	Set<ArtifactIdentifier> lazyLoaded = Collections.synchronizedSet(new HashSet<>());
 	
 	IFrontendPusher uiUpdater;
 	//LazyLoadingListener lazyLoader;
@@ -47,9 +54,8 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		// get lazyloading
 		operations.stream()
 		 .map(operation -> {
-			Element element = ws.findElement(operation.elementId());
 			if (operation instanceof PropertyUpdateAdd) {
-				return processPropertyUpdateAdd((PropertyUpdateAdd) operation, element);
+				return processPropertyUpdateAdd((PropertyUpdateAdd) operation);
 			} else return null;
 		 })
 		 .filter(Objects::nonNull)
@@ -59,7 +65,7 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		 .forEach(ai -> lazyLoaded.add(ai));
 		
 		updatedInstances.addAll(super.handleUpdates(operations));
-		fetchLazyLoaded();
+		
 		int current = counter.decrementAndGet();
 		if (current == 0 && updatedInstances.size() > 0) {
 			//all cascading updates have settled, lets signal update to
@@ -67,30 +73,12 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 			updatedInstances.clear();
 		}
 	}
-
-	private void fetchLazyLoaded() {
-		Set<ArtifactIdentifier> ais = getLazyLoadedAndReset();
-		while (!ais.isEmpty()) {
-			ais.stream()
-			.forEach(artId -> {
-				try {
-					log.debug("Trying to fetch lazyloaded artifact: "+artId.toString());
-					Instance inst =  resolver.get(artId);
-				} catch (ProcessException e) {
-					log.warn("Could not fetch lazyloaded artifact: "+artId.toString()+" due to: "+e.getMessage());
-				}
-			});
-			//ws.concludeTransaction();
-			//ws.commit();
-			ais = getLazyLoadedAndReset();
-		}
-		
-	}
 	
-	private Instance processPropertyUpdateAdd(PropertyUpdateAdd op, Element element) {
+	private Instance processPropertyUpdateAdd(PropertyUpdateAdd op) {
 		if (op.name().endsWith("@rl_ruleScopes") ) {
 			//Id addedId = (Id) op.value();
 			//Element added = ws.findElement(addedId);
+			Element element = ws.findElement(op.elementId());
 			if (element instanceof Instance 
 					&& element.hasProperty("fullyFetched") 
 					&& ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", () -> false)) == false) {
@@ -100,15 +88,78 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		return null;
 	}
 	
+	@Override
+	protected void prepareQueueExecution(List<ProcessScopedCmd> mostRecentQueuedEffects) {
+		// check for each queued effect if it undos a previous one: e.g., a constraint fufillment now is unfulfilled, datamapping fulfilled is no unfulfilled
+		mostRecentQueuedEffects.stream().forEach(cmd -> {
+			if (cmd instanceof QAConstraintChangedCmd) {
+				QAConstraintChangedCmd qac = (QAConstraintChangedCmd) cmd;
+				String key = qac.getCrule().name()+qac.getStep().getName();
+//				if (cmdQueue.containsKey(key)) {
+//					QAConstraintChangedCmd qacOld = (QAConstraintChangedCmd)cmdQueue.remove(key); // this cmd now is the revers of the previous one.
+//					// just in case
+//					if (qacOld.isFulfilled() == qac.isFulfilled()) { // this should never be the case
+//						log.error("Duplicate ProcessScopedCmd encountered, reinserting in execution queue: "+cmd);
+//						cmdQueue.put(key, cmd);
+//					}
+//				} else
+					cmdQueue.put(key, cmd); //we override the last entry, executing a command again has no effect as we check for a change inside the processstep.
+			} else if (cmd instanceof ConditionChangedCmd) {
+				ConditionChangedCmd qac = (ConditionChangedCmd) cmd;
+				String key = qac.getCondition()+qac.getStep().getName();
+				cmdQueue.put(key, cmd);
+			} else if (cmd instanceof IOMappingConsistencyCmd) {
+				IOMappingConsistencyCmd qac = (IOMappingConsistencyCmd) cmd;
+				String key = qac.getCrule().name()+qac.getStep().getName();
+				cmdQueue.put(key, cmd);
+			} else if (cmd instanceof PrematureStepTriggerCmd) {
+				PrematureStepTriggerCmd pac = (PrematureStepTriggerCmd) cmd;
+				String key = pac.getScope().getName() + pac.getSd().getName();
+				cmdQueue.put(key, cmd);
+			} else if (cmd instanceof OutputChangedCmd) {
+				OutputChangedCmd occ = (OutputChangedCmd)cmd;
+				String key = occ.getStep().getName()+occ.getChange().name();
+				cmdQueue.putIfAbsent(key, occ);
+			} else {
+				log.error("Encountered unknown ProcessScopedCmd, ignoring: "+cmd);
+			}
+		});
+		
+		// get lazyloading
+		fetchLazyLoaded();
+		
+	}
+	
+	protected Set<ProcessInstance> executeCommands() {
+		if (lazyLoaded.isEmpty())
+			return super.executeCommands(); // then there is no lazy loading necessary anymore, we can execute the commands
+		else // we skip this until lazy loading is complete
+			return Collections.emptySet();
+	}
+
+	private void fetchLazyLoaded() {
+		Optional<ArtifactIdentifier> optAI = getLazyLoadedArtifact();
+		while (optAI.isPresent()) {
+			ArtifactIdentifier art = optAI.get();	
+			try {
+					log.debug("Trying to fetch lazyloaded artifact: "+art.getId().toString());
+					Instance inst =  resolver.get(art);
+				} catch (ProcessException e) {
+					log.warn("Could not fetch lazyloaded artifact: "+art.getId().toString()+" due to: "+e.getMessage());
+				}
+			lazyLoaded.remove(art);
+			optAI = getLazyLoadedArtifact(); // get the next one.
+		}
+	}
+	
 	private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
 		// FIXME: very brittle
 		return new ArtifactIdentifier(inst.name() , inst.getInstanceType().name());
 	}
 	
-	private Set<ArtifactIdentifier> getLazyLoadedAndReset() {
-		Set<ArtifactIdentifier> copy = new HashSet<>(lazyLoaded);
-		lazyLoaded.clear();
-		return copy;
+	private Optional<ArtifactIdentifier> getLazyLoadedArtifact() {
+		return lazyLoaded.stream().findAny();
 	}
+	
 	
 }

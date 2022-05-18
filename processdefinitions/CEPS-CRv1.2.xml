@@ -1,0 +1,238 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="n~zSfOoBX_-ZfBjz?5GK">CR</variable>
+    <variable id="Xg1A%?@40.5oj`/g[|@f">SRS</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="13" y="13">
+    <mutation>
+      <arg name="CR" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
+    </mutation>
+    <field name="NAME">CEPS-CRtestV1.2</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
+        <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">CR</field>
+        <value name="VALUE">
+          <block type="artifact" id="mO0+(2h`8akDGGU?*%)q">
+            <field name="Type">azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="/xUvoJ^K0zrMV5BD$zp[">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="je|v[uiypg.$qiog[E,[">
+                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">CR</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id="7KCYzg}K]7rv+OHU.fLU">
+                <field name="StepId">CreateChangeRequest</field>
+                <statement name="Input">
+                  <block type="artuse" id="^7-l43E^VIT6D*,^_WvY">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="*vEZ)Xcg3g0_i#yIFa4|">
+                        <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">CR</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="o+-8)5~UdP@[iO2n*)l+">
+                    <field name="State">PRECONDITION</field>
+                    <value name="condition">
+                      <block type="text" id="s9k6U(YO$7ct_.(s#2m[">
+                        <field name="TEXT">self.in_CR-&gt;size() &gt; 0 and self.in_CR-&gt;forAll(issue | issue.workItemType.name='Change Request')</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="#reJ29dBKh#-?Lb[3G:v">
+                        <field name="State">POSTCONDITION</field>
+                        <value name="condition">
+                          <block type="text" id=";gx58PGcdPL*)e=pOewv">
+                            <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.state.name='Draft' or issue.state.name='Reviewed' or issue.state.name='Released' or issue.state.name='Archived') </field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="#@Wj1^;cs;XodprmPQyf">
+                    <field name="qacheckId">cr-assignee</field>
+                    <field name="description">Assignee is set</field>
+                    <value name="constraint">
+                      <block type="text" id="Md(Id~E]aTZ@*%QmOnpj">
+                        <field name="TEXT">self.in_CR.assignedTo &lt;&gt; null</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="step" id=";GtP8|dGV|QO.l}!#E|B">
+                    <field name="StepId">AnalyzeChangeRequest</field>
+                    <statement name="Input">
+                      <block type="artuse" id="c}KHY^j+|Ly`E$7JmKWI">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="o~^O7yAEn?EFNca6qDZ)">
+                            <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">CR</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="iRY`^!RjykTY[oFMY)vP">
+                        <field name="State">PRECONDITION</field>
+                        <value name="condition">
+                          <block type="text" id="X))oxm,PA!d}9_Jw!.ZH">
+                            <field name="TEXT">self.in_CR-&gt;size() = 1</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="sx2rlYkH`s[oZm]s1@cw">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="text" id="n|VG(w.P[c~cP8pWoTVd">
+                                <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.state.name='Reviewed' or issue.state.name='Released' or issue.state.name='Archived') and self.out_SRS-&gt;size() &gt; 0</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Datamappings">
+                      <block type="datamapping" id="a72yXhw/}Ql}-5%8!^|N">
+                        <field name="mappingId">CRtoReq</field>
+                        <field name="mappingSpec">self.in_CR-&gt;any()&#10;  -&gt;asType(&lt;root/types/azure_workitem&gt;)&#10;.relatedItems&#10;-&gt;select(link | link.linkType.name.equalsIgnoreCase('Affects'))&#10;-&gt;collect(link2 : &lt;root/types/workitem_link&gt; | link2.linkTo)&#10;-&gt;select(refitem | refitem.workItemType.name.equalsIgnoreCase('Requirement') )&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_SRS)&#10; -&gt;size() = 0&#10;&#10;  </field>
+                      </block>
+                    </statement>
+                    <statement name="Output">
+                      <block type="variables_set" id="Tk9{x)9@6WH_j3wKkYig">
+                        <field name="VAR" id="Xg1A%?@40.5oj`/g[|@f">SRS</field>
+                        <value name="VALUE">
+                          <block type="artifact" id="UrmlB%ZVarTq+JPk:lsT">
+                            <field name="Type">azure_workitem</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="(N;Yh,puNEnu}JYhWP$k">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="K_#]/[HmnGqMrzVaSZX#">
+                                <field name="VAR" id="Xg1A%?@40.5oj`/g[|@f">SRS</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="#R7JI;6VeFy]dk|[X$0F">
+                        <field name="qacheckId">cr-severity</field>
+                        <field name="description">Severity is set</field>
+                        <value name="constraint">
+                          <block type="text" id="gjuz+p9:bPw8.[RnsMIW">
+                            <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.priority &gt; -1)</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="*WpLlyz4R5A?K(_Jsm.c">
+                            <field name="qacheckId">cr-description</field>
+                            <field name="description">Description is not empty</field>
+                            <value name="constraint">
+                              <block type="text" id="Yt#eDvUW,K9$!Uchl,,U">
+                                <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.description.size() &gt; 10)</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <next>
+                      <block type="step" id="5{DLf3~839Gi|MU+G{k;">
+                        <field name="StepId">ApproveChangeRequest</field>
+                        <statement name="Input">
+                          <block type="artuse" id="7bpCqP#`x0Wq+FRyxXEN">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="*0!ZOSdX}|k8AI405*pR">
+                                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">CR</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <statement name="Transitions">
+                          <block type="transition" id="mE:/Pm|{^(lltE)gl1=^">
+                            <field name="State">PRECONDITION</field>
+                            <value name="condition">
+                              <block type="text" id="OE,n.Z)-J]|PukVe/?;t">
+                                <field name="TEXT">self.in_CR-&gt;forAll(issue |  issue.state.name='Reviewed' or issue.state.name='Released' or issue.state.name='Archived')</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="transition" id="_LZK%LBMcI0B-:ULRCm0">
+                                <field name="State">POSTCONDITION</field>
+                                <value name="condition">
+                                  <block type="text" id="J`l(0O9!m.S)!|/2^FjN">
+                                    <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.state.name='Released' or issue.state.name='Archived')</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="artuse" id="=Y{+?^xpw~$;n/Q~*odw">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="msb@IL`?%0Z],vAtW9Xe">
+                                <field name="VAR" id="Xg1A%?@40.5oj`/g[|@f">SRS</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="qacheck" id=":M;1}6zKAxvNA,NRlhIz" x="788" y="938">
+    <field name="qacheckId">cr-category</field>
+    <field name="description">Category is set</field>
+    <comment pinned="true" h="80" w="160">property not supported in connector yet</comment>
+    <value name="constraint">
+      <block type="text" id="ETLMu(f1LqD/TW)[~^y9">
+        <field name="TEXT">self.in_CR.category &lt;&gt; null</field>
+      </block>
+    </value>
+  </block>
+  <block type="qacheck" id="x57WkUsP4[+S^J_YPlTJ" x="788" y="1213">
+    <field name="qacheckId">cr-target</field>
+    <field name="description">Target Version is set</field>
+    <comment pinned="true" h="80" w="160">these properties not supported in connector yet</comment>
+    <value name="constraint">
+      <block type="text" id="?4TskP9SY9^^J``vk[~Z">
+        <field name="TEXT">self.in_CR.targetVersion.size() &gt; 0</field>
+      </block>
+    </value>
+    <next>
+      <block type="qacheck" id="JC{%e7vx3%}-k0]01[O]">
+        <field name="qacheckId">cr-ccv</field>
+        <field name="description">CCB decision is set</field>
+        <value name="constraint">
+          <block type="text" id="YgP(=)geF7YGRn9h+dS#">
+            <field name="TEXT">self.in_CR.ccbdecision &lt;&gt; null</field>
+          </block>
+        </value>
+      </block>
+    </next>
+  </block>
+</xml>

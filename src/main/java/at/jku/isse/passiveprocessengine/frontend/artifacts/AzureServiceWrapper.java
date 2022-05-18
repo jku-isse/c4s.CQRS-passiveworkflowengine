@@ -8,11 +8,11 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import at.jku.isse.designspace.azure.connector.AzureService;
-import at.jku.isse.designspace.azure.connector.model.AzureBaseElementType;
-import at.jku.isse.designspace.endpoints.grpc.service.ServiceResponse;
-import at.jku.isse.designspace.git.connector.GitService;
-import at.jku.isse.designspace.git.connector.subtypes.GitBaseElementType;
+import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
+import at.jku.isse.designspace.azure.model.AzureBaseElementType;
+import at.jku.isse.designspace.azure.service.AzureService;
+
+
 
 @Component
 public class AzureServiceWrapper implements IArtifactProvider{

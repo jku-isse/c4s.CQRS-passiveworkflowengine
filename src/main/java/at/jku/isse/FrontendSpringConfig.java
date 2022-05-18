@@ -2,12 +2,12 @@ package at.jku.isse;
 
 import at.jku.isse.designspace.artifactconnector.core.updatememory.UpdateMemory;
 import at.jku.isse.designspace.artifactconnector.core.updateservice.UpdateManager;
-import at.jku.isse.designspace.core.model.Tool;
+import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
+import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.git.connector.GitService;
+import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
-import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.AzureServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
@@ -16,19 +16,18 @@ import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+
 //import javax.jms.ConnectionFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.Environment;
-//import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-//import org.springframework.jms.config.JmsListenerContainerFactory;
-//import org.springframework.jms.support.converter.MessageConverter;
-//import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 
 
@@ -43,12 +42,14 @@ public class FrontendSpringConfig {
 	private UpdateManager updateManager;
 
 	@Bean
+	@DependsOn({"controlEventEngine"})
 	public UpdateMemory initUpdateMemory() {
 		this.updateMemory = new UpdateMemory();
 		return this.updateMemory;
 	}
 
 	@Bean
+	@DependsOn({"controlEventEngine"})
 	public UpdateManager initUpdateManager() {
 		this.updateManager = new UpdateManager();
 		updateManager.init();
@@ -60,16 +61,20 @@ public class FrontendSpringConfig {
 	//------------------------------------------------------------------------------------------------------------------
 
 
-	@Bean ProcessRegistry getProcessRegistry() {
+	@Bean 
+	@DependsOn({"controlEventEngine"})
+	ProcessRegistry getProcessRegistry() {
 		return new ProcessRegistry();
 	}
 
 	@Bean
+	@DependsOn({"controlEventEngine"})
 	public AbstractProcessLoader getProcessLoader(ProcessRegistry registry) {
 		return new ProcessSpecificationLoader(registry);
 	}
 
 	@Bean
+	@DependsOn({"controlEventEngine"})
 	public ArtifactResolver getArtifactResolver(AzureServiceWrapper azure, GitServiceWrapper github, DemoServiceWrapper demo, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
@@ -78,37 +83,29 @@ public class FrontendSpringConfig {
 		return ar;
 	}
 
-//	@Bean
-//	@ConditionalOnExpression(value = "${git.enabled:false}")
-//	public GitService initGitService(UpdateManager updateManager, UpdateMemory updateMemory) {
-//		updateManager.init();
-//		return new GitService(updateManager, updateMemory);
-//	}
-
-//	@Bean
-//	public RequestDelegate getRequestDelegate() {
-//		return new RequestDelegate();
-//	}
+    @Bean("controlEventEngine")
+    public ControlEventEngine initControlEventEngine(WorkspaceService ws, RuleService rSerice) {
+    	Event.setInitialized();
+    	Properties props = new Properties();
+        try {
+            FileReader reader = new FileReader("./application.properties");
+            props.load(reader);
+            String property = props.getProperty("persistence.enabled");  
+            if (property != null) {
+                boolean persistenceEnabled = Boolean.parseBoolean(property);
+                if (persistenceEnabled) {
+                	Path currentRelativePath = Paths.get("");
+                    String absPath = currentRelativePath.toAbsolutePath().toString();
+                    String path = absPath+ props.getProperty("persistencePath").trim().replace('/', '\\');;
+                    ControlEventEngine.initWithPath(path, false);
+                }
+            }
+        } catch (IOException ioe) {
+            Workspace.logger.debug("CORE-SERVICE: The running directory did not contain an application.properties file, Persistence cannot be initialized!");
+        }
+        return null;
+    }
 	
-	// from: https://spring.io/guides/gs/messaging-jms/
-
-
-//	@Bean
-//	public JmsListenerContainerFactory<?> myFactory(ConnectionFactory connectionFactory,
-//			DefaultJmsListenerContainerFactoryConfigurer configurer) {
-//		DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-//		// This provides all boot's default to this factory, including the message converter
-//		factory.setMessageConverter(simpleJmsMessageConverter());
-//		configurer.configure(factory, connectionFactory);
-//		// You could still override some of Boot's default if necessary.
-//		return factory;
-//	}
-//
-//	@Bean // Serialize message content to json using TextMessage
-//	public MessageConverter simpleJmsMessageConverter() {
-//		SimpleMessageConverter converter = new SimpleMessageConverter();
-//		return converter;
-//	}
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {

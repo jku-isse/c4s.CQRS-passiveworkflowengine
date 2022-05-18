@@ -13,7 +13,7 @@
     <mutation>
       <arg name="story" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
     </mutation>
-    <field name="NAME">SIELAv3draft</field>
+    <field name="NAME">SIELAv3exp</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
       <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
@@ -179,8 +179,8 @@
                         <field name="State">POSTCONDITION</field>
                         <comment pinned="false" h="69" w="319">Completed if closed and there is at least one buc and at least one mmf linked</comment>
                         <value name="condition">
-                          <block type="text" id="40F.HBfe]o(%KOD0_C|D">
-                            <field name="TEXT">self.in_mmfSubtask-&gt;any()-&gt;asType(&lt;root/types/git_issue&gt;).state.equalsIgnoreCase('closed') and self.out_mmf-&gt;size() &gt; 0 and self.out_buc-&gt;size() &gt; 0</field>
+                          <block type="constraint" id="X1Y9CGu8SfLI,.KOOCEx">
+                            <field name="arlRule">self.in_mmfSubtask&#10;-&gt;any()&#10;-&gt;asType(&lt;root/types/git_issue&gt;)&#10;.state.equalsIgnoreCase('closed') &#10;and self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('MMF'))&#10;-&gt;size() &gt; 0 &#10;and self.out_buc-&gt;size() &gt; 0</field>
                           </block>
                         </value>
                       </block>

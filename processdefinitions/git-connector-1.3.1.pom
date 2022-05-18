@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>JKU.ISSE</groupId>
+	<artifactId>git-connector</artifactId>
+	<version>1.3.1</version>
+
+	<distributionManagement>
+		<repository>
+			<id>JKU.ISSE</id>
+			<url>http://3.66.206.6:9999/snapshots</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<!-- The order of definitions matters. Explicitly defining central here 
+			to make sure it has the highest priority. -->
+		<!-- Main Maven repository -->
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- own ones-->
+		<repository>
+			<id>JKU.ISSE</id>
+			<url>http://3.66.206.6:9999/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository> 
+	</repositories>
+
+	<dependencies>
+		<!-- Git Java Rest Client -(for Github) -->
+		<dependency>
+			<groupId>JKU.ISSE</groupId>
+			<artifactId>c4s.artifactrelations.core</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<artifactId>git-restclient</artifactId>
+			<groupId>at.jku.isse.c4s</groupId>
+			<version>1.1.5</version>
+		</dependency>
+		<!-- <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
+			<version>4.13</version> <scope>compile</scope> </dependency> -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20220320</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>2.13.0</version>
+		</dependency>
+
+		<!-- Designspace4 -->
+		<dependency>
+			<groupId>at.jku.isse.designspace</groupId>
+			<artifactId>core</artifactId>
+			<version>LATEST</version>
+		</dependency>
+		<dependency>
+			<groupId>at.jku.isse.designspace</groupId>
+			<artifactId>interface</artifactId>
+			<version>LATEST</version>
+		</dependency>
+		<dependency>
+			<groupId>at.jku.isse.designspace</groupId>
+			<artifactId>main</artifactId>
+			<version>LATEST</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Update Management -->
+		<dependency>
+			<groupId>io.reactivex.rxjava2</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>2.2.19</version>
+		</dependency>
+
+		<!-- Spring dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>2.2.3.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+			<version>2.2.3.RELEASE</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-logging</artifactId>
+			<version>2.2.3.RELEASE</version>
+		</dependency>
+
+		<!-- Spring RestController -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>2.2.3.RELEASE</version>
+		</dependency>
+
+		<!-- Webhook dependencies (queue) -->
+<!-- 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+			<version>5.2.13.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-all</artifactId>
+			<version>5.16.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.jms</groupId>
+			<artifactId>javax.jms-api</artifactId>
+			<version>2.0.1</version>
+		</dependency> -->
+
+		<!-- Test suite -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>20.0</version>
+		</dependency>
+
+		<!-- c4s (for jira) -->
+		<!-- <dependency> <groupId>JKU.ISSE</groupId> <artifactId>c4s.artifactrelations</artifactId> 
+			<version>2.0.1</version> <scope>compile</scope> <exclusions> <exclusion> 
+			<groupId>com.google.guava</groupId> <artifactId>guava</artifactId> </exclusion> 
+			<exclusion> <groupId>org.slf4j</groupId> <artifactId>slf4j-simple</artifactId> 
+			</exclusion> <exclusion> <groupId>commons-io</groupId> <artifactId>commons-io</artifactId> 
+			</exclusion> </exclusions> </dependency> -->
+		<dependency>
+			<groupId>JKU.ISSE</groupId>
+			<artifactId>c4s.artifact.api</artifactId>
+			<version>4.1.10-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- other stuff -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.cloudogu.cb</groupId>
+			<artifactId>command-bus-spring</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.10</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty</artifactId>
+			<version>1.41.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-services</artifactId>
+			<version>1.41.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-protobuf</artifactId>
+			<version>1.41.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>4.0.0-rc-2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-stub</artifactId>
+			<version>1.41.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.lognet</groupId>
+			<artifactId>grpc-spring-boot-starter</artifactId>
+			<version>3.5.1</version>
+		</dependency>
+	</dependencies>
+	<profiles>
+		<profile>
+			<id>win_x86_64</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.xolstice.maven.plugins</groupId>
+						<artifactId>protobuf-maven-plugin</artifactId>
+						<version>0.6.1</version>
+						<configuration>
+							<!-- for linux -->
+							<!-- <protocExecutable>/usr/bin/protoc</protocExecutable> -->
+							<pluginId>grpc-java</pluginId>
+							<protocArtifact>com.google.protobuf:protoc:3.3.0:exe:${os.detected.classifier}</protocArtifact>
+							<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.4.0:exe:${os.detected.classifier}</pluginArtifact>
+							<forceMojoExecution>true</forceMojoExecution>
+							<additionalProtoPathElements>${basedir}/..</additionalProtoPathElements>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>compile</goal>
+									<goal>compile-custom</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>win_x86</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+					<arch>x86</arch>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.xolstice.maven.plugins</groupId>
+						<artifactId>protobuf-maven-plugin</artifactId>
+						<version>0.6.1</version>
+						<configuration>
+							<!-- for linux -->
+							<!-- <protocExecutable>/usr/bin/protoc</protocExecutable> -->
+							<pluginId>grpc-java</pluginId>
+							<protocArtifact>com.google.protobuf:protoc:3.3.0:exe:${os.detected.classifier}</protocArtifact>
+							<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.4.0:exe:${os.detected.classifier}</pluginArtifact>
+							<forceMojoExecution>true</forceMojoExecution>
+							<additionalProtoPathElements>${basedir}/..</additionalProtoPathElements>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>compile</goal>
+									<goal>compile-custom</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>linux_x86_64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.xolstice.maven.plugins</groupId>
+						<artifactId>protobuf-maven-plugin</artifactId>
+						<version>0.6.1</version>
+						<configuration>
+							<!-- for linux -->
+							<protocExecutable>/usr/bin/protoc</protocExecutable>
+							<pluginId>grpc-java</pluginId>
+							<!-- <protocArtifact>com.google.protobuf:protoc:3.3.0:exe:${os.detected.classifier}</protocArtifact> -->
+							<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.4.0:exe:${os.detected.classifier}</pluginArtifact>
+							<forceMojoExecution>true</forceMojoExecution>
+							<additionalProtoPathElements>${basedir}/..</additionalProtoPathElements>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>compile</goal>
+									<goal>compile-custom</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<pluginRepositories>
+		<!-- Main Maven repository -->
+		<pluginRepository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.6.0</version>
+			</extension>
+		</extensions>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<forceJavacCompilerUse>true</forceJavacCompilerUse>
+					<source>11</source>
+					<target>11</target>
+				</configuration>
+			</plugin>
+			<!-- <plugin> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-maven-plugin</artifactId> 
+				<version>2.2.3.RELEASE</version> <configuration> <mainClass>at.jku.isse.designspace.DesignSpace</mainClass> 
+				</configuration> <executions> <execution> <goals> <goal>repackage</goal> 
+				</goals> </execution> </executions> </plugin> -->
+			 <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-install-plugin</artifactId> 
+				<version>2.5</version> <executions> 
+				<!--<execution> <id>install4</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>c4s.artifactrelations</artifactId> <version>2.0.1</version> <packaging>jar</packaging> 
+				<file>lib/c4s.artifactrelations.jar</file> </configuration> </execution> 
+				<<<<<<< Updated upstream <execution> <id>install5</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>c4s.artifact.api</artifactId> <version>4.1.9-SNAPSHOT</version> 
+				<packaging>jar</packaging> <file>lib/c4s.artifact.api-4.1.9-SNAPSHOT.jar</file> 
+				</configuration> </execution> <execution> <id>install7</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.wsclient</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/wsclient.jar</file> </configuration> 
+				</execution> <execution> <id>install8</id> <phase>initialize</phase> <goals> 
+				<goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.wsdl</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/wsdl4j-1.5.1.jar</file> </configuration> 
+				</execution> <execution> <id>install9</id> <phase>initialize</phase> <goals> 
+				<goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.axis</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/axis.jar</file> </configuration> </execution> 
+				<execution> <id>install10</id> <phase>initialize</phase> <goals> <goal>install-file</goal> 
+				</goals> <configuration> <groupId>JKU.ISSE</groupId> <artifactId>at.jku.isse.designspace.polarion.axis-patch</artifactId> 
+				<version>1.0.0</version> <packaging>jar</packaging> <file>./lib/axis-patch.jar</file> 
+				</configuration> </execution> <execution> <id>install11</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.common-codec</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/commons-codec-1.4.jar</file> </configuration> 
+				</execution> <execution> <id>install12</id> <phase>initialize</phase> <goals> 
+				<goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.common-discovery</artifactId> 
+				<version>1.0.0</version> <packaging>jar</packaging> <file>./lib/commons-discovery-0.2.jar</file> 
+				</configuration> </execution> <execution> <id>install13</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.common-httpclient</artifactId> 
+				<version>1.0.0</version> <packaging>jar</packaging> <file>./lib/commons-httpclient-3.1.patched.jar</file> 
+				</configuration> </execution> <execution> <id>install14</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.common-logging</artifactId> 
+				<version>1.0.0</version> <packaging>jar</packaging> <file>./lib/commons-logging-1.0.4.jar</file> 
+				</configuration> </execution> <execution> <id>install15</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.jaxrpc</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/jaxrpc.jar</file> </configuration> 
+				</execution> <execution> <id>install16</id> <phase>initialize</phase> <goals> 
+				<goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
+				<artifactId>at.jku.isse.designspace.polarion.mail</artifactId> <version>1.0.0</version> 
+				<packaging>jar</packaging> <file>./lib/mail.jar</file> </configuration> </execution> 
+				<execution> <id>install17</id> <phase>initialize</phase> <goals> <goal>install-file</goal> 
+				</goals> <configuration> <groupId>JKU.ISSE</groupId> <artifactId>at.jku.isse.designspace.polarion.saaj</artifactId> 
+				<version>1.0.0</version> <packaging>jar</packaging> <file>./lib/saaj.jar</file> 
+				</configuration> </execution>-->
+
+				<execution> <id>install18</id> <phase>initialize</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <artifactId>git-restclient</artifactId> 
+				<groupId>at.jku.isse.c4s</groupId> <version>1.1.5</version> <packaging>jar</packaging> 
+				<file>./lib/git-restclient-1.1.5.jar</file> </configuration> </execution> 
+				 </executions> </plugin> 
+		</plugins>
+
+	</build>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+		<forceJavacCompilerUse>true</forceJavacCompilerUse>
+		<java.version>11</java.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+	</properties>
+</project>

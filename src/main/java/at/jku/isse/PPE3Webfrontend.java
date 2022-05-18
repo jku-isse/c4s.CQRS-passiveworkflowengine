@@ -58,8 +58,8 @@ public class PPE3Webfrontend extends SpringBootServletInitializer implements App
     
     @Override
     public void onApplicationEvent(final ApplicationStartedEvent event) {
-    	if (!Event.isInitialized())
-    		Event.setInitialized();
+//    	if (!Event.isInitialized())
+//    		Event.setInitialized();
     }
 
     @PreDestroy

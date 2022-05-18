@@ -102,8 +102,8 @@ public class RequestDelegate {
 			pexs.stream().forEach(pex -> pe.getErrorMessages().add(pex.getMainMessage()));
 			throw pe;
 		}
-		
-		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get());
+		String namePostfix = procInput.entrySet().stream().map(entry -> entry.getKey()+":"+entry.getValue().name()).collect(Collectors.joining(" ,", "[", "]"));
+		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get(), namePostfix);
 		List<IOResponse> errResp = procInput.entrySet().stream()
 			.map(entry -> pInst.addInput(entry.getKey(), entry.getValue()))
 			.filter(resp -> resp.getError() != null)

@@ -1,6 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.artifacts;
 
-import at.jku.isse.designspace.endpoints.grpc.service.IResponder;
+import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.IResponder;
 
 public interface IArtifactProvider extends IResponder{
 

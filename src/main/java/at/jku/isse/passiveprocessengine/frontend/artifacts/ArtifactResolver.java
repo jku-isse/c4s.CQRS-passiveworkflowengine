@@ -9,13 +9,12 @@ import artifactapi.IArtifact;
 import artifactapi.IArtifactRegistry;
 import artifactapi.IArtifactService;
 import at.jku.isse.designspace.artifactconnector.core.IService;
+import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.endpoints.grpc.service.IResponder;
-import at.jku.isse.designspace.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
 
