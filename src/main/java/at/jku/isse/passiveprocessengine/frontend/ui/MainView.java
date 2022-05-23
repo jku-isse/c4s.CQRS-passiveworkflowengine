@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
@@ -27,7 +28,9 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import artifactapi.ArtifactIdentifier;
@@ -37,6 +40,13 @@ import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -56,7 +66,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private RequestDelegate commandGateway;
     
     private IFrontendPusher pusher;
-
+    private ControlEventEngine cee;
 
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
@@ -70,7 +80,11 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         this.pusher = pusher;
     }
 
-
+    @Inject
+    public void setControlEventEngine(ControlEventEngine cee) {
+    	this.cee = cee;
+    }
+    
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -234,9 +248,11 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
-        if (commandGateway != null)
+        if (commandGateway != null) {
         	accordion.add("Fetch Artifact", fetchArtifact(commandGateway.getArtifactResolver()));
-        
+            accordion.add("Dump Designspace", dumpDesignSpace(commandGateway));
+        }
+
         accordion.add("Filter", filterTable(key, val, name));
     //    if (devMode) accordion.add("Backend Queries", backend());
         accordion.close();
@@ -598,6 +614,18 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         layout.add(p1, comboBox, artIdField, importArtifactButton);
         return layout;
     
+    }
+    
+    private Component dumpDesignSpace(RequestDelegate reqDel) {
+    	VerticalLayout layout = new VerticalLayout();
+        Paragraph p1 = new Paragraph("Dump DesignSpace:");
+      
+        Button dumpButton = new Button("Dump", evt -> {
+        	reqDel.dumpDesignSpace();
+    	});   	  
+        dumpButton.addClickShortcut(Key.ENTER).listenOn(layout);
+    	layout.add(p1,  dumpButton);
+    	return layout;
     }
 
     private VerticalLayout statePanel(boolean addHeader) {

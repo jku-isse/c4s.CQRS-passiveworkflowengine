@@ -1,5 +1,10 @@
 package at.jku.isse.passiveprocessengine.frontend;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +18,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Tool;
 import at.jku.isse.designspace.core.model.Workspace;
@@ -205,5 +211,21 @@ public class RequestDelegate {
 		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver);
 		
 		isInitialized = true;
+	}
+	
+	public void dumpDesignSpace() {
+		Optional<String> dumpOpt = ControlEventEngine.exportAsString();
+		if (dumpOpt.isPresent()) {
+			Path path  = Paths.get("./dump.txt");	
+			try {
+				Files.writeString(path, dumpOpt.get(),
+						StandardCharsets.UTF_8);
+			}
+			catch (IOException ex) {
+				// Print messqage exception occurred as
+				// invalid. directory local path is passed
+				log.error(ex.getMessage());
+			}
+		}
 	}
 }
