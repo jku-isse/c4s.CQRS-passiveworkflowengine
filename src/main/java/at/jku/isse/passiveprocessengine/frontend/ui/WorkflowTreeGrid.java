@@ -129,10 +129,12 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
             if (o instanceof ProcessStep) {
-                ProcessStep wfi = (ProcessStep) o;
-                String color = (wfi.getExpectedLifecycleState().equals(wfi.getActualLifecycleState())) ? "green" : "orange";
+                ProcessStep step = (ProcessStep) o;
+                String color = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? "green" : "orange";
+                if (step.isInPrematureOperationModeDueTo().size() > 0 || step.isInUnsafeOperationModeDueTo().size() > 0)
+                	color = "#E24C00"; //dark orange
                 Icon icon;
-                switch(wfi.getExpectedLifecycleState()) {
+                switch(step.getExpectedLifecycleState()) {
 				case ACTIVE:
 					icon = new Icon(VaadinIcon.SPARK_LINE);
 					icon.setColor(color);
@@ -142,7 +144,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 					icon.setColor("grey");
 					break;
 				case CANCELED:
-					icon = new Icon(VaadinIcon.EYE_SLASH);
+					icon = new Icon(VaadinIcon.FAST_FORWARD);
 					icon.setColor(color);
 					break;
 				case COMPLETED:
@@ -150,7 +152,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 					icon.setColor(color);
 					break;
 				case ENABLED:
-					icon = new Icon(VaadinIcon.EYE);
+					icon = new Icon(VaadinIcon.UNLOCK);
 					icon.setColor(color);
 					break;
 				case NO_WORK_EXPECTED:
@@ -163,8 +165,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 }
 
                 icon.getStyle().set("cursor", "pointer");
-               // getTestDialog(wfi, icon);
-                icon.getElement().setProperty("title", "Workflow Lifecycle State: "+wfi.getActualLifecycleState());
+                String state = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? step.getExpectedLifecycleState().toString() : step.getActualLifecycleState() +" but expected: "+step.getExpectedLifecycleState();
+                icon.getElement().setProperty("title", "Lifecycle State is "+state);
                 return icon;
             } else {
 //                Icon icon = new Icon(VaadinIcon.ASTERISK);
@@ -277,6 +279,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if (wft.getActualLifecycleState() != null)
             l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
         augmentWithConditions(wft, l);
+        augmentWithPrematureUnsafeMode(wft, l);
         infoDialogInputOutput(l,  wft);
         
         Dialog dialog = new Dialog();
@@ -306,6 +309,29 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	grid.setItems(pInst.getDefinition().getPrematureTriggers().entrySet());
     	grid.setHeightByRows(true);
     	l.add(grid);
+    }
+    
+    private void augmentWithPrematureUnsafeMode(ProcessStep pStep, VerticalLayout l) {
+    	List<ProcessStep> unsafe = pStep.isInUnsafeOperationModeDueTo();
+    	if (!unsafe.isEmpty()) {
+    		Grid<ProcessStep> grid2 = new Grid<ProcessStep>();
+    		grid2.setColumnReorderingAllowed(false);
+    		Grid.Column<ProcessStep> nameColumn = grid2.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
+    		Grid.Column<ProcessStep> linkColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
+    		grid2.setItems(unsafe);
+    		grid2.setHeightByRows(true);
+    		l.add(grid2);
+    	}
+    	List<ProcessStep> prem = pStep.isInPrematureOperationModeDueTo();
+    	if (!prem.isEmpty()) {
+    		Grid<ProcessStep> grid = new Grid<ProcessStep>();
+    		grid.setColumnReorderingAllowed(false);
+    		Grid.Column<ProcessStep> nameColumn2 = grid.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
+    		Grid.Column<ProcessStep> linkColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
+    		grid.setItems(prem);
+    		grid.setHeightByRows(true);
+    		l.add(grid);
+    	}
     }
     
     private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
@@ -480,7 +506,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
     private Component infoDialog(ConstraintWrapper rebc) {
     	VerticalLayout l = new VerticalLayout();
-        //l.setWidthFull();
         l.setClassName("scrollable");
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
@@ -493,19 +518,12 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         
         if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
-//        	HorizontalLayout h = new HorizontalLayout();
-//        	h.setWidthFull();
-//        	h.setMargin(false);
-//        	h.setPadding(false);
         	try {
         		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
         		RepairTreeGrid rtg = new RepairTreeGrid();
         		rtg.initTreeGrid();
         		rtg.updateQAConstraintTreeGrid(repairTree);
         		rtg.setHeightByRows(true);
-        		//            h.setClassName("const-margin");
-        		//            h.add(rtg);
-
         		l.add(rtg); 
             } catch(Exception e) {
             	TextArea resultArea = new TextArea();
@@ -547,51 +565,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         dialog.add(l);
         return icon;
     }
-    
-//    private Component getTestDialog(ProcessInstanceScopedElement step, Icon icon) {
-//    	VerticalLayout l = new VerticalLayout();
-//        //l.setWidthFull();
-//        l.setClassName("scrollable");
-//        Paragraph p = new Paragraph("Test:");
-//        p.setClassName("info-header");
-//        l.add(p);
-//        H3 h3 = new H3(step.getName());
-//        h3.setClassName("info-header");
-//        l.add(h3);
-//        l.add(new H4(step.getId()));
-//        l.add(new H5(step.getInstance().getInstanceType().toString()));
-//        
-////        if (step instanceof ConstraintWrapper) {
-////        	ConstraintWrapper rebc = (ConstraintWrapper)step;
-////        	 if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
-//////             	HorizontalLayout h = new HorizontalLayout();
-//////             	h.setWidthFull();
-//////             	h.setMargin(false);
-//////             	h.setPadding(false);
-////             	RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-////         		RepairTreeGrid rtg = new RepairTreeGrid();
-////                 rtg.initTreeGrid();
-////                 rtg.updateQAConstraintTreeGrid(repairTree);
-//////                 h.setClassName("const-margin");
-//////                 h.add(rtg);
-////                 
-////                 l.add(rtg);
-////             }
-////        }
-//        
-//        
-//        Dialog dialog = new Dialog();
-//        dialog.setWidth("80%");
-//        dialog.setMaxHeight("80%");
-//        
-//        icon.addClickListener(e -> dialog.open());
-//        dialog.add(l);
-//
-//        return icon;
-//    }
-    
-    
-    
 
     public void setFilters(Map<String, String> filter, String name) {
         propertiesFilter = filter;

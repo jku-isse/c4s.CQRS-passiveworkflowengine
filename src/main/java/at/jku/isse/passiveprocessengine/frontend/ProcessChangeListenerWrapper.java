@@ -25,6 +25,7 @@ import at.jku.isse.passiveprocessengine.instance.messages.Commands.OutputChanged
 import at.jku.isse.passiveprocessengine.instance.messages.Commands.PrematureStepTriggerCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScopedCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.Commands.QAConstraintChangedCmd;
+import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -40,8 +41,8 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	ArtifactResolver resolver;
 	Workspace ws;
 	
-	public ProcessChangeListenerWrapper(Workspace ws, IFrontendPusher uiUpdater, ArtifactResolver resolver) {
-		super(ws);
+	public ProcessChangeListenerWrapper(Workspace ws, IFrontendPusher uiUpdater, ArtifactResolver resolver, EventDistributor eventDistributor) {
+		super(ws, eventDistributor);
 		this.ws = ws;
 		this.uiUpdater = uiUpdater;
 		//this.lazyLoader = lazyLoader;

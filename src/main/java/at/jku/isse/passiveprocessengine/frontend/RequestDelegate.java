@@ -32,6 +32,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
+import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,6 +51,8 @@ public class RequestDelegate {
 	ProcessRegistry procReg;
 	
 	@Autowired IFrontendPusher frontend;
+	
+	@Autowired EventDistributor eventDistributor;
 	
 	ProcessInstanceChangeProcessor picp;
 	
@@ -208,7 +211,7 @@ public class RequestDelegate {
 		RuleService.setEvaluator(new ArlRuleEvaluator());
 		RuleService.currentWorkspace = ws;
 		//lazyLoader = new LazyLoadingListener(ws, resolver);
-		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver);
+		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver, eventDistributor);
 		
 		isInitialized = true;
 	}

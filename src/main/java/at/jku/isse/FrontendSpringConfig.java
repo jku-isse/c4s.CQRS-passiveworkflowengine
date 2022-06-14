@@ -14,6 +14,7 @@ import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.GitServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
+import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileReader;
@@ -106,6 +107,10 @@ public class FrontendSpringConfig {
         return null;
     }
 	
+    @Bean
+    public EventDistributor getEventDistributor() {
+    	return new EventDistributor();
+    }
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
