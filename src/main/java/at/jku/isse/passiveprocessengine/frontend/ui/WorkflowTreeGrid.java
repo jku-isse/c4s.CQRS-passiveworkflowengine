@@ -2,10 +2,9 @@ package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import artifactapi.ArtifactType;
 import artifactapi.IArtifact;
-import artifactapi.ResourceLink;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Property;
+import at.jku.isse.designspace.rule.arl.exception.RepairException;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
@@ -41,9 +40,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -130,8 +127,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
             if (o instanceof ProcessStep) {
                 ProcessStep step = (ProcessStep) o;
+                boolean isPremature = (step.isInPrematureOperationModeDueTo().size() > 0);
+                boolean isUnsafe = (step.isInUnsafeOperationModeDueTo().size() > 0);
                 String color = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? "green" : "orange";
-                if (step.isInPrematureOperationModeDueTo().size() > 0 || step.isInUnsafeOperationModeDueTo().size() > 0)
+                if (isPremature || isUnsafe)
                 	color = "#E24C00"; //dark orange
                 Icon icon;
                 switch(step.getExpectedLifecycleState()) {
@@ -163,10 +162,18 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 					icon = new Icon(VaadinIcon.ASTERISK);
 					break;
                 }
-
+                StringBuffer sb = new StringBuffer("Lifecycle State is ");
+                if (isPremature)
+                	sb.append("premature ");
+                if (isPremature && isUnsafe)
+                	sb.append("and ");
+                if (isUnsafe)
+                	sb.append("unsafe ");
+                sb.append(step.getActualLifecycleState());
+                if (!step.getExpectedLifecycleState().equals(step.getActualLifecycleState()))
+                	sb.append(" but expected "+step.getExpectedLifecycleState());
                 icon.getStyle().set("cursor", "pointer");
-                String state = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? step.getExpectedLifecycleState().toString() : step.getActualLifecycleState() +" but expected: "+step.getExpectedLifecycleState();
-                icon.getElement().setProperty("title", "Lifecycle State is "+state);
+                icon.getElement().setProperty("title", sb.toString());
                 return icon;
             } else {
 //                Icon icon = new Icon(VaadinIcon.ASTERISK);
@@ -192,9 +199,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
     }
 
-    private Icon getIcon(boolean unsatisfied, boolean fulfilled) {
+    private Icon getIcon(boolean unsatisfied, boolean fulfilled, int nrConstr) {
         Icon icon;
-        if (unsatisfied && fulfilled) {
+        if (nrConstr <= 0) {
+        	icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+        	icon.setColor("grey");
+        	icon.getElement().setProperty("title", "No QA constraints defined");
+        } else if (unsatisfied && fulfilled) {
             icon = new Icon(VaadinIcon.WARNING);
             icon.setColor("#E24C00");
             icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled constraints");
@@ -230,6 +241,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if (wfi.getActualLifecycleState() != null) {
             l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
             l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));
+            l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
         }
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
@@ -256,7 +268,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         boolean fulfilled = wfi.getProcessSteps().stream()
                 .anyMatch(wft -> wft.areQAconstraintsFulfilled());
        
-        Icon icon = getIcon(unsatisfied, fulfilled);
+        Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
         icon.getElement().setProperty("title", "Show more information about this process instance");
@@ -290,7 +302,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 .anyMatch(a -> a.getEvalResult() == false);
         boolean fulfilled = wft.getQAstatus().stream()
                 .anyMatch(a -> a.getEvalResult() == true); 
-        Icon icon = getIcon(unsatisfied, fulfilled);
+        Icon icon = getIcon(unsatisfied, fulfilled, wft.getDefinition().getQAConstraints().size());
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
         icon.getElement().setProperty("title", "Show more information about this process step");
@@ -301,18 +313,23 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
     private void augmentWithPrematureTriggerConditions(ProcessInstance pInst, VerticalLayout l) {
-    	
+    	Map<String,String> premTriggers = pInst.getDefinition().getPrematureTriggers();
+    	if (premTriggers.isEmpty()) return;
     	Grid<Map.Entry<String, String>> grid = new Grid<Map.Entry<String, String>>();
     	grid.setColumnReorderingAllowed(false);
-    	Grid.Column<Map.Entry<String, String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Step").setResizable(true).setSortable(true).setWidth("400px");
+    	Grid.Column<Map.Entry<String, String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Step").setResizable(true).setSortable(true).setWidth("200px");
     	Grid.Column<Map.Entry<String, String>> valueColumn = grid.addColumn(p -> p.getValue()).setHeader("Premature Trigger Condition").setResizable(true);
-    	grid.setItems(pInst.getDefinition().getPrematureTriggers().entrySet());
+    	grid.setItems(premTriggers.entrySet());
     	grid.setHeightByRows(true);
     	l.add(grid);
     }
     
     private void augmentWithPrematureUnsafeMode(ProcessStep pStep, VerticalLayout l) {
     	List<ProcessStep> unsafe = pStep.isInUnsafeOperationModeDueTo();
+    	List<ProcessStep> prem = pStep.isInPrematureOperationModeDueTo();
+    	if (!unsafe.isEmpty() || !prem.isEmpty()) {
+    		l.add(new H5("Upstream Incomplete Work"));
+    	}
     	if (!unsafe.isEmpty()) {
     		Grid<ProcessStep> grid2 = new Grid<ProcessStep>();
     		grid2.setColumnReorderingAllowed(false);
@@ -322,7 +339,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		grid2.setHeightByRows(true);
     		l.add(grid2);
     	}
-    	List<ProcessStep> prem = pStep.isInPrematureOperationModeDueTo();
     	if (!prem.isEmpty()) {
     		Grid<ProcessStep> grid = new Grid<ProcessStep>();
     		grid.setColumnReorderingAllowed(false);
@@ -364,19 +380,23 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //    				h.setWidthFull();
 //    				h.setMargin(false);
 //    				h.setPadding(false);
-    				RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    				RepairTreeGrid rtg = new RepairTreeGrid();
-    				rtg.initTreeGrid();
-    				rtg.updateConditionTreeGrid(repairTree);
-    				rtg.setHeightByRows(true);
-//    				h.setClassName("const-margin");
-//    				h.setWidthFull();
-//    				h.add(rtg);
-    				//Details details = new Details("Repair Instructions", rtg);
-    				//details.setOpened(true);
-    				//rtg.setClassName("width80");
+    				try {
+    					RepairNode repairTree = RuleService.repairTree(crOpt.get());
+    					RepairTreeGrid rtg = new RepairTreeGrid();
+    					rtg.initTreeGrid();
+    					rtg.updateConditionTreeGrid(repairTree);
+    					rtg.setHeightByRows(true);
+    					//    				h.setClassName("const-margin");
+    					//    				h.setWidthFull();
+    					//    				h.add(rtg);
+    					//Details details = new Details("Repair Instructions", rtg);
+    					//details.setOpened(true);
+    					//rtg.setClassName("width80");
 
-    				l.add(rtg);
+    					l.add(rtg);
+    				} catch (RepairException e) {
+    					l.add(new Paragraph(e.getMessage()));
+    				}
     			} 
     			
     		});
@@ -457,10 +477,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                     line.add(ComponentUtils.convertToResourceLinkWithBlankTarget(a));
                     // ADDING/DELETING NOT SUPPORTED CURRENTLY
                    // line.add(deleteInOut(wft, isIn, entry, a));
-                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
+                  //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                 } else if (artifactList.size() > 1) {
-                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
+                  //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                     UnorderedList nestedList = new UnorderedList();
                     for (Instance a : artifactList) {
@@ -475,7 +495,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                     Paragraph p = new Paragraph("none");
                     p.setClassName("red");
                     line.add(p);
-                    line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
+                  //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                 }
             }
@@ -542,8 +562,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon;
         if (rebc.getCr() == null) {
             icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
-            icon.setColor("#1565C0");
-            return icon;
+            icon.setColor("orange");
+//            return icon;
 //        } else if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
 //            icon = new Icon(VaadinIcon.WARNING);
 //            icon.setColor("#E24C00");

@@ -60,7 +60,7 @@
                     <field name="description">Ensure the assignee is set</field>
                     <value name="constraint">
                       <block type="text" id="GR5RcAyuh.lK!x|/3KMl">
-                        <field name="TEXT">self.in_issue-&gt;forAll(issue | issue.assignee &lt;&gt; null)</field>
+                        <field name="TEXT">self.in_issue-&gt;forAll(issue | issue.assignee.isDefined())</field>
                       </block>
                     </value>
                   </block>

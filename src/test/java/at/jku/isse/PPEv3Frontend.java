@@ -3,6 +3,8 @@ package at.jku.isse;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.service.ServiceRegistry;
+import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.endpoints.grpc.service.GrpcUtils;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
@@ -51,7 +53,7 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
         var user = User.users.get(1l);
         user.clearNotifications();
 
-        initializePersistence();
+     //   initializePersistence();
 
 
         
@@ -64,35 +66,36 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
         
     }
 
-    public static void initializePersistence() {
-        try {
-            ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
-
-            FileReader reader = new FileReader(new File("./application.properties"));
-            Properties appProps = new Properties();
-            appProps.load(reader);
-            String property = appProps.getProperty("persistence.enabled");
-            if (property != null) {
-                boolean persistenceEnabled = Boolean.parseBoolean(property);
-                if (persistenceEnabled) {
-                    ControlEventEngine.initWithPath(PublicWorkspace.persistencePath(), false);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void initializePersistence() {
+//        try {
+//            ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+//
+//            FileReader reader = new FileReader(new File("./application.properties"));
+//            Properties appProps = new Properties();
+//            appProps.load(reader);
+//            String property = appProps.getProperty("persistence.enabled");
+//            if (property != null) {
+//                boolean persistenceEnabled = Boolean.parseBoolean(property);
+//                if (persistenceEnabled) {
+//                    ControlEventEngine.initWithPath(PublicWorkspace.persistencePath(), false);
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
+    	ServiceRegistry.initializeAllPersistenceUnawareServices();
+        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
+
         Event.setInitialized();
 
-        List<String> filesToReplay =new ArrayList<String>();
-        if (PublicWorkspace.replayAtStartup().size()>0) filesToReplay.addAll(PublicWorkspace.replayAtStartup());
-        if (GrpcUtils.replayFileName!=null) filesToReplay.add(GrpcUtils.replayFileName);
-        GrpcUtils.replayMultipleCaptures(filesToReplay);
+        ServiceRegistry.initializeAllPersistenceAwareServices();
+        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
 
     }
   

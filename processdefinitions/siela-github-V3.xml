@@ -13,7 +13,7 @@
     <mutation>
       <arg name="story" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
     </mutation>
-    <field name="NAME">SIELAv3draft</field>
+    <field name="NAME">SIELA-Github-v3</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
       <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
@@ -48,16 +48,16 @@
                   <block type="transition" id="P/])gpP#;q0csTEXG%w*">
                     <field name="State">PRECONDITION</field>
                     <value name="condition">
-                      <block type="text" id="lrX#4FC]HX{Mp.pJlhVL">
-                        <field name="TEXT">self.in_story-&gt;size() = 1 and self.in_story-&gt;any() -&gt;asType(&lt;root/types/git_issue&gt;).labels-&gt;includes('Story')</field>
+                      <block type="constraint" id=";(pyvrA;b*r~eI;Tn[go">
+                        <field name="arlRule">self.in_story-&gt;size() = 1 &#10;and &#10;self.in_story-&gt;any() &#10;-&gt;asType(&lt;root/types/git_issue&gt;)&#10;.labels&#10;-&gt;includes('Story')</field>
                       </block>
                     </value>
                     <next>
                       <block type="transition" id="okx*m#~GhODX$G=[awu)">
                         <field name="State">POSTCONDITION</field>
                         <value name="condition">
-                          <block type="text" id="*=UUSs3ip:.lr0~a`z*i">
-                            <field name="TEXT">self.out_mmfSubtask-&gt;size() = 1 and self.out_sucSubtask-&gt;size() = 1 and self.out_cscSubtask-&gt;size() = 1</field>
+                          <block type="constraint" id="By^t,Z8U6w4{]C}K9Wl}">
+                            <field name="arlRule">self.out_mmfSubtask-&gt;size() &gt; 0 &#10;and &#10;self.out_sucSubtask-&gt;size() &gt; 0 &#10;and &#10;self.out_cscSubtask-&gt;size() &gt; 0</field>
                           </block>
                         </value>
                       </block>
@@ -66,23 +66,16 @@
                 </statement>
                 <statement name="Datamappings">
                   <block type="datamapping" id="a72yXhw/}Ql}-5%8!^|N">
-                    <field name="mappingId">Story2MMF</field>
-                    <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,16).equalsIgnoreCase('WriteOrReviseMMF'))&#10; -&gt;forAll( child |  self.out_mmfSubtask-&gt;exists(art | child.asType(&lt;root/types/git_issue&gt;)  = art))</field>
+                    <field name="mappingId">mmfSubtask</field>
+                    <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;.linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,16).equalsIgnoreCase('WriteOrReviseMMF'))&#10;-&gt;asSet()&#10; -&gt;symmetricDifference(self.out_mmfSubtask)&#10;-&gt;size() = 0</field>
                     <next>
                       <block type="datamapping" id="3_X-$(c)$T~VdtG}dnY%">
-                        <field name="mappingId">Story2SUC</field>
-                        <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,11).equalsIgnoreCase('RefineToSUC'))&#10; -&gt;forAll( child |  self.out_sucSubtask-&gt;exists(art | child.asType(&lt;root/types/git_issue&gt;)  = art))</field>
+                        <field name="mappingId">sucSubtask</field>
+                        <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;.linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,11).equalsIgnoreCase('RefineToSUC'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_sucSubtask)&#10;-&gt;size() = 0</field>
                         <next>
                           <block type="datamapping" id="rjMzW6t$;dF6,8~Hlhd~">
-                            <field name="mappingId">Story2CSC</field>
-                            <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,17).equalsIgnoreCase('CreateOrRefineCSC'))&#10; -&gt;forAll( child |  self.out_cscSubtask-&gt;exists(art | child.asType(&lt;root/types/git_issue&gt;)  = art))</field>
-                            <next>
-                              <block type="datamapping" id="~-=nxq^b%SwX8Sp0-ftS">
-                                <field name="mappingId">OutputRefFromInput</field>
-                                <field name="mappingSpec">self.out_mmfSubtask&#10;-&gt;forAll(out | self.in_story&#10;           -&gt;asList()&#10;           -&gt;first()&#10;           -&gt;asType(&lt;root/types/git_issue&gt;)&#10;           .linkedIssues&#10;           -&gt;exists(ref | ref = out))&#10;and&#10;self.out_sucSubtask&#10;-&gt;forAll(out2 | self.in_story&#10;           -&gt;asList()&#10;           -&gt;first()&#10;           -&gt;asType(&lt;root/types/git_issue&gt;)&#10;           .linkedIssues&#10;           -&gt;exists(ref2 | ref2 = out2))&#10;and&#10;self.out_cscSubtask&#10;-&gt;forAll(out3 | self.in_story&#10;           -&gt;asList()&#10;           -&gt;first()&#10;           -&gt;asType(&lt;root/types/git_issue&gt;)&#10;           .linkedIssues&#10;           -&gt;exists(ref3 | ref3 = out3))</field>
-                                <comment pinned="false" h="86" w="313">Ensure that all items in output are indeed referenced by the input story</comment>
-                              </block>
-                            </next>
+                            <field name="mappingId">cscSubtask</field>
+                            <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;.linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,17).equalsIgnoreCase('CreateOrRefineCSC'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_cscSubtask)&#10;-&gt;size() = 0</field>
                           </block>
                         </next>
                       </block>
@@ -154,9 +147,8 @@
                     <field name="qacheckId">ProcessTraceToSR</field>
                     <field name="description">Each Process (story) must trace to at least one Stakeholder Request (SR)</field>
                     <value name="constraint">
-                      <block type="text" id="AG|tLFA./2WOb~D0(lK:">
-                        <field name="TEXT">self.in_story-&gt;any()-&gt;asType(&lt;root/types/git_issue&gt;).linkedIssues-&gt;select( ref | ref.labels-&gt;includes('CR')) -&gt;size() &gt; 0</field>
-                        <comment pinned="true" h="77" w="347">select statement results in exception being thrown in the repair mechanism</comment>
+                      <block type="constraint" id="2m|_T#2hX;Ohs/$M*yL$">
+                        <field name="arlRule">self.in_story-&gt;any()&#10;-&gt;asType(&lt;root/types/git_issue&gt;)&#10;.linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('SR')) &#10;-&gt;size() &gt; 0</field>
                       </block>
                     </value>
                   </block>
@@ -172,6 +164,31 @@
                             <field name="VAR" id="Xg1A%?@40.5oj`/g[|@f">mmfSubtask</field>
                           </block>
                         </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="w24bJgN(B6HMvt:kdha0">
+                        <field name="State">POSTCONDITION</field>
+                        <comment pinned="false" h="69" w="319">Completed if closed and there is at least one buc and at least one mmf linked</comment>
+                        <value name="condition">
+                          <block type="constraint" id="QH;,e~@y$0h6UXGMHe.j">
+                            <field name="arlRule">self.in_mmfSubtask-&gt;any()&#10;-&gt;asType(&lt;root/types/git_issue&gt;)&#10;.state.equalsIgnoreCase('closed') &#10;and &#10;self.out_mmf-&gt;size() &gt; 0 &#10;and &#10;self.out_buc-&gt;size() &gt; 0</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Datamappings">
+                      <block type="datamapping" id="pXIh!UM1PU-q#Gs=1?P*">
+                        <field name="mappingId">mmf</field>
+                        <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('MMF'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_mmf)&#10;-&gt;size() = 0</field>
+                        <comment pinned="false" h="75" w="379">symmetricDifference is now supported by RepairMechanism</comment>
+                        <next>
+                          <block type="datamapping" id="`T}S~Q(f.xjc(+XHEu)$">
+                            <field name="mappingId">buc</field>
+                            <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('BUC'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_buc)&#10;-&gt;size() = 0</field>
+                            <comment pinned="false" h="75" w="379">symmetricDifference is now supported by RepairMechanism</comment>
+                          </block>
+                        </next>
                       </block>
                     </statement>
                     <statement name="Output">
@@ -219,8 +236,8 @@
                         <field name="qacheckId">MMFtraceToSR</field>
                         <field name="description">Each linked MMF must trace to at least one Stakeholder Request (SR).</field>
                         <value name="constraint">
-                          <block type="text" id="H:{iK8~E6%LI[4`.6,^U">
-                            <field name="TEXT">self.name &lt;&gt; ""</field>
+                          <block type="constraint" id="*Pu=_a-yQ~$[U)p^J~x%">
+                            <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 | mmf1.linkedIssues&#10;     -&gt;exists(art | art.labels-&gt;includes('SR')))</field>
                           </block>
                         </value>
                         <next>
@@ -228,8 +245,8 @@
                             <field name="qacheckId">MMFtraceToBUC</field>
                             <field name="description">Each linked MMF must trace to at least one Business Use Case (BUC).</field>
                             <value name="constraint">
-                              <block type="text" id="Ua`YO[3?%%CQcuQU5`~n">
-                                <field name="TEXT">self.name &lt;&gt; ""</field>
+                              <block type="constraint" id="3u0aUx;c,bj*Wc/./j1*">
+                                <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 | mmf1.linkedIssues&#10;     -&gt;exists(art | art.labels-&gt;includes('BUC')))</field>
                               </block>
                             </value>
                             <next>
@@ -237,8 +254,8 @@
                                 <field name="qacheckId">SRtraceToBUC</field>
                                 <field name="description">Each SR linked via an MMF must trace to at least one  Business Use Case (BUC).</field>
                                 <value name="constraint">
-                                  <block type="text" id="k4RuL4_+Sm2gO/ycXRG{">
-                                    <field name="TEXT">self.name &lt;&gt; ""</field>
+                                  <block type="constraint" id="FS5l_B=m@700@3{zi4M1">
+                                    <field name="arlRule">self.out_mmf&#10;-&gt;forAll(mmf | mmf.linkedIssues&#10;   -&gt;select(art : &lt;root/types/git_issue&gt; |  &#10;      art.labels-&gt;includes('SR'))&#10;   -&gt;forAll(sr2 : &lt;root/types/git_issue&gt; |   &#10;   sr2.linkedIssues&#10;       -&gt;exists(art2 | &#10;           art2.labels-&gt;includes('BUC')) &#10;   ) &#10;)</field>
                                   </block>
                                 </value>
                               </block>
@@ -258,6 +275,23 @@
                                 <field name="VAR" id=";}25dT@Yy4*W$R7!CRR3">sucSubtask</field>
                               </block>
                             </value>
+                          </block>
+                        </statement>
+                        <statement name="Transitions">
+                          <block type="transition" id="1Mp2+A]K[/SB6s4;TL,K">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="constraint" id="ZIJ8M3IvBhX5|uV5J/Ue">
+                                <field name="arlRule">self.in_sucSubtask-&gt;any()&#10;-&gt;asType(&lt;root/types/git_issue&gt;)&#10;.state.equalsIgnoreCase('closed') &#10;and &#10;self.out_suc-&gt;size() &gt; 0</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <statement name="Datamappings">
+                          <block type="datamapping" id="AFE8Qt^fhNls=T@5q/Hz">
+                            <field name="mappingId">suc</field>
+                            <field name="mappingSpec">self.in_sucSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('SUC'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_suc)&#10;-&gt;size() = 0</field>
+                            <comment pinned="false" h="75" w="379">symmetricDifference is now supported by RepairMechanism</comment>
                           </block>
                         </statement>
                         <statement name="Output">
@@ -285,8 +319,8 @@
                             <field name="qacheckId">SUCtraceToSUCorBUC</field>
                             <field name="description">Each SUC must trace to at least one (parent) System Use Case (SUC) or a Business Use Case (BUC)</field>
                             <value name="constraint">
-                              <block type="text" id="bFanlf^S38yXl^x7+.n-">
-                                <field name="TEXT">self.name &lt;&gt; ""</field>
+                              <block type="constraint" id="`GBgJ[q!-VNf.D.T_.3q">
+                                <field name="arlRule">self.out_suc&#10;-&gt;forAll( suc1 | suc1.linkedIssues&#10;    -&gt;exists(art | art.labels-&gt;includes('SUC')))  &#10;or &#10;self.out_suc&#10;-&gt;forAll( suc2 | suc2.linkedIssues&#10;   -&gt;exists(art2 | art2.labels-&gt;includes('BUC'))) </field>
                               </block>
                             </value>
                           </block>
@@ -302,6 +336,22 @@
                                     <field name="VAR" id="|^P%S].|i~FDqK@b/xTh">cscSubtask</field>
                                   </block>
                                 </value>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id="RD.-z(0e_6(,`OTk#I]{">
+                                <field name="State">POSTCONDITION</field>
+                                <value name="condition">
+                                  <block type="text" id="N{fMw!0@/6GhshX[SxyJ">
+                                    <field name="TEXT">self.in_cscSubtask-&gt;any()-&gt;asType(&lt;root/types/git_issue&gt;).state.equalsIgnoreCase('closed')</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <statement name="Datamappings">
+                              <block type="datamapping" id="IGHx]q3$Qp3kcV`VR%aA">
+                                <field name="mappingId">csc</field>
+                                <field name="mappingSpec">self.in_cscSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.labels-&gt;includes('CSC'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_csc)&#10;-&gt;size() = 0</field>
                               </block>
                             </statement>
                             <statement name="Output">
@@ -329,8 +379,8 @@
                                 <field name="qacheckId">CSCtraceToSUC</field>
                                 <field name="description">Each CSC must trace to at least one System Use Case (SUC).</field>
                                 <value name="constraint">
-                                  <block type="text" id="z:RVu3j9_m1__!1N*#UM">
-                                    <field name="TEXT">self.name &lt;&gt; ""</field>
+                                  <block type="constraint" id="C/vTh8EoSWQF5U!`(13H">
+                                    <field name="arlRule">self.out_csc&#10;-&gt;forAll( csc1 | csc1.linkedIssues&#10;    -&gt;exists(art | art.labels-&gt;includes('SUC')))  </field>
                                   </block>
                                 </value>
                               </block>
@@ -388,12 +438,8 @@
       </block>
     </statement>
   </block>
-  <block type="datamapping" id="pXIh!UM1PU-q#Gs=1?P*" x="963" y="313">
-    <field name="mappingId">Story2MMFbidir</field>
-    <field name="mappingSpec">self.in_story-&gt;any()&#10;  -&gt;asType(&lt;root/types/git_issue&gt;)&#10;     .linkedIssues&#10;-&gt;select( ref | ref.title.substring(1,16).equalsIgnoreCase('WriteOrReviseMMF'))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(out_mmfSubtask)&#10;-&gt;size() = 0</field>
-    <comment pinned="true" h="75" w="379">symmetricDifference is not supported by RepairMechanism</comment>
-  </block>
-  <block type="text" id="ed?yx`~^L1JVjzaT4}ht" x="613" y="1213">
-    <field name="TEXT">self.name &lt;&gt; ""</field>
+  <block type="datamapping" id="jp;69dUE!Wb{G.)F{76;" x="1138" y="1688">
+    <field name="mappingId">twohopnavigation</field>
+    <field name="mappingSpec">self.out_mmf-&gt;forAll(mmf | &#10;        mmf.linkedIssues&#10;                -&gt;select(art : &lt;root/types/git_issue&gt; | art.labels-&gt;includes('SR'))&#10;                -&gt;forAll(sr2 : &lt;root/types/git_issue&gt; | sr2.linkedIssues&#10;                                                -&gt;exists(art2 | art2.labels-&gt;includes('BUC'))&#10;                  )&#10;)</field>
   </block>
 </xml>

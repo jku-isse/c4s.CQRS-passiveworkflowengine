@@ -33,6 +33,8 @@ import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
+import at.jku.isse.passiveprocessengine.instance.messages.WorkspaceListenerSequencer;
+import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +56,9 @@ public class RequestDelegate {
 	
 	@Autowired EventDistributor eventDistributor;
 	
-	ProcessInstanceChangeProcessor picp;
+	@Autowired RepairAnalyzer repAnalyzer;
+	
+	ProcessChangeListenerWrapper picp;
 	
 	Map<String, ProcessInstance> pInstances = new HashMap<>();
 	
@@ -134,25 +138,6 @@ public class RequestDelegate {
 		}
 	}
 	
-//	private void fetchLazyLoaded() {
-//		Set<ArtifactIdentifier> ais = lazyLoader.getLazyLoadedAndReset();
-//		while (!ais.isEmpty()) {
-//			ais.stream()
-//			.forEach(artId -> {
-//				try {
-//					log.debug("Trying to fetch lazyloaded artifact: "+artId.toString());
-//					Instance inst =  resolver.get(artId);
-//				} catch (ProcessException e) {
-//					log.warn("Could not fetch lazyloaded artifact: "+artId.toString()+" due to: "+e.getMessage());
-//				}
-//			});
-//			//ws.concludeTransaction();
-//			//ws.commit();
-//			ais = lazyLoader.getLazyLoadedAndReset();
-//		}
-//		
-//	}
-	
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {
 		if (!isInitialized) initialize();
 		ProcessException pex = new ProcessException("Error adding i/o of step: "+stepId);
@@ -192,6 +177,10 @@ public class RequestDelegate {
 		addIO(false, procId, stepId, param, artId, artType);
 	}
 	
+	public ProcessInstance getProcess(String id) {
+		return pInstances.get(id);
+	}
+	
 	public void deleteProcessInstance(String id) {
 		if (!isInitialized) initialize();
 		frontend.remove(id);
@@ -208,12 +197,19 @@ public class RequestDelegate {
 		ws = WorkspaceService.PUBLIC_WORKSPACE;
 		resolver.inject(ws);
 		procReg.inject(ws);
+		repAnalyzer.inject(ws);
 		RuleService.setEvaluator(new ArlRuleEvaluator());
 		RuleService.currentWorkspace = ws;
 		//lazyLoader = new LazyLoadingListener(ws, resolver);
 		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver, eventDistributor);
-		
+		WorkspaceListenerSequencer wsls = new WorkspaceListenerSequencer(ws);
+		wsls.registerListener(repAnalyzer);
+		wsls.registerListener(picp);
 		isInitialized = true;
+	}
+	
+	public int resetAndUpdate() { // just a quick hack for now.
+		return picp.resetAndUpdate();
 	}
 	
 	public void dumpDesignSpace() {

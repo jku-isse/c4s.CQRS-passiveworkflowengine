@@ -1,0 +1,149 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "CR": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_CR-\u003esize() \u003e 0 \nand \nself.in_CR\n-\u003eforAll(issue | issue.workItemType.name\u003d\u0027Change Request\u0027)",
+        "POSTCONDITION": "self.in_CR\n-\u003eforAll(issue | issue.state.name\u003d\u0027Draft\u0027 \n   or issue.state.name\u003d\u0027Reviewed\u0027 \n   or issue.state.name\u003d\u0027Released\u0027 \n    or issue.state.name\u003d\u0027Archived\u0027) "
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_CR-\u003eforAll(issue | issue.assignedTo.isDefined() )",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "cr-assignee",
+          "description": "Assignee is set"
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "CreateChangeRequest"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "SRS": "azure_workitem"
+      },
+      "ioMapping": {
+        "CRtoReq": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Affects\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Requirement\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_SRS)\n -\u003esize() \u003d 0\n\n  "
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_CR-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_CR\n-\u003eforAll(issue | issue.state.name\u003d\u0027Reviewed\u0027 \n     or issue.state.name\u003d\u0027Released\u0027 \n     or issue.state.name\u003d\u0027Archived\u0027) \nand \nself.out_SRS-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_CR-\u003eforAll(issue | issue.priority \u003e -1)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "cr-severity",
+          "description": "Severity is set"
+        },
+        {
+          "arlRule": "self.in_CR-\u003eforAll(issue | issue.description.size() \u003e 10)",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "cr-description",
+          "description": "Description is not empty"
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "AnalyzeChangeRequest"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "1",
+      "input": {
+        "CR": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_CR-\u003eforAll(issue |  issue.state.name\u003d\u0027Reviewed\u0027 or issue.state.name\u003d\u0027Released\u0027 or issue.state.name\u003d\u0027Archived\u0027)",
+        "POSTCONDITION": "self.in_CR-\u003eforAll(issue | issue.state.name\u003d\u0027Released\u0027 or issue.state.name\u003d\u0027Archived\u0027)"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "ApproveChangeRequest"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CEPS-CRtestV1.2",
+          "fromParam": "CR",
+          "toStep": "CreateChangeRequest",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "AnalyzeChangeRequest",
+          "fromParam": "SRS",
+          "toStep": "CEPS-CRtestV1.2",
+          "toParam": "SRS"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CEPS-CRtestV1.2",
+          "fromParam": "CR",
+          "toStep": "AnalyzeChangeRequest",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CEPS-CRtestV1.2",
+          "fromParam": "CR",
+          "toStep": "ApproveChangeRequest",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "CR": "azure_workitem"
+  },
+  "output": {
+    "SRS": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "CEPS-CRtestV1.2"
+}

@@ -1,0 +1,229 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "SRS": "azure_workitem",
+        "FeasStudy": "azure_workitem"
+      },
+      "ioMapping": {
+        "SRS": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Affects\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Requirement\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_SRS)\n -\u003esize() \u003d 0\n\n  ",
+        "FeasStudy": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.title.startsWith(\"FS\"))\n-\u003easSet()\n-\u003esymmetricDifference(self.out_FeasStudy)\n -\u003esize() \u003d 0\n\n  "
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_CR\n-\u003eforAll(issue | issue.workItemType.name \u003d \u0027Change Request\u0027) \nand self.in_CR-\u003esize() \u003d 1 ",
+        "POSTCONDITION": "self.out_FeasStudy\n-\u003eforAll(issue | issue.state.name \u003d \u0027Active\u0027 \n                  or  issue.state.name \u003d \u0027Released\u0027)\nand \nself.out_FeasStudy-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "PerformFeasibilityStudy"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "SRS": "azure_workitem",
+        "FeasStudy": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "RiskAnalysis": "azure_workitem"
+      },
+      "ioMapping": {
+        "RiskAnalysis": "self.in_CR\n-\u003ecollect(req | req.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.title.startsWith(\"RA\") )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(ra : \u003croot/types/azure_workitem\u003e | ra.isDefined()) \n-\u003esymmetricDifference(self.out_RiskAnalysis)\n -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Active\u0027)\nand\nself.in_FeasStudy-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Released\u0027)\nand\nself.out_RiskAnalysis.size() \u003e 0\nand\nself.out_RiskAnalysis\n-\u003eforAll(ra | ra.state.name \u003d \u0027Released\u0027)"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "CreateOrUpdateRiskAnalysis"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "4",
+      "input": {
+        "SRS": "azure_workitem",
+        "FeasStudy": "azure_workitem",
+        "RiskAnalysis": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "SWPP": "azure_workitem"
+      },
+      "ioMapping": {
+        "SWPP": "self.in_CR\n-\u003ecollect(req | req.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.workItemType.name.startsWith(\"SPP\") )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(ra : \u003croot/types/azure_workitem\u003e | ra.isDefined()) \n-\u003esymmetricDifference(self.out_SWPP)\n -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | \nfs.state.name\u003d\u0027Released\u0027)\nand \nself.in_FeasStudy-\u003esize() \u003e 0\nand \nself.in_RiskAnalysis\n-\u003eforAll(ra | ra.state.name\u003d\u0027Released\u0027)\nand\nself.in_RiskAnalysis.size() \u003e 0\nand \nself.in_SRS-\u003esize() \u003e 0\nand\nself.in_CR-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.out_SWPP-\u003esize() \u003e 0\nand\nself.out_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Ready for Review\u0027)\n"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "CreateOrUpdateSoftwareProjectPlan"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "1",
+      "input": {
+        "SWPP": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_SWPP-\u003esize() \u003e 0 and self.in_CR-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Released\u0027\n)"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 4,
+      "_type": "Step",
+      "code": "ReviewSoftwareProjectPlan"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromParam": "CR",
+          "toStep": "PerformFeasibilityStudy",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "FeasStudy",
+          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toParam": "FeasStudy"
+        },
+        {
+          "fromStep": "CreateOrUpdateRiskAnalysis",
+          "fromParam": "RiskAnalysis",
+          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toParam": "RiskAnalysis"
+        },
+        {
+          "fromStep": "CreateOrUpdateSoftwareProjectPlan",
+          "fromParam": "SWPP",
+          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toParam": "SWPP"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "SRS",
+          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toParam": "SRS"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateRiskAnalysis",
+          "toParam": "CR"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "FeasStudy",
+          "toStep": "CreateOrUpdateRiskAnalysis",
+          "toParam": "FeasStudy"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "SRS",
+          "toStep": "CreateOrUpdateRiskAnalysis",
+          "toParam": "SRS"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CreateOrUpdateRiskAnalysis",
+          "fromParam": "RiskAnalysis",
+          "toStep": "CreateOrUpdateSoftwareProjectPlan",
+          "toParam": "RiskAnalysis"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "FeasStudy",
+          "toStep": "CreateOrUpdateSoftwareProjectPlan",
+          "toParam": "FeasStudy"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "SRS",
+          "toStep": "CreateOrUpdateSoftwareProjectPlan",
+          "toParam": "SRS"
+        },
+        {
+          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateSoftwareProjectPlan",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromParam": "CR",
+          "toStep": "ReviewSoftwareProjectPlan",
+          "toParam": "CR"
+        },
+        {
+          "fromStep": "CreateOrUpdateSoftwareProjectPlan",
+          "fromParam": "SWPP",
+          "toStep": "ReviewSoftwareProjectPlan",
+          "toParam": "SWPP"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "4"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "CR": "azure_workitem"
+  },
+  "output": {
+    "SWPP": "azure_workitem",
+    "SRS": "azure_workitem",
+    "FeasStudy": "azure_workitem",
+    "RiskAnalysis": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "Userstudy1-ProjectMangement-V1"
+}

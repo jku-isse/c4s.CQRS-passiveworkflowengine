@@ -1,0 +1,186 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "SRS": "azure_workitem"
+      },
+      "ioMapping": {
+        "SRS": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Affects\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Requirement\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_SRS)\n -\u003esize() \u003d 0\n\n  "
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_CR\n-\u003eforAll(issue | issue.workItemType.name \u003d \u0027Change Request\u0027) \nand self.in_CR-\u003esize() \u003d 1 ",
+        "POSTCONDITION": "self.in_CR\n-\u003eforAll(issue | issue.state.name \u003d \u0027Released\u0027 \n                  or  issue.state.name \u003d \u0027Reviewed\u0027)\nand \nself.out_SRS-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_SRS-\u003eforAll(req | req.state.name \u003d \u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "AllReqReleased",
+          "description": "Are all requirements in state released?"
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "CreateOrUpdateSRS"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "SRS": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "FuncSpec": "azure_workitem"
+      },
+      "ioMapping": {
+        "FuncSpec": "self.in_SRS\n-\u003ecollect(req | req.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Successor\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Functional Specification\u0027) )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(fs : \u003croot/types/azure_workitem\u003e | fs.isDefined()) \n-\u003esymmetricDifference(self.out_FuncSpec)\n -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_SRS\n-\u003eforAll(req | req.state.name \u003d \u0027Released\u0027)\nand \nself.in_SRS-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_CR\n-\u003eforAll(issue | issue.state.name \u003d \u0027Released\u0027)\nand\nself.out_FuncSpec-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_FuncSpec\n-\u003eforAll(fs | \nfs.state.name\u003d\u0027Ready For Review\u0027\nor fs.state.name\u003d\u0027Reviewed\u0027\nor fs.state.name\u003d\u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "FuncSpecReadyForReview",
+          "description": "Ensure that all function specifications are in state \u0027ready for review\u0027 or \u0027reviewed\u0027 or \u0027released\u0027"
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "CreateOrUpdateFunctionalSpec"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "1",
+      "input": {
+        "FuncSpec": "azure_workitem"
+      },
+      "output": {
+        "Review": "azure_workitem"
+      },
+      "ioMapping": {
+        "Review": "self.in_FuncSpec\n-\u003ecollect(fs | fs.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Successor\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Review\u0027) )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(rev : \u003croot/types/azure_workitem\u003e | rev.isDefined()) \n-\u003esymmetricDifference(self.out_Review)\n -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_FuncSpec\n-\u003eforAll(fs | \nfs.state.name\u003d\u0027Ready For Review\u0027\nor fs.state.name\u003d\u0027Reviewed\u0027\nor fs.state.name\u003d\u0027Released\u0027\n)\nand self.in_FuncSpec-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_FuncSpec\n-\u003eforAll(fs | fs.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Successor\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Review\u0027)) \n-\u003esize() \u003d 1)\nand\nself.out_Review\n-\u003eforAll(rev | \nrev.state.name\u003d\u0027Resolved\u0027)\nand self.out_Review-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_FuncSpec\n-\u003eforAll(fs | fs.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Successor\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name\u003d(\u0027Review\u0027) and refitem.state.name\u003d(\u0027Resolved\u0027))\n    -\u003esize()\u003d1\n)",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "OneResolvedReview",
+          "description": "Ensure that each FunctionalSpecification has exactly one Review linked as \u0027Successor\u0027 in state \u0027Resolved\u0027."
+        },
+        {
+          "arlRule": "self.in_FuncSpec\n-\u003eforAll(fs | fs.state.name\u003d\u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "FuncSpecReleased",
+          "description": "Ensure that all function specifications are in state \u0027released\u0027."
+        }
+      ],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "ReviewFunctionSpecification"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-RequirementsMangement-V1",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateSRS",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "ReviewFunctionSpecification",
+          "fromParam": "Review",
+          "toStep": "Userstudy1-RequirementsMangement-V1",
+          "toParam": "Review"
+        },
+        {
+          "fromStep": "CreateOrUpdateFunctionalSpec",
+          "fromParam": "FuncSpec",
+          "toStep": "Userstudy1-RequirementsMangement-V1",
+          "toParam": "FuncSpec"
+        },
+        {
+          "fromStep": "CreateOrUpdateSRS",
+          "fromParam": "SRS",
+          "toStep": "Userstudy1-RequirementsMangement-V1",
+          "toParam": "SRS"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-RequirementsMangement-V1",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateFunctionalSpec",
+          "toParam": "CR"
+        },
+        {
+          "fromStep": "CreateOrUpdateSRS",
+          "fromParam": "SRS",
+          "toStep": "CreateOrUpdateFunctionalSpec",
+          "toParam": "SRS"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CreateOrUpdateFunctionalSpec",
+          "fromParam": "FuncSpec",
+          "toStep": "ReviewFunctionSpecification",
+          "toParam": "FuncSpec"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "CR": "azure_workitem"
+  },
+  "output": {
+    "SRS": "azure_workitem",
+    "FuncSpec": "azure_workitem",
+    "Review": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "Userstudy1-RequirementsMangement-V1"
+}

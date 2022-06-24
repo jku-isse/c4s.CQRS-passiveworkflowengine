@@ -16,6 +16,8 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.Property;
+import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.AlternativeRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.Operator;
@@ -55,7 +57,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
             } else {
                 return new Paragraph(o.getClass().getSimpleName() );
             }
-        }).setHeader("Execute any of the following to repair/fulfill:"); //.setWidth("100%");
+        }).setHeader("Execute the following actions to fulfill constraint:"); //.setWidth("100%");
     }
 	
 	public static Collection<Component> nodeToDescription(RepairNode rn) {
@@ -111,8 +113,20 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			return Set.of(new Paragraph(((Instance) ra.getValue()).name()));
 		} else if (ra.getValue() instanceof InstanceType) {
 			return List.of(new Paragraph("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget((InstanceType) ra.getValue()));
-		} else
-			return List.of(new Paragraph(ra.getValue()!=null ? ra.getValue().toString() : "something"));
+		} else {
+			if (ra.getValue()!=null)
+				return List.of(new Paragraph(ra.getValue().toString()));
+			else {
+				Instance subject = (Instance) ra.getElement();
+				if (subject.hasProperty(ra.getProperty())) {
+					PropertyType propT = subject.getProperty(ra.getProperty()).propertyType();
+					String propType = propT.referencedInstanceType().name();
+					return List.of(new Paragraph("some "+propType));
+				} else {
+					return List.of(new Paragraph("something"));
+				}
+			}
+		}
 	}
 	
 	public void updateQAConstraintTreeGrid(RepairNode rootNode) {

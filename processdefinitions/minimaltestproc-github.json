@@ -1,0 +1,61 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "issue": "git_issue"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_issue-\u003eforAll(issue | issue.state\u003d\u0027Closed\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_issue-\u003eforAll(issue | issue.assignee.isDefined())",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "AssigneeNotNull",
+          "description": "Ensure the assignee is set"
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "TestStep"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "TestProc",
+          "fromParam": "issue",
+          "toStep": "TestStep",
+          "toParam": "issue"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "issue": "git_issue"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "TestProc"
+}

@@ -42,16 +42,16 @@
                   <block type="transition" id="o+-8)5~UdP@[iO2n*)l+">
                     <field name="State">PRECONDITION</field>
                     <value name="condition">
-                      <block type="text" id="s9k6U(YO$7ct_.(s#2m[">
-                        <field name="TEXT">self.in_CR-&gt;size() &gt; 0 and self.in_CR-&gt;forAll(issue | issue.workItemType.name='Change Request')</field>
+                      <block type="constraint" id="=RqL0:30U{V[;6#k0F(K">
+                        <field name="arlRule">self.in_CR-&gt;size() &gt; 0 &#10;and &#10;self.in_CR&#10;-&gt;forAll(issue | issue.workItemType.name='Change Request')</field>
                       </block>
                     </value>
                     <next>
                       <block type="transition" id="#reJ29dBKh#-?Lb[3G:v">
                         <field name="State">POSTCONDITION</field>
                         <value name="condition">
-                          <block type="text" id=";gx58PGcdPL*)e=pOewv">
-                            <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.state.name='Draft' or issue.state.name='Reviewed' or issue.state.name='Released' or issue.state.name='Archived') </field>
+                          <block type="constraint" id=",TcL4G4w.hJ!OA^+@4CQ">
+                            <field name="arlRule">self.in_CR&#10;-&gt;forAll(issue | issue.state.name='Draft' &#10;   or issue.state.name='Reviewed' &#10;   or issue.state.name='Released' &#10;    or issue.state.name='Archived') </field>
                           </block>
                         </value>
                       </block>
@@ -64,7 +64,7 @@
                     <field name="description">Assignee is set</field>
                     <value name="constraint">
                       <block type="text" id="Md(Id~E]aTZ@*%QmOnpj">
-                        <field name="TEXT">self.in_CR.assignedTo &lt;&gt; null</field>
+                        <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.assignedTo.isDefined() )</field>
                       </block>
                     </value>
                   </block>
@@ -94,8 +94,8 @@
                           <block type="transition" id="sx2rlYkH`s[oZm]s1@cw">
                             <field name="State">POSTCONDITION</field>
                             <value name="condition">
-                              <block type="text" id="n|VG(w.P[c~cP8pWoTVd">
-                                <field name="TEXT">self.in_CR-&gt;forAll(issue | issue.state.name='Reviewed' or issue.state.name='Released' or issue.state.name='Archived') and self.out_SRS-&gt;size() &gt; 0</field>
+                              <block type="constraint" id="`+KFExOD?5Psq]F%|,Ir">
+                                <field name="arlRule">self.in_CR&#10;-&gt;forAll(issue | issue.state.name='Reviewed' &#10;     or issue.state.name='Released' &#10;     or issue.state.name='Archived') &#10;and &#10;self.out_SRS-&gt;size() &gt; 0</field>
                               </block>
                             </value>
                           </block>
@@ -207,7 +207,7 @@
   <block type="qacheck" id=":M;1}6zKAxvNA,NRlhIz" x="788" y="938">
     <field name="qacheckId">cr-category</field>
     <field name="description">Category is set</field>
-    <comment pinned="true" h="80" w="160">property not supported in connector yet</comment>
+    <comment pinned="false" h="80" w="160">property not supported in connector yet</comment>
     <value name="constraint">
       <block type="text" id="ETLMu(f1LqD/TW)[~^y9">
         <field name="TEXT">self.in_CR.category &lt;&gt; null</field>
@@ -217,7 +217,7 @@
   <block type="qacheck" id="x57WkUsP4[+S^J_YPlTJ" x="788" y="1213">
     <field name="qacheckId">cr-target</field>
     <field name="description">Target Version is set</field>
-    <comment pinned="true" h="80" w="160">these properties not supported in connector yet</comment>
+    <comment pinned="false" h="80" w="160">these properties not supported in connector yet</comment>
     <value name="constraint">
       <block type="text" id="?4TskP9SY9^^J``vk[~Z">
         <field name="TEXT">self.in_CR.targetVersion.size() &gt; 0</field>

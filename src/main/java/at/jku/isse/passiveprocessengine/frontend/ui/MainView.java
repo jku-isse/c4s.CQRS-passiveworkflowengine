@@ -324,7 +324,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-    	pusher.updateAll();
+    	if (commandGateway != null) {
+    		int count = commandGateway.resetAndUpdate();
+    		if (count <= 0) // otherwise there is an update called from the FrontendPusher
+    			pusher.updateAll();
+    	} else {
+    		Notification.show("Toogle Refresher to trigger backend update!");
+    		pusher.updateAll();
+    	}
     }
     
 

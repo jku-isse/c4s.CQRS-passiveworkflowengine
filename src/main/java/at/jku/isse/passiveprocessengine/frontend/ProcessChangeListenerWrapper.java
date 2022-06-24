@@ -51,7 +51,8 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 
 	@Override
 	public void handleUpdated(List<Operation> operations) {
-		counter.incrementAndGet();
+		counter.updateAndGet(i -> { return i < 0 ? 1 : i+1; });
+//		counter.incrementAndGet();
 		// get lazyloading
 		operations.stream()
 		 .map(operation -> {
@@ -73,6 +74,19 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 			uiUpdater.update(new HashSet<>(updatedInstances));
 			updatedInstances.clear();
 		}
+	}
+	
+	public int resetAndUpdate() {
+		// just a quick hack for now 
+		// as the counter above sometimes remains at the end at a value > 0, 
+		// hence no more updates are done thereafter
+		counter.set(0);
+		int count = updatedInstances.size();
+		if (updatedInstances.size() > 0) {
+			uiUpdater.update(new HashSet<>(updatedInstances));
+			updatedInstances.clear();
+		}
+		return count;
 	}
 	
 	private Instance processPropertyUpdateAdd(PropertyUpdateAdd op) {

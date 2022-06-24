@@ -5,7 +5,7 @@
     <variable id="x[DEUC1Fo-%{4u`GK8vp">FuncSpec</variable>
     <variable id="5o505OVo%.@P^`u|31`P">Review</variable>
   </variables>
-  <block type="procedures_defnoreturn" id="$r{^jOIh(5-K/bYOp*FZ" x="438" y="88">
+  <block type="procedures_defnoreturn" id="$r{^jOIh(5-K/bYOp*FZ" x="113" y="38">
     <mutation>
       <arg name="IssueFD" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
       <arg name="SRS" varid="Xg1A%?@40.5oj`/g[|@f"></arg>
@@ -102,7 +102,7 @@
                         </statement>
                         <statement name="Datamappings">
                           <block type="datamapping" id="_J0MmVwhf$p7=8$b6AhP">
-                            <field name="mappingId">CollectSRS</field>
+                            <field name="mappingId">SRS</field>
                             <field name="mappingSpec">self.in_SRS-&gt;union(&#10;self.in_IssueFD-&gt;any()&#10;  -&gt;asType(&lt;root/types/azure_workitem&gt;)&#10;.relatedItems&#10;-&gt;select(link | link.linkType.name.equalsIgnoreCase('Related'))&#10;-&gt;collect(link2 : &lt;root/types/workitem_link&gt; | link2.linkTo)&#10;-&gt;select(refitem | refitem.workItemType.name.equalsIgnoreCase('Requirement') )&#10;-&gt;asSet())&#10;-&gt;symmetricDifference(self.out_SRS)&#10; -&gt;size() = 0&#10;&#10;  </field>
                             <comment pinned="false" h="98" w="345">Take union (combine) input SRS and those directly linked from IssueFD) and ensure these are put into output SRS.</comment>
                           </block>
@@ -195,7 +195,7 @@
                             </statement>
                             <statement name="Datamappings">
                               <block type="datamapping" id="s02RGLZDZtnP|E%3y]I9">
-                                <field name="mappingId">CollectFuncSpec</field>
+                                <field name="mappingId">FuncSpec</field>
                                 <field name="mappingSpec">self.in_SRS&#10;-&gt;collect(req | req.relatedItems&#10;    -&gt;select(link |  link.linkType.name.equalsIgnoreCase('Successor'))&#10;     -&gt;collect(link2 : &lt;root/types/workitem_link&gt; | link2.linkTo)&#10;     -&gt;select(refitem | refitem.workItemType.name.equalsIgnoreCase('Functional Specification') )&#10;    -&gt;any())&#10;-&gt;asSet()&#10;-&gt;select(fs : &lt;root/types/azure_workitem&gt; | fs.isDefined()) &#10;-&gt;symmetricDifference(self.out_FuncSpec)&#10; -&gt;size() = 0</field>
                                 <comment pinned="false" h="102" w="301">for all input requirements collect via successor trace all function specifications</comment>
                               </block>
@@ -267,7 +267,7 @@
                                 </statement>
                                 <statement name="Datamappings">
                                   <block type="datamapping" id="n;xlBX=Xzp8Zd_F^QZeI">
-                                    <field name="mappingId">CollectFuncSpec</field>
+                                    <field name="mappingId">Review</field>
                                     <field name="mappingSpec">self.in_FuncSpec&#10;-&gt;collect(req | req.relatedItems&#10;    -&gt;select(link |  link.linkType.name.equalsIgnoreCase('Successor'))&#10;     -&gt;collect(link2 : &lt;root/types/workitem_link&gt; | link2.linkTo)&#10;     -&gt;select(refitem | refitem.workItemType.name.equalsIgnoreCase('Review') )&#10;    -&gt;any())&#10;-&gt;asSet()&#10;-&gt;select(fs : &lt;root/types/azure_workitem&gt; | fs.isDefined()) &#10;-&gt;symmetricDifference(self.out_Review)&#10; -&gt;size() = 0</field>
                                     <comment pinned="false" h="102" w="301">for all input functional specifications collect via successor trace all reviews</comment>
                                   </block>

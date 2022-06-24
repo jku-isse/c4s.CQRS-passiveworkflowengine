@@ -1,0 +1,190 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "SWPP": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "SRS": "azure_workitem",
+        "FuncSpec": "azure_workitem"
+      },
+      "ioMapping": {
+        "SRS": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Affects\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Requirement\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_SRS)\n -\u003esize() \u003d 0\n\n  ",
+        "FuncSpec": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Functional Specification\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_FuncSpec)\n -\u003esize() \u003d 0\n\n  "
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_CR\n-\u003eforAll(issue | issue.workItemType.name \u003d \u0027Change Request\u0027) \nand self.in_CR-\u003esize() \u003d 1 \nand self.in_SWPP-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.out_SRS-\u003esize() \u003e 0\nand\nself.out_FuncSpec-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "PrepareVandV"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "SWPP": "azure_workitem",
+        "SRS": "azure_workitem",
+        "FuncSpec": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {
+        "TestPlan": "azure_workitem"
+      },
+      "ioMapping": {
+        "TestPlan": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.title.startsWith(\u0027TP\u0027) )\n-\u003easSet()\n-\u003esymmetricDifference(self.out_TestPlan)\n -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_FuncSpec-\u003esize() \u003e 0\nand\nself.in_SRS-\u003esize() \u003e0\nand \nself.in_SWPP-\u003esize() \u003e 0\nand \nself.in_CR-\u003esize() \u003d 1\nand\nself.in_FuncSpec\n-\u003eforAll(fs | fs.state.name \u003d \u0027Released\u0027)\nand\nself.in_SWPP\n-\u003eforAll(swpp | swpp.state.name \u003d \u0027Released\u0027)\nand\nself.in_SRS\n-\u003eforAll(srs | srs.state.name \u003d \u0027Released\u0027)",
+        "POSTCONDITION": "self.out_TestPlan-\u003esize() \u003e 0\nand\nself.out_TestPlan\n-\u003eforAll(tp | tp.state.name \u003d \u0027Ready For Review\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_TestPlan\n-\u003eforAll(tp | tp.relatedItems\n -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eexists(refitem |  self.in_FuncSpec-\u003eincludes(refitem)\n))",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "TestPlanTracesToFuncSpec",
+          "description": "Each TestPlan traced to at least on of the ChangeRequest\u0027s FuncSpecs."
+        },
+        {
+          "arlRule": "self.in_FuncSpec\n-\u003eforAll(fs | fs.relatedItems\n-\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027) )\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eexists(refitem | \nself.out_TestPlan-\u003eincludes(refitem)\n))",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "FuncSpecTracesToTestPlan",
+          "description": "Each FuncSpec is traced to one of the ChangeRequest\u0027s TestPlans"
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "CreateOrUpdateTestPlan"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "1",
+      "input": {
+        "TestPlan": "azure_workitem",
+        "CR": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_TestPlan-\u003esize() \u003e 0 and self.in_CR-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_TestPlan\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Released\u0027\n)"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "ReviewTestPlan"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "CR",
+          "toStep": "PrepareVandV",
+          "toParam": "CR"
+        },
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "SWPP",
+          "toStep": "PrepareVandV",
+          "toParam": "SWPP"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CreateOrUpdateTestPlan",
+          "fromParam": "TestPlan",
+          "toStep": "Userstudy1-VerificationValidation-V1",
+          "toParam": "TestPlan"
+        },
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "CR",
+          "toStep": "Userstudy1-VerificationValidation-V1",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareVandV",
+          "fromParam": "SRS",
+          "toStep": "CreateOrUpdateTestPlan",
+          "toParam": "SRS"
+        },
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "SWPP",
+          "toStep": "CreateOrUpdateTestPlan",
+          "toParam": "SWPP"
+        },
+        {
+          "fromStep": "PrepareVandV",
+          "fromParam": "FuncSpec",
+          "toStep": "CreateOrUpdateTestPlan",
+          "toParam": "FuncSpec"
+        },
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateTestPlan",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "CreateOrUpdateTestPlan",
+          "fromParam": "TestPlan",
+          "toStep": "ReviewTestPlan",
+          "toParam": "TestPlan"
+        },
+        {
+          "fromStep": "Userstudy1-VerificationValidation-V1",
+          "fromParam": "CR",
+          "toStep": "ReviewTestPlan",
+          "toParam": "CR"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "SWPP": "azure_workitem",
+    "CR": "azure_workitem"
+  },
+  "output": {
+    "TestPlan": "azure_workitem",
+    "CR": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "Userstudy1-VerificationValidation-V1"
+}
