@@ -6,7 +6,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.2.4-SNAPSHOT</version>
+	<version>1.3.0-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -26,9 +26,9 @@
 		<vaadin.version>14.4.9</vaadin.version>
 		<lombok.version>1.18.0</lombok.version>
 		<artifact.api.version>4.1.12-SNAPSHOT</artifact.api.version>
-		<connector.azure.version>1.0.1</connector.azure.version>
-		<connector.git.version>1.0.1</connector.git.version>
-		<connector.core.version>1.0.1</connector.core.version>
+		<connector.azure.version>1.1.1</connector.azure.version>
+		<connector.git.version>1.1.1</connector.git.version>
+		<connector.core.version>1.1.1</connector.core.version>
 	</properties>
 
 	<profiles>
@@ -133,7 +133,7 @@
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
 			<artifactId>c4s.passiveprocessengine.v3</artifactId>
-			<version>0.1.3-SNAPSHOT</version>
+			<version>0.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
