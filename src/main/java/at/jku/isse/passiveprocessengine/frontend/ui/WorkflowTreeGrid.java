@@ -125,61 +125,11 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         // Column status
 
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
-            if (o instanceof ProcessStep) {
-                ProcessStep step = (ProcessStep) o;
-                boolean isPremature = (step.isInPrematureOperationModeDueTo().size() > 0);
-                boolean isUnsafe = (step.isInUnsafeOperationModeDueTo().size() > 0);
-                String color = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? "green" : "orange";
-                if (isPremature || isUnsafe)
-                	color = "#E24C00"; //dark orange
-                Icon icon;
-                switch(step.getExpectedLifecycleState()) {
-				case ACTIVE:
-					icon = new Icon(VaadinIcon.SPARK_LINE);
-					icon.setColor(color);
-					break;
-				case AVAILABLE:
-					icon = new Icon(VaadinIcon.LOCK);
-					icon.setColor("grey");
-					break;
-				case CANCELED:
-					icon = new Icon(VaadinIcon.FAST_FORWARD);
-					icon.setColor(color);
-					break;
-				case COMPLETED:
-					icon = new Icon(VaadinIcon.CHECK);
-					icon.setColor(color);
-					break;
-				case ENABLED:
-					icon = new Icon(VaadinIcon.UNLOCK);
-					icon.setColor(color);
-					break;
-				case NO_WORK_EXPECTED:
-					icon = new Icon(VaadinIcon.BAN);
-					icon.setColor(color);
-					break;
-				default:
-					icon = new Icon(VaadinIcon.ASTERISK);
-					break;
-                }
-                StringBuffer sb = new StringBuffer("Lifecycle State is ");
-                if (isPremature)
-                	sb.append("premature ");
-                if (isPremature && isUnsafe)
-                	sb.append("and ");
-                if (isUnsafe)
-                	sb.append("unsafe ");
-                sb.append(step.getActualLifecycleState());
-                if (!step.getExpectedLifecycleState().equals(step.getActualLifecycleState()))
-                	sb.append(" but expected "+step.getExpectedLifecycleState());
-                icon.getStyle().set("cursor", "pointer");
-                icon.getElement().setProperty("title", sb.toString());
-                return icon;
+        	if (o instanceof ProcessInstance) {
+                return infoDialog((ProcessInstance)o);                                
+            } else if (o instanceof ProcessStep) {
+                return infoDialog((ProcessStep)o);
             } else {
-//                Icon icon = new Icon(VaadinIcon.ASTERISK);
-//                icon.getStyle().set("cursor", "pointer");
-//                getTestDialog(o, icon);
-//                return icon;
             		return new Label("");
             }
         })).setClassNameGenerator(x -> "column-center").setHeader("State").setWidth("10%").setFlexGrow(0);
@@ -188,9 +138,25 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {      	
         	if (o instanceof ProcessInstance) {
-                return infoDialog((ProcessInstance)o);                                
+        		ProcessInstance wfi = (ProcessInstance)o;
+        		boolean unsatisfied = wfi.getProcessSteps().stream()
+                        .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
+                boolean fulfilled = wfi.getProcessSteps().stream()
+                        .anyMatch(wft -> wft.areQAconstraintsFulfilled());
+               Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
+               icon.setColor("grey");
+               return icon;
+        		//return infoDialog((ProcessInstance)o);                                
             } else if (o instanceof ProcessStep) {
-                return infoDialog((ProcessStep)o);
+               ProcessStep wft = (ProcessStep)o;
+            	boolean unsatisfied = wft.getQAstatus().stream()
+                        .anyMatch(a -> a.getEvalResult() == false);
+                boolean fulfilled = wft.getQAstatus().stream()
+                        .anyMatch(a -> a.getEvalResult() == true); 
+               Icon icon = getIcon(unsatisfied, fulfilled, wft.getDefinition().getQAConstraints().size());
+           	   icon.setColor("grey");
+               return icon;
+            	//return infoDialog((ProcessStep)o);
             } else if (o instanceof ConstraintWrapper) {
                 return infoDialog((ConstraintWrapper)o);
             } else {
@@ -199,10 +165,62 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
     }
 
+    
+    private Icon getStepIcon(ProcessStep step) {
+    	boolean isPremature = (step.isInPrematureOperationModeDueTo().size() > 0);
+        boolean isUnsafe = (step.isInUnsafeOperationModeDueTo().size() > 0);
+        String color = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? "green" : "orange";
+        if (isPremature || isUnsafe)
+        	color = "#E24C00"; //dark orange
+    	Icon icon;
+        switch(step.getExpectedLifecycleState()) {
+		case ACTIVE:
+			icon = new Icon(VaadinIcon.SPARK_LINE);
+			icon.setColor(color);
+			break;
+		case AVAILABLE:
+			icon = new Icon(VaadinIcon.LOCK);
+			icon.setColor("grey");
+			break;
+		case CANCELED:
+			icon = new Icon(VaadinIcon.FAST_FORWARD);
+			icon.setColor(color);
+			break;
+		case COMPLETED:
+			icon = new Icon(VaadinIcon.CHECK);
+			icon.setColor(color);
+			break;
+		case ENABLED:
+			icon = new Icon(VaadinIcon.UNLOCK);
+			icon.setColor(color);
+			break;
+		case NO_WORK_EXPECTED:
+			icon = new Icon(VaadinIcon.BAN);
+			icon.setColor(color);
+			break;
+		default:
+			icon = new Icon(VaadinIcon.ASTERISK);
+			break;
+        }
+        StringBuffer sb = new StringBuffer("Lifecycle State is ");
+        if (isPremature)
+        	sb.append("premature ");
+        if (isPremature && isUnsafe)
+        	sb.append("and ");
+        if (isUnsafe)
+        	sb.append("unsafe ");
+        sb.append(step.getActualLifecycleState());
+        if (!step.getExpectedLifecycleState().equals(step.getActualLifecycleState()))
+        	sb.append(" but expected "+step.getExpectedLifecycleState());
+        icon.getStyle().set("cursor", "pointer");
+        icon.getElement().setProperty("title", sb.toString());
+        return icon;
+    }
+    
     private Icon getIcon(boolean unsatisfied, boolean fulfilled, int nrConstr) {
         Icon icon;
         if (nrConstr <= 0) {
-        	icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+        	icon = new Icon(VaadinIcon.CHECK_CIRCLE_O);
         	icon.setColor("grey");
         	icon.getElement().setProperty("title", "No QA constraints defined");
         } else if (unsatisfied && fulfilled) {
@@ -226,6 +244,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
     
 
+    
+    
 
     private Component infoDialog(ProcessInstance wfi) {
         VerticalLayout l = new VerticalLayout();
@@ -240,8 +260,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
         if (wfi.getActualLifecycleState() != null) {
             l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
-            l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));
-            l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
         }
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
@@ -257,22 +275,17 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
-        
+        l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));
+        l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
         
         Dialog dialog = new Dialog();
         dialog.setWidth("80%");
         dialog.setMaxHeight("80%");
 
-        boolean unsatisfied = wfi.getProcessSteps().stream()
-                .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
-        boolean fulfilled = wfi.getProcessSteps().stream()
-                .anyMatch(wft -> wft.areQAconstraintsFulfilled());
-       
-        Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
+        Icon icon = getStepIcon(wfi);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show more information about this process instance");
-
+        //icon.getElement().setProperty("title", "Show more information about this process instance");
         dialog.add(l);
 
         return icon;
@@ -298,14 +311,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         dialog.setMaxHeight("80%");
         dialog.setWidth("80%");
 
-        boolean unsatisfied = wft.getQAstatus().stream()
-                .anyMatch(a -> a.getEvalResult() == false);
-        boolean fulfilled = wft.getQAstatus().stream()
-                .anyMatch(a -> a.getEvalResult() == true); 
-        Icon icon = getIcon(unsatisfied, fulfilled, wft.getDefinition().getQAConstraints().size());
+        Icon icon = getStepIcon(wft);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show more information about this process step");
+        //icon.getElement().setProperty("title", "Show more information about this process step");
 
         dialog.add(l);
 
@@ -355,7 +364,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
     			
     			HorizontalLayout line = new HorizontalLayout();
-    			line.add(new H5(cond.toString()+":"));
+    			H5 h5cond = new H5(cond.toString()+":");
+    			h5cond.setTitle(arl);
+    			line.add(h5cond);
     			// now fetch rule instance and check if fulfilled, if not, show repair tree:
     			Icon icon;
     			Optional<ConsistencyRule> crOpt = pStep.getConditionStatus(cond);
@@ -373,7 +384,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			}
     			line.add(new H5(icon));	
     			l.add(line);
-    			l.add(new Paragraph(arl));
+    			//l.add(new Paragraph(arl));
     			
     			if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
 //    				HorizontalLayout h = new HorizontalLayout();
@@ -533,9 +544,17 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         H3 h3 = new H3(rebc.getQaSpec().getName());
         h3.setClassName("info-header");
         l.add(h3);
-
-        l.add(new H4(rebc.getQaSpec().getHumanReadableDescription()));
-        l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
+        
+        HorizontalLayout line = new HorizontalLayout();
+        
+        H4 descr = new H4(rebc.getQaSpec().getHumanReadableDescription());
+        descr.setTitle(rebc.getQaSpec().getQaConstraintSpec());
+        line.add(descr);
+        Icon icon1= getQAIcon(rebc);
+        line.add(new H4(icon1));
+        l.add(line);
+        //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
+        
         
         if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
         	try {
@@ -559,14 +578,20 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         dialog.setWidth("80%");
         dialog.setMaxHeight("80%");
 
-        Icon icon;
+        Icon icon= getQAIcon(rebc);
+        icon.getStyle().set("cursor", "pointer");
+        icon.addClickListener(e -> dialog.open());
+        icon.getElement().setProperty("title", "Show details");
+        
+        dialog.add(l);
+        return icon;
+    }
+
+    private Icon getQAIcon(ConstraintWrapper rebc) {
+    	Icon icon;
         if (rebc.getCr() == null) {
             icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
             icon.setColor("orange");
-//            return icon;
-//        } else if (fulfilledLinks.size() > 0 && unsatisfiedLinks.size() > 0) {
-//            icon = new Icon(VaadinIcon.WARNING);
-//            icon.setColor("#E24C00");
         } else if (rebc.getEvalResult()) {
             icon = new Icon(VaadinIcon.CHECK_CIRCLE);
             icon.setColor("green");
@@ -578,14 +603,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             icon.setColor("#1565C0");
             return icon;
         }
-        icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> dialog.open());
-        icon.getElement().setProperty("title", "Show details");
-        
-        dialog.add(l);
         return icon;
     }
-
+    
     public void setFilters(Map<String, String> filter, String name) {
         propertiesFilter = filter;
         nameFilter = name;

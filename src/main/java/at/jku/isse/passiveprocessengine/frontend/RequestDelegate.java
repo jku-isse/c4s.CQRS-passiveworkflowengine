@@ -28,6 +28,7 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.ui.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
@@ -115,7 +116,7 @@ public class RequestDelegate {
 			pexs.stream().forEach(pex -> pe.getErrorMessages().add(pex.getMainMessage()));
 			throw pe;
 		}
-		String namePostfix = procInput.entrySet().stream().map(entry -> entry.getKey()+":"+entry.getValue().name()).collect(Collectors.joining(" ,", "[", "]"));
+		String namePostfix = generateProcessNamePostfix(procInput);
 		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get(), namePostfix);
 		List<IOResponse> errResp = procInput.entrySet().stream()
 			.map(entry -> pInst.addInput(entry.getKey(), entry.getValue()))
@@ -136,6 +137,11 @@ public class RequestDelegate {
 			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
 			throw ex;
 		}
+	}
+	
+	private String generateProcessNamePostfix(Map<String, Instance> procInput) {
+		return procInput.entrySet().stream().map(entry ->ComponentUtils.generateDisplayNameForInstance(entry.getValue())).collect(Collectors.joining(",", "[", "]"));
+		//return procInput.entrySet().stream().map(entry -> entry.getKey()+":"+entry.getValue().name()).collect(Collectors.joining(" ,", "[", "]"));
 	}
 	
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {

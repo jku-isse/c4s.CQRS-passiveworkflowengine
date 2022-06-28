@@ -86,8 +86,10 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 				List<Component> list3 = new ArrayList<>();
 				list3.add(new Paragraph(String.format("Change %s of ", ra.getProperty())));
 				list3.add(target);
-				list3.add(new Paragraph(String.format(" to %s ", ra.getOperator().toString())));
-				change.stream().forEach(comp -> list3.add(comp));
+				if (isSimpleRepairValue(ra)) {
+					list3.add(new Paragraph(String.format(" to %s ", ra.getOperator().toString())));
+					change.stream().forEach(comp -> list3.add(comp));
+				}
 				return list3;
 				//return String.format("Change %s of %s to %s %s", ra.getProperty(), target, ra.getOperator().toString(), change);
 			case REMOVE:
@@ -110,7 +112,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		
 	public static Collection<Component> object2String(AbstractRepairAction ra) {
 		if (ra.getValue() instanceof Instance) {
-			return Set.of(new Paragraph(((Instance) ra.getValue()).name()));
+			return Set.of(new Paragraph(( ComponentUtils.generateDisplayNameForInstance((Instance) ra.getValue()))));
 		} else if (ra.getValue() instanceof InstanceType) {
 			return List.of(new Paragraph("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget((InstanceType) ra.getValue()));
 		} else {
@@ -127,6 +129,13 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 				}
 			}
 		}
+	}
+	
+	public static boolean isSimpleRepairValue(AbstractRepairAction ra) {
+		if (ra.getValue()!=null && !(ra.getValue() instanceof Instance) && !(ra.getValue() instanceof InstanceType))
+			return true;
+		else
+			return false;
 	}
 	
 	public void updateQAConstraintTreeGrid(RepairNode rootNode) {
