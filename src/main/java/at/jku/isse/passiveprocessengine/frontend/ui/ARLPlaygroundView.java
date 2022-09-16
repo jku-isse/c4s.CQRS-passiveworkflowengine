@@ -108,7 +108,10 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
-        footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+        if (MainView.anonymMode)        
+        	footer.add(new Text("(C) 2022 - Anonymized "));
+        else 
+        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
 
         add(
                 header,

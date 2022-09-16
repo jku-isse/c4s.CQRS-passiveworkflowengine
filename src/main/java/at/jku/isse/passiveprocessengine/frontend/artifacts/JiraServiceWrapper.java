@@ -9,20 +9,20 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
-import at.jku.isse.designspace.git.model.GitBaseElementType;
-import at.jku.isse.designspace.git.service.IGitService;
-
+import at.jku.isse.designspace.jira.model.JiraBaseElementType;
+import at.jku.isse.designspace.jira.service.IJiraService;
+import at.jku.isse.designspace.jira.service.JiraService;
 
 @Component
-public class GitServiceWrapper implements IArtifactProvider{
+public class JiraServiceWrapper implements IArtifactProvider {
 
 	@Autowired
-	public IGitService gitService;
+	public IJiraService jiraService;
 	protected Set<String> supportedTypes = new HashSet<>();
 	
 	@Override
 	public ServiceResponse getServiceResponse(String id, String service) {
-		return gitService.getServiceResponse(id, service); // just a delegate call
+		return jiraService.getServiceResponse(id, service); // just a delegate call
 	}
 
 	@Override
@@ -32,10 +32,10 @@ public class GitServiceWrapper implements IArtifactProvider{
 
     @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
-        for (GitBaseElementType gbet : GitBaseElementType.values()) {
+        for (JiraBaseElementType gbet : JiraBaseElementType.values()) {
         	gbet.getType(); //init this type so its known in designspace immediately upon starting
-        	supportedTypes.add(gbet.toString().toLowerCase());
+        	supportedTypes.add(gbet.getDesignSpaceShortTypeName());
         }
     }
-	
+
 }

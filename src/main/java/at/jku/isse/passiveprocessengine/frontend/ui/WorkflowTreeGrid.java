@@ -15,8 +15,10 @@ import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
+import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
@@ -173,14 +175,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if (isPremature || isUnsafe)
         	color = "#E24C00"; //dark orange
     	Icon icon;
-        switch(step.getExpectedLifecycleState()) {
+    	State state = null;
+    	if ( step.getExpectedLifecycleState().equals(State.AVAILABLE) || step.getExpectedLifecycleState().equals(State.NO_WORK_EXPECTED) || step.getExpectedLifecycleState().equals(State.CANCELED) )
+    		state = step.getExpectedLifecycleState();
+    	else 
+    		state = step.getActualLifecycleState();
+        switch(state) {
 		case ACTIVE:
 			icon = new Icon(VaadinIcon.SPARK_LINE);
 			icon.setColor(color);
 			break;
 		case AVAILABLE:
 			icon = new Icon(VaadinIcon.LOCK);
-			icon.setColor("grey");
+			icon.setColor("red");
 			break;
 		case CANCELED:
 			icon = new Icon(VaadinIcon.FAST_FORWARD);
@@ -209,9 +216,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	sb.append("and ");
         if (isUnsafe)
         	sb.append("unsafe ");
-        sb.append(step.getActualLifecycleState());
-        if (!step.getExpectedLifecycleState().equals(step.getActualLifecycleState()))
-        	sb.append(" but expected "+step.getExpectedLifecycleState());
+        sb.append(StepLifecycleStateMapper.translateState(step.getActualLifecycleState()));
+        //TODO: for now we don't inform about deviations
+        //if (!step.getExpectedLifecycleState().equals(step.getActualLifecycleState()))        
+        //	sb.append(" but expected "+step.getExpectedLifecycleState());
         icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", sb.toString());
         return icon;
@@ -258,8 +266,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         l.add(h3);
 
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
-        if (wfi.getActualLifecycleState() != null) {
-            l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
+        if (wfi.getActualLifecycleState() != null) {            
+        	//TODO for now we only show actual state
+        	//l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
+            l.add(new Paragraph("Step State: "+StepLifecycleStateMapper.translateState(wfi.getActualLifecycleState())));
         }
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
@@ -275,7 +285,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
-        l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));
+        if (!MainView.anonymMode)        
+        	l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));                
         l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
         
         Dialog dialog = new Dialog();
@@ -301,8 +312,11 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         h3.setClassName("info-header");
         l.add(h3);
 
-        if (wft.getActualLifecycleState() != null)
-            l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
+        if (wft.getActualLifecycleState() != null) {
+         //TODO for now just actual state
+        	//l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
+        	l.add(new Paragraph("Step State: "+StepLifecycleStateMapper.translateState(wft.getActualLifecycleState())));
+        }
         augmentWithConditions(wft, l);
         augmentWithPrematureUnsafeMode(wft, l);
         infoDialogInputOutput(l,  wft);
@@ -337,13 +351,20 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	List<ProcessStep> unsafe = pStep.isInUnsafeOperationModeDueTo();
     	List<ProcessStep> prem = pStep.isInPrematureOperationModeDueTo();
     	if (!unsafe.isEmpty() || !prem.isEmpty()) {
-    		l.add(new H5("Upstream Incomplete Work"));
+    		HorizontalLayout list = new HorizontalLayout();
+    		list.add(new H5("Upstream incomplete work"));
+    		Icon icon = new Icon(VaadinIcon.EXCLAMATION);
+    		icon.setColor("#E24C00");
+    		list.add(new H5(icon));
+    		list.add(new H5("Caution! continuing on this step could lead to rework or unnecessary work."));
+    		l.add(list);
     	}
     	if (!unsafe.isEmpty()) {
     		Grid<ProcessStep> grid2 = new Grid<ProcessStep>();
     		grid2.setColumnReorderingAllowed(false);
-    		Grid.Column<ProcessStep> nameColumn = grid2.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
-    		Grid.Column<ProcessStep> linkColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
+    		Grid.Column<ProcessStep> nameColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
+    		//Grid.Column<ProcessStep> nameColumn = grid2.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
+    		//Grid.Column<ProcessStep> linkColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
     		grid2.setItems(unsafe);
     		grid2.setHeightByRows(true);
     		l.add(grid2);
@@ -351,8 +372,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	if (!prem.isEmpty()) {
     		Grid<ProcessStep> grid = new Grid<ProcessStep>();
     		grid.setColumnReorderingAllowed(false);
-    		Grid.Column<ProcessStep> nameColumn2 = grid.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
-    		Grid.Column<ProcessStep> linkColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
+    		Grid.Column<ProcessStep> nameColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
+    		//Grid.Column<ProcessStep> nameColumn2 = grid.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
+    		//Grid.Column<ProcessStep> linkColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
     		grid.setItems(prem);
     		grid.setHeightByRows(true);
     		l.add(grid);
@@ -364,7 +386,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
     			
     			HorizontalLayout line = new HorizontalLayout();
-    			H5 h5cond = new H5(cond.toString()+":");
+    			String strCond = cond.toString().substring(0,1)+cond.toString().substring(1).toLowerCase();
+    			H5 h5cond = new H5(strCond+":");
     			h5cond.setTitle(arl);
     			line.add(h5cond);
     			// now fetch rule instance and check if fulfilled, if not, show repair tree:

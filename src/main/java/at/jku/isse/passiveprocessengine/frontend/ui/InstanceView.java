@@ -85,6 +85,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
         String strid = parametersMap.getOrDefault("id", List.of("")).get(0);
+        if (MainView.anonymMode) {  
+         id = null;
+        }
         try {
         	long lId = Long.parseLong(strid);
         	id = Id.of(lId);
@@ -120,7 +123,10 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
-        footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+        if (MainView.anonymMode)        
+        	footer.add(new Text("(C) 2022 - Anonymized "));
+        else 
+        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
 
         add(
                 header,
@@ -163,6 +169,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
+        if (MainView.anonymMode)  {
+        	layout.add(new Paragraph("This view is not available in double blind reviewing mode"));
+        } else         
         if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
         	Element el = commandGateway.getWorkspace().findElement(id);
         	Paragraph elName = new Paragraph(el.name());

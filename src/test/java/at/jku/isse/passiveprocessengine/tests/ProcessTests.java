@@ -73,4 +73,16 @@ class ProcessTests {
 		TestUtils.printFullProcessToLog(proc);
 	}
 	
+	@Test
+	void testSielaWithJira() throws ProcessException {
+		ArtifactIdentifier gitAI = new ArtifactIdentifier("p2f.processguidance/issues/16", "jira_core_artifact");
+		//Instance gitIssue = artRes.get(gitAI);
+		//reqDelegate.initialize();
+		reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-Github-v3");
+		
+		ProcessInstance proc = reqDelegate.getProcess("SIELA-Github-v3_[story:p2f.processguidance/issues/16]");
+		TestUtils.assertAllConstraintsAreValid(proc);
+		TestUtils.printFullProcessToLog(proc);
+	}
+	
 }

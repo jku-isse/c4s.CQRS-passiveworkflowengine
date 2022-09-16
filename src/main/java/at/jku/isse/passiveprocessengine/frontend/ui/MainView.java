@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 public class MainView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
 
     private boolean devMode = false;
-
+    public static final boolean anonymMode = true;
     
     private RequestDelegate commandGateway;
     
@@ -164,8 +164,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
-        footer.add(new Text("JKU - Institute for Software Systems Engineering"));
-
+        if (anonymMode)        
+        	footer.add(new Text("(C) 2022 - Anonymized "));
+        else 
+        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
         add(
                 header,
                 main(),
@@ -248,7 +250,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
-        if (commandGateway != null) {
+        if (commandGateway != null && !anonymMode) {
         	accordion.add("Fetch Artifact", fetchArtifact(commandGateway.getArtifactResolver()));
             accordion.add("Dump Designspace", dumpDesignSpace(commandGateway));
         }
@@ -592,7 +594,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         Paragraph p1 = new Paragraph("Fetch Artifact:");
         TextField artIdField = new TextField();
     	ComboBox<String> comboBox = new ComboBox<>("Instance Type");
-    	List<String> instTypes = List.of("git_issue", "azure_workitem");
+    	List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact");
     	comboBox.setItems(instTypes);
     	//comboBox.setMinWidth("400px");
     	

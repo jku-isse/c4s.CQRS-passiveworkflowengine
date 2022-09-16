@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.designspace.azure.model.AzureBaseElementType;
-import at.jku.isse.designspace.azure.service.AzureService;
+import at.jku.isse.designspace.azure.service.IAzureService;
 
 
 
@@ -18,7 +18,7 @@ import at.jku.isse.designspace.azure.service.AzureService;
 public class AzureServiceWrapper implements IArtifactProvider{
 
 	@Autowired
-	public AzureService azureService;
+	public IAzureService azureService;
 	protected Set<String> supportedTypes = new HashSet<>();
 	
 	@Override
