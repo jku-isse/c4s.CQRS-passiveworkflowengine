@@ -224,7 +224,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         icon.getElement().setProperty("title", sb.toString());
         return icon;
     }
-    
     private Icon getIcon(boolean unsatisfied, boolean fulfilled, int nrConstr) {
         Icon icon;
         if (nrConstr <= 0) {
