@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 public class MainView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
 
     private boolean devMode = false;
-    public static final boolean anonymMode = true;
+    public static final boolean anonymMode = false;
     
     private RequestDelegate commandGateway;
     

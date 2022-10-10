@@ -26,7 +26,7 @@ import at.jku.isse.designspace.rule.arl.repair.Operator;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.arl.repair.RestrictedSingleValueOption;
+import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
@@ -63,7 +63,9 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
             } else {
                 return new Paragraph(o.getClass().getSimpleName() );
             }
-        }).setHeader("Execute any one of the following actions to fulfill constraint:"); //.setWidth("100%");
+        })
+        .setAutoWidth(true)
+        .setHeader("Execute any one of the following actions to fulfill constraint:"); //.setWidth("100%");
     }
 	
 	public static Collection<Component> nodeToDescription(RepairNode rn) {
@@ -75,9 +77,16 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		case MULTIVALUE: //fallthrough
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
-			if (ra.getRepairValueOption() instanceof RestrictedSingleValueOption) {
-				String restriction = ((RestrictedSingleValueOption) ra.getRepairValueOption()).getRestriction();
-				return generateRestrictedRepair(ra, restriction);
+			RestrictionNode rootNode =  ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
+			if (rootNode != null) {
+				try {
+					String restriction = rootNode.printNodeTree(false);
+					return generateRestrictedRepair(ra, restriction);
+				} catch (Exception e) {
+					log.error(e.getMessage());
+					e.printStackTrace();
+					return generatePlainRepairs(ra);
+				}
 			} else {
 				return generatePlainRepairs(ra);
 			}	
