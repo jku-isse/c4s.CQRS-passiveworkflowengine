@@ -31,7 +31,9 @@
         }
       ],
       "_type": "Step",
-      "code": "sd1"
+      "code": "sd1",
+      "html_url": "https://www.google.com/",
+      "description":"<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>"
     },
     {
       "inDNDid": "dnd2",
@@ -58,7 +60,9 @@
         }
       ],
       "_type": "Step",
-      "code": "sd2"
+      "code": "sd2",
+      "html_url": "https://www.google.com/",
+      "description":"<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>"
     }
   ],
   "dns": [
@@ -108,5 +112,7 @@
   },
   "qaConstraints": [],
   "_type": "Process",
-  "code": "DemoProcess2"
+  "code": "DemoProcess2",
+  "html_url": "https://www.google.com/",
+  "description":"<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>" 
 }

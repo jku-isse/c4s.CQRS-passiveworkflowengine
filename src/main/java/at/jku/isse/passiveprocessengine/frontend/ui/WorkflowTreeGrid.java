@@ -18,7 +18,7 @@ import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
@@ -36,7 +36,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.extern.slf4j.Slf4j;
-
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +43,8 @@ import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import javax.swing.text.html.HTML;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
@@ -73,7 +74,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         propertiesFilter = new HashMap<>();
         propertiesFilter.put("", ""); // default filter
     }
-
     public void initTreeGrid() {
 
         // Column "Workflow Instance"
@@ -224,7 +224,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         icon.getElement().setProperty("title", sb.toString());
         return icon;
     }
-    
     private Icon getIcon(boolean unsatisfied, boolean fulfilled, int nrConstr) {
         Icon icon;
         if (nrConstr <= 0) {
@@ -258,23 +257,34 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private Component infoDialog(ProcessInstance wfi) {
         VerticalLayout l = new VerticalLayout();
         l.setClassName("scrollable");
-        Paragraph p = new Paragraph("Process Instance ID:");
+        Paragraph p = new Paragraph("Process Instance ID:  "+wfi.getId());
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(wfi.getName());
+        H3 h3= new H3(wfi.getName());
         h3.setClassName("info-header");
         l.add(h3);
-
+        if(wfi.getDefinition().getHtml_url()!=null)
+        {
+        	Anchor a =new Anchor(wfi.getDefinition().getHtml_url(),wfi.getDefinition().getHtml_url());
+        	a.setClassName("info-header");
+        	a.setTarget("_blank");
+        	l.add(a);
+        }
+        if(wfi.getDefinition().getDescription()!=null)
+        {
+        	wfi.getDefinition().setDescription("<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>");
+        	Html h=new Html("<span>"+wfi.getDefinition().getDescription()+"</span>");
+        	l.add(h);
+        }
        // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
         if (wfi.getActualLifecycleState() != null) {            
         	//TODO for now we only show actual state
         	//l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
-            l.add(new Paragraph("Step State: "+StepLifecycleStateMapper.translateState(wfi.getActualLifecycleState())));
+            l.add(new Paragraph("Process State: "+StepLifecycleStateMapper.translateState(wfi.getActualLifecycleState())));
         }
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
         augmentWithPrematureTriggerConditions(wfi, l);
-        
         
         Icon delIcon = new Icon(VaadinIcon.TRASH);
         delIcon.setColor("red");
@@ -305,18 +315,31 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private Component infoDialog(ProcessStep wft) {
         VerticalLayout l = new VerticalLayout();
         l.setClassName("scrollable");
-        Paragraph p = new Paragraph("Process Step ID:");
+        Paragraph p = new Paragraph("Process Step ID:  " +wft.getId());
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(wft.getDefinition().getName());
+        H3 h3= new H3(wft.getName());
         h3.setClassName("info-header");
         l.add(h3);
-
+        if(wft.getDefinition().getHtml_url()!=null)
+        {
+        	Anchor a =new Anchor(wft.getDefinition().getHtml_url(),wft.getDefinition().getHtml_url());
+        	a.setClassName("info-header");
+        	a.setTarget("_blank");
+        	l.add(a);
+        }
+        if(wft.getDefinition().getDescription()!=null)
+        {
+        	Html h=new Html("<span>"+wft.getDefinition().getDescription()+"</span>");
+        	l.add(h);
+        }
         if (wft.getActualLifecycleState() != null) {
          //TODO for now just actual state
         	//l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
         	l.add(new Paragraph("Step State: "+StepLifecycleStateMapper.translateState(wft.getActualLifecycleState())));
         }
+       
+        
         augmentWithConditions(wft, l);
         augmentWithPrematureUnsafeMode(wft, l);
         infoDialogInputOutput(l,  wft);
