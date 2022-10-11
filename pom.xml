@@ -26,7 +26,7 @@
 		<vaadin.version>14.4.9</vaadin.version>
 		<lombok.version>1.18.0</lombok.version>
 		<artifact.api.version>4.1.12-SNAPSHOT</artifact.api.version>
-		<connector.azure.version>1.1.3</connector.azure.version>
+		<connector.azure.version>1.1.4</connector.azure.version>
 		<connector.git.version>1.1.4</connector.git.version>
 		<connector.core.version>1.1.3</connector.core.version>
 		<connector.jira.version>1.1.4</connector.jira.version>		

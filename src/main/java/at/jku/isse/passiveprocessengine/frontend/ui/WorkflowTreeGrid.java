@@ -664,12 +664,20 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
     public void updateTreeGrid(Collection<ProcessInstance> content) {
         //this.content = new HashMap<>();
-        content.forEach(wfi -> this.content.put(wfi.getName(), wfi));
+    	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
+    	// heuristic, if preDNI or postDNI are != null, then this is a subporcess    	
+        content.stream()
+        	.filter(pi -> pi.getInDNI() == null && pi.getOutDNI() == null)
+        	.forEach(wfi -> this.content.put(wfi.getName(), wfi));
         updateTreeGrid();
     }
 
     public void updateTreeGrid(ProcessInstance wfi) {
-        this.content.put(wfi.getName(), wfi);
+    	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
+    	// heuristic, if preDNI or postDNI are != null, then this is a subporcess
+        if (wfi.getInDNI() == null && wfi.getOutDNI() == null)
+        	this.content.put(wfi.getName(), wfi);
+        // we update in any case as the subprocess has changed
         updateTreeGrid();
     }
 
