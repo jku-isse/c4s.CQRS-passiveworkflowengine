@@ -5,6 +5,7 @@ import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.AzureServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.GitServiceWrapper;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.JamaServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.JiraServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
@@ -70,12 +71,13 @@ public class FrontendSpringConfig {
 
 	@Bean
 //	@DependsOn({"controlEventEngine"})
-	public ArtifactResolver getArtifactResolver(AzureServiceWrapper azure, GitServiceWrapper github, DemoServiceWrapper demo, JiraServiceWrapper jira, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(AzureServiceWrapper azure, GitServiceWrapper github, DemoServiceWrapper demo, JiraServiceWrapper jira, JamaServiceWrapper jama, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
 		ar.register(github);
 		ar.register(demo);
 		ar.register(jira);
+		ar.register(jama);
 		return ar;
 	}
 

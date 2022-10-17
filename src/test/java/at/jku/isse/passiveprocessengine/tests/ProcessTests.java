@@ -88,14 +88,14 @@ class ProcessTests {
 	@Test
 	void testAzureMVPv1() throws ProcessException {
 		ArtifactIdentifier gitAI = new ArtifactIdentifier("UserStudy1Prep/868", "azure_workitem");
-//		reqDelegate.instantiateProcess("TestProc", Map.of("UserRequirements" , gitAI), "SystemRequirementsAnalysis");
+		reqDelegate.instantiateProcess("TestProc", Map.of("UserRequirements" , gitAI), "SystemRequirementsAnalysis");
 //		
-//		ProcessInstance proc = reqDelegate.getProcess("SystemRequirementsAnalysis_[L3 Requirements:UserReqCollection]");
+		ProcessInstance proc = reqDelegate.getProcess("SystemRequirementsAnalysis_[L3 Requirements:UserReqCollection]");
 //		
-//		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
-//		System.out.println(qastats.stats2Json(qastats.stats.values()));
-//		TestUtils.assertAllConstraintsAreValid(proc);
-//		TestUtils.printFullProcessToLog(proc);
+		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
+		System.out.println(qastats.stats2Json(qastats.stats.values()));
+		TestUtils.assertAllConstraintsAreValid(proc);
+		TestUtils.printFullProcessToLog(proc);
 	}
 	
 }

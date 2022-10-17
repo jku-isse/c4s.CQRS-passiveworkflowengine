@@ -34,7 +34,7 @@ public class AzureServiceWrapper implements IArtifactProvider{
     @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
         for (AzureBaseElementType gbet : AzureBaseElementType.values()) {
-        	gbet.getType(); //init this type so its known in designspace immediately upon starting
+        	//gbet.getType(); //init this type so its known in designspace immediately upon starting
         	supportedTypes.add(gbet.toString().toLowerCase());
         }
     }

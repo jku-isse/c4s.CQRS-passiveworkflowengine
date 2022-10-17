@@ -34,7 +34,8 @@ public class ComponentUtils {
 	public static String generateDisplayNameForInstance(Instance inst) {
 		if (inst.hasProperty("title") && inst.hasProperty("workItemType")) { // FIXME assume we have a azure item
 			String title = (String) inst.getPropertyAsValueOrElse("title", () -> "Unknown");
-			String type = inst.getPropertyAsInstance("workItemType") != null ? inst.getPropertyAsInstance("workItemType").name() : "UnknownType";
+			//String type = inst.getPropertyAsInstance("workItemType") != null ? inst.getPropertyAsInstance("workItemType").name() : "UnknownType";
+			String type = (String) inst.getPropertyAsValue("workItemType"); 
 			return type+":"+title;
 		} else if (inst.hasProperty("linkType") && inst.hasProperty("linkTo")) { //azure link type
 			String type = inst.getPropertyAsInstance("linkType").name();

@@ -10,7 +10,7 @@
     <mutation>
       <arg name="CR" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
     </mutation>
-    <field name="NAME">Userstudy1-ProjectMangement-V1</field>
+    <field name="NAME">ProjectMangement</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
       <block type="variables_set" id="2a|ZgaD8v$omN[{^d4y]">
@@ -163,7 +163,7 @@
                             <field name="State">POSTCONDITION</field>
                             <value name="condition">
                               <block type="constraint" id="Ed%cP|ff:5z}(:L-64v8">
-                                <field name="arlRule">self.in_FeasStudy&#10;-&gt;forAll(fs | fs.state.name = 'Released')&#10;and&#10;self.out_RiskAnalysis.size() &gt; 0&#10;and&#10;self.out_RiskAnalysis&#10;-&gt;forAll(ra | ra.state.name = 'Released')</field>
+                                <field name="arlRule">self.out_RiskAnalysis.size() &gt; 0&#10;and&#10;self.out_RiskAnalysis&#10;-&gt;forAll(ra | ra.state.name = 'Released')</field>
                               </block>
                             </value>
                           </block>
@@ -194,6 +194,17 @@
                             </value>
                           </block>
                         </next>
+                      </block>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="1W/frVG?Xz?vy+)he)E4">
+                        <field name="qacheckId">FeasibilityStudyReleased</field>
+                        <field name="description">Are all FeasibilityStudies in state 'Released'?</field>
+                        <value name="constraint">
+                          <block type="constraint" id="aLne;0nTvflPyxQ8GwQI">
+                            <field name="arlRule">self.in_FeasStudy-&gt;size() &gt; 0&#10;and&#10;self.in_FeasStudy&#10;-&gt;forAll(fs | fs.state.name = 'Released')</field>
+                          </block>
+                        </value>
                       </block>
                     </statement>
                     <next>
@@ -314,7 +325,7 @@
                                 <field name="State">POSTCONDITION</field>
                                 <value name="condition">
                                   <block type="constraint" id="qUe+W#f-^?Fkq7_GD:5T">
-                                    <field name="arlRule">self.in_SWPP&#10;-&gt;forAll(plan | &#10;plan.state.name='Released'&#10;)</field>
+                                    <field name="arlRule">self.in_SWPP-&gt;size() &gt; 0&#10;and&#10;self.in_SWPP&#10;-&gt;forAll(plan | &#10;plan.state.name='Released'&#10;)</field>
                                   </block>
                                 </value>
                               </block>

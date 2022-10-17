@@ -15,8 +15,8 @@
         "FeasStudy": "self.in_CR-\u003eany()\n  -\u003easType(\u003croot/types/azure_workitem\u003e)\n.relatedItems\n-\u003eselect(link | link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n-\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n-\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.title.startsWith(\"FS\"))\n-\u003easSet()\n-\u003esymmetricDifference(self.out_FeasStudy)\n -\u003esize() \u003d 0\n\n  "
       },
       "conditions": {
-        "PRECONDITION": "self.in_CR\n-\u003eforAll(issue | issue.workItemType.name \u003d \u0027Change Request\u0027) \nand self.in_CR-\u003esize() \u003d 1 ",
-        "POSTCONDITION": "self.out_FeasStudy\n-\u003eforAll(issue | issue.state.name \u003d \u0027Active\u0027 \n                  or  issue.state.name \u003d \u0027Released\u0027)\nand \nself.out_FeasStudy-\u003esize() \u003e 0"
+        "POSTCONDITION": "self.out_FeasStudy\n-\u003eforAll(issue | issue.state.name \u003d \u0027Active\u0027 \n                  or  issue.state.name \u003d \u0027Released\u0027)\nand \nself.out_FeasStudy-\u003esize() \u003e 0",
+        "PRECONDITION": "self.in_CR\n-\u003eforAll(issue | issue.workItemType.name \u003d \u0027Change Request\u0027) \nand self.in_CR-\u003esize() \u003d 1 "
       },
       "qaConstraints": [],
       "specOrderIndex": 1,
@@ -38,10 +38,18 @@
         "RiskAnalysis": "self.in_CR\n-\u003ecollect(req | req.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.title.startsWith(\"RA\") )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(ra : \u003croot/types/azure_workitem\u003e | ra.isDefined()) \n-\u003esymmetricDifference(self.out_RiskAnalysis)\n -\u003esize() \u003d 0"
       },
       "conditions": {
-        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Active\u0027)\nand\nself.in_FeasStudy-\u003esize() \u003e 0",
-        "POSTCONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Released\u0027)\nand\nself.out_RiskAnalysis.size() \u003e 0\nand\nself.out_RiskAnalysis\n-\u003eforAll(ra | ra.state.name \u003d \u0027Released\u0027)"
+        "POSTCONDITION": "self.out_RiskAnalysis.size() \u003e 0\nand\nself.out_RiskAnalysis\n-\u003eforAll(ra | ra.state.name \u003d \u0027Released\u0027)",
+        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Active\u0027)\nand\nself.in_FeasStudy-\u003esize() \u003e 0"
       },
-      "qaConstraints": [],
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_FeasStudy-\u003esize() \u003e 0\nand\nself.in_FeasStudy\n-\u003eforAll(fs | fs.state.name \u003d \u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "FeasibilityStudyReleased",
+          "description": "Are all FeasibilityStudies in state \u0027Released\u0027?"
+        }
+      ],
       "specOrderIndex": 2,
       "_type": "Step",
       "code": "CreateOrUpdateRiskAnalysis"
@@ -62,8 +70,8 @@
         "SWPP": "self.in_CR\n-\u003ecollect(req | req.relatedItems\n    -\u003eselect(link |  link.linkType.name.equalsIgnoreCase(\u0027Related\u0027))\n     -\u003ecollect(link2 : \u003croot/types/workitem_link\u003e | link2.linkTo)\n     -\u003eselect(refitem | refitem.workItemType.name.equalsIgnoreCase(\u0027Documentation\u0027) and \nrefitem.workItemType.name.startsWith(\"SPP\") )\n    -\u003eany())\n-\u003easSet()\n-\u003eselect(ra : \u003croot/types/azure_workitem\u003e | ra.isDefined()) \n-\u003esymmetricDifference(self.out_SWPP)\n -\u003esize() \u003d 0"
       },
       "conditions": {
-        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | \nfs.state.name\u003d\u0027Released\u0027)\nand \nself.in_FeasStudy-\u003esize() \u003e 0\nand \nself.in_RiskAnalysis\n-\u003eforAll(ra | ra.state.name\u003d\u0027Released\u0027)\nand\nself.in_RiskAnalysis.size() \u003e 0\nand \nself.in_SRS-\u003esize() \u003e 0\nand\nself.in_CR-\u003esize() \u003e 0",
-        "POSTCONDITION": "self.out_SWPP-\u003esize() \u003e 0\nand\nself.out_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Ready for Review\u0027)\n"
+        "POSTCONDITION": "self.out_SWPP-\u003esize() \u003e 0\nand\nself.out_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Ready for Review\u0027)\n",
+        "PRECONDITION": "self.in_FeasStudy\n-\u003eforAll(fs | \nfs.state.name\u003d\u0027Released\u0027)\nand \nself.in_FeasStudy-\u003esize() \u003e 0\nand \nself.in_RiskAnalysis\n-\u003eforAll(ra | ra.state.name\u003d\u0027Released\u0027)\nand\nself.in_RiskAnalysis.size() \u003e 0\nand \nself.in_SRS-\u003esize() \u003e 0\nand\nself.in_CR-\u003esize() \u003e 0"
       },
       "qaConstraints": [],
       "specOrderIndex": 3,
@@ -80,8 +88,8 @@
       "output": {},
       "ioMapping": {},
       "conditions": {
-        "PRECONDITION": "self.in_SWPP-\u003esize() \u003e 0 and self.in_CR-\u003esize() \u003e 0",
-        "POSTCONDITION": "self.in_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Released\u0027\n)"
+        "POSTCONDITION": "self.in_SWPP-\u003esize() \u003e 0\nand\nself.in_SWPP\n-\u003eforAll(plan | \nplan.state.name\u003d\u0027Released\u0027\n)",
+        "PRECONDITION": "self.in_SWPP-\u003esize() \u003e 0 and self.in_CR-\u003esize() \u003e 0"
       },
       "qaConstraints": [],
       "specOrderIndex": 4,
@@ -94,7 +102,7 @@
       "inflowType": "AND",
       "mapping": [
         {
-          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromStep": "ProjectMangement",
           "fromParam": "CR",
           "toStep": "PerformFeasibilityStudy",
           "toParam": "CR"
@@ -107,27 +115,27 @@
       "inflowType": "AND",
       "mapping": [
         {
-          "fromStep": "PerformFeasibilityStudy",
-          "fromParam": "FeasStudy",
-          "toStep": "Userstudy1-ProjectMangement-V1",
-          "toParam": "FeasStudy"
-        },
-        {
           "fromStep": "CreateOrUpdateRiskAnalysis",
           "fromParam": "RiskAnalysis",
-          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toStep": "ProjectMangement",
           "toParam": "RiskAnalysis"
+        },
+        {
+          "fromStep": "PerformFeasibilityStudy",
+          "fromParam": "FeasStudy",
+          "toStep": "ProjectMangement",
+          "toParam": "FeasStudy"
         },
         {
           "fromStep": "CreateOrUpdateSoftwareProjectPlan",
           "fromParam": "SWPP",
-          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toStep": "ProjectMangement",
           "toParam": "SWPP"
         },
         {
           "fromStep": "PerformFeasibilityStudy",
           "fromParam": "SRS",
-          "toStep": "Userstudy1-ProjectMangement-V1",
+          "toStep": "ProjectMangement",
           "toParam": "SRS"
         }
       ],
@@ -138,7 +146,7 @@
       "inflowType": "AND",
       "mapping": [
         {
-          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromStep": "ProjectMangement",
           "fromParam": "CR",
           "toStep": "CreateOrUpdateRiskAnalysis",
           "toParam": "CR"
@@ -175,16 +183,16 @@
           "toParam": "FeasStudy"
         },
         {
+          "fromStep": "ProjectMangement",
+          "fromParam": "CR",
+          "toStep": "CreateOrUpdateSoftwareProjectPlan",
+          "toParam": "CR"
+        },
+        {
           "fromStep": "PerformFeasibilityStudy",
           "fromParam": "SRS",
           "toStep": "CreateOrUpdateSoftwareProjectPlan",
           "toParam": "SRS"
-        },
-        {
-          "fromStep": "Userstudy1-ProjectMangement-V1",
-          "fromParam": "CR",
-          "toStep": "CreateOrUpdateSoftwareProjectPlan",
-          "toParam": "CR"
         }
       ],
       "_type": "DecisionNode",
@@ -194,7 +202,7 @@
       "inflowType": "AND",
       "mapping": [
         {
-          "fromStep": "Userstudy1-ProjectMangement-V1",
+          "fromStep": "ProjectMangement",
           "fromParam": "CR",
           "toStep": "ReviewSoftwareProjectPlan",
           "toParam": "CR"
@@ -225,5 +233,5 @@
   "qaConstraints": [],
   "specOrderIndex": 0,
   "_type": "Process",
-  "code": "Userstudy1-ProjectMangement-V1"
+  "code": "ProjectMangement"
 }

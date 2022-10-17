@@ -594,7 +594,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         Paragraph p1 = new Paragraph("Fetch Artifact:");
         TextField artIdField = new TextField();
     	ComboBox<String> comboBox = new ComboBox<>("Instance Type");
-    	List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact");
+    	List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact", "jama_item");
     	comboBox.setItems(instTypes);
     	//comboBox.setMinWidth("400px");
     	
