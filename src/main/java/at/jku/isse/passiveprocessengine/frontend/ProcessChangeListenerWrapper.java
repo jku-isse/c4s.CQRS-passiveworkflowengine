@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.events.Operation;
@@ -89,6 +90,8 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		return count;
 	}
 	
+	private static Supplier<Boolean> falseSupplier = () -> Boolean.FALSE;
+	
 	private Instance processPropertyUpdateAdd(PropertyUpdateAdd op) {
 		if (op.name().endsWith("@rl_ruleScopes") ) {
 			//Id addedId = (Id) op.value();
@@ -96,7 +99,9 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 			Element element = ws.findElement(op.elementId());
 			if (element instanceof Instance 
 					&& element.hasProperty("fullyFetched") 
-					&& ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", () -> false)) == false) {
+					&& (      element.getPropertyAsValueOrElse("fullyFetched", falseSupplier) == null 
+					         || ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", falseSupplier)) == false     )
+			){
 				return (Instance) element;
 			}
 		}

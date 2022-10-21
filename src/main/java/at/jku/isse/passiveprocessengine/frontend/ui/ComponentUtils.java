@@ -46,6 +46,11 @@ public class ComponentUtils {
 			String title = (String) inst.getPropertyAsValueOrElse("title", () -> "Unknown");
 			String labels = (String) inst.getPropertyAsList("labels").stream().collect(Collectors.joining(",", "[", "]"));
 			return String.format("[%s] %s %s", key, title, labels);
+		} else if (inst.hasProperty("typeKey")) { // FIXME we assume we have a jama issue 
+			String key = (String) inst.getPropertyAsValueOrElse("typeKey", () -> "Unknown");
+			String title = (String) inst.getPropertyAsValueOrElse("name", () -> "Unknown");
+			String status = (String) inst.getPropertyAsValueOrElse("status", () -> "Unknown");
+			return String.format("[%s] %s (%s)", key, title, status);
 		} else if (inst.hasProperty("stepDefinition")) // a step 
 			return inst.getPropertyAsInstance("stepDefinition").name();
 		else { 

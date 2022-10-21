@@ -24,7 +24,7 @@ public class JamaServiceWrapper implements IArtifactProvider {
 	@Override
 	public ServiceResponse getServiceResponse(String id, String service) {
 		//return jamOptional.getJamaItem(id, service); // just a delegate call		
-		Optional<Instance> jamaOpt = jamaService.getJamaItem(Integer.parseInt(id)); //FIXME hack for now		
+		Optional<Instance> jamaOpt = jamaService.getJamaItem(id, "id"); //FIXME hack for now		
 		if (jamaOpt.isPresent()) {
 			Instance jama = jamaOpt.get();
 			return new ServiceResponse(ServiceResponse.SUCCESS, service, "", jama.id().toString());

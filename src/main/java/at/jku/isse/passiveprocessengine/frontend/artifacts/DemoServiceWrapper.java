@@ -64,6 +64,8 @@ public class DemoServiceWrapper implements IArtifactProvider{
 		Instance jiraC = TestArtifacts.getJiraInstance(ws, "jiraC");
 		Instance jiraD = TestArtifacts.getJiraInstance(ws, "jiraD");
 		Instance jiraA = TestArtifacts.getJiraInstance(ws, "jiraA", "jiraB", "jiraC");
+		TestArtifacts.addJiraToJira(jiraA, jiraB);
+		TestArtifacts.addJiraToJira(jiraA, jiraC);
     }
 	
     private void startUpdateSimulator() {
