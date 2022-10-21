@@ -1,0 +1,186 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">jiraIn</variable>
+    <variable id="ka%y1}j@C~zmt4L(h!2@">jiraOut</variable>
+    <variable id="IFg}5tX?H+0Lob.$JuH$">jiraOut2</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="113">
+    <field name="NAME">SubWP</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">jiraIn</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">jira_core_artifact</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">jiraIn</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                <field name="StepId">sd1</field>
+                <statement name="Input">
+                  <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">jiraIn</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="z$,}9ue$8XKI@mk]*2{p">
+                    <field name="State">PRECONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="CQD@ofj8]P}7V7L$2DuS">
+                        <field name="arlRule">self.in_jiraIn-&gt;size() = 1</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="pJ;DH??HF!VSpndX,dlz">
+                        <field name="State">POSTCONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="+23@L1s,VZo;PL3j)=uj">
+                            <field name="arlRule">self.in_jiraOut-&gt;size() =&#10;self.in_jiraIn-&gt;any()-&gt;requirements-&gt;size()</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="#So{lEhC44Wx,ExCYl8p">
+                    <field name="mappingId">jiraOut</field>
+                    <field name="mappingSpec">self.in_jiraIn-&gt;any()&#10;.requirements&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_jiraOut)&#10;-&gt;size()=0</field>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="i9K7yLpu.M=,DZ[~u|5|">
+                    <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">jiraOut</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="~Up1MNVs.9cf~?qgX*}@">
+                        <field name="Type">jira_core_artifact</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="w^Ib96=l?+4mw?FbBe=+">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="8.wa5jBV,Kx~PbZ51L{q">
+                            <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">jiraOut</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="c]o3^xUMz3E*?l$XSys#">
+                    <field name="qacheckId">sd1-qa1-state</field>
+                    <field name="description">All issue states must be 'Open'</field>
+                    <value name="constraint">
+                      <block type="constraint" id="TOhB?nPuJS9@+}!:lnlM">
+                        <field name="arlRule">self.out_jiraOut&#10;-&gt;forAll(issue | &#10;issue.state='Open')</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="smQnw=:BTI}KgaF0WZK`">
+                        <field name="qacheckId">sd1-qa2-state</field>
+                        <field name="description">None of issue states must be 'InProgress'</field>
+                        <value name="constraint">
+                          <block type="constraint" id="g]L4qfaE!IOn2~|]P0j^">
+                            <field name="arlRule">self.out_jiraOut&#10;-&gt;forAll(issue | &#10;issue.state&lt;&gt;'InProgress')</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <next>
+                  <block type="step" id="+X2ocmwdGd#BZ9x.k$x.">
+                    <field name="StepId">sd2</field>
+                    <statement name="Input">
+                      <block type="artuse" id="[Pn2p-yRsa1{utBU@YA1">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id=",d}`.JLAQx9^f{zQP%I=">
+                            <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">jiraOut</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="hu5s|}{^$+*k/,y9L|2}">
+                        <field name="State">PRECONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="Xi:-.y,:ng;jQ7N#a/!#">
+                            <field name="arlRule">self.in_jiraOut-&gt;size() &lt;&gt; 0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="mez.Yk[]!U?o*G^)F3k4">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="constraint" id="/N5@iCf!4Y`6poq?is*G">
+                                <field name="arlRule">self.out_jiraOut2-&gt;size() &lt;&gt; 1</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Datamappings">
+                      <block type="datamapping" id="B]89,i~b9;l;,fNS8?:w">
+                        <field name="mappingId">jiraOut2</field>
+                        <field name="mappingSpec">self.in_jiraOut-&gt;&#10;-&gt;symmetricDifference(self.out_jiraOut2)&#10;-&gt;size()=0</field>
+                      </block>
+                    </statement>
+                    <statement name="Output">
+                      <block type="variables_set" id="#-PerOhB8RKJEz3V@b0$">
+                        <field name="VAR" id="IFg}5tX?H+0Lob.$JuH$">jiraOut2</field>
+                        <value name="VALUE">
+                          <block type="artifact" id="_j;C^0Im3IK[zE+*J[NS">
+                            <field name="Type">jira_core_artifact</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="#*YFhv6[I@b)Lmc1=$v~">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="y!T(y{/tulrq:$zuAD9V">
+                                <field name="VAR" id="IFg}5tX?H+0Lob.$JuH$">jiraOut2</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="X$)B[Q,F`K)Yry.w?Cgb">
+                        <field name="qacheckId">sd2-qa3-state</field>
+                        <field name="description">All issue states must be 'Closed'</field>
+                        <value name="constraint">
+                          <block type="constraint" id="1NN:3:]^j;]QqttxhS?c">
+                            <field name="arlRule">self.out_jiraOut&#10;-&gt;forAll(issue | &#10;issue.state='Closed')</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

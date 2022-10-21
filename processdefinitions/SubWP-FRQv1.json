@@ -1,0 +1,83 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "subwp": "jama_item"
+      },
+      "output": {
+        "srs": "jama_item"
+      },
+      "ioMapping": {
+        "srs": "self.in_subwp-\u003eany()\n-\u003easType(\u003croot/types/jamaTypesFolder/jama_item\u003e)\n   .downstream\n-\u003eselect(srs | srs.typeKey\u003d\u0027SRS\u0027)\n-\u003easSet()\n-\u003esymmetricDifference(self.out_srs)\n-\u003esize()\u003d0"
+      },
+      "conditions": {},
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eselect(req | req.typeKey\u003d\u0027FEAT\u0027 and  req.key.startsWith(\u0027[SUB-WP\u0027) )\n    -\u003eselect(swp : \u003croot/types/jamaTypesFolder/jama_item\u003e | swp.status \u003c\u003e \u0027Closed\u0027)\n    -\u003esize() \u003c\u003d 1\n)",
+          "specOrderIndex": 3,
+          "_type": "QAConstraint",
+          "code": "SRStoWP",
+          "description": "Ensure that all SRS trace only to maximally one SubWP with a status other than \u0027closed\u0027."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jamaTypesFolder/SRS\u003e \n| srs.release.isDefined())",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "SRSrelease",
+          "description": "Ensure that all SRS have a release assigned."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jamaTypesFolder/SRS\u003e \n| srs.status\u003d\u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SRSreleased",
+          "description": "Ensure that all SRS are in status \u0027Released\u0027."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eexists(req : \u003croot/types/jamaTypesFolder/jama_item\u003e\n | req.typeKey\u003d\u0027SSS\u0027)\n)",
+          "specOrderIndex": 2,
+          "_type": "QAConstraint",
+          "code": "SSStoSRStrace",
+          "description": "Ensure that all SRS have a trace to an SSS."
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "SSStoSRSrefinement"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq",
+          "fromParam": "subwp",
+          "toStep": "SSStoSRSrefinement",
+          "toParam": "subwp"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "subwp": "jama_item"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SubWP-frq"
+}

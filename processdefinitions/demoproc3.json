@@ -1,0 +1,114 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "jiraIn": "DemoIssue"
+      },
+      "output": {
+        "jiraOut": "DemoIssue"
+      },
+      "ioMapping": {
+        "jiraOut": "self.in_jiraIn-\u003eany()-\u003easType(\u003croot/types/DemoIssue\u003e)\n.requirements\n-\u003easSet()\n-\u003esymmetricDifference(self.out_jiraOut)\n-\u003esize()\u003d0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_jiraIn-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.out_jiraOut-\u003esize() \u003d\nself.in_jiraIn-\u003eany()-\u003easType(\u003croot/types/DemoIssue\u003e).requirements-\u003esize()"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_jiraOut\n-\u003eforAll(issue | \nissue.state\u003d\u0027Open\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "sd1-qa1-state",
+          "description": "All issue states must be \u0027Open\u0027"
+        },
+        {
+          "arlRule": "self.out_jiraOut\n-\u003eforAll(issue | \nissue.state\u003c\u003e\u0027InProgress\u0027)",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "sd1-qa2-state",
+          "description": "None of issue states must be \u0027InProgress\u0027"
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "sd1"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "1",
+      "input": {
+        "jiraOut": "DemoIssue"
+      },
+      "output": {
+        "jiraOut2": "DemoIssue"
+      },
+      "ioMapping": {
+        "jiraOut2": "self.in_jiraOut\n-\u003esymmetricDifference(self.out_jiraOut2)\n-\u003esize()\u003d0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_jiraOut-\u003esize() \u003c\u003e 0",
+        "POSTCONDITION": "self.out_jiraOut2-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_jiraOut\n-\u003eforAll(issue | \nissue.state\u003d\u0027Closed\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "sd2-qa3-state",
+          "description": "All issue states must be \u0027Closed\u0027"
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "sd2"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "proc",
+          "fromParam": "jiraIn",
+          "toStep": "sd1",
+          "toParam": "jiraIn"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "sd1",
+          "fromParam": "jiraOut",
+          "toStep": "sd2",
+          "toParam": "jiraOut"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "jiraIn": "DemoIssue"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "proc"
+}

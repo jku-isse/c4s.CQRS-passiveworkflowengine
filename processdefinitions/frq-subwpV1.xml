@@ -1,0 +1,246 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">subwp</variable>
+    <variable id="ka%y1}j@C~zmt4L(h!2@">srs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="113">
+    <field name="NAME">SubWP</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">jama_item</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                <field name="StepId">SSStoSRSrefinement</field>
+                <statement name="Input">
+                  <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="#So{lEhC44Wx,ExCYl8p">
+                    <field name="mappingId">srs</field>
+                    <field name="mappingSpec">self.in_subwp-&gt;any()&#10;-&gt;collect(swp | swp.downstream)&#10;-&gt;select(srs | srs.typeKey='SRS')&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_srs)&#10;-&gt;size()=0</field>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="i9K7yLpu.M=,DZ[~u|5|">
+                    <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="~Up1MNVs.9cf~?qgX*}@">
+                        <field name="Type">jama_item</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="w^Ib96=l?+4mw?FbBe=+">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="8.wa5jBV,Kx~PbZ51L{q">
+                            <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="c]o3^xUMz3E*?l$XSys#">
+                    <field name="qacheckId">SRSreleased</field>
+                    <field name="description">Ensure that all SRS are in status 'Released'.</field>
+                    <value name="constraint">
+                      <block type="constraint" id="TOhB?nPuJS9@+}!:lnlM">
+                        <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | &#10;srs-&gt;asType(&lt;&lt;root/types/srs&gt;&#10;srs.status='Released')</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="V3G2mKsJo!*ja!Z2-DX9">
+                        <field name="qacheckId">SRSrelease</field>
+                        <field name="description">Ensure that all SRS have a release assigned.</field>
+                        <value name="constraint">
+                          <block type="constraint" id="bq_0h[:piXtJbekq0yfS">
+                            <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.release.isDefined())</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="+B.xCL~60?]aaZ-3R.Mj">
+                            <field name="qacheckId">SSStoSRStrace</field>
+                            <field name="description">Ensure that all SRS have a trace to an SSS.</field>
+                            <value name="constraint">
+                              <block type="constraint" id="|wK,[HAB([{8_8xKeM]d">
+                                <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.upstream&#10;    -&gt;exists(req | req.typeKey='SSS')&#10;)</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="qacheck" id="44Ik}{_e!;7lYH,$=7AO">
+                                <field name="qacheckId">SRStoWP</field>
+                                <field name="description">Ensure that all SRS trace only to maximally one SubWP with a status other than 'closed'.</field>
+                                <value name="constraint">
+                                  <block type="constraint" id="LRmq@QaalW0@byoq(8SE">
+                                    <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.upstream&#10;    -&gt;select(req | req.typeKey='FEAT' and req.key.startsWith('WP') )&#10;    -&gt;select(swp | swp.status &lt;&gt; 'Closed')&#10;    -&gt;size() =&lt; 1&#10;)</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="step" id="#5}:9-3;gKoIiN)yfJB." x="1013" y="688">
+    <field name="StepId">SpecRefinement</field>
+    <statement name="Input">
+      <block type="artuse" id=",XAZta$/^3)MLL$Fn_X%">
+        <field name="roletext">Param</field>
+        <value name="NAME">
+          <block type="variables_get" id="M1mbPyL$LS`[~]IU:nBh">
+            <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="+QV?m8g6e@EX:zjY^F0`">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="QO^13o]^X}]gmHK2#VoB">
+                <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="QA">
+      <block type="qacheck" id="/.8DeY8-pVp,vt]sEQZB">
+        <field name="qacheckId">SRStoFUtrace</field>
+        <field name="description">Ensure that all SRS trace to exactly one Functional Unit.</field>
+      </block>
+    </statement>
+    <next>
+      <block type="parallelexecution" id=")UON{XwZKvF`}1;i0n7I">
+        <mutation doPart="1"></mutation>
+        <field name="InFlowType">AND</field>
+        <statement name="DO0">
+          <block type="step" id="pY|hvAZMX*@9}_!iI94c">
+            <field name="StepId">SSStoSRStraceReview</field>
+            <statement name="Input">
+              <block type="artuse" id="po^17GvN!37/Chj:US3L">
+                <field name="roletext">Param</field>
+                <value name="NAME">
+                  <block type="variables_get" id="[;]F+=rE=.Vs|aQqp=_D">
+                    <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="artuse" id="m{*umhp3icf#b-P8mcJ#">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="sQ8dlyC||Y9^PVOLNV},">
+                        <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </statement>
+        <statement name="DO1">
+          <block type="step" id=":xcp3iE50qmLm;X/wBGN">
+            <field name="StepId">SRStoSPECtraceReview</field>
+            <statement name="Input">
+              <block type="artuse" id="(7=1O_YWgp[[D/]Kg0r!">
+                <field name="roletext">Param</field>
+                <value name="NAME">
+                  <block type="variables_get" id="/EPp+$4`2ONV$I}0/Hh[">
+                    <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="artuse" id="^S7|y;!O{EMcA)B3kH-f">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="!91!__/}]-p[=sI?$gpy">
+                        <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </statement>
+        <next>
+          <block type="step" id=",P,C[fZJ.t%b|G1DaBNg">
+            <field name="StepId">Implementation</field>
+            <statement name="Input">
+              <block type="artuse" id="ig-kp5R4FktAStC]/V7Q">
+                <field name="roletext">Param</field>
+                <value name="NAME">
+                  <block type="variables_get" id="Qhq_xq-nvX[Cu^~WBk4Z">
+                    <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <statement name="QA">
+              <block type="qacheck" id="Y(JP-3C9T]sQxi92;e6U">
+                <field name="qacheckId">SRStoTCtrace</field>
+                <field name="description">Ensure that all SRS trace to at least one Test Case that matches the requirement's verification method..</field>
+              </block>
+            </statement>
+            <next>
+              <block type="step" id="nrd9OA*|kc?85Q3g)3b5">
+                <field name="StepId">SRStoTCcoverageReview</field>
+                <statement name="Input">
+                  <block type="artuse" id="UL2aYpg@Y4zD9~K27ANh">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="S$[LP,{;T1oTND:],FK;">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="7#=)1?x{7ox+^7$?8z$9">
+                    <field name="State">POSTCONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="[kR3H@mvsw]V%:U[z)uH">
+                        <field name="arlRule">self.in_subwp&#10; -&gt;forAll(swp | swp.status = 'resolved')</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>
