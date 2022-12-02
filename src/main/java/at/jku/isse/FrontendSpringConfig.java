@@ -1,12 +1,18 @@
 package at.jku.isse;
 
+//import javax.jms.ConnectionFactory;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+
+import at.jku.isse.designspace.azure.service.IAzureService;
+import at.jku.isse.designspace.git.service.IGitService;
+import at.jku.isse.designspace.jama.service.IJamaService;
+import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.AzureServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.GitServiceWrapper;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.JamaServiceWrapper;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.JiraServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
@@ -16,14 +22,6 @@ import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 import lombok.extern.slf4j.Slf4j;
-
-
-
-//import javax.jms.ConnectionFactory;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 
 
@@ -71,7 +69,7 @@ public class FrontendSpringConfig {
 
 	@Bean
 //	@DependsOn({"controlEventEngine"})
-	public ArtifactResolver getArtifactResolver(AzureServiceWrapper azure, GitServiceWrapper github, DemoServiceWrapper demo, JiraServiceWrapper jira, JamaServiceWrapper jama, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(IAzureService azure, IGitService github, DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
 		ar.register(github);

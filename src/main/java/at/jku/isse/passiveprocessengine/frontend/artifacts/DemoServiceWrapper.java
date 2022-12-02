@@ -2,7 +2,9 @@ package at.jku.isse.passiveprocessengine.frontend.artifacts;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
@@ -12,6 +14,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import at.jku.isse.designspace.artifactconnector.core.IArtifactProvider;
 import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
@@ -48,11 +51,6 @@ public class DemoServiceWrapper implements IArtifactProvider{
 				return new ServiceResponse(2, service, "Not Found", "");
 		}
 		return new ServiceResponse(3, service, "Service Not Initialized", "");
-	}
-
-	@Override
-	public boolean isProviding(String artifactType) {
-		return artifactType.equalsIgnoreCase(TestArtifacts.DEMOISSUETYPE);
 	}
 
     @EventListener
@@ -122,5 +120,26 @@ public class DemoServiceWrapper implements IArtifactProvider{
 		}
     	
     }
+
+	@Override
+	public InstanceType getArtifactInstanceType() {
+		return TestArtifacts.getJiraInstanceType(ws);
+	}
+
+	@Override
+	public Set<InstanceType> getArtifactInstanceTypes() {
+		return Set.of(TestArtifacts.getJiraInstanceType(ws));
+	}
+
+	@Override
+	public Map<InstanceType, List<String>> getSupportedIdentifier() {
+		return Map.of(TestArtifacts.getJiraInstanceType(ws), List.of(TestArtifacts.DEMOISSUETYPE));
+	}
+
+	@Override
+	public ServiceResponse[] getServiceResponse(Set<String> id, String identifierType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
     
 }

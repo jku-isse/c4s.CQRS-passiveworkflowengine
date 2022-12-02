@@ -48,9 +48,10 @@ public class ComponentUtils {
 			return String.format("[%s] %s %s", key, title, labels);
 		} else if (inst.hasProperty("typeKey")) { // FIXME we assume we have a jama issue 
 			String key = (String) inst.getPropertyAsValueOrElse("typeKey", () -> "Unknown");
-			String title = (String) inst.getPropertyAsValueOrElse("name", () -> "Unknown");
-			String status = (String) inst.getPropertyAsValueOrElse("status", () -> "Unknown");
-			return String.format("[%s] %s (%s)", key, title, status);
+			String title = (String) inst.getPropertyAsValueOrElse("name", () -> "Unknown");			
+			Object statusObj = (String) inst.getPropertyAsValueOrElse("status", () -> "Unknown");
+			String status = statusObj != null ? "("+statusObj.toString()+")" : "";
+			return String.format("[%s] %s %s", key, title, status);
 		} else if (inst.hasProperty("stepDefinition")) // a step 
 			return inst.getPropertyAsInstance("stepDefinition").name();
 		else { 

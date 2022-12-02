@@ -29,6 +29,7 @@ import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
+import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,7 +78,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		case MULTIVALUE: //fallthrough
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
-			RestrictionNode rootNode =  ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
+			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
 			if (rootNode != null) {
 				try {
 					String restriction = rootNode.printNodeTree(false);

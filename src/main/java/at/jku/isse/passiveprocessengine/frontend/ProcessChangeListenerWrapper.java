@@ -1,20 +1,25 @@
 package at.jku.isse.passiveprocessengine.frontend;
 
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.events.Operation;
 import at.jku.isse.designspace.core.events.PropertyUpdateAdd;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
+import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.jama.replaying.JamaActivity.ObjectTypes;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
@@ -146,8 +151,8 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		});
 		
 		// get lazyloading
-		fetchLazyLoaded();
-		
+		batchFetchLazyLoaded();
+		//fetchLazyLoaded();
 	}
 	
 	protected Set<ProcessInstance> executeCommands() {
@@ -162,10 +167,10 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		while (optAI.isPresent()) {
 			ArtifactIdentifier art = optAI.get();	
 			try {
-					log.debug("Trying to fetch lazyloaded artifact: "+art.getId().toString());
+					log.debug("Trying to fetch lazyloaded artifact: "+art.toString());
 					Instance inst =  resolver.get(art);
 				} catch (ProcessException e) {
-					log.warn("Could not fetch lazyloaded artifact: "+art.getId().toString()+" due to: "+e.getMessage());
+					log.warn("Could not fetch lazyloaded artifact: "+art.toString()+" due to: "+e.getMessage());
 				}
 			lazyLoaded.remove(art);
 			optAI = getLazyLoadedArtifact(); // get the next one.
@@ -173,13 +178,33 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	}
 	
 	private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
-		// FIXME: very brittle
-		return new ArtifactIdentifier(inst.name() , inst.getInstanceType().name());
+		// less brittle, but requires consistent use by artifact connectors
+		InstanceType instType = inst.getInstanceType();
+		String idType = resolver.getIdentifierTypesForInstanceType(instType).get(0);
+		String artId = (String) inst.getPropertyAsValue("id");		
+		return new ArtifactIdentifier(artId, instType.name(), idType);
 	}
 	
 	private Optional<ArtifactIdentifier> getLazyLoadedArtifact() {
 		return lazyLoaded.stream().findAny();
 	}
 	
+	private void batchFetchLazyLoaded() {
+		Map<String, Set<ArtifactIdentifier>> idsPerType = getIdsPerType();
+		
+		while (!idsPerType.isEmpty()) {
+			String type =idsPerType.keySet().stream().findAny().get();
+			Set<ArtifactIdentifier> aboutToBeFetched = idsPerType.get(type);			
+			log.debug(String.format("Trying to fetch %s lazyloaded artifact of type: %s ", aboutToBeFetched.size(), type));
+			Set<Instance> inst =  resolver.get(aboutToBeFetched.stream().map(ai -> ai.getId()).collect(Collectors.toSet()), type);							
+			aboutToBeFetched.stream().forEach(ai -> lazyLoaded.remove(ai));
+			idsPerType = getIdsPerType();
+		}
+	}
 	
+	private Map<String, Set<ArtifactIdentifier>> getIdsPerType() {
+		return lazyLoaded.stream()					
+				.map(ais -> { return new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(ais.getIdType(), ais); })
+				.collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey, Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toSet())));
+	}
 }

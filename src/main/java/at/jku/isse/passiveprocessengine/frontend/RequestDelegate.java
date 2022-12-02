@@ -6,10 +6,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +19,17 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.model.Instance;
+import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.SetProperty;
 import at.jku.isse.designspace.core.model.Tool;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -89,7 +94,7 @@ public class RequestDelegate {
 		return resolver;
 	}
 	
-	public void instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
+	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
 		if (!isInitialized) initialize();
 		
 		Optional<ProcessDefinition> optProcDef = procReg.getProcessDefinition(procDefinitionId);
@@ -127,6 +132,7 @@ public class RequestDelegate {
 		if (errResp.isEmpty()) {
 			pInstances.put(pInst.getName(), pInst);
 			ws.concludeTransaction();
+			return pInst;
 			//ws.commit();
 			//fetchLazyLoaded();
 			//frontend.update(pInst);
@@ -136,7 +142,7 @@ public class RequestDelegate {
 			ProcessException ex = new ProcessException("Unable to instantiate process");
 			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
 			throw ex;
-		}
+		}		
 	}
 	
 	private String generateProcessNamePostfix(Map<String, Instance> procInput) {
@@ -205,8 +211,9 @@ public class RequestDelegate {
 		procReg.inject(ws);
 		repAnalyzer.inject(ws);
 		RuleService.setEvaluator(new ArlRuleEvaluator());
-		RuleService.currentWorkspace = ws;
-		//lazyLoader = new LazyLoadingListener(ws, resolver);
+		RuleService.currentWorkspace = ws;		
+		// load any persisted process instances
+		loadPersistedProcesses();		
 		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver, eventDistributor);
 		WorkspaceListenerSequencer wsls = new WorkspaceListenerSequencer(ws);
 		wsls.registerListener(repAnalyzer);
@@ -216,6 +223,27 @@ public class RequestDelegate {
 	
 	public int resetAndUpdate() { // just a quick hack for now.
 		return picp.resetAndUpdate();
+	}
+	
+	private void loadPersistedProcesses() {
+		Set<ProcessInstance> existingPI = getSubtypesRecursively(ProcessInstance.getOrCreateDesignSpaceCoreSchema(ws))
+				//.allSubTypes() // everything that is of steptype (thus also process type) --> NOT YET IMPLEMENTED				
+				.stream().filter(stepType -> stepType.name().startsWith(ProcessInstance.designspaceTypeId)) //everthing that is a process type
+				.flatMap(procType -> procType.getInstancesIncludingThoseOfSubtypes().stream()) // everything that is a process instance
+				.map(procInst -> WrapperCache.getWrappedInstance(ProcessInstance.class, procInst)) // wrap instance
+				.map(procInst -> (ProcessInstance)procInst)
+				.collect(Collectors.toSet());
+		log.info(String.format("Loaded %s preexisting process instances", existingPI.size()));
+		existingPI.stream().forEach(pi -> pInstances.put(pi.getName(), pi));
+		frontend.update(existingPI);
+	}
+	
+	private Set<InstanceType> getSubtypesRecursively(InstanceType type) {
+		Set<InstanceType> subTypes = new HashSet<>(type.subTypes().get()); 				
+        for (InstanceType subType : Set.copyOf(subTypes)) {
+            subTypes.addAll( getSubtypesRecursively(subType));
+        }
+        return subTypes;
 	}
 	
 	public void dumpDesignSpace() {

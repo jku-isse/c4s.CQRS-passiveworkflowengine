@@ -1,21 +1,35 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
-import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
 
 import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.ItemLabelGenerator;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -24,32 +38,25 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.dom.Element;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.router.Route;
 
-import artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
+import at.jku.isse.designspace.core.model.Instance;
+import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import javax.inject.Inject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -509,20 +516,28 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         source.setPadding(false);
         source.setWidthFull();
         source.add(new Paragraph("select a process definition"));
+        Map<String, ComboBox<String>> role2IdType = new HashMap<>();
+        
         processDefinition.addValueChangeListener( e -> {
             ProcessDefinition wfdContainer = commandGateway.getRegistry().getProcessDefinition(e.getValue()).get(); // we fetched the ids earlier, should exist here
             source.removeAll();
+            role2IdType.clear();
             for (Map.Entry<String, InstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
                 InstanceType artT = entry.getValue();
+                List<String> idTypes = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(artT);
                 String role = entry.getKey();
                 TextField tf = new TextField();
                 tf.setWidthFull();
-                tf.setLabel(role);
-                if (artT != null)
-                	tf.setHelperText(artT.name());
-                else 
-                	tf.setHelperText("Unknown Type");
+                tf.setLabel(role);                
+                tf.setHelperText(artT.name());
                 source.add(tf);
+                ComboBox<String> idTypeBox = new ComboBox<>("Identifier Type");
+                role2IdType.put(role, idTypeBox);
+                idTypeBox.setItems(idTypes);
+                idTypeBox.setValue(idTypes.get(0));
+                idTypeBox.setHelperText(role);
+                idTypeBox.setAllowCustomValue(false);
+                source.add(idTypeBox);
             }
             if (wfdContainer.getExpectedInput().size() == 0) {
                 source.add(new Paragraph("no inputs expected"));
@@ -546,8 +561,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                             .filter(tf -> !tf.getValue().equals(""))
                             .filter(tf -> !tf.getLabel().equals(""))
                             .forEach(tf -> {
-                                ArtifactIdentifier ai = new ArtifactIdentifier(tf.getValue().trim(), tf.getHelperText().trim());
-                                inputs.put(tf.getLabel().trim(),ai);
+                            	String role = tf.getLabel().trim();
+                            	String artId = tf.getValue().trim();
+                            	String artType = tf.getHelperText().trim();
+                            	ComboBox<String> idTypeSel = role2IdType.get(role);
+                            	String idType = idTypeSel.getOptionalValue().orElse(artType);                            	                            	
+                                ArtifactIdentifier ai = new ArtifactIdentifier(artId, artType, idType);
+                                inputs.put(role,ai);
                             });
                     // send command
                     if (count.get() == inputs.size()) {
@@ -593,20 +613,39 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	VerticalLayout layout = new VerticalLayout();
         Paragraph p1 = new Paragraph("Fetch Artifact:");
         TextField artIdField = new TextField();
-    	ComboBox<String> comboBox = new ComboBox<>("Instance Type");
-    	List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact", "jama_item");
-    	comboBox.setItems(instTypes);
-    	//comboBox.setMinWidth("400px");
+    	ComboBox<InstanceType> artTypeBox = new ComboBox<>("Instance Type");
+    	Set<InstanceType> instTypes = commandGateway.getArtifactResolver().getAvailableInstanceTypes();
+    	//List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact", "jama_item");
+    	artTypeBox.setItems(instTypes);
+    	artTypeBox.setItemLabelGenerator(new ItemLabelGenerator<InstanceType>() {
+			@Override
+			public String apply(InstanceType item) {
+				return item.name();
+			}});
+    	ComboBox<String> idTypeBox = new ComboBox<>("Identifier Type");    	  
+    	
+		
+    	
+    	artTypeBox.addValueChangeListener(e-> {
+    		InstanceType artT = artTypeBox.getOptionalValue().get();
+    		List<String> idTypes = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(artT);
+    		idTypeBox.setItems(idTypes);
+    		idTypeBox.setValue(idTypes.get(0));
+    	});
     	
     	Button importArtifactButton = new Button("Fetch", evt -> {
             
                 try {
-                	if (comboBox.getOptionalValue().isEmpty())
+                	if (artTypeBox.getOptionalValue().isEmpty())
             			Notification.show("Make sure to select an Artifact Type!");
                 	else if (artIdField.getValue().length() < 1)
                 		Notification.show("Make sure to provide an identifier!");
                 	else {
-                		ArtifactIdentifier ai = new ArtifactIdentifier(artIdField.getValue().trim(), comboBox.getOptionalValue().get());
+                		String idValue = artIdField.getValue().trim();
+                		String artType = artTypeBox.getOptionalValue().get().name();
+                		String idType = idTypeBox.getOptionalValue().get();
+                		
+                		ArtifactIdentifier ai = new ArtifactIdentifier(idValue, artType, idType);
                 		Instance inst = artRes.get(ai);
                 		if (inst != null) {
                 			// redirect to new page:
@@ -620,7 +659,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 }
         });
         importArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
-        layout.add(p1, comboBox, artIdField, importArtifactButton);
+        layout.add(p1, artTypeBox, idTypeBox, artIdField, importArtifactButton);
         return layout;
     
     }

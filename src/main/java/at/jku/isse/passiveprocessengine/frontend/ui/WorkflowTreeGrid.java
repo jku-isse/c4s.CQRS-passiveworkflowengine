@@ -530,7 +530,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             for (Map.Entry<String, InstanceType> entry : io.entrySet()) {
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
-                line.add(new ListItem(entry.getKey() + " (" + entry.getValue().name() + ")"));
+                ListItem li = new ListItem(entry.getKey() + " (" + entry.getValue().name() + ")");
+                if (!isIn) {
+                	wft.getDefinition().getInputToOutputMappingRules().entrySet().stream()
+                		.filter(dmentry -> dmentry.getKey().equalsIgnoreCase(entry.getKey()))
+                		.findAny().ifPresent(dmapentry -> li.setTitle(dmapentry.getValue()));
+                }
+                line.add(li);
                 Set<Instance> artifactList = isIn ? wft.getInput(entry.getKey()) : wft.getOutput(entry.getKey());
                 if (artifactList.size() == 1) {
                     Instance a = artifactList.iterator().next();
