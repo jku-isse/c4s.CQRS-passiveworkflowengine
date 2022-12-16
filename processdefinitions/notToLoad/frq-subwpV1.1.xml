@@ -1,0 +1,147 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">subwp</variable>
+    <variable id="ka%y1}j@C~zmt4L(h!2@">srs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="-37">
+    <field name="NAME">SubWP-frq</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">jama_item</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                <field name="StepId">SSStoSRSrefinement</field>
+                <statement name="Input">
+                  <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">subwp</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="t:P!kMUZ-edY8eS;31Vq">
+                    <field name="State">POSTCONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="|=.Wl1,bZp^p{,yZB3^y">
+                        <field name="arlRule">self.in_subwp&#10; -&gt;forAll(swp : &lt;root/types/jama/FEAT&gt; | swp.jiraFeatureStatus = 'Resolved' or swp.jiraFeatureStatus = 'Closed')&#10;and &#10;self.out_srs-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="#So{lEhC44Wx,ExCYl8p">
+                    <field name="mappingId">srs</field>
+                    <field name="mappingSpec">self.in_subwp-&gt;any()&#10;-&gt;asType(&lt;root/types/jama/jama_item&gt;)&#10;   .downstream&#10;-&gt;select(srs | srs.typeKey='SRS' and not(srs.status.startsWith('Deleted')))&#10;-&gt;asSet()&#10;-&gt;symmetricDifference(self.out_srs)&#10;-&gt;size()=0</field>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="i9K7yLpu.M=,DZ[~u|5|">
+                    <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="~Up1MNVs.9cf~?qgX*}@">
+                        <field name="Type">jama_item</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="w^Ib96=l?+4mw?FbBe=+">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="8.wa5jBV,Kx~PbZ51L{q">
+                            <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="c]o3^xUMz3E*?l$XSys#">
+                    <field name="qacheckId">SRSreleased</field>
+                    <field name="description">Ensure that all SRS are in status 'Released'.</field>
+                    <value name="constraint">
+                      <block type="constraint" id="TOhB?nPuJS9@+}!:lnlM">
+                        <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; &#10;| srs.status='Released')</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="V3G2mKsJo!*ja!Z2-DX9">
+                        <field name="qacheckId">SRSrelease</field>
+                        <field name="description">Ensure that all SRS have a release assigned.</field>
+                        <value name="constraint">
+                          <block type="constraint" id="bq_0h[:piXtJbekq0yfS">
+                            <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; &#10;| srs.release.isDefined())</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="+B.xCL~60?]aaZ-3R.Mj">
+                            <field name="qacheckId">SSStoSRStrace</field>
+                            <field name="description">Ensure that all SRS have a trace to an SSS.</field>
+                            <value name="constraint">
+                              <block type="constraint" id="|wK,[HAB([{8_8xKeM]d">
+                                <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.upstream&#10;    -&gt;exists(req : &lt;root/types/jama/jama_item&gt;&#10; | req.typeKey='SSS')&#10;)</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="qacheck" id="44Ik}{_e!;7lYH,$=7AO">
+                                <field name="qacheckId">SRStoWP</field>
+                                <field name="description">Ensure that all SRS trace only to maximally one SubWP with a status other than 'closed'.</field>
+                                <value name="constraint">
+                                  <block type="constraint" id="LRmq@QaalW0@byoq(8SE">
+                                    <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.upstream&#10;    -&gt;select(req | req.typeKey='FEAT' and  req.name.startsWith('[SUB-WP') )&#10;    -&gt;select(swp : &lt;root/types/jama/FEAT&gt; | swp.jiraFeatureStatus &lt;&gt; 'Closed')&#10;    -&gt;size() &lt;= 1&#10;)</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="qacheck" id="Ub:U44q=-s2)bk!%LqeW">
+                                    <field name="qacheckId">SRStoFUtrace</field>
+                                    <field name="description">Ensure that all SRS trace downstream to exactly one Functional Unit.</field>
+                                    <value name="constraint">
+                                      <block type="constraint" id=",9AwE7585S5R^5w~mCuw">
+                                        <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.downstream&#10;    -&gt;select(el : &lt;root/types/jama/jama_item&gt; | el.typeKey='CSC' and el.status &lt;&gt; 'Deleted')&#10;    -&gt;size() = 1&#10;)</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="qacheck" id="j*MmW:|_*3B;kKe$XrqP">
+                                        <field name="qacheckId">SRStoTCtrace</field>
+                                        <field name="description">Ensure that all SRS trace to at least one Test Case that matches the requirement's verification method..</field>
+                                        <value name="constraint">
+                                          <block type="constraint" id="Q5=0PyBD1t#;FY-U%5b4">
+                                            <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; | &#10;(srs.verificationMethod&lt;&gt;'Demonstration' &#10;and&#10;   srs.downstream&#10;    -&gt;exists(el : &lt;root/types/jama/jama_item&gt; | el.typeKey='TC' &#10;      and el.status &lt;&gt; 'Deleted'&#10;      and  el.key.contains('-SWTC-')  &#10; ))&#10;or (srs.verificationMethod='Demonstration'&#10;and     srs.downstream&#10;    -&gt;exists(el2 : &lt;root/types/jama/jama_item&gt; | el2.typeKey='TC' &#10;      and el2.status &lt;&gt; 'Deleted'&#10;      and not(el2.key.contains('-SWTC-'))&#10;))&#10;)</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

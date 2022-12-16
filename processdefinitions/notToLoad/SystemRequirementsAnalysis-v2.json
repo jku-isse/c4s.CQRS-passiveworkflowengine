@@ -1,7 +1,7 @@
 {
   "steps": [
     {
-      "inDNDid": "2",
+      "inDNDid": "3",
       "outDNDid": "exit",
       "input": {
         "SysReqReviewProtocol": "azure_workitem",
@@ -20,6 +20,28 @@
       "code": "ApproveSystemRequirements"
     },
     {
+      "inDNDid": "entry",
+      "outDNDid": "1",
+      "input": {
+        "UserRequirements": "azure_workitem"
+      },
+      "output": {
+        "SystemRequirementsSpecification": "azure_workitem"
+      },
+      "ioMapping": {
+        "SystemRequirementsSpecification": "self.in_UserRequirements-\u003eany()\n  -\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n  -\u003eselect(refitem | refitem.workItemType\u003d\u0027Requirement\u0027)\n  -\u003easSet()\n  -\u003esymmetricDifference(self.out_SystemRequirementsSpecification)\n  -\u003esize() \u003d 0"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n and self.out_SystemRequirementsSpecification-\u003eforAll(SystemRequirementsSpecification | SystemRequirementsSpecification.state \u003d \u0027Draft\u0027) \r\n",
+        "PRECONDITION": "self.in_UserRequirements-\u003esize() \u003e 0 \r\n and \r\nself.in_UserRequirements-\u003eforAll(UserRequirements | UserRequirements.state \u003d \u0027Approved\u0027) \r\n"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_K3128DvNdEuodOVXOCDivg)",
+      "_type": "Step",
+      "code": "IdentifySystemRequirements"
+    },
+    {
       "steps": [
         {
           "inDNDid": "entry",
@@ -30,11 +52,11 @@
           "output": {},
           "ioMapping": {},
           "conditions": {
-            "POSTCONDITION": "self.in_SystemRequirementsSpecification\n-\u003eforAll(req | req.childItems\n -\u003eselect( refItem | refItem.workItemType \u003d \u0027Requirement\u0027)\n-\u003eforAll(child : \u003croot/types/azure/azure_workitem\u003e | child.category \u003c\u003e \u0027Uncategorized\u0027)\n)",
+            "POSTCONDITION": "self.in_SystemRequirementsSpecification\n-\u003eforAll(req | req.childItems\n-\u003eselect( refItem | refItem.workItemType \u003d \u0027Requirement\u0027)\n-\u003eforAll(child : \u003croot/types/azure/azure_workitem\u003e | child.category \u003c\u003e \u0027Uncategorized\u0027)\n)",
             "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n and \r\nself.in_SystemRequirementsSpecification-\u003eforAll(SystemRequirementsSpecification | SystemRequirementsSpecification.state \u003d \u0027Draft\u0027) \r\n"
           },
           "qaConstraints": [],
-          "specOrderIndex": 3,
+          "specOrderIndex": 2,
           "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_22ansCy3nQuuIe88Dt-GUw)",
           "_type": "Step",
           "code": "CategorizeSystemRequirements"
@@ -52,7 +74,7 @@
             "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n and \r\nself.in_SystemRequirementsSpecification-\u003eforAll(SystemRequirementsSpecification | SystemRequirementsSpecification.state \u003d \u0027Draft\u0027) \r\n"
           },
           "qaConstraints": [],
-          "specOrderIndex": 1,
+          "specOrderIndex": 3,
           "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_vxOCENQ3nQmuIe88Dt-GUw)",
           "_type": "Step",
           "code": "PrioritizeSystemRequirements"
@@ -67,11 +89,11 @@
           "output": {},
           "ioMapping": {},
           "conditions": {
-            "POSTCONDITION": "self.in_UserRequirements\n-\u003eforAll(req | req.childItems\n-\u003eselect( refItem | refItem.workItemType \u003d \u0027L3 Requirements\u0027 and refItem.state\u003d\u0027Accepted\u0027)\n-\u003eforAll( userreq : \u003croot/types/azure/azure_workitem\u003e | userreq.successorItems\n        -\u003eexists( item3 | item3.workItemType \u003d \u0027Requirement\u0027\n                )        \n        )\n)",
+            "POSTCONDITION": "self.in_UserRequirements\n-\u003eforAll(req | req.childItems\n-\u003eselect( refItem | refItem.workItemType \u003d \u0027L3 Requirements\u0027 and refItem.state\u003d\u0027Accepted\u0027)\n-\u003eforAll( userreq : \u003croot/types/azure/azure_workitem\u003e | userreq.successorItems\n        -\u003eexists( succ | succ.workItemType \u003d \u0027Requirement\u0027 )        \n        )\n)",
             "PRECONDITION": "self.in_UserRequirements-\u003esize() \u003e 0 \r\n and \r\nself.in_UserRequirements-\u003eforAll(UserRequirements | UserRequirements.state \u003d \u0027Accepted\u0027) \r\n and \r\nself.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n and \r\nself.in_SystemRequirementsSpecification-\u003eforAll(SystemRequirementsSpecification | SystemRequirementsSpecification.state \u003d \u0027Draft\u0027) \r\n"
           },
           "qaConstraints": [],
-          "specOrderIndex": 2,
+          "specOrderIndex": 1,
           "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_KHz-YGhAnQquIe88Dt-GUw)",
           "_type": "Step",
           "code": "EstablishtraceabilitytoUserRequirements"
@@ -117,8 +139,8 @@
         }
       ],
       "prematureStepConditions": {},
-      "inDNDid": "3",
-      "outDNDid": "1",
+      "inDNDid": "1",
+      "outDNDid": "2",
       "input": {
         "UserRequirements": "azure_workitem",
         "SystemRequirementsSpecification": "azure_workitem"
@@ -154,48 +176,6 @@
         },
         {
           "inDNDid": "3",
-          "outDNDid": "2",
-          "input": {
-            "ReviewResults": "azure_workitem"
-          },
-          "output": {},
-          "ioMapping": {},
-          "conditions": {
-            "POSTCONDITION": "self.in_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Recorded\u0027) \r\n",
-            "PRECONDITION": "self.in_ReviewResults-\u003esize() \u003e 0 \r\n and \r\nself.in_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Initial\u0027) \r\n"
-          },
-          "qaConstraints": [],
-          "specOrderIndex": 3,
-          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_WmVfkFdsnOmuIe88Dt-GUw)",
-          "_type": "Step",
-          "code": "Distributeresults",
-          "description": "\n\u003cul\u003e\u003cli\u003eDocument review results\u003c/li\u003e\u003cli\u003eInform review stakeholders about results\u003c/li\u003e\u003c/ul\u003e\n"
-        },
-        {
-          "inDNDid": "1",
-          "outDNDid": "3",
-          "input": {
-            "WorkProductunderreview": "azure_workitem"
-          },
-          "output": {
-            "ReviewResults": "azure_workitem"
-          },
-          "ioMapping": {
-            "ReviewResults": "self.in_WorkProductunderreview-\u003eany()\n    -\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n   -\u003eselect(refitem | refitem.workItemType.equalsIgnoreCase(\u0027Review\u0027) )\n    -\u003easSet()\n    -\u003esymmetricDifference(self.out_ReviewResults)\n    -\u003esize() \u003d 0"
-          },
-          "conditions": {
-            "POSTCONDITION": "self.out_ReviewResults-\u003esize() \u003e 0 \r\n and self.out_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Initial\u0027) \r\n",
-            "PRECONDITION": "self.in_WorkProductunderreview-\u003esize() \u003e 0 \r\n"
-          },
-          "qaConstraints": [],
-          "specOrderIndex": 2,
-          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_JzlicFdDnOmuIe88Dt-GUw)",
-          "_type": "Step",
-          "code": "Conductjointreview",
-          "description": "\n\u003cul\u003e\u003cli\u003eRun the joint review session and conduct review as planned\u003c/li\u003e\u003cli\u003eRecord  review results\u003c/li\u003e\u003c/ul\u003e\n"
-        },
-        {
-          "inDNDid": "2",
           "outDNDid": "exit",
           "input": {
             "ReviewResults": "azure_workitem"
@@ -212,6 +192,48 @@
           "_type": "Step",
           "code": "Trackfindings",
           "description": "\n\u003cul\u003e\u003cli\u003eTrack identified problems to closure\u003c/li\u003e\u003cli\u003eupdate review results in corresponding documentation and inform stakeholders about resolution\u003c/li\u003e\u003c/ul\u003e\n"
+        },
+        {
+          "inDNDid": "1",
+          "outDNDid": "2",
+          "input": {
+            "WorkProductunderreview": "azure_workitem"
+          },
+          "output": {
+            "ReviewResults": "azure_workitem"
+          },
+          "ioMapping": {
+            "ReviewResults": "self.in_WorkProductunderreview-\u003eany()\n    -\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems    \n    -\u003eselect(refitem | refitem.workItemType\u003d\u0027Review\u0027 )\n    -\u003easSet()\n    -\u003esymmetricDifference(self.out_ReviewResults)\n    -\u003esize() \u003d 0"
+          },
+          "conditions": {
+            "POSTCONDITION": "self.out_ReviewResults-\u003esize() \u003e 0 \r\n and self.out_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Initial\u0027) \r\n",
+            "PRECONDITION": "self.in_WorkProductunderreview-\u003esize() \u003e 0 \r\n"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 2,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_JzlicFdDnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Conductjointreview",
+          "description": "\n\u003cul\u003e\u003cli\u003eRun the joint review session and conduct review as planned\u003c/li\u003e\u003cli\u003eRecord  review results\u003c/li\u003e\u003c/ul\u003e\n"
+        },
+        {
+          "inDNDid": "2",
+          "outDNDid": "3",
+          "input": {
+            "ReviewResults": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "POSTCONDITION": "self.in_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Recorded\u0027) \r\n",
+            "PRECONDITION": "self.in_ReviewResults-\u003esize() \u003e 0 \r\n and \r\nself.in_ReviewResults-\u003eforAll(ReviewResults | ReviewResults.state \u003d \u0027Initial\u0027) \r\n"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 3,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_WmVfkFdsnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Distributeresults",
+          "description": "\n\u003cul\u003e\u003cli\u003eDocument review results\u003c/li\u003e\u003cli\u003eInform review stakeholders about results\u003c/li\u003e\u003c/ul\u003e\n"
         }
       ],
       "dns": [
@@ -260,7 +282,7 @@
             {
               "fromStep": "Conductjointreview",
               "fromParam": "ReviewResults",
-              "toStep": "Trackfindings",
+              "toStep": "Distributeresults",
               "toParam": "ReviewResults"
             }
           ],
@@ -273,7 +295,7 @@
             {
               "fromStep": "Conductjointreview",
               "fromParam": "ReviewResults",
-              "toStep": "Distributeresults",
+              "toStep": "Trackfindings",
               "toParam": "ReviewResults"
             }
           ],
@@ -282,8 +304,8 @@
         }
       ],
       "prematureStepConditions": {},
-      "inDNDid": "1",
-      "outDNDid": "2",
+      "inDNDid": "2",
+      "outDNDid": "3",
       "input": {
         "WorkProductunderreview": "azure_workitem"
       },
@@ -297,28 +319,6 @@
       "_type": "Process",
       "code": "JointReview",
       "description": "\n\u003ch3\u003eGoals \u0026amp; Purpose\u003c/h3\u003e\u003cul\u003e\u003cli\u003eEstablish  a common understanding within the organization how key deliverables are verified and validated to satisfy the expectations\u003c/li\u003e\u003cli\u003eJoint reviews are either performed at project management and technical levels and are held throughout the lifecycle of the project\u003c/li\u003e\u003c/ul\u003e\n"
-    },
-    {
-      "inDNDid": "entry",
-      "outDNDid": "3",
-      "input": {
-        "UserRequirements": "azure_workitem"
-      },
-      "output": {
-        "SystemRequirementsSpecification": "azure_workitem"
-      },
-      "ioMapping": {
-        "SystemRequirementsSpecification": "self.in_UserRequirements-\u003eany()\n  -\u003easType(\u003croot/types/azure/azure_workitem\u003e)\n  .successorItems -\u003eselect(refitem | refitem.workItemType.equalsIgnoreCase(\u0027Requirement\u0027))\n  -\u003easSet()\n  -\u003esymmetricDifference(self.out_SystemRequirementsSpecification)\n  -\u003esize() \u003d 0"
-      },
-      "conditions": {
-        "POSTCONDITION": "self.out_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n and self.out_SystemRequirementsSpecification-\u003eforAll(SystemRequirementsSpecification | SystemRequirementsSpecification.state \u003d \u0027Draft\u0027) \r\n",
-        "PRECONDITION": "self.in_UserRequirements-\u003esize() \u003e 0 \r\n and \r\nself.in_UserRequirements-\u003eforAll(UserRequirements | UserRequirements.state \u003d \u0027Approved\u0027) \r\n"
-      },
-      "qaConstraints": [],
-      "specOrderIndex": 1,
-      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_K3128DvNdEuodOVXOCDivg)",
-      "_type": "Step",
-      "code": "IdentifySystemRequirements"
     }
   ],
   "dns": [
@@ -360,12 +360,31 @@
         {
           "fromStep": "IdentifySystemRequirements",
           "fromParam": "SystemRequirementsSpecification",
+          "toStep": "AnalyzeSystemRequirements",
+          "toParam": "SystemRequirementsSpecification"
+        },
+        {
+          "fromStep": "SystemRequirementsAnalysis",
+          "fromParam": "UserRequirements",
+          "toStep": "AnalyzeSystemRequirements",
+          "toParam": "UserRequirements"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "IdentifySystemRequirements",
+          "fromParam": "SystemRequirementsSpecification",
           "toStep": "JointReview",
           "toParam": "WorkProductunderreview"
         }
       ],
       "_type": "DecisionNode",
-      "code": "1"
+      "code": "2"
     },
     {
       "inflowType": "AND",
@@ -381,25 +400,6 @@
           "fromParam": "SystemRequirementsSpecification",
           "toStep": "ApproveSystemRequirements",
           "toParam": "SystemRequirementsSpecification"
-        }
-      ],
-      "_type": "DecisionNode",
-      "code": "2"
-    },
-    {
-      "inflowType": "AND",
-      "mapping": [
-        {
-          "fromStep": "IdentifySystemRequirements",
-          "fromParam": "SystemRequirementsSpecification",
-          "toStep": "AnalyzeSystemRequirements",
-          "toParam": "SystemRequirementsSpecification"
-        },
-        {
-          "fromStep": "SystemRequirementsAnalysis",
-          "fromParam": "UserRequirements",
-          "toStep": "AnalyzeSystemRequirements",
-          "toParam": "UserRequirements"
         }
       ],
       "_type": "DecisionNode",

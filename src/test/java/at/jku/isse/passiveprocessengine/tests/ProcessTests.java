@@ -14,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.service.WorkspaceService;
+import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -74,16 +75,29 @@ class ProcessTests {
 	}
 	
 	@Test
-	void testSielaWithJira() throws ProcessException {
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("p2f.processguidance/issues/16", "jira_core_artifact");
+	void testSielaWithJiraV1() throws ProcessException {
+		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-20", IJiraService.JiraIdentifier.JiraIssueKey.toString());
 		//Instance gitIssue = artRes.get(gitAI);
 		//reqDelegate.initialize();
-		reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-Github-v3");
+		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-jira");
+				
+		TestUtils.assertAllConstraintsAreValid(proc);
+		TestUtils.printFullProcessToLog(proc);
+		TestUtils.printProcessWithRepairs(proc);
+	}
+	
+	@Test
+	void testAzureSielaV2() throws ProcessException {
 		
-		ProcessInstance proc = reqDelegate.getProcess("SIELA-Github-v3_[story:p2f.processguidance/issues/16]");
+		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-Eval/833", "azure_workitem");
+		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-azure-V2");
+
+		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
+		System.out.println(qastats.stats2Json(qastats.stats.values()));
 		TestUtils.assertAllConstraintsAreValid(proc);
 		TestUtils.printFullProcessToLog(proc);
 	}
+	
 	
 	@Test
 	void testAzureMVPv1() throws ProcessException {

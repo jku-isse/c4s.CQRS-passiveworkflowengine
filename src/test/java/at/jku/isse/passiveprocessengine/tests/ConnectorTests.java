@@ -17,6 +17,7 @@ import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import at.jku.isse.passiveprocessengine.toolbridges.jiraToJama.JiraJamaItemAugmentor;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -50,4 +51,12 @@ class ConnectorTests {
 		
 	}
 	
+	
+	@Test
+	void testFetchJiraFRQAndJama() throws ProcessException {
+		Instance issue = artRes.get(new ArtifactIdentifier("PVCSG-5048", "jira_core_artifact", IJiraService.JiraIdentifier.JiraIssueKey.toString()));
+		Instance jama = issue.getPropertyAsInstance(JiraJamaItemAugmentor.JIRA2JAMALINKPROPERTYNAME);
+		assert(jama != null);
+		
+	}
 }

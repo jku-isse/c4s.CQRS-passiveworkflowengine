@@ -39,7 +39,15 @@ public class ArtifactResolver {
 	}
 	
 	public List<String> getIdentifierTypesForInstanceType(InstanceType type) {
-		return identifierTypes.getOrDefault(type, Collections.emptyList());
+		List<String> types = identifierTypes.getOrDefault(type, Collections.emptyList()); 
+		if (types.isEmpty()) {
+			if (type.superTypes().isEmpty())
+				return types; // an empty list;
+			else { // else check if we can resolve first super type
+					return getIdentifierTypesForInstanceType(type.superTypes().iterator().next());
+				}
+		} else 
+		return types; 
 	}
 	
 	public Set<InstanceType> getAvailableInstanceTypes() {

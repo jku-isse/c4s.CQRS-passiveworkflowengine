@@ -1,0 +1,100 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "subwp": "jama_item"
+      },
+      "output": {
+        "srs": "jama_item"
+      },
+      "ioMapping": {
+        "srs": "self.in_subwp-\u003eany()\n-\u003easType(\u003croot/types/jama/jama_item\u003e)\n   .downstream\n-\u003eselect(srs | srs.typeKey\u003d\u0027SRS\u0027 and not(srs.status.startsWith(\u0027Deleted\u0027)))\n-\u003easSet()\n-\u003esymmetricDifference(self.out_srs)\n-\u003esize()\u003d0"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_subwp-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_subwp\n -\u003eforAll(swp : \u003croot/types/jama/FEAT\u003e | swp.jiraFeatureStatus \u003d \u0027Resolved\u0027 or swp.jiraFeatureStatus \u003d \u0027Closed\u0027)\nand \nself.out_srs-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e | \n(srs.verificationMethod\u003c\u003e\u0027Demonstration\u0027 \nand\n   srs.downstream\n    -\u003eexists(el : \u003croot/types/jama/jama_item\u003e | el.typeKey\u003d\u0027TC\u0027 \n      and el.status \u003c\u003e \u0027Deleted\u0027\n      and  el.key.contains(\u0027-SWTC-\u0027)  \n ))\nor (srs.verificationMethod\u003d\u0027Demonstration\u0027\nand     srs.downstream\n    -\u003eexists(el2 : \u003croot/types/jama/jama_item\u003e | el2.typeKey\u003d\u0027TC\u0027 \n      and el2.status \u003c\u003e \u0027Deleted\u0027\n      and not(el2.key.contains(\u0027-SWTC-\u0027))\n))\n)",
+          "specOrderIndex": 5,
+          "_type": "QAConstraint",
+          "code": "SRStoTCtrace",
+          "description": "Ensure that all SRS trace to at least one Test Case that matches the requirement\u0027s verification method.."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eexists(req : \u003croot/types/jama/jama_item\u003e\n | req.typeKey\u003d\u0027SSS\u0027)\n)",
+          "specOrderIndex": 2,
+          "_type": "QAConstraint",
+          "code": "SSStoSRStrace",
+          "description": "Ensure that all SRS have a trace to an SSS."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.status\u003d\u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SRSreleased",
+          "description": "Ensure that all SRS are in status \u0027Released\u0027."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.downstream\n    -\u003eselect(el : \u003croot/types/jama/jama_item\u003e | el.typeKey\u003d\u0027CSC\u0027 and el.status \u003c\u003e \u0027Deleted\u0027)\n    -\u003esize() \u003d 1\n)",
+          "specOrderIndex": 4,
+          "_type": "QAConstraint",
+          "code": "SRStoFUtrace",
+          "description": "Ensure that all SRS trace downstream to exactly one Functional Unit."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.release.isDefined())",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "SRSrelease",
+          "description": "Ensure that all SRS have a release assigned."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eselect(req | req.typeKey\u003d\u0027FEAT\u0027 and  req.name.startsWith(\u0027[SUB-WP\u0027) )\n    -\u003eselect(swp : \u003croot/types/jama/FEAT\u003e | swp.jiraFeatureStatus \u003c\u003e \u0027Closed\u0027)\n    -\u003esize() \u003c\u003d 1\n)",
+          "specOrderIndex": 3,
+          "_type": "QAConstraint",
+          "code": "SRStoWP",
+          "description": "Ensure that all SRS trace only to maximally one SubWP with a status other than \u0027closed\u0027."
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "SSStoSRSrefinement"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq",
+          "fromParam": "subwp",
+          "toStep": "SSStoSRSrefinement",
+          "toParam": "subwp"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "prematureStepConditions": {},
+  "input": {
+    "subwp": "jama_item"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SubWP-frq"
+}

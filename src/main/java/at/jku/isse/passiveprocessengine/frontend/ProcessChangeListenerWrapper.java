@@ -179,9 +179,14 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	
 	private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
 		// less brittle, but requires consistent use by artifact connectors
+		String artId = (String) inst.getPropertyAsValue("id");
 		InstanceType instType = inst.getInstanceType();
-		String idType = resolver.getIdentifierTypesForInstanceType(instType).get(0);
-		String artId = (String) inst.getPropertyAsValue("id");		
+		List<String> idOptions = resolver.getIdentifierTypesForInstanceType(instType);
+		if (idOptions.isEmpty()) {
+			log.warn("Cannot determine identifier option for instance type: "+instType.name());
+			return new ArtifactIdentifier(artId, instType.name());
+		} 
+		String idType = idOptions.get(0);				
 		return new ArtifactIdentifier(artId, instType.name(), idType);
 	}
 	
