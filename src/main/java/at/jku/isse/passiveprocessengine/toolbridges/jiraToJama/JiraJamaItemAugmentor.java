@@ -24,6 +24,7 @@ import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jira.service.IJiraService;
+import at.jku.isse.designspace.jira.service.IJiraService.JiraIdentifier;
 
 @Service
 @DependsOn({"controleventengine"})
@@ -42,6 +43,7 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 	public static final String JIRA2JAMALINKPROPERTYNAME = "jamaItem";
 	public static final String JAMA2JIRALINKPROPERTYNAME = "jiraIssue";
 	public static final String JIRA2JAMAIDPROPERTYNAME = "jamaId";
+	public static final String JAMA2JIRAIDPROPERTYNAME = "jiraKey";
 	
 	private Workspace ws;
 	
@@ -166,6 +168,11 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 			if (inst.hasProperty(JIRA2JAMALINKPROPERTYNAME)) {
 				setJiraToJamaCrossLink(inst, op.value());
 			}
+		} else if (op.name().equalsIgnoreCase(JAMA2JIRAIDPROPERTYNAME)) {
+			Instance inst = ws.findElement(op.elementId());
+			if (inst.hasProperty(JAMA2JIRALINKPROPERTYNAME)) {
+				setJamaToJiraCrossLink(inst, op.value());
+			}
 		}
 	}
 	
@@ -189,4 +196,27 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 		}
 	}
 	
+	private void setJamaToJiraCrossLink(Instance jamaItem, Object jiraKey) {
+		if (jiraKey == null || jiraKey.toString().length() == 0) {
+			// remove
+			jamaItem.getProperty(JAMA2JIRALINKPROPERTYNAME).set(null);
+		} else {			
+			try {
+				// or resolve it to a jira item
+				Optional<Instance> jiraInstOpt = jiraService.getArtifact(jiraKey.toString(), JiraIdentifier.JiraIssueKey);
+				if (jiraInstOpt.isPresent()) {
+					// and set it to the link property
+					try {
+						jamaItem.getProperty(JAMA2JIRALINKPROPERTYNAME).set(jiraInstOpt.get());
+					} catch (IllegalArgumentException ie) {
+						Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be assigned to crosslink "+ie.getMessage());
+					}
+				} else {
+					Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be resolved to a jira item");
+				} 
+			} catch (Exception e) {
+				Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be resolved with error "+e.getMessage());
+			}
+		}
+	}
 }

@@ -30,7 +30,7 @@
 		<connector.core.version>1.2.2</connector.core.version>
 		<connector.jira.version>1.4.0</connector.jira.version>
 		<connector.jama.version>1.0.0-SNAPSHOT</connector.jama.version>		
-		<PPEv3.version>0.2.5-SNAPSHOT</PPEv3.version>	
+		<PPEv3.version>0.3.0-SNAPSHOT</PPEv3.version>	
 	</properties>
 
 	<profiles>

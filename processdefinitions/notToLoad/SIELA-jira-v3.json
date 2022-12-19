@@ -1,0 +1,249 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "story": "jira_core_artifact"
+      },
+      "output": {
+        "cscSubtask": "jira_core_artifact",
+        "sucSubtask": "jira_core_artifact",
+        "mmfSubtask": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "cscSubtask": "self.in_story-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.subtasks-\u003eselect( subt : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027CreateOrRefineCSC\u0027))",
+        "sucSubtask": "self.in_story-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.subtasks-\u003eselect( subt : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027RefineToSUC\u0027))",
+        "mmfSubtask": "self.in_story-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.subtasks-\u003eselect( subt : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027WriteOrReviseMMF\u0027))\n"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_mmfSubtask-\u003esize() \u003e 0 \nand \nself.out_sucSubtask-\u003esize() \u003e 0 \nand \nself.out_cscSubtask-\u003esize() \u003e 0",
+        "PRECONDITION": "self.in_story-\u003esize() \u003d 1 \nand \nself.in_story\n-\u003eforAll(issue | issue.issuetype \u003d \u0027Story\u0027) "
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_story\n-\u003eforAll(story : \u003croot/types/jira_core_schema_Artifact\u003e | story.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d \u0027SR\u0027) \n-\u003esize() \u003e 0)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "ProcessTraceToSR",
+          "description": "Each Process (story) must trace to at least one Stakeholder Request (SR)"
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "PrepareProcess"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "mmfSubtask": "jira_core_artifact"
+      },
+      "output": {
+        "buc": "jira_core_artifact",
+        "mmf": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "buc": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027BUC\u0027)",
+        "mmf": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d \u0027MMF\u0027)"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_mmf-\u003esize() \u003e 0 \nand \nself.out_buc-\u003esize() \u003e 0\nand \nself.in_mmfSubtask-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)\u0027",
+        "PRECONDITION": "self.in_mmfSubtask-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n-\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SR\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "MMFtraceToSR",
+          "description": "Each linked MMF must trace to at least one Stakeholder Request (SR)."
+        },
+        {
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "MMFtraceToBUC",
+          "description": "Each linked MMF must trace to at least one Business Use Case (BUC)."
+        },
+        {
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SR\u0027)\n -\u003eforAll(cr : \u003croot/types/jira_core_schema_Artifact\u003e | cr.relatesTo\n  -\u003eselect(refitem2 : \u003croot/types/jira_core_schema_Artifact\u003e | refitem2.issuetype \u003d \u0027BUC\u0027 )\n  -\u003easSet()\n -\u003esize() \u003e 0)\n)",
+          "specOrderIndex": 2,
+          "_type": "QAConstraint",
+          "code": "SRtraceToBUC",
+          "description": "Each SR linked via an MMF must trace to at least one  Business Use Case (BUC)."
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "WriteOrReviseMMF"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "4",
+      "input": {
+        "sucSubtask": "jira_core_artifact"
+      },
+      "output": {
+        "suc": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "suc": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027SUC\u0027)"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.in_sucSubtask\n-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)\nand \nself.out_suc-\u003esize() \u003e 0",
+        "PRECONDITION": "self.in_sucSubtask-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003c\u003e \u0027SUC\u0027)\n-\u003easSet()\n-\u003esize() \u003d 0",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "OnlyTraceToSUCs",
+          "description": "No engineering artifacts other than SUCs may be traced to."
+        },
+        {
+          "arlRule": "self.out_suc-\u003esize() \u003e 0 \nand\nself.out_suc-\u003eforAll( suc1 : \u003croot/types/jira_core_schema_Artifact\u003e | \nsuc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0\nor \nsuc1.parent  \n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issuetype \u003d \u0027SUC\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SUCtraceToSUCorBUC",
+          "description": "Each SUC must trace to at least one (parent) System Use Case (SUC) or a Business Use Case (BUC)"
+        }
+      ],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "RefineToSuc"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "1",
+      "input": {
+        "cscSubtask": "jira_core_artifact"
+      },
+      "output": {
+        "csc": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "csc": "self.in_cscSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027CSC\u0027)"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_csc-\u003esize() \u003e 0\nand\nself.in_cscSubtask\n-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)",
+        "PRECONDITION": "self.in_cscSubtask-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_csc\n-\u003eforAll(csc1 : \u003croot/types/jira_core_schema_Artifact\u003e | csc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SUC\u0027 \nor (\nref2.issuetype \u003d \u0027Subtask\u0027 \nand\nref2.parent\n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issuetype \u003d \u0027SUC\u0027\n))\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "CSCtraceToSUC",
+          "description": "Each CSC must trace to at least one System Use Case (SUC) or one of its subtasks via a \u0027realizes\u0027 link.."
+        }
+      ],
+      "specOrderIndex": 4,
+      "_type": "Step",
+      "code": "CreateOrRefineCSC"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SIELA-jira-V3",
+          "fromParam": "story",
+          "toStep": "PrepareProcess",
+          "toParam": "story"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "RefineToSuc",
+          "fromParam": "suc",
+          "toStep": "SIELA-jira-V3",
+          "toParam": "suc"
+        },
+        {
+          "fromStep": "CreateOrRefineCSC",
+          "fromParam": "csc",
+          "toStep": "SIELA-jira-V3",
+          "toParam": "csc"
+        },
+        {
+          "fromStep": "WriteOrReviseMMF",
+          "fromParam": "buc",
+          "toStep": "SIELA-jira-V3",
+          "toParam": "buc"
+        },
+        {
+          "fromStep": "WriteOrReviseMMF",
+          "fromParam": "mmf",
+          "toStep": "SIELA-jira-V3",
+          "toParam": "mmf"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "mmfSubtask",
+          "toStep": "WriteOrReviseMMF",
+          "toParam": "mmfSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "sucSubtask",
+          "toStep": "RefineToSuc",
+          "toParam": "sucSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "PrepareProcess",
+          "fromParam": "cscSubtask",
+          "toStep": "CreateOrRefineCSC",
+          "toParam": "cscSubtask"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "4"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "story": "jira_core_artifact"
+  },
+  "output": {
+    "suc": "jira_core_artifact",
+    "buc": "jira_core_artifact",
+    "csc": "jira_core_artifact",
+    "mmf": "jira_core_artifact"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SIELA-jira-V3"
+}

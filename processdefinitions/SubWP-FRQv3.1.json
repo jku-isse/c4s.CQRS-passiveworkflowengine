@@ -1,0 +1,242 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {
+        "subwp": "jama_item"
+      },
+      "output": {
+        "jiraSubWP": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "jiraSubWP": "self.in_subwp\n-\u003ecollect(subwp | subwp.jiraIssue)"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_subwp-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.out_jiraSubWP-\u003esize() \u003d 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "Prepare"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "subwp": "jama_item",
+        "jiraSubWP": "jira_core_artifact"
+      },
+      "output": {
+        "srs": "jama_item",
+        "swreqSubtask": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "srs": "self.in_subwp-\u003eany()\n-\u003easType(\u003croot/types/jama/jama_item\u003e)\n   .downstream\n-\u003eselect(srs | srs.typeKey\u003d\u0027SRS\u0027 and not(srs.status.startsWith(\u0027Deleted\u0027)))",
+        "swreqSubtask": "self.in_jiraSubWP\n-\u003ecollect(jira : \u003croot/types/jira_core_schema_Artifact\u003e | jira.subtasks)\n-\u003eselect(subt  : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027SW Requirements\u0027))"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_subwp-\u003esize() \u003e 0 and self.in_jiraSubWP-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.out_swreqSubtask\n -\u003eforAll(task | task.status \u003d \u0027Closed\u0027)\nand \nself.out_srs-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eexists(req : \u003croot/types/jama/jama_item\u003e\n | req.typeKey\u003d\u0027SSS\u0027)\n)",
+          "specOrderIndex": 2,
+          "_type": "QAConstraint",
+          "code": "SSStoSRStrace",
+          "description": "Ensure that all SRS have a trace to an SSS."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.status\u003d\u0027Released\u0027)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SRSreleased",
+          "description": "Ensure that all SRS are in status \u0027Released\u0027."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.release.isDefined())",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "SRSrelease",
+          "description": "Ensure that all SRS have a release assigned."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs | srs.upstream\n    -\u003eselect(req | req.typeKey\u003d\u0027FEAT\u0027 and  req.name.startsWith(\u0027[SUB-WP\u0027) )\n    -\u003eselect(swp : \u003croot/types/jama/FEAT\u003e | swp.jiraFeatureStatus \u003c\u003e \u0027Closed\u0027)\n    -\u003esize() \u003c\u003d 1\n)",
+          "specOrderIndex": 3,
+          "_type": "QAConstraint",
+          "code": "SRStoWP",
+          "description": "Ensure that all SRS trace only to maximally one SubWP with a status other than \u0027closed\u0027."
+        }
+      ],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "SSStoSRSrefinement"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "4",
+      "input": {
+        "subwp": "jama_item",
+        "srs": "jama_item",
+        "jiraSubWP": "jira_core_artifact"
+      },
+      "output": {
+        "swdesignSubtask": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "swdesignSubtask": "self.in_jiraSubWP\n-\u003ecollect(jira  : \u003croot/types/jira_core_schema_Artifact\u003e | jira.subtasks)\n-\u003eselect(subt  : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027SW Design\u0027))"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_subwp-\u003esize() \u003e 0 and self.in_srs-\u003esize() \u003e 0 and self.in_jiraSubWP-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.out_swdesignSubtask\n -\u003eforAll(task | task.status \u003d \u0027Closed\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_srs\n-\u003eforAll(srs | srs.downstream\n    -\u003eselect(el : \u003croot/types/jama/jama_item\u003e | el.typeKey\u003d\u0027CSC\u0027 and el.status \u003c\u003e \u0027Deleted\u0027)\n    -\u003esize() \u003d 1\n)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SRStoFUtrace",
+          "description": "Ensure that all SRS trace downstream to exactly one Functional Unit."
+        }
+      ],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "SWDesign"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "1",
+      "input": {
+        "subwp": "jama_item",
+        "srs": "jama_item",
+        "jiraSubWP": "jira_core_artifact"
+      },
+      "output": {
+        "swverifSubtask": "jira_core_artifact"
+      },
+      "ioMapping": {
+        "swverifSubtask": "self.in_jiraSubWP\n-\u003ecollect(jira : \u003croot/types/jira_core_schema_Artifact\u003e | jira.subtasks)\n-\u003eselect(subt  : \u003croot/types/jira_core_schema_Artifact\u003e | subt.summary.startsWith(\u0027SW Verification Cases\u0027))"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_subwp-\u003esize() \u003e 0 and self.in_srs-\u003esize() \u003e 0 and self.in_jiraSubWP-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.out_swverifSubtask\n -\u003eforAll(task | task.status \u003d \u0027Closed\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e | \n(srs.verificationMethod\u003c\u003e\u0027Demonstration\u0027 \nand\n   srs.downstream\n    -\u003eexists(el : \u003croot/types/jama/jama_item\u003e | el.typeKey\u003d\u0027TC\u0027 \n      and el.status \u003c\u003e \u0027Deleted\u0027\n      and  el.key.contains(\u0027-SWTC-\u0027)  \n ))\nor (srs.verificationMethod\u003d\u0027Demonstration\u0027\nand     srs.downstream\n    -\u003eexists(el2 : \u003croot/types/jama/jama_item\u003e | el2.typeKey\u003d\u0027TC\u0027 \n      and el2.status \u003c\u003e \u0027Deleted\u0027\n      and not(el2.key.contains(\u0027-SWTC-\u0027))\n))\n)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "SRStoTCtrace",
+          "description": "Ensure that all SRS trace to at least one Test Case that matches the requirement\u0027s verification method.."
+        }
+      ],
+      "specOrderIndex": 4,
+      "_type": "Step",
+      "code": "SWVerificationCases"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq-v3.1",
+          "fromParam": "subwp",
+          "toStep": "Prepare",
+          "toParam": "subwp"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq-v3.1",
+          "fromParam": "subwp",
+          "toStep": "SSStoSRSrefinement",
+          "toParam": "subwp"
+        },
+        {
+          "fromStep": "Prepare",
+          "fromParam": "jiraSubWP",
+          "toStep": "SSStoSRSrefinement",
+          "toParam": "jiraSubWP"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq-v3.1",
+          "fromParam": "subwp",
+          "toStep": "SWDesign",
+          "toParam": "subwp"
+        },
+        {
+          "fromStep": "SSStoSRSrefinement",
+          "fromParam": "srs",
+          "toStep": "SWDesign",
+          "toParam": "srs"
+        },
+        {
+          "fromStep": "Prepare",
+          "fromParam": "jiraSubWP",
+          "toStep": "SWDesign",
+          "toParam": "jiraSubWP"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq-v3.1",
+          "fromParam": "subwp",
+          "toStep": "SWVerificationCases",
+          "toParam": "subwp"
+        },
+        {
+          "fromStep": "SSStoSRSrefinement",
+          "fromParam": "srs",
+          "toStep": "SWVerificationCases",
+          "toParam": "srs"
+        },
+        {
+          "fromStep": "Prepare",
+          "fromParam": "jiraSubWP",
+          "toStep": "SWVerificationCases",
+          "toParam": "jiraSubWP"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "4"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "subwp": "jama_item"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SubWP-frq-v3.1"
+}
