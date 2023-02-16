@@ -1,5 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.dependency.CssImport;
@@ -21,8 +23,9 @@ import lombok.extern.slf4j.Slf4j;
         value= "./styles/dialog-overlay.css",
         themeFor = "vaadin-dialog-overlay"
 )
- 
-public class FullProcessInstanceGrid extends TreeGrid<ProcessInstanceScopedElement> {/**
+public class FullProcessInstanceGrid extends TreeGrid<ProcessInstanceScopedElement> {
+	
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
@@ -41,6 +44,7 @@ public class FullProcessInstanceGrid extends TreeGrid<ProcessInstanceScopedEleme
                     return span;
                 //}            
             } else if (o instanceof DecisionNodeInstance) {
+            	// based on filtering in the updateProcessGrid method, here only DNIs should remain that expand afterwards (fan out)
             	DecisionNodeInstance dni = (DecisionNodeInstance)o;
                 Span span = new Span(dni.getDefinition().getInFlowType().toString());                
                 return span;
@@ -68,8 +72,23 @@ public class FullProcessInstanceGrid extends TreeGrid<ProcessInstanceScopedEleme
                 return Stream.empty();
             }
         });
-		this.getDataProvider().refreshAll();
+		this.getDataProvider().refreshAll();				
+	}
+	
+	private List<ProcessInstanceScopedElement> deflattenSteps(ProcessInstance pi) {
+		// instead of returning all process steps, we return only those that are in a sequence, and where branching happens, we return the decision node
 		
 		
+		// TODO we also filter out dummy/NoOp elements
+		
+		return Collections.emptyList();
+	}
+	
+	private List<ProcessInstanceScopedElement> deflattenSteps(DecisionNodeInstance dni) {
+		// return all elements that are in parallel (AND, OR, XOR) after this DNI, its type is determined by the "closing" dni.
+		
+		// TODO we also filter out dummy/NoOp elements
+		
+		return Collections.emptyList();
 	}
 }

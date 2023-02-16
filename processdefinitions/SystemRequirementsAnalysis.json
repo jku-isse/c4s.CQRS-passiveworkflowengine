@@ -1,0 +1,493 @@
+{
+  "steps": [
+    {
+      "inDNDid": "2",
+      "outDNDid": "exit",
+      "input": {
+        "SysReqReviewProtocol": "azure_workitem",
+        "SystemRequirementsSpecification": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_SysReqReviewProtocol-\u003esize() \u003e 0 \r\n and \r\nself.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n",
+        "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 4,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_WGrksDzPdEuodOVXOCDivg)",
+      "_type": "Step",
+      "code": "ApproveSystemRequirements",
+      "description": "\n\u003cp\u003e\u003cstrong\u003eASPICE:\u003c/strong\u003e\u003c/p\u003e\u003cp\u003e\u003cstrong\u003eCommunicate\u003c/strong\u003e the \u003cstrong\u003eagreed requirements\u003c/strong\u003e and updates to system requirements to all relevant parties.\u003c/p\u003e\n"
+    },
+    {
+      "inDNDid": "entry",
+      "outDNDid": "1",
+      "input": {
+        "UserRequirements": "azure_workitem"
+      },
+      "output": {
+        "SystemRequirementsSpecification": "azure_workitem"
+      },
+      "ioMapping": {
+        "SystemRequirementsSpecification": "self.in_UserRequirements-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems-\u003eselect(refItem | refItem.workItemType\u003d\u0027Requirement\u0027)"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_UserRequirements-\u003esize() \u003e 0 \r\n",
+        "POSTCONDITION": "self.out_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_K3128DvNdEuodOVXOCDivg)",
+      "_type": "Step",
+      "code": "IdentifySystemRequirements",
+      "description": "\n\u003cp\u003e\u003cstrong\u003eASPICE\u003c/strong\u003e:\u003c/p\u003e\u003cp\u003e\u003cstrong\u003eUse the stakeholder requirements and changes\u003c/strong\u003e to the stakeholder requirements to \u003cstrong\u003eidentify the required functions and capabilities of the system\u003c/strong\u003e. \u003cstrong\u003eSpecify functional and non-functional system requirements\u003c/strong\u003e in a system requirements specification.\u003c/p\u003e\u003cp\u003e \u003c/p\u003e\n"
+    },
+    {
+      "steps": [
+        {
+          "inDNDid": "2",
+          "outDNDid": "exit",
+          "input": {
+            "ReviewResults": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_ReviewResults-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.in_ReviewResults-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 4,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_YMR38FeTnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Trackfindings",
+          "description": "\n\u003cul\u003e\u003cli\u003eTrack identified problems to closure\u003c/li\u003e\u003cli\u003eupdate review results in corresponding documentation and inform stakeholders about resolution\u003c/li\u003e\u003c/ul\u003e\n"
+        },
+        {
+          "inDNDid": "entry",
+          "outDNDid": "1",
+          "input": {
+            "WorkProductunderreview": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_WorkProductunderreview-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self-\u003eisDefined()"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 1,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_RPPQkFbTnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Preparejointreview",
+          "description": "\n\u003cul\u003e\u003cli\u003eInform participants about scope, review criteria, etc\u003c/li\u003e\u003cli\u003eSend work products to be reviewed to all participants\u003c/li\u003e\u003cli\u003eSchedule joint review\u003c/li\u003e\u003cli\u003eSet up mechanism to handle review outcomes\u003c/li\u003e\u003c/ul\u003e\n"
+        },
+        {
+          "inDNDid": "3",
+          "outDNDid": "2",
+          "input": {
+            "ReviewResults": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_ReviewResults-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.in_ReviewResults-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 3,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_WmVfkFdsnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Distributeresults",
+          "description": "\n\u003cul\u003e\u003cli\u003eDocument review results\u003c/li\u003e\u003cli\u003eInform review stakeholders about results\u003c/li\u003e\u003c/ul\u003e\n"
+        },
+        {
+          "inDNDid": "1",
+          "outDNDid": "3",
+          "input": {
+            "WorkProductunderreview": "azure_workitem"
+          },
+          "output": {
+            "ReviewResults": "azure_workitem"
+          },
+          "ioMapping": {
+            "ReviewResults": "self.in_WorkProductunderreview-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems-\u003eselect(refItem | refItem.workItemType\u003d\u0027Review\u0027)"
+          },
+          "conditions": {
+            "PRECONDITION": "self.in_WorkProductunderreview-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.out_ReviewResults-\u003esize() \u003e 0 \r\n"
+          },
+          "qaConstraints": [],
+          "specOrderIndex": 2,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_JzlicFdDnOmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "Conductjointreview",
+          "description": "\n\u003cul\u003e\u003cli\u003eRun the joint review session and conduct review as planned\u003c/li\u003e\u003cli\u003eRecord  review results\u003c/li\u003e\u003c/ul\u003e\n"
+        }
+      ],
+      "dns": [
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "JointReview",
+              "fromParam": "WorkProductunderreview",
+              "toStep": "Preparejointreview",
+              "toParam": "WorkProductunderreview"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "entry"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "Conductjointreview",
+              "fromParam": "ReviewResults",
+              "toStep": "JointReview",
+              "toParam": "ReviewResults"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "exit"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "JointReview",
+              "fromParam": "WorkProductunderreview",
+              "toStep": "Conductjointreview",
+              "toParam": "WorkProductunderreview"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "1"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "Conductjointreview",
+              "fromParam": "ReviewResults",
+              "toStep": "Trackfindings",
+              "toParam": "ReviewResults"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "2"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "Conductjointreview",
+              "fromParam": "ReviewResults",
+              "toStep": "Distributeresults",
+              "toParam": "ReviewResults"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "3"
+        }
+      ],
+      "prematureStepConditions": {},
+      "processConfig": {},
+      "inDNDid": "3",
+      "outDNDid": "2",
+      "input": {
+        "WorkProductunderreview": "azure_workitem"
+      },
+      "output": {
+        "ReviewResults": "azure_workitem"
+      },
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [],
+      "specOrderIndex": 3,
+      "_type": "Process",
+      "code": "JointReview",
+      "description": "\n\u003ch3\u003eGoals \u0026amp; Purpose\u003c/h3\u003e\u003cul\u003e\u003cli\u003eEstablish  a common understanding within the organization how key deliverables are verified and validated to satisfy the expectations\u003c/li\u003e\u003cli\u003eJoint reviews are either performed at project management and technical levels and are held throughout the lifecycle of the project\u003c/li\u003e\u003c/ul\u003e\n"
+    },
+    {
+      "steps": [
+        {
+          "inDNDid": "entry",
+          "outDNDid": "1",
+          "input": {
+            "UserRequirements": "azure_workitem",
+            "SystemRequirementsSpecification": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_UserRequirements-\u003esize() \u003e 0 \r\n and \r\nself.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [
+            {
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_1 | art_1.childItems-\u003eselect( refItem_2 : \u003croot/types/azure/azure_workitem\u003e | refItem_2.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_2 : \u003croot/types/azure/azure_workitem\u003e | req_2.predecessorItems-\u003eexists( userreq_2 : \u003croot/types/azure/azure_workitem\u003e | (userreq_2.workItemType \u003d \u0027L3 Requirement\u0027 and userreq_2.state \u003d \u0027Accepted\u0027))) )",
+              "specOrderIndex": 1,
+              "_type": "QAConstraint",
+              "code": "SystemRequirementsSpecification::tracesadded"
+            }
+          ],
+          "specOrderIndex": 3,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_KHz-YGhAnQquIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "EstablishtraceabilitytoUserRequirements",
+          "description": "\n\u003cp\u003eASPICE:\u003c/p\u003e\u003cp\u003establish bidirectional traceability between stakeholder requirements and system requirements.\u003c/p\u003e\u003cp\u003e\u003cem\u003eNOTE 7: Bidirectional traceability supports coverage, consistency and impact analysis.\u003c/em\u003e\u003c/p\u003e\n"
+        },
+        {
+          "inDNDid": "entry",
+          "outDNDid": "1",
+          "input": {
+            "SystemRequirementsSpecification": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [
+            {
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_3 | art_3.childItems-\u003eselect( refItem_4 : \u003croot/types/azure/azure_workitem\u003e | refItem_4.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_4 : \u003croot/types/azure/azure_workitem\u003e | child_4.priority \u003e -1) )",
+              "specOrderIndex": 2,
+              "_type": "QAConstraint",
+              "code": "SystemRequirementsSpecification::prioritized"
+            }
+          ],
+          "specOrderIndex": 2,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_vxOCENQ3nQmuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "PrioritizeSystemRequirements",
+          "description": "\n\u003cp\u003eASPICE:\u003c/p\u003e\u003cul\u003e\u003cli\u003eprioritizing according to stakeholder needs.\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e \u003c/p\u003e\u003cp\u003e\u003cem\u003eNOTE 3: Prioritizing typically includes the assignment of functional content to planned releases. Refer to SPL2BP1.\u003c/em\u003e\u003c/p\u003e\n"
+        },
+        {
+          "inDNDid": "1",
+          "outDNDid": "exit",
+          "input": {
+            "SystemRequirementsSpecification": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003eforAll( art_5 | art_5.childItems-\u003eselect( refItem_6 : \u003croot/types/azure/azure_workitem\u003e | refItem_6.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_6 : \u003croot/types/azure/azure_workitem\u003e | not(child_6.category \u003d \u0027Uncategorized\u0027)) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_7 | art_7.childItems-\u003eselect( refItem_8 : \u003croot/types/azure/azure_workitem\u003e | refItem_8.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_8 : \u003croot/types/azure/azure_workitem\u003e | req_8.predecessorItems-\u003eexists( userreq_8 : \u003croot/types/azure/azure_workitem\u003e | (userreq_8.workItemType \u003d \u0027L3 Requirement\u0027 and userreq_8.state \u003d \u0027Accepted\u0027))) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_9 | art_9.childItems-\u003eselect( refItem_10 : \u003croot/types/azure/azure_workitem\u003e | refItem_10.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_10 : \u003croot/types/azure/azure_workitem\u003e | child_10.priority \u003e -1) )",
+            "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [
+            {
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_11 | art_11.state \u003d \u0027Ready For Review\u0027 )",
+              "specOrderIndex": 3,
+              "_type": "QAConstraint",
+              "code": "SystemRequirementsSpecification::ReadyforReview"
+            }
+          ],
+          "specOrderIndex": 4,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_-5KQUCxqnRCuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "SysReqreadyforreview?",
+          "description": "\n\u003cp\u003egalas note: system req. spec draft is missing as input?\u003c/p\u003e\n"
+        },
+        {
+          "inDNDid": "entry",
+          "outDNDid": "1",
+          "input": {
+            "SystemRequirementsSpecification": "azure_workitem"
+          },
+          "output": {},
+          "ioMapping": {},
+          "conditions": {
+            "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0 \r\n",
+            "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
+          },
+          "qaConstraints": [
+            {
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_13 | art_13.childItems-\u003eselect( refItem_14 : \u003croot/types/azure/azure_workitem\u003e | refItem_14.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_14 : \u003croot/types/azure/azure_workitem\u003e | not(child_14.category \u003d \u0027Uncategorized\u0027)) )",
+              "specOrderIndex": 4,
+              "_type": "QAConstraint",
+              "code": "SystemRequirementsSpecification::categorized"
+            }
+          ],
+          "specOrderIndex": 1,
+          "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_22ansCy3nQuuIe88Dt-GUw)",
+          "_type": "Step",
+          "code": "CategorizeSystemRequirements",
+          "description": "\n\u003cp\u003eASPICE:\u003c/p\u003e\u003cp\u003eStructure the system requirements in the system requirements specification by e.g.\u003c/p\u003e\u003cul\u003e\u003cli\u003egrouping to project relevant clusters,\u003c/li\u003e\u003cli\u003esorting in a logical order for the project,\u003c/li\u003e\u003cli\u003ecategorizing based on relevant criteria for the project,\u003c/li\u003e\u003c/ul\u003e\n"
+        }
+      ],
+      "dns": [
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "AnalyzeSystemRequirements",
+              "fromParam": "SystemRequirementsSpecification",
+              "toStep": "EstablishtraceabilitytoUserRequirements",
+              "toParam": "SystemRequirementsSpecification"
+            },
+            {
+              "fromStep": "AnalyzeSystemRequirements",
+              "fromParam": "UserRequirements",
+              "toStep": "EstablishtraceabilitytoUserRequirements",
+              "toParam": "UserRequirements"
+            },
+            {
+              "fromStep": "AnalyzeSystemRequirements",
+              "fromParam": "SystemRequirementsSpecification",
+              "toStep": "CategorizeSystemRequirements",
+              "toParam": "SystemRequirementsSpecification"
+            },
+            {
+              "fromStep": "AnalyzeSystemRequirements",
+              "fromParam": "SystemRequirementsSpecification",
+              "toStep": "PrioritizeSystemRequirements",
+              "toParam": "SystemRequirementsSpecification"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "entry"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [],
+          "_type": "DecisionNode",
+          "code": "exit"
+        },
+        {
+          "inflowType": "AND",
+          "mapping": [
+            {
+              "fromStep": "AnalyzeSystemRequirements",
+              "fromParam": "SystemRequirementsSpecification",
+              "toStep": "SysReqreadyforreview?",
+              "toParam": "SystemRequirementsSpecification"
+            }
+          ],
+          "_type": "DecisionNode",
+          "code": "1"
+        }
+      ],
+      "prematureStepConditions": {},
+      "processConfig": {},
+      "inDNDid": "1",
+      "outDNDid": "3",
+      "input": {
+        "UserRequirements": "azure_workitem",
+        "SystemRequirementsSpecification": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [],
+      "specOrderIndex": 2,
+      "_type": "Process",
+      "code": "AnalyzeSystemRequirements",
+      "description": "\n\u003cp\u003e\u003cstrong\u003eAnalyze\u003c/strong\u003e the specified system requirements including their interdependencies to \u003cstrong\u003eensure correctness, technical feasibility and verifiability,\u003c/strong\u003e and to support \u003cstrong\u003erisk identification\u003c/strong\u003e. Analyze the impact on cost, schedule and the technical impact.\u003c/p\u003e\n"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SystemRequirementsAnalysis",
+          "fromParam": "UserRequirements",
+          "toStep": "IdentifySystemRequirements",
+          "toParam": "UserRequirements"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "entry"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "JointReview",
+          "fromParam": "ReviewResults",
+          "toStep": "SystemRequirementsAnalysis",
+          "toParam": "ReviewResults"
+        },
+        {
+          "fromStep": "IdentifySystemRequirements",
+          "fromParam": "SystemRequirementsSpecification",
+          "toStep": "SystemRequirementsAnalysis",
+          "toParam": "SystemRequirementsSpecification"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "exit"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "IdentifySystemRequirements",
+          "fromParam": "SystemRequirementsSpecification",
+          "toStep": "AnalyzeSystemRequirements",
+          "toParam": "SystemRequirementsSpecification"
+        },
+        {
+          "fromStep": "SystemRequirementsAnalysis",
+          "fromParam": "UserRequirements",
+          "toStep": "AnalyzeSystemRequirements",
+          "toParam": "UserRequirements"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "JointReview",
+          "fromParam": "ReviewResults",
+          "toStep": "ApproveSystemRequirements",
+          "toParam": "SysReqReviewProtocol"
+        },
+        {
+          "fromStep": "IdentifySystemRequirements",
+          "fromParam": "SystemRequirementsSpecification",
+          "toStep": "ApproveSystemRequirements",
+          "toParam": "SystemRequirementsSpecification"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "IdentifySystemRequirements",
+          "fromParam": "SystemRequirementsSpecification",
+          "toStep": "JointReview",
+          "toParam": "WorkProductunderreview"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "3"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "UserRequirements": "azure_workitem"
+  },
+  "output": {
+    "ReviewResults": "azure_workitem",
+    "SystemRequirementsSpecification": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SystemRequirementsAnalysis",
+  "description": "\n\u003ch1\u003eASPICE:\u003c/h1\u003e\u003ch1\u003eProcess Purpose\u003c/h1\u003e\u003cp\u003eThe purpose of the System Requirements Analysis Process is to transform the defined stakeholder requirements into a set of system requirements that will guide the design of the system.\u003c/p\u003e\u003ch1\u003eProcess Outcomes\u003c/h1\u003e\u003cp\u003eAs a result of successful implementation of this process:\u003c/p\u003e\u003col\u003e\u003cli\u003ea defined set of system requirements is established;\u003c/li\u003e\u003cli\u003esystem requirements are categorized and analyzed for correctness and verifiability;\u003c/li\u003e\u003cli\u003ethe impact of system requirements on the operating environment is analyzed;\u003c/li\u003e\u003cli\u003eprioritization for implementing the system requirements is defined;\u003c/li\u003e\u003cli\u003ethe system requirements are updated as needed;\u003c/li\u003e\u003cli\u003econsistency and bidirectional traceability are established between stakeholder requirements and system requirements;\u003c/li\u003e\u003cli\u003ethe system requirements are evaluated for cost, schedule and technical impact; and\u003c/li\u003e\u003cli\u003ethe system requirements are agreed and communicated to all affected parties.\u003c/li\u003e\u003c/ol\u003e\n"
+}

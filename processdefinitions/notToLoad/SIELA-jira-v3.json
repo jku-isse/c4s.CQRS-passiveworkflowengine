@@ -18,11 +18,11 @@
       },
       "conditions": {
         "POSTCONDITION": "self.out_mmfSubtask-\u003esize() \u003e 0 \nand \nself.out_sucSubtask-\u003esize() \u003e 0 \nand \nself.out_cscSubtask-\u003esize() \u003e 0",
-        "PRECONDITION": "self.in_story-\u003esize() \u003d 1 \nand \nself.in_story\n-\u003eforAll(issue | issue.issuetype \u003d \u0027Story\u0027) "
+        "PRECONDITION": "self.in_story-\u003esize() \u003d 1 \nand \nself.in_story\n-\u003eforAll(issue | issue.issueType \u003d \u0027Story\u0027) "
       },
       "qaConstraints": [
         {
-          "arlRule": "self.in_story\n-\u003eforAll(story : \u003croot/types/jira_core_schema_Artifact\u003e | story.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d \u0027SR\u0027) \n-\u003esize() \u003e 0)",
+          "arlRule": "self.in_story\n-\u003eforAll(story : \u003croot/types/jira_core_schema_Artifact\u003e | story.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003d \u0027SR\u0027) \n-\u003esize() \u003e 0)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "ProcessTraceToSR",
@@ -44,8 +44,8 @@
         "mmf": "jira_core_artifact"
       },
       "ioMapping": {
-        "buc": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027BUC\u0027)",
-        "mmf": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d \u0027MMF\u0027)"
+        "buc": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003d\u0027BUC\u0027)",
+        "mmf": "self.in_mmfSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003d \u0027MMF\u0027)"
       },
       "conditions": {
         "POSTCONDITION": "self.out_mmf-\u003esize() \u003e 0 \nand \nself.out_buc-\u003esize() \u003e 0\nand \nself.in_mmfSubtask-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)\u0027",
@@ -53,25 +53,25 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n-\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SR\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
-          "specOrderIndex": 0,
-          "_type": "QAConstraint",
-          "code": "MMFtraceToSR",
-          "description": "Each linked MMF must trace to at least one Stakeholder Request (SR)."
-        },
-        {
-          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issueType \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
           "specOrderIndex": 1,
           "_type": "QAConstraint",
           "code": "MMFtraceToBUC",
           "description": "Each linked MMF must trace to at least one Business Use Case (BUC)."
         },
         {
-          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SR\u0027)\n -\u003eforAll(cr : \u003croot/types/jira_core_schema_Artifact\u003e | cr.relatesTo\n  -\u003eselect(refitem2 : \u003croot/types/jira_core_schema_Artifact\u003e | refitem2.issuetype \u003d \u0027BUC\u0027 )\n  -\u003easSet()\n -\u003esize() \u003e 0)\n)",
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issueType \u003d \u0027SR\u0027)\n -\u003eforAll(cr : \u003croot/types/jira_core_schema_Artifact\u003e | cr.relatesTo\n  -\u003eselect(refitem2 : \u003croot/types/jira_core_schema_Artifact\u003e | refitem2.issueType \u003d \u0027BUC\u0027 )\n  -\u003easSet()\n -\u003esize() \u003e 0)\n)",
           "specOrderIndex": 2,
           "_type": "QAConstraint",
           "code": "SRtraceToBUC",
           "description": "Each SR linked via an MMF must trace to at least one  Business Use Case (BUC)."
+        },
+        {
+          "arlRule": "self.out_mmf\n-\u003eforAll( mmf1 : \u003croot/types/jira_core_schema_Artifact\u003e | mmf1.realizes\n-\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issueType \u003d \u0027SR\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "MMFtraceToSR",
+          "description": "Each linked MMF must trace to at least one Stakeholder Request (SR)."
         }
       ],
       "specOrderIndex": 2,
@@ -88,7 +88,7 @@
         "suc": "jira_core_artifact"
       },
       "ioMapping": {
-        "suc": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027SUC\u0027)"
+        "suc": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003d\u0027SUC\u0027)"
       },
       "conditions": {
         "POSTCONDITION": "self.in_sucSubtask\n-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)\nand \nself.out_suc-\u003esize() \u003e 0",
@@ -96,18 +96,18 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003c\u003e \u0027SUC\u0027)\n-\u003easSet()\n-\u003esize() \u003d 0",
-          "specOrderIndex": 1,
-          "_type": "QAConstraint",
-          "code": "OnlyTraceToSUCs",
-          "description": "No engineering artifacts other than SUCs may be traced to."
-        },
-        {
-          "arlRule": "self.out_suc-\u003esize() \u003e 0 \nand\nself.out_suc-\u003eforAll( suc1 : \u003croot/types/jira_core_schema_Artifact\u003e | \nsuc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0\nor \nsuc1.parent  \n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issuetype \u003d \u0027SUC\u0027)",
+          "arlRule": "self.out_suc-\u003esize() \u003e 0 \nand\nself.out_suc-\u003eforAll( suc1 : \u003croot/types/jira_core_schema_Artifact\u003e | \nsuc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issueType \u003d \u0027BUC\u0027)\n -\u003easSet()\n -\u003esize() \u003e 0\nor \nsuc1.parent  \n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issueType \u003d \u0027SUC\u0027)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "SUCtraceToSUCorBUC",
           "description": "Each SUC must trace to at least one (parent) System Use Case (SUC) or a Business Use Case (BUC)"
+        },
+        {
+          "arlRule": "self.in_sucSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003c\u003e \u0027SUC\u0027)\n-\u003easSet()\n-\u003esize() \u003d 0",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "OnlyTraceToSUCs",
+          "description": "No engineering artifacts other than SUCs may be traced to."
         }
       ],
       "specOrderIndex": 3,
@@ -124,7 +124,7 @@
         "csc": "jira_core_artifact"
       },
       "ioMapping": {
-        "csc": "self.in_cscSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issuetype \u003d\u0027CSC\u0027)"
+        "csc": "self.in_cscSubtask-\u003eany()\n  -\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.realizes\n-\u003eselect( ref : \u003croot/types/jira_core_schema_Artifact\u003e | ref.issueType \u003d\u0027CSC\u0027)"
       },
       "conditions": {
         "POSTCONDITION": "self.out_csc-\u003esize() \u003e 0\nand\nself.in_cscSubtask\n-\u003eforAll(task |\ntask.status \u003d \u0027Done\u0027)",
@@ -132,7 +132,7 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_csc\n-\u003eforAll(csc1 : \u003croot/types/jira_core_schema_Artifact\u003e | csc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issuetype \u003d \u0027SUC\u0027 \nor (\nref2.issuetype \u003d \u0027Subtask\u0027 \nand\nref2.parent\n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issuetype \u003d \u0027SUC\u0027\n))\n -\u003easSet()\n -\u003esize() \u003e 0)",
+          "arlRule": "self.out_csc\n-\u003eforAll(csc1 : \u003croot/types/jira_core_schema_Artifact\u003e | csc1.realizes\n -\u003eselect( ref2 : \u003croot/types/jira_core_schema_Artifact\u003e | ref2.issueType \u003d \u0027SUC\u0027 \nor (\nref2.issueType \u003d \u0027Subtask\u0027 \nand\nref2.parent\n-\u003easType(\u003croot/types/jira_core_schema_Artifact\u003e)\n.issueType \u003d \u0027SUC\u0027\n))\n -\u003easSet()\n -\u003esize() \u003e 0)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "CSCtraceToSUC",

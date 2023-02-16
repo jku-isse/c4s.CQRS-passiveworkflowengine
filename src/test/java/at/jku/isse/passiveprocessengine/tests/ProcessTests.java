@@ -22,6 +22,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -45,9 +46,13 @@ class ProcessTests {
 	@Autowired
 	ProcessQAStatsMonitor qastats;
 	
+	@Autowired 
+	UsageMonitor usageMonitor;
+	
 	@BeforeEach
 	void setUp() throws Exception {
 	}
+	
 
 	@Test
 	void testPrematureGithubIssueWithSielaV3() throws ProcessException {

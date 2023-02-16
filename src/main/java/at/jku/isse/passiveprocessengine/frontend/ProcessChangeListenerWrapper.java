@@ -116,37 +116,35 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	@Override
 	protected void prepareQueueExecution(List<ProcessScopedCmd> mostRecentQueuedEffects) {
 		// check for each queued effect if it undos a previous one: e.g., a constraint fufillment now is unfulfilled, datamapping fulfilled is no unfulfilled
+		if (mostRecentQueuedEffects.size() == 0)
+			return;
 		mostRecentQueuedEffects.stream().forEach(cmd -> {
-			if (cmd instanceof QAConstraintChangedCmd) {
-				QAConstraintChangedCmd qac = (QAConstraintChangedCmd) cmd;
-				String key = qac.getCrule().name()+qac.getStep().getName();
-//				if (cmdQueue.containsKey(key)) {
-//					QAConstraintChangedCmd qacOld = (QAConstraintChangedCmd)cmdQueue.remove(key); // this cmd now is the revers of the previous one.
-//					// just in case
-//					if (qacOld.isFulfilled() == qac.isFulfilled()) { // this should never be the case
-//						log.error("Duplicate ProcessScopedCmd encountered, reinserting in execution queue: "+cmd);
-//						cmdQueue.put(key, cmd);
-//					}
-//				} else
-					cmdQueue.put(key, cmd); //we override the last entry, executing a command again has no effect as we check for a change inside the processstep.
-			} else if (cmd instanceof ConditionChangedCmd) {
-				ConditionChangedCmd qac = (ConditionChangedCmd) cmd;
-				String key = qac.getCondition()+qac.getStep().getName();
-				cmdQueue.put(key, cmd);
-			} else if (cmd instanceof IOMappingConsistencyCmd) {
-				IOMappingConsistencyCmd qac = (IOMappingConsistencyCmd) cmd;
-				String key = qac.getCrule().name()+qac.getStep().getName();
-				cmdQueue.put(key, cmd);
-			} else if (cmd instanceof PrematureStepTriggerCmd) {
-				PrematureStepTriggerCmd pac = (PrematureStepTriggerCmd) cmd;
-				String key = pac.getScope().getName() + pac.getSd().getName();
-				cmdQueue.put(key, cmd);
-			} else if (cmd instanceof OutputChangedCmd) {
-				OutputChangedCmd occ = (OutputChangedCmd)cmd;
-				String key = occ.getStep().getName()+occ.getChange().name();
-				cmdQueue.putIfAbsent(key, occ);
-			} else {
-				log.error("Encountered unknown ProcessScopedCmd, ignoring: "+cmd);
+//			if (cmd instanceof QAConstraintChangedCmd) {
+//				QAConstraintChangedCmd qac = (QAConstraintChangedCmd) cmd;
+//				String key = cmd.getId();//qac.getCrule().name()+qac.getStep().getName();
+//				cmdQueue.put(key, cmd); //we override the last entry, executing a command again has no effect as we check for a change inside the processstep.
+//			} else if (cmd instanceof ConditionChangedCmd) {
+//				ConditionChangedCmd qac = (ConditionChangedCmd) cmd;
+//				String key = cmd.getId();//qac.getCondition()+qac.getStep().getName();
+//				cmdQueue.put(key, cmd);
+//			} else if (cmd instanceof IOMappingConsistencyCmd) {
+//				IOMappingConsistencyCmd qac = (IOMappingConsistencyCmd) cmd;
+//				String key = cmd.getId();//qac.getCrule().name()+qac.getStep().getName();
+//				cmdQueue.put(key, cmd);
+//			} else if (cmd instanceof PrematureStepTriggerCmd) {
+//				PrematureStepTriggerCmd pac = (PrematureStepTriggerCmd) cmd;
+//				String key = cmd.getId();//pac.getScope().getName() + pac.getSd().getName();
+//				cmdQueue.put(key, cmd);
+//			} else if (cmd instanceof OutputChangedCmd) {
+//				OutputChangedCmd occ = (OutputChangedCmd)cmd;
+//				String key = cmd.getId();//occ.getStep().getName()+occ.getChange().name();
+//				cmdQueue.putIfAbsent(key, occ);
+//			} else {
+//				log.error("Encountered unknown ProcessScopedCmd, ignoring: "+cmd);
+//			}
+			ProcessScopedCmd overriddenCmd = cmdQueue.put(cmd.getId(), cmd);
+			if (overriddenCmd != null) {
+				log.trace("Overridden Command: "+overriddenCmd.toString());
 			}
 		});
 		

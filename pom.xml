@@ -6,7 +6,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.5.2-SNAPSHOT</version>
+	<version>1.5.4-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -27,10 +27,10 @@
 		<lombok.version>1.18.0</lombok.version>
 		<connector.azure.version>2.1.2</connector.azure.version>
 		<connector.git.version>1.2.2</connector.git.version>
-		<connector.core.version>1.2.2</connector.core.version>
-		<connector.jira.version>1.4.0</connector.jira.version>
+		<connector.core.version>1.2.4</connector.core.version>
+		<connector.jira.version>1.4.3</connector.jira.version>
 		<connector.jama.version>1.0.0-SNAPSHOT</connector.jama.version>		
-		<PPEv3.version>0.3.0-SNAPSHOT</PPEv3.version>	
+		<PPEv3.version>0.3.1-SNAPSHOT</PPEv3.version>	
 	</properties>
 
 	<profiles>
@@ -114,28 +114,47 @@
 			</exclusions>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<dependency>
+<!-- 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 
-		</dependency>
+		</dependency> -->
+	<dependency>
+		<groupId>net.logstash.logback</groupId>
+		<artifactId>logstash-logback-encoder</artifactId>
+		<version>7.2</version>
+	</dependency>
+ 
+		    <dependency>
+        <groupId>ch.qos.logback.contrib</groupId>
+        <artifactId>logback-json-classic</artifactId>
+        <version>0.1.5</version>
+    </dependency>
+
+     <dependency>
+        <groupId>ch.qos.logback.contrib</groupId>
+        <artifactId>logback-jackson</artifactId>
+        <version>0.1.5</version>
+    </dependency> 
+		
+		
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j -->
-		<dependency>
+<!-- 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-to-slf4j</artifactId>
 
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-		<!-- needed for frontend file upload component (IOUtils) -->
-		<!-- <dependency> -->
-		<!-- <groupId>commons-io</groupId> -->
-		<!-- <artifactId>commons-io</artifactId> -->
-		<!-- <version>2.6</version> -->
-		<!-- </dependency> -->
+		</dependency> -->
+
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
 			<artifactId>c4s.passiveprocessengine.v3</artifactId>
 			<version>${PPEv3.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>

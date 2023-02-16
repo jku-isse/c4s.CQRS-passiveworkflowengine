@@ -49,7 +49,7 @@
                     <field name="State">PRECONDITION</field>
                     <value name="condition">
                       <block type="constraint" id="3*WP2OL0mVD7(IT8KtL#">
-                        <field name="arlRule">self.in_story-&gt;size() = 1 &#10;and &#10;self.in_story&#10;-&gt;forAll(issue | issue.issuetype = 'Story') </field>
+                        <field name="arlRule">self.in_story-&gt;size() = 1 &#10;and &#10;self.in_story&#10;-&gt;forAll(issue | issue.issueType = 'Story') </field>
                       </block>
                     </value>
                     <next>
@@ -148,7 +148,7 @@
                     <field name="description">Each Process (story) must trace to at least one Stakeholder Request (SR)</field>
                     <value name="constraint">
                       <block type="constraint" id="0bZ`wt!Xn3.tqOM!}X)L">
-                        <field name="arlRule">self.in_story&#10;-&gt;forAll(story : &lt;root/types/jira_core_schema_Artifact&gt; | story.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype = 'SR') &#10;-&gt;size() &gt; 0)</field>
+                        <field name="arlRule">self.in_story&#10;-&gt;forAll(story : &lt;root/types/jira_core_schema_Artifact&gt; | story.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType = 'SR') &#10;-&gt;size() &gt; 0)</field>
                       </block>
                     </value>
                   </block>
@@ -180,11 +180,11 @@
                     <statement name="Datamappings">
                       <block type="datamapping" id="pXIh!UM1PU-q#Gs=1?P*">
                         <field name="mappingId">mmf</field>
-                        <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype = 'MMF')</field>
+                        <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType = 'MMF')</field>
                         <next>
                           <block type="datamapping" id=")Hno-5_S:Ww227o=[Z~E">
                             <field name="mappingId">buc</field>
-                            <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype ='BUC')</field>
+                            <field name="mappingSpec">self.in_mmfSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType ='BUC')</field>
                           </block>
                         </next>
                       </block>
@@ -235,7 +235,7 @@
                         <field name="description">Each linked MMF must trace to at least one Stakeholder Request (SR).</field>
                         <value name="constraint">
                           <block type="constraint" id="[$k:6IEFqiN]ycmuQ46}">
-                            <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10;-&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issuetype = 'SR')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
+                            <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10;-&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'SR')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
                           </block>
                         </value>
                         <next>
@@ -244,7 +244,7 @@
                             <field name="description">Each linked MMF must trace to at least one Business Use Case (BUC).</field>
                             <value name="constraint">
                               <block type="constraint" id="#4!-Bp6k:UPzln}M5/hs">
-                                <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issuetype = 'BUC')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
+                                <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'BUC')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
                               </block>
                             </value>
                             <next>
@@ -253,7 +253,7 @@
                                 <field name="description">Each SR linked via an MMF must trace to at least one  Business Use Case (BUC).</field>
                                 <value name="constraint">
                                   <block type="constraint" id="b?mG!Gf|WCsw4{5}9KF;">
-                                    <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issuetype = 'SR')&#10; -&gt;forAll(cr : &lt;root/types/jira_core_schema_Artifact&gt; | cr.relatesTo&#10;  -&gt;select(refitem2 : &lt;root/types/jira_core_schema_Artifact&gt; | refitem2.issuetype = 'BUC' )&#10;  -&gt;asSet()&#10; -&gt;size() &gt; 0)&#10;)</field>
+                                    <field name="arlRule">self.out_mmf&#10;-&gt;forAll( mmf1 : &lt;root/types/jira_core_schema_Artifact&gt; | mmf1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'SR')&#10; -&gt;forAll(cr : &lt;root/types/jira_core_schema_Artifact&gt; | cr.relatesTo&#10;  -&gt;select(refitem2 : &lt;root/types/jira_core_schema_Artifact&gt; | refitem2.issueType = 'BUC' )&#10;  -&gt;asSet()&#10; -&gt;size() &gt; 0)&#10;)</field>
                                   </block>
                                 </value>
                               </block>
@@ -288,7 +288,7 @@
                         <statement name="Datamappings">
                           <block type="datamapping" id="AFE8Qt^fhNls=T@5q/Hz">
                             <field name="mappingId">suc</field>
-                            <field name="mappingSpec">self.in_sucSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype ='SUC')</field>
+                            <field name="mappingSpec">self.in_sucSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType ='SUC')</field>
                             <comment pinned="false" h="75" w="379">symmetricDifference is now supported by RepairMechanism</comment>
                           </block>
                         </statement>
@@ -318,7 +318,7 @@
                             <field name="description">Each SUC must trace to at least one (parent) System Use Case (SUC) or a Business Use Case (BUC)</field>
                             <value name="constraint">
                               <block type="constraint" id="U85EcZq~)^/;cl5$#I[d">
-                                <field name="arlRule">self.out_suc-&gt;size() &gt; 0 &#10;and&#10;self.out_suc-&gt;forAll( suc1 : &lt;root/types/jira_core_schema_Artifact&gt; | &#10;suc1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issuetype = 'BUC')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0&#10;or &#10;suc1.parent  &#10;-&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.issuetype = 'SUC')</field>
+                                <field name="arlRule">self.out_suc-&gt;size() &gt; 0 &#10;and&#10;self.out_suc-&gt;forAll( suc1 : &lt;root/types/jira_core_schema_Artifact&gt; | &#10;suc1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'BUC')&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0&#10;or &#10;suc1.parent  &#10;-&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.issueType = 'SUC')</field>
                               </block>
                             </value>
                             <next>
@@ -327,7 +327,7 @@
                                 <field name="description">No engineering artifacts other than SUCs may be traced to.</field>
                                 <value name="constraint">
                                   <block type="constraint" id="hAOh,LAC`;{*J#GV[wpG">
-                                    <field name="arlRule">self.in_sucSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype &lt;&gt; 'SUC')&#10;-&gt;asSet()&#10;-&gt;size() = 0</field>
+                                    <field name="arlRule">self.in_sucSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType &lt;&gt; 'SUC')&#10;-&gt;asSet()&#10;-&gt;size() = 0</field>
                                   </block>
                                 </value>
                               </block>
@@ -360,7 +360,7 @@
                             <statement name="Datamappings">
                               <block type="datamapping" id="95+@yis,`S[8H5)JL*+Z">
                                 <field name="mappingId">csc</field>
-                                <field name="mappingSpec">self.in_cscSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issuetype ='CSC')</field>
+                                <field name="mappingSpec">self.in_cscSubtask-&gt;any()&#10;  -&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.realizes&#10;-&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType ='CSC')</field>
                                 <comment pinned="false" h="75" w="379">symmetricDifference is now supported by RepairMechanism</comment>
                               </block>
                             </statement>
@@ -390,7 +390,7 @@
                                 <field name="description">Each CSC must trace to at least one System Use Case (SUC) or one of its subtasks via a 'realizes' link..</field>
                                 <value name="constraint">
                                   <block type="constraint" id="k|5En[1mJ9B:Mr^54|mS">
-                                    <field name="arlRule">self.out_csc&#10;-&gt;forAll(csc1 : &lt;root/types/jira_core_schema_Artifact&gt; | csc1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issuetype = 'SUC' &#10;or (&#10;ref2.issuetype = 'Subtask' &#10;and&#10;ref2.parent&#10;-&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.issuetype = 'SUC'&#10;))&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
+                                    <field name="arlRule">self.out_csc&#10;-&gt;forAll(csc1 : &lt;root/types/jira_core_schema_Artifact&gt; | csc1.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'SUC' &#10;or (&#10;ref2.issueType = 'Subtask' &#10;and&#10;ref2.parent&#10;-&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.issueType = 'SUC'&#10;))&#10; -&gt;asSet()&#10; -&gt;size() &gt; 0)</field>
                                   </block>
                                 </value>
                               </block>

@@ -31,6 +31,7 @@ import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -42,9 +43,13 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	private static final long serialVersionUID = 1L;
 
 	private int repairCount = 0;
+	private UsageMonitor usageMonitor;
+	
+	public RepairTreeGrid(UsageMonitor monitor) {
+		this.usageMonitor = monitor;
+	}
 	
 	public void initTreeGrid() {
-
         this.addComponentHierarchyColumn(o -> {
            if (o instanceof DummyRepairNode) {
         	   Span span = new Span("Insufficient Input or Output.");

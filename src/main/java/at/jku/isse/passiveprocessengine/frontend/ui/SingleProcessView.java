@@ -120,9 +120,9 @@ public class SingleProcessView extends VerticalLayout implements HasUrlParameter
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
         if (MainView.anonymMode)        
-        	footer.add(new Text("(C) 2022 - Anonymized "));
+        	footer.add(new Text("(C) 2023 - Anonymized "));
         else 
-        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+        	footer.add(new Text("(C) 2023 JKU - Institute for Software Systems Engineering"));
 
         add(
                 header,

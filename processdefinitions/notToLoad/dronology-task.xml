@@ -1,0 +1,158 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="n~zSfOoBX_-ZfBjz?5GK">issue</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="113" y="38">
+    <mutation>
+      <arg name="issue" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
+    </mutation>
+    <field name="NAME">dronology-task-v3</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
+        <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">issue</field>
+        <value name="VALUE">
+          <block type="artifact" id="mO0+(2h`8akDGGU?*%)q">
+            <field name="Type">jira_core_artifact</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="/xUvoJ^K0zrMV5BD$zp[">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="je|v[uiypg.$qiog[E,[">
+                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">issue</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id="7KCYzg}K]7rv+OHU.fLU">
+                <field name="StepId">PrepareProcess</field>
+                <statement name="Input">
+                  <block type="artuse" id="^7-l43E^VIT6D*,^_WvY">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="*vEZ)Xcg3g0_i#yIFa4|">
+                        <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">issue</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="P/])gpP#;q0csTEXG%w*">
+                    <field name="State">PRECONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="3*WP2OL0mVD7(IT8KtL#">
+                        <field name="arlRule">self.in_issue-&gt;size() = 1 &#10;and &#10;self.in_issue&#10;-&gt;forAll(issue | &#10;issue.issueType = 'Task'&#10;or&#10;issue.issueType = 'Sub-task'&#10;) </field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="okx*m#~GhODX$G=[awu)">
+                        <field name="State">POSTCONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="1/2-}61~HIEb~Si;IFEe">
+                            <field name="arlRule">self.in_issue&#10;-&gt;forAll(issue | &#10;issue.status = 'In Progress' or &#10;issue.status = 'Closed' or&#10;issue.status = 'Resolved')</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id=":R(J83a#o;c(!nL(`Dvq">
+                    <field name="qacheckId">TraceToDesignDefinition</field>
+                    <field name="description">Each Task/Sub-Task needs to trace to exactly one Design Definition either directly or via its parent</field>
+                    <value name="constraint">
+                      <block type="constraint" id="{wv;q}(FR#_U^d^Vdzv}">
+                        <field name="arlRule">self.in_issue-&gt;forAll( issue : &lt;root/types/jira_core_schema_Artifact&gt;  | &#10;issue.mitigates -&gt;select( ref : &lt;root/types/jira_core_schema_Artifact&gt; | ref.issueType = 'Design Definition')&#10; -&gt;asSet()&#10; -&gt;size() = 1&#10;or &#10;issue.parent&#10;-&gt;asType(&lt;root/types/jira_core_schema_Artifact&gt;)&#10;.mitigates&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'Design Definition')&#10; -&gt;asSet()&#10; -&gt;size() = 1&#10;)</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="^K^oLRoO4E0d4wB}.xLQ">
+                        <field name="qacheckId">NoTraceToRequirement</field>
+                        <field name="description">A Task/Sub-Task may not directly trace to a Requirement</field>
+                        <value name="constraint">
+                          <block type="constraint" id="=+-,}%=K!au)b94]rD*b">
+                            <field name="arlRule">self.in_issue-&gt;forAll( issue : &lt;root/types/jira_core_schema_Artifact&gt; | &#10;issue.realizes&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'Requirement')&#10; -&gt;asSet()&#10; -&gt;size() = 0&#10;)</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="*WpLlyz4R5A?K(_Jsm.c">
+                            <field name="qacheckId">IssueHasAssignee</field>
+                            <field name="description">Each Task/Sub-Task needs to have an assignee.</field>
+                            <value name="constraint">
+                              <block type="constraint" id="0bZ`wt!Xn3.tqOM!}X)L">
+                                <field name="arlRule">self.in_issue&#10;-&gt;forAll(issue | issue.assignee.isDefined())</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <next>
+                  <block type="step" id=";GtP8|dGV|QO.l}!#E|B">
+                    <field name="StepId">Execute</field>
+                    <statement name="Input">
+                      <block type="artuse" id=";TM?g$FYpD}9cDyD-c3p">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="OuDlQi:[`sS)Bcsn-G]M">
+                            <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">issue</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="~*l{x(iTeBafZLT_^Af4">
+                        <field name="State">PRECONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="xC.05G:J5`SoTS}e-:Cm">
+                            <field name="arlRule">self.in_issue&#10;-&gt;forAll(issue | issue.status = 'In Progress')</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="w24bJgN(B6HMvt:kdha0">
+                            <field name="State">POSTCONDITION</field>
+                            <comment pinned="false" h="69" w="319">Completed if closed and there is at least one buc and at least one mmf linked</comment>
+                            <value name="condition">
+                              <block type="constraint" id="X1Y9CGu8SfLI,.KOOCEx">
+                                <field name="arlRule">self.in_issue&#10;-&gt;forAll(issue | issue.status = 'Resolved' &#10;or issue.status = 'Closed' )</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="}K~V@%vm%4b6/(rU0J`4">
+                        <field name="qacheckId">AllRelatedBugsClosed</field>
+                        <field name="description">All related bugs need to be closed or resolved</field>
+                        <value name="constraint">
+                          <block type="constraint" id="b?mG!Gf|WCsw4{5}9KF;">
+                            <field name="arlRule">self.in_issue&#10;-&gt;forAll( issue : &lt;root/types/jira_core_schema_Artifact&gt; | issue.relatesTo&#10; -&gt;select( ref2 : &lt;root/types/jira_core_schema_Artifact&gt; | ref2.issueType = 'Bug')&#10;   -&gt;forAll(bug : &lt;root/types/jira_core_schema_Artifact&gt; | &#10;   bug.status = 'Resolved' &#10;   or bug.status = 'Closed'&#10;  ))</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="/d16OWkp8v~.~0Ve(|[/">
+                            <field name="qacheckId">AllSubtasksClosed</field>
+                            <field name="description">All Sub-tasks need to be closed or resolved</field>
+                            <value name="constraint">
+                              <block type="constraint" id="^+R@MTaERj@kl$=Q*.G[">
+                                <field name="arlRule">self.in_issue&#10;-&gt;forAll( issue :  &lt;root/types/jira_core_schema_Artifact&gt; | issue.subtasks&#10;   -&gt;forAll(subt : &lt;root/types/jira_core_schema_Artifact&gt; | &#10;   subt.status = 'Resolved' &#10;   or subt.status = 'Closed'&#10;  ))</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

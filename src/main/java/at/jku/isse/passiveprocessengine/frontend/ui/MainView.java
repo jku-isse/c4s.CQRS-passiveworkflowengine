@@ -55,6 +55,7 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,10 +74,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private RequestDelegate commandGateway;
     
     private IFrontendPusher pusher;
-    private ControlEventEngine cee;
-
+    private WorkflowTreeGrid grid;
+    
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
 
+
+    
     @Inject
     public void setCommandGateway(RequestDelegate commandGateway) {
         this.commandGateway = commandGateway;
@@ -87,11 +90,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         this.pusher = pusher;
     }
 
-    @Inject
-    public void setControlEventEngine(ControlEventEngine cee) {
-    	this.cee = cee;
-    }
-    
+   
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -172,7 +171,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setClassName("footer-theme");
         if (anonymMode)        
-        	footer.add(new Text("(C) 2022 - Anonymized "));
+        	footer.add(new Text("(C) 2023 - Anonymized "));
         else 
         	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
         add(
@@ -344,116 +343,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
     
 
-//    private Component snapshotStateControls(WorkflowTreeGrid grid, ProgressBar progressBar) {
-//        VerticalLayout layoutV = new VerticalLayout();
-//        layoutV.setWidthFull();
-//        layoutV.setMargin(false);
-//        layoutV.setPadding(false);
-//        HorizontalLayout layout2 = new HorizontalLayout();
-//        layout2.setWidthFull();
-//        layout2.setMargin(false);
-//        layout2.setPadding(false);
-//        layout2.setAlignItems(Alignment.BASELINE);
-//        HorizontalLayout layout = new HorizontalLayout();
-//        layout.setWidthFull();
-//        layout.setMargin(false);
-//        layout.setPadding(false);
-//        layout.setAlignItems(Alignment.BASELINE);
-//        // Date Picker
-//        DatePicker valueDatePicker = new DatePicker();
-//        LocalDate now = LocalDate.now();
-//        valueDatePicker.setValue(now);
-//        valueDatePicker.setLabel("Date");
-//        // Time Picker
-//        Instant time = Instant.now();
-//        NumberField hour = new NumberField();
-//        hour.setValue((double) time.atZone(ZoneId.systemDefault()).getHour());
-//        hour.setHasControls(true);
-//        hour.setMin(0);
-//        hour.setMax(24);
-//        hour.setLabel("Hour");
-//        NumberField min = new NumberField();
-//        min.setValue((double) time.atZone(ZoneId.systemDefault()).getMinute());
-//        min.setHasControls(true);
-//        min.setMin(0);
-//        min.setMax(59);
-//        min.setLabel("Minute");
-//        NumberField sec = new NumberField();
-//        sec.setValue((double) time.atZone(ZoneId.systemDefault()).getSecond());
-//        sec.setHasControls(true);
-//        sec.setMin(0);
-//        sec.setMax(59);
-//        sec.setLabel("Second");
-//        layout.add(hour, min, sec);
-//
-//        // Buttons
-//        Button step = new Button("Apply next Event");
-//        Button jump = new Button("Apply Events until");
-//        Button stop = new Button("Stop current Replay");
-//
-//        step.addClickListener(e -> {
-//            if (snapshotter.step()) {
-//                grid.updateTreeGrid(snapshotter.getState());
-//                progressBar.setValue(snapshotter.getProgress());
-//            } else {
-//                step.setEnabled(false);
-//                jump.setEnabled(false);
-//                Notification.show("Last event reached!");
-//            }
-//        });
-//        step.setEnabled(false);
-//
-//        jump.addClickListener(e -> {
-//            LocalDateTime jumpTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
-//                    valueDatePicker.getValue().getMonth().getValue(),
-//                    valueDatePicker.getValue().getDayOfMonth(),
-//                    hour.getValue().intValue(),
-//                    min.getValue().intValue(),
-//                    sec.getValue().intValue());
-//            if (snapshotter.jump(jumpTime.atZone(ZoneId.systemDefault()).toInstant())) {
-//                grid.updateTreeGrid(snapshotter.getState());
-//                progressBar.setValue(snapshotter.getProgress());
-//            } else {
-//                Notification.show("Specified time is after the last or before the first event!");
-//            }
-//        });
-//        jump.setEnabled(false);
-//
-//        stop.addClickListener(e -> {
-//            snapshotter.quit();
-//            progressBar.setValue(0);
-//            grid.updateTreeGrid(Collections.emptyList());
-//            step.setEnabled(false);
-//            jump.setEnabled(false);
-//            stop.setEnabled(false);
-//        });
-//        stop.setEnabled(false);
-//        stop.addThemeVariants(ButtonVariant.LUMO_ERROR);
-//
-//        // Snapshot Button
-//        Button snapshotButton = new Button("Start new Replay", evt -> {
-//            LocalDateTime snapshotTime = LocalDateTime.of(valueDatePicker.getValue().getYear(),
-//                    valueDatePicker.getValue().getMonth().getValue(),
-//                    valueDatePicker.getValue().getDayOfMonth(),
-//                    hour.getValue().intValue(),
-//                    min.getValue().intValue(),
-//                    sec.getValue().intValue());
-//            if (snapshotter.start(snapshotTime.atZone(ZoneId.systemDefault()).toInstant())) {
-//                grid.updateTreeGrid(snapshotter.getState());
-//                progressBar.setValue(snapshotter.getProgress());
-//                step.setEnabled(true);
-//                jump.setEnabled(true);
-//                stop.setEnabled(true);
-//            } else {
-//                Notification.show("Specified time is after the last or before the first event!");
-//            }
-//        });
-//
-//        layout.add(valueDatePicker);
-//        layout2.add(snapshotButton, step, jump, stop);
-//        layoutV.add(layout, layout2);
-//        return layoutV;
-//    }
 
 
     private Component importArtifact() {
@@ -462,9 +351,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         layout.setWidth("90%");
         Set<String> wfdKeys = new HashSet<>();
         // Process Definition
-        if (commandGateway != null)
+        if (commandGateway != null) {
         	wfdKeys.addAll(commandGateway.getRegistry().getAllDefinitionIDs());
-
+        	if (grid != null)
+        		grid.injectRequestDelegate(commandGateway);
+        }
+        	
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
         processDefinition.setItems(wfdKeys);
         processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
@@ -473,42 +365,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         Button loadDefinitions = new Button("Fetch Available Definitions", e -> {
             initAccordion();
         });
-
-//        MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
-//        Upload upload = new Upload(buffer);
-//        upload.setWidthFull();
-//        Div output = new Div();
-//        upload.addSucceededListener(event -> {
-//            Component component = createComponent(event.getMIMEType(),
-//                    event.getFileName(),
-//                    buffer.getInputStream(event.getFileName()));
-//            showOutput(event.getFileName(), component, output);
-//        });
-
-//        Button addDefinition = new Button("Store New Definition", e -> {
-//            try {
-//                Map<String, String> ruleFiles = new HashMap<>();
-//                String json = null;
-//                for (String filename : buffer.getFiles()) {
-//                    if (filename.endsWith(".json")) {
-//                        json = IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name());
-//                    } else if (filename.endsWith(".drl")) {
-//                        ruleFiles.put(filename, IOUtils.toString(buffer.getInputStream(filename), StandardCharsets.UTF_8.name()));
-//                    } else {
-//                        // not allowed
-//                    }
-//                }
-//                if (json != null && ruleFiles.size() > 0) {
-//                    registry.register(json, ruleFiles);
-//                    processDefinition.setItems(registry == null ? Collections.emptySet() : registry.getAll().keySet());
-//                    Notification.show("Workflow loaded and added to registry");
-//                } else {
-//                    Notification.show("Make sure to have exactly one JSON file and at least one DRL file in the upload");
-//                }
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }
-//        });
 
         // Source
         VerticalLayout source = new VerticalLayout();
@@ -677,7 +533,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private VerticalLayout statePanel(boolean addHeader) {
-        WorkflowTreeGrid grid = new WorkflowTreeGrid(commandGateway);
+        grid = new WorkflowTreeGrid(commandGateway);
         grid.initTreeGrid();
         grids.add(grid);
         VerticalLayout layout = new VerticalLayout();

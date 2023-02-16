@@ -16,6 +16,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
@@ -52,28 +53,31 @@ import javax.swing.text.html.HTML;
         value= "./styles/dialog-overlay.css",
         themeFor = "vaadin-dialog-overlay"
 )
-public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { 
-
+public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> { 	
+	
     /**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
-    private RequestDelegate reqDel;
-
+    private RequestDelegate reqDel;    
 
     private Map<String, ProcessInstance> content;
     private String nameFilter;
     private Map<String, String> propertiesFilter;
 
     public WorkflowTreeGrid(RequestDelegate f) {
-        this.reqDel = f;
-
+        this.reqDel = f;       
         content = new HashMap<>();
         nameFilter = ""; // default filter
         propertiesFilter = new HashMap<>();
         propertiesFilter.put("", ""); // default filter
     }
+    
+    protected void injectRequestDelegate(RequestDelegate f) {
+    	this.reqDel = f;
+    }
+    
     public void initTreeGrid() {
 
         // Column "Workflow Instance"
@@ -90,13 +94,14 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //                    span.getElement().setProperty("title", wft.getDefinition().getName());
 //                    return span;
 //                } else {
-                    Span span = new Span(wft.getDefinition().getName());
+                    Span span = new Span(wft.getDefinition().getName());                    
                     span.getElement().setProperty("title", wft.getDefinition().getName());
                     return span;
                 //}
             } else if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
-                Span span = new Span(rebc.getQaSpec().getHumanReadableDescription());
+                String title = rebc.getQaSpec().getHumanReadableDescription() != null ? rebc.getQaSpec().getHumanReadableDescription() : rebc.getQaSpec().getName();
+                Span span = new Span(title);
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
             } else if (o instanceof RepairNode) {
@@ -305,7 +310,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         Icon icon = getStepIcon(wfi);
         icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> dialog.open());
+        icon.addClickListener(e -> { 
+        	reqDel.getMonitor().processViewed(wfi);
+        	dialog.open(); });
         //icon.getElement().setProperty("title", "Show more information about this process instance");
         dialog.add(l);
 
@@ -350,7 +357,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         Icon icon = getStepIcon(wft);
         icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> dialog.open());
+        icon.addClickListener(e -> { 
+        	reqDel.getMonitor().stepViewed(wft);
+        	dialog.open();	
+        });
         //icon.getElement().setProperty("title", "Show more information about this process step");
 
         dialog.add(l);
@@ -439,7 +449,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //    				h.setPadding(false);
     				try {
     					RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    					RepairTreeGrid rtg = new RepairTreeGrid();
+    					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor());
     					rtg.initTreeGrid();
     					rtg.updateConditionTreeGrid(repairTree);    					    					
     					rtg.expandRecursively(repairTree.getChildren(), 3);
@@ -614,7 +624,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
         	try {
         		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        		RepairTreeGrid rtg = new RepairTreeGrid();
+        		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor());
         		rtg.initTreeGrid();
         		rtg.updateQAConstraintTreeGrid(repairTree);
         		rtg.expandRecursively(repairTree.getChildren(), 3);
@@ -636,7 +646,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
         Icon icon= getQAIcon(rebc);
         icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> dialog.open());
+        icon.addClickListener(e -> { 
+        	reqDel.getMonitor().constraintedViewed(rebc);
+        	dialog.open();	
+        });
         icon.getElement().setProperty("title", "Show details");
         
         dialog.add(l);

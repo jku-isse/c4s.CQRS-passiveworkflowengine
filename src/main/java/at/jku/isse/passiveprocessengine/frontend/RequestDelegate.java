@@ -41,6 +41,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.messages.WorkspaceListenerSequencer;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,6 +64,8 @@ public class RequestDelegate {
 	@Autowired EventDistributor eventDistributor;
 	
 	@Autowired RepairAnalyzer repAnalyzer;
+	
+	@Autowired UsageMonitor monitor;
 	
 	ProcessChangeListenerWrapper picp;
 	
@@ -92,6 +95,10 @@ public class RequestDelegate {
 	public ArtifactResolver getArtifactResolver() {
 		if (!isInitialized) initialize();
 		return resolver;
+	}
+	
+	public UsageMonitor getMonitor() {
+		return monitor;
 	}
 	
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
@@ -209,14 +216,16 @@ public class RequestDelegate {
 		ws = WorkspaceService.PUBLIC_WORKSPACE;
 		resolver.inject(ws);
 		procReg.inject(ws);
-		repAnalyzer.inject(ws);
+		if (repAnalyzer != null)
+			repAnalyzer.inject(ws);
 		RuleService.setEvaluator(new ArlRuleEvaluator());
 		RuleService.currentWorkspace = ws;		
 		// load any persisted process instances
 		loadPersistedProcesses();		
 		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver, eventDistributor);
 		WorkspaceListenerSequencer wsls = new WorkspaceListenerSequencer(ws);
-		wsls.registerListener(repAnalyzer);
+		if (repAnalyzer != null)
+			wsls.registerListener(repAnalyzer);
 		wsls.registerListener(picp);
 		isInitialized = true;
 	}

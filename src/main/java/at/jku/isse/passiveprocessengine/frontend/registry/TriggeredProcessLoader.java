@@ -1,21 +1,20 @@
 package at.jku.isse.passiveprocessengine.frontend.registry;
 
-import lombok.RequiredArgsConstructor;
-
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import at.jku.isse.passiveprocessengine.definition.serialization.FilesystemProcessDefinitionLoader;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 
 @Component
-@RequiredArgsConstructor
-public abstract class AbstractProcessLoader {
-
-    final ProcessRegistry registry;
-
-    public abstract int registerAll();
-    
+public class TriggeredProcessLoader extends FilesystemProcessDefinitionLoader{
+       
+	public TriggeredProcessLoader(ProcessRegistry registry) {
+		super(registry);
+	}
+	
     /**
      * Source: https://www.baeldung.com/running-setup-logic-on-startup-in-spring
      *
@@ -26,7 +25,7 @@ public abstract class AbstractProcessLoader {
      *              Make sure to pick an appropriate event that suits your needs."
      */
     @EventListener
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(ApplicationReadyEvent event) { //ContextRefreshedEvent event) {
         registerAll();
     }
 

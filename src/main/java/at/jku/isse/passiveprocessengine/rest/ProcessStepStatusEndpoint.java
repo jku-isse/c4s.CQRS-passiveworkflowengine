@@ -15,6 +15,7 @@ import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 
@@ -47,7 +48,7 @@ public class ProcessStepStatusEndpoint {
 					Optional<ProcessStep> optStep = proc.getProcessSteps().stream().filter(step -> step.getDefinition().getName().equalsIgnoreCase(stepType)).findAny();
 					if (optStep.isEmpty()) {
 						return ResponseEntity.status(HttpStatus.NOT_FOUND)
-								.body("No step found of provided type");
+								.body("{\"error\": \"No step found of provided type\"}");
 					} else {
 						ProcessStep step = optStep.get();
 						return ResponseEntity.status(HttpStatus.OK)
@@ -55,6 +56,55 @@ public class ProcessStepStatusEndpoint {
 										+"\"actualState\" : \""+step.getActualLifecycleState().toString()+"\","
 										+"\"expectedState\" : \""+step.getExpectedLifecycleState().toString()+"\""
 										+ " }");
+					}
+				}
+			} catch(Exception e) {
+				// ignored
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body("{\"error\": \"Provided Id does not identifiy a process instance\"}");
+		}
+	}
+	
+	@GetMapping( value="/ceps/qadetails", produces="application/json")
+	public ResponseEntity<String> getQAStatus(@QueryParam("processId") Long processId, @QueryParam("document") String document) { 
+		if (service == null) {
+			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+					.body("{\"error\": \"No RequestDelegate available\"}");
+		} else if (processId == null || processId <= 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"error\": \"processId parameter missing or invalid\"}");
+		} else if (document == null || document.length() <= 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"error\": \"document parameter missing or invalid\"}");
+		} else {			
+			Instance procInst = service.getWorkspace().findElement(Id.of(processId));
+			if (procInst == null)
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("{\"error\": \"No process instance found with provided id\"}");
+			try {
+				ProcessInstance proc = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+				if (proc != null) {
+					Optional<ConstraintWrapper> cwOpt = proc.getProcessSteps().stream()
+						.flatMap(step -> step.getQAstatus().stream()) // just go through all constraint wrappers one by one
+						.filter(cw1 -> cw1.getQaSpec().getName().equalsIgnoreCase(document))
+						.findAny();
+					if (cwOpt.isEmpty()) {
+						return ResponseEntity.status(HttpStatus.NOT_FOUND)
+								.body("{\"error\": \"No constraint found for the provided document name\"}");
+					} 					
+					else {
+						ConstraintWrapper cw = cwOpt.get();
+						String status = "";
+						if (cw.getCr()==null) {
+							status = "NOT_YET_EVALUATED";															
+						} else {
+							status = cw.getEvalResult() ? "FULFILLED" : "UNFULFILLED";
+						}							
+						return ResponseEntity.status(HttpStatus.OK)
+									.body("{\"id\" : \""+cw.getName()+"\", "
+											+"\"evaluationStatus\" : \""+status+"\""
+											+ " }");
 					}
 				}
 			} catch(Exception e) {

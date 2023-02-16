@@ -10,17 +10,21 @@ import at.jku.isse.designspace.azure.service.IAzureService;
 import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
+import at.jku.isse.designspace.rule.repair.order.RepairNodeScorer;
+import at.jku.isse.designspace.rule.repair.order.RepairStats;
+import at.jku.isse.designspace.rule.repair.order.SortOnRepairPercentage;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
-import at.jku.isse.passiveprocessengine.frontend.registry.AbstractProcessLoader;
-import at.jku.isse.passiveprocessengine.frontend.registry.ProcessSpecificationLoader;
+import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
+import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -63,8 +67,8 @@ public class FrontendSpringConfig {
 
 	@Bean
 //	@DependsOn({"controlEventEngine"})
-	public AbstractProcessLoader getProcessLoader(ProcessRegistry registry) {
-		return new ProcessSpecificationLoader(registry);
+	public TriggeredProcessLoader getProcessLoader(ProcessRegistry registry) {
+		return new TriggeredProcessLoader(registry);
 	}
 
 	@Bean
@@ -78,38 +82,27 @@ public class FrontendSpringConfig {
 		ar.register(jama);
 		return ar;
 	}
-
-//    @Bean("controlEventEngine")
-//    public ControlEventEngine initControlEventEngine(WorkspaceService ws, RuleService rSerice) {
-//    	Event.setInitialized();
-//    	Properties props = new Properties();
-//        try {
-//            FileReader reader = new FileReader("./application.properties");
-//            props.load(reader);
-//            String property = props.getProperty("persistence.enabled");  
-//            if (property != null) {
-//                boolean persistenceEnabled = Boolean.parseBoolean(property);
-//                if (persistenceEnabled) {
-//                	Path currentRelativePath = Paths.get("");
-//                    String absPath = currentRelativePath.toAbsolutePath().toString();
-//                    String path = absPath+ props.getProperty("persistencePath").trim().replace('/', '\\');;
-//                    ControlEventEngine.initWithPath(path, false);
-//                }
-//            }
-//        } catch (IOException ioe) {
-//            Workspace.logger.debug("CORE-SERVICE: The running directory did not contain an application.properties file, Persistence cannot be initialized!");
-//        }
-//        return null;
-//    }
     
     @Bean
-    public RepairAnalyzer getRepairAnalyzer() {
-    	return new RepairAnalyzer(null); // workspace will/must be injected in RequestDelegate
+    public RepairStats getRepairStats() {
+    	return new RepairStats();
     }
+	
+    @Bean
+    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider) {
+    	RepairNodeScorer scorer= new SortOnRepairPercentage();
+    	return new RepairAnalyzer(null,rs, scorer, tsProvider); // workspace will/must be injected in RequestDelegate
+    }
+
 	
     @Bean 
     public ITimeStampProvider getTimeStampProvider() {
     	return new CurrentSystemTimeProvider();
+    }
+    
+    @Bean 
+    public UsageMonitor getUsageMonitor(ITimeStampProvider timeprovider) {
+    	return new UsageMonitor(timeprovider);
     }
     
     @Bean 
@@ -127,8 +120,10 @@ public class FrontendSpringConfig {
     }
     
     @Bean
-    public EventDistributor getEventDistributor() {
-    	return new EventDistributor();
+    public EventDistributor getEventDistributor(ITimeStampProvider timeprovider) {
+    	EventDistributor ed = new EventDistributor();
+    	ed.registerHandler(new ProcessMonitor(timeprovider));
+    	return ed;
     }
 
 	@Bean
