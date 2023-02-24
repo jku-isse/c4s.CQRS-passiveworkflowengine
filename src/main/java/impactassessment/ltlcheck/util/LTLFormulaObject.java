@@ -3,6 +3,8 @@ package impactassessment.ltlcheck.util;
 import java.util.HashMap;
 import java.util.List;
 
+import org.processmining.analysis.ltlchecker.parser.LTLParser;
+
 import impactassessment.ltlcheck.util.ValidationUtil.ValidationMode;
 
 /**
@@ -20,6 +22,12 @@ public class LTLFormulaObject {
 	 * log.
 	 **/
 	private String formulaDefinition;
+
+	/**
+	 * The {@link LTLParser} instance maintaining the parsed LTL formula in a
+	 * special tree-like structure.
+	 **/
+	private LTLParser parser;
 
 	/**
 	 * The validation mode associated with this formula (either trace-oriented or
@@ -81,6 +89,14 @@ public class LTLFormulaObject {
 		this.formulaDefinition = formulaDefinition;
 	}
 
+	public LTLParser getLTLParserInstance() {
+		return parser;
+	}
+
+	public void setLTLParserInstance(LTLParser parser) {
+		this.parser = parser;
+	}
+
 	public ValidationMode getValidationMode() {
 		return validationMode;
 	}
@@ -103,5 +119,14 @@ public class LTLFormulaObject {
 
 	public void setTraceProperties(HashMap<String, Boolean> traceProperties) {
 		this.traceProperties = traceProperties;
+	}
+
+	/**
+	 * @returns true if the {@link LTLParser} instance of the
+	 *          {@link LTLFormulaObject} has been set (i.e., the formula has been
+	 *          parsed); false otherwise
+	 */
+	public boolean isFormulaParsed() {
+		return (getLTLParserInstance() != null) ? true : false;
 	}
 }

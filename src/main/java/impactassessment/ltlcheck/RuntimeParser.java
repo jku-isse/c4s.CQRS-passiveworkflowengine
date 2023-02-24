@@ -20,9 +20,9 @@ import passiveprocessengine.instance.TaskStateTransitionEvent;
 
 /**
  * This class is responsible for calling the process log creation/expansion
- * process, invoking the {@link LTLParser} for parsing the desired LTL formula,
- * and calling the validation routine in the {@link RuntimeValidator} after the
- * aforementioned steps have been completed.
+ * process, invoking the {@link LTLParser} for parsing the desired LTL
+ * formula(s), and calling the validation routine in the
+ * {@link RuntimeValidator} after the aforementioned steps have been completed.
  *
  * @author chris
  */
@@ -46,17 +46,26 @@ public class RuntimeParser {
 	public static ArrayList<ValidationResult> checkLTLTrace(String workflowID, AvailableFormulas formulaDefinition,
 			TaskStateTransitionEvent transitionEvent) {
 		try {
-			// retrieve the formula object associated with the parameter formulaDefinition
+			// retrieve the formula object associated with the parameter "formulaDefinition"
 			LTLFormulaObject formulaObj = LTLFormulaProvider.getFormulaDefinition(formulaDefinition.toString());
 
-			// parse the defined formula
-			String formulaStructure = formulaObj.getFormulaDefinition();
-			LTLParser parser = invokeParser(formulaStructure);
+			// parse the defined formula(s) -- only once
+			if (!formulaObj.isFormulaParsed()) {
+				formulaObj.setLTLParserInstance(invokeParser(formulaObj));
+			}
+
+			// obtain central parser instance
+			LTLParser parser = formulaObj.getLTLParserInstance();
 
 			if (parser != null) {
+				// print attributes of current formula
+				StringBuilder sb = new StringBuilder();
+				sb.append("Attributes of formula ");
+				sb.append(formulaDefinition.toString() + ":");
 				for (Object o : parser.getAttributes()) {
-					System.out.println(o.toString());
+					sb.append("\n\t" + o.toString());
 				}
+				log.debug(sb.toString());
 
 				String formulaName = formulaDefinition.toString();
 
@@ -71,8 +80,9 @@ public class RuntimeParser {
 				if (processLogPath != null) {
 					LogReader logReader = new LogReader(new DefaultLogFilter(LogFilter.FAST),
 							LogFile.getInstance(processLogPath));
-					log.debug("" + logReader.getLogSummary().getNumberOfProcessInstances());
-					log.debug("" + logReader.getLogSummary().getNumberOfAuditTrailEntries());
+					log.debug("Nr. of process instances: {}", logReader.getLogSummary().getNumberOfProcessInstances());
+					log.debug("Nr. of audit trail entries: {}",
+							logReader.getLogSummary().getNumberOfAuditTrailEntries());
 
 					RuntimeValidator r = new RuntimeValidator(logReader, parser, null, formulaName);
 
@@ -80,30 +90,37 @@ public class RuntimeParser {
 				}
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			log.error("Unexpected error while preparing for the process log validation routine.", ex);
 		}
 
 		return null;
 	}
 
 	/**
-	 * Invoke the {@link LTLParser} which parses and verifies the formula to be
-	 * validated.
+	 * Create a new {@link LTLParser} instance which parses and verifies the formula
+	 * to be validated in a subsequent step.
 	 *
-	 * @return the invoked {@link LTLParser} instance
+	 * @param formulaObj The {@link LTLFormulaObject} containing the string
+	 *                   representation of the LTL formula(s) to be parsed.
+	 * @return instance of {@link LTLParser}
 	 */
-	private static LTLParser invokeParser(String ltlFormulas) {
-		LTLParser localParser = new LTLParser(new ByteArrayInputStream(ltlFormulas.getBytes(StandardCharsets.UTF_8)));
+	private static LTLParser invokeParser(LTLFormulaObject formulaObj) {
+		String formulaDefinition = formulaObj.getFormulaDefinition();
+		byte[] formulaBuffer = formulaDefinition.getBytes(StandardCharsets.UTF_8);
+		LTLParser localParser = new LTLParser(new ByteArrayInputStream(formulaBuffer));
 		localParser.init();
+
 		try {
 			localParser.parse();
 		} catch (ParseException pex) {
-			pex.printStackTrace();
+			log.error("Could not parse LTL formula(s) with identifier {}.", formulaObj.getFormulaName(), pex);
 			return null;
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			log.error("Unexpected error while parsing LTL formula(s) with identifier {}.", formulaObj.getFormulaName(),
+					ex);
 			return null;
 		}
+
 		return localParser;
 	}
 }

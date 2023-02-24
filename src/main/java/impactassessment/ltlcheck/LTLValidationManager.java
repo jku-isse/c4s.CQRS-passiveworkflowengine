@@ -41,8 +41,11 @@ public class LTLValidationManager {
 	 **/
 	private ConcurrentHashMap<String, HashMap<String, Stack<TaskStateTransitionEvent>>> periodicTaskMap;
 
-	/** max. allowed amount of periodic evaluation tasks **/
-	private static final int MAX_TASK_COUNT = 10;
+	/**
+	 * max. number of threads to keep in the thread pool for parallel task
+	 * executions
+	 **/
+	private static final int MAX_THREAD_COUNT = 10;
 
 	/**
 	 * This collection will contain one entry per workflow the
@@ -57,16 +60,19 @@ public class LTLValidationManager {
 	 **/
 	private ConcurrentHashMap<String, HashMap<String, Stack<ArrayList<ValidationResult>>>> checkResults;
 
+	/**
+	 * Default constructor.
+	 */
 	private LTLValidationManager() {
 		checkResults = new ConcurrentHashMap<>();
 		periodicTaskMap = new ConcurrentHashMap<>();
-		validationScheduler = Executors.newScheduledThreadPool(MAX_TASK_COUNT);
+		validationScheduler = Executors.newScheduledThreadPool(MAX_THREAD_COUNT);
 	}
 
 	/**
 	 * @return instance of {@link LTLValidationManager}
 	 */
-	public static LTLValidationManager getInstance() {
+	public static synchronized LTLValidationManager getInstance() {
 		if (instance == null) {
 			instance = new LTLValidationManager();
 		}
@@ -332,8 +338,9 @@ public class LTLValidationManager {
 	}
 
 	/**
-	 * Reset the validation environment (e.g. call the garbage collector to collect
-	 * class instance, validation results, etc.).
+	 * Reset the validation environment (i.e., call the garbage collector to collect
+	 * the current {@link LTLValidationManager} class instance, all recorded
+	 * validation results, etc.).
 	 */
 	public void resetValidationEnvironment() {
 		instance = null;
@@ -416,21 +423,37 @@ public class LTLValidationManager {
 		@Override
 		public void run() {
 			try {
-				// retrieve most recent transition event
-				TaskStateTransitionEvent transitionEvent = periodicTaskMap.get(workflowID).get(af.toString()).peek();
+				// obtain the stack holding the desired transition events
+				Stack<TaskStateTransitionEvent> tempStack = periodicTaskMap.get(workflowID).get(af.toString());
 
-				// if the stack is empty at this point in time (e.g. if the top element is
-				// null), there is nothing to evaluate yet
-				if (transitionEvent != null) {
-					// reset the stack
-					periodicTaskMap.get(workflowID).get(af.toString()).clear();
+				// if the stack is empty at this point in time, there is nothing to evaluate yet
+				if (!tempStack.isEmpty()) {
 
-					// call the validation routine
-					checkTraceAndStoreResult(workflowID, transitionEvent, af);
-					evaluateResults(workflowID, af, detailedOutput);
+					// retrieve most recent transition event
+					TaskStateTransitionEvent transitionEvent = tempStack.peek();
+
+					// nothing to evaluate if the top-element is null
+					if (transitionEvent != null) {
+						// reset the stack
+						periodicTaskMap.get(workflowID).get(af.toString()).clear();
+
+						// record the time required for finishing scheduled validation task
+						long startTime = System.currentTimeMillis();
+
+						// call the validation routine
+						checkTraceAndStoreResult(workflowID, transitionEvent, af);
+						evaluateResults(workflowID, af, detailedOutput);
+
+						long endTime = System.currentTimeMillis();
+						long duration = (endTime - startTime);
+
+						// report time taken
+						log.info("Scheduled validation of formula {} took {} milliseconds.", af.toString(), duration);
+					}
 				}
 			} catch (Exception ex) {
-				log.error("Could not execute periodic validation task.");
+				log.error("Could not execute periodic validation task for workflow '{}' and formula(s) '{}'.",
+						workflowID, af.toString(), ex);
 			}
 		}
 	}

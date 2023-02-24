@@ -25,7 +25,10 @@ import passiveprocessengine.instance.WorkflowInstance;
  */
 public class WorkflowDataExtractor {
 
-	/** fields **/
+	/**
+	 * Map holding all process instances that have been created throughout the
+	 * subsystem's runtime for a specific workflow.
+	 **/
 	private static ConcurrentHashMap<String, HashMap<String, Stack<LTLProcessInstanceObject>>> wfProcessInstances = new ConcurrentHashMap<>();
 
 	/**
