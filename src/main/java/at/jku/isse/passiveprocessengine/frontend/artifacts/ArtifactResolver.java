@@ -80,6 +80,10 @@ public class ArtifactResolver {
 	}
 	
 	public Instance get(ArtifactIdentifier artId) throws ProcessException {
+		return get(artId, false);
+	}
+	
+	public Instance get(ArtifactIdentifier artId, boolean forceFetch) throws ProcessException {
 		Optional<IArtifactProvider> optConn = connectors.stream()
 			.filter(conn1 -> conn1.getSupportedIdentifier()
 									.values()
@@ -88,7 +92,7 @@ public class ArtifactResolver {
 									.anyMatch(str ->  str.equalsIgnoreCase(artId.getIdType())))
 			.findAny();
 		if (optConn.isPresent()) {
-			ServiceResponse resp = optConn.get().getServiceResponse(artId.getId(), artId.getIdType());
+			ServiceResponse resp = optConn.get().getServiceResponse(artId.getId(), artId.getIdType(), forceFetch);
 			if (resp.getKind() == ServiceResponse.SUCCESS) {
 				//ws.update();
 				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));

@@ -198,9 +198,10 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		while (!idsPerType.isEmpty()) {
 			String type =idsPerType.keySet().stream().findAny().get();
 			Set<ArtifactIdentifier> aboutToBeFetched = idsPerType.get(type);			
-			log.debug(String.format("Trying to fetch %s lazyloaded artifact of type: %s ", aboutToBeFetched.size(), type));
+			log.debug(String.format("Trying to fetch %s lazyloaded artifact(s) of type: %s ", aboutToBeFetched.size(), type));
+			aboutToBeFetched.stream().forEach(ai -> lazyLoaded.remove(ai)); //we need to remove here, as fetching artifacts results in reentry due to transaction conclusion
 			Set<Instance> inst =  resolver.get(aboutToBeFetched.stream().map(ai -> ai.getId()).collect(Collectors.toSet()), type);							
-			aboutToBeFetched.stream().forEach(ai -> lazyLoaded.remove(ai));
+			
 			idsPerType = getIdsPerType();
 		}
 	}

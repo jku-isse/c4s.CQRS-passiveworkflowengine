@@ -1,28 +1,16 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import at.jku.isse.designspace.core.model.CollectionProperty;
-import at.jku.isse.designspace.core.model.Element;
-import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.ListProperty;
-import at.jku.isse.designspace.core.model.MapProperty;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.SingleProperty;import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -30,28 +18,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.TemplateRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.UIScope;
-
-import artifactapi.ArtifactIdentifier;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 

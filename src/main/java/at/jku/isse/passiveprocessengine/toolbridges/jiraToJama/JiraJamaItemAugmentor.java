@@ -203,7 +203,7 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 		} else {			
 			try {
 				// or resolve it to a jira item
-				Optional<Instance> jiraInstOpt = jiraService.getArtifact(jiraKey.toString(), JiraIdentifier.JiraIssueKey);
+				Optional<Instance> jiraInstOpt = jiraService.getArtifact(jiraKey.toString(), JiraIdentifier.JiraIssueKey, false);
 				if (jiraInstOpt.isPresent()) {
 					// and set it to the link property
 					try {

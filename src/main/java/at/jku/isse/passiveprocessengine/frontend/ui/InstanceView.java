@@ -1,60 +1,35 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.designspace.core.model.CollectionProperty;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.ListProperty;
 import at.jku.isse.designspace.core.model.MapProperty;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
-import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.ui.ARLPlaygroundView.InstanceTypeComparator;
-
-import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.accordion.Accordion;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.UIScope;
-
-import artifactapi.ArtifactIdentifier;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -71,6 +46,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     private RequestDelegate commandGateway;
 
     private Id id = null;
+    private ListDataProvider<Property> dataProvider = null;
     
     @Inject
     public void setCommandGateway(RequestDelegate commandGateway) {
@@ -178,38 +154,86 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	if (el.isDeleted) 
         		elName.getStyle().set("background-color", "#ffbf00");
         	layout.add(elName);
+        	Component grid = null;
         	if (el instanceof Instance) {
-        		layout.add(
-        			instanceAsList((Instance) el)
-        			);
+        			grid = instanceAsList((Instance) el);
         	} else if (el instanceof InstanceType) {
-        		layout.add(
-            			instanceAsList((InstanceType) el)
-            			);
-            	}
+        		grid = instanceAsList((InstanceType) el);
+            }
+        	layout.add(createSearchField());
+        	layout.add(grid);
         }
         return layout;
     }
     
+    private Component createSearchField() {    
+    	TextField searchField = new TextField();
+    	searchField.setWidth("50%");
+    	searchField.setPlaceholder("Search");
+    	searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+    	searchField.setValueChangeMode(ValueChangeMode.EAGER);
+    	searchField.addValueChangeListener(e -> dataProvider.refreshAll());
+
+    	dataProvider.addFilter(pe -> {
+    	    String searchTerm = searchField.getValue().trim();
+
+    	    if (searchTerm.isEmpty())
+    	        return true;
+
+    	    boolean matchesProperty= matchesTerm(pe.name, searchTerm);
+    	    boolean matchesValue = matchesTerm(valueToString(pe.value), searchTerm);
+
+    	    return matchesProperty || matchesValue;
+    	});    	    	
+    	return searchField;
+    }
     
+    private String valueToString(Object value) {
+    	if (value == null) return "null";
+    	if (value instanceof Instance ) {
+    		return ((Instance) value).className();
+    	}
+    	else if (value instanceof InstanceType) {
+    		return ((InstanceType) value).name();
+    	} else if (value instanceof Map) {
+    		return (String) ((Map) value).entrySet().stream()
+    				.map(entry-> ((Map.Entry<String, Object>)entry).getKey()+valueToString(((Map.Entry<String, Object>)entry).getValue()) )
+    				.collect(Collectors.joining());
+    	} else if (value instanceof Collection) {
+    		return (String) ((Collection) value).stream().map(v->valueToString(v)).collect(Collectors.joining());
+    	} else if (value instanceof PropertyType) {
+    		return ((PropertyType) value).name();
+    	}
+    	else
+    		return value.toString();
+    		
+    }
+    
+    private boolean matchesTerm(String value, String searchTerm) {
+   	 if (searchTerm != null && !searchTerm.isEmpty() && value != null)
+   		 return value.toLowerCase().contains(searchTerm.toLowerCase());
+   	 else return false;
+   }
     
     private Component instanceAsList(Instance inst) {
+    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))	
+    	dataProvider = new ListDataProvider<>(content);
     	Grid<Property> grid = new Grid<Property>();
     	grid.setColumnReorderingAllowed(false);
     	Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setResizable(true).setSortable(true);
     	Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
-    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
-    	grid.setItems(content);
+    	grid.setDataProvider(dataProvider);
     	return grid;
     }
     
     private Component instanceAsList(InstanceType inst) {
+    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
+    	dataProvider = new ListDataProvider<>(content);
     	Grid<Property> grid = new Grid<Property>();
     	grid.setColumnReorderingAllowed(false);
     	Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setResizable(true).setSortable(true);
     	Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
-    	List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
-    	grid.setItems(content);
+    	grid.setDataProvider(dataProvider);
     	return grid;
     }
     
@@ -266,6 +290,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     		return list;
     	}
     }
+    
     
     private static Component mapValueToComponent(Map value) {
     	Grid<Map.Entry<String, Object>> grid = new Grid<Map.Entry<String, Object>>();

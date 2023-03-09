@@ -1,7 +1,5 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import artifactapi.ArtifactType;
-import artifactapi.IArtifact;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
@@ -583,22 +581,22 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         return list;
     }
 
-    private Component deleteInOut(ProcessStep wft, boolean isIn, Map.Entry<String, ArtifactType> entry, IArtifact a) {
-        Icon icon = new Icon(VaadinIcon.TRASH);
-        icon.setColor("red");
-        icon.setSize("15px");
-        icon.getStyle().set("cursor", "pointer");
-        icon.getStyle().set("flex-shrink", "0");
-        // NO REMOVING FROM FRONTEND ANYMORE
-//        icon.addClickListener(e -> {
-//            if (isIn) {
-//                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
-//            } else {
-//                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
-//            }
-//        });
-        return icon;
-    }
+//    private Component deleteInOut(ProcessStep wft, boolean isIn, Map.Entry<String, ArtifactType> entry, IArtifact a) {
+//        Icon icon = new Icon(VaadinIcon.TRASH);
+//        icon.setColor("red");
+//        icon.setSize("15px");
+//        icon.getStyle().set("cursor", "pointer");
+//        icon.getStyle().set("flex-shrink", "0");
+//        // NO REMOVING FROM FRONTEND ANYMORE
+////        icon.addClickListener(e -> {
+////            if (isIn) {
+////                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
+////            } else {
+////                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
+////            }
+////        });
+//        return icon;
+//    }
 
     private Component infoDialog(ConstraintWrapper rebc) {
     	VerticalLayout l = new VerticalLayout();

@@ -401,45 +401,50 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         });
 
         Button importOrUpdateArtifactButton = new Button("Create", evt -> {
-            if (processDefinition.getValue() == null) {
-                Notification.show("Select a Process Definition first!");
-            } else {
-                try {
-                    // collect all input IDs
-                    Map<String, ArtifactIdentifier> inputs = new LinkedHashMap<>();
-                    AtomicInteger count = new AtomicInteger();
-                    source.getChildren()
-                            .filter(child -> child instanceof TextField)
-                            .map(child -> {
-                                count.getAndIncrement();
-                                return (TextField) child;
-                            })
-                            .filter(tf -> !tf.getValue().equals(""))
-                            .filter(tf -> !tf.getLabel().equals(""))
-                            .forEach(tf -> {
-                            	String role = tf.getLabel().trim();
-                            	String artId = tf.getValue().trim();
-                            	String artType = tf.getHelperText().trim();
-                            	ComboBox<String> idTypeSel = role2IdType.get(role);
-                            	String idType = idTypeSel.getOptionalValue().orElse(artType);                            	                            	
-                                ArtifactIdentifier ai = new ArtifactIdentifier(artId, artType, idType);
-                                inputs.put(role,ai);
-                            });
-                    // send command
-                    if (count.get() == inputs.size()) {
-                    	//inputs.keySet().stream().map(ai -> ai.get)
-                        String id = inputs.values().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
-                    	commandGateway.instantiateProcess(id, inputs, processDefinition.getValue());
-                        Notification.show("Success");
-                    } else {
-                        Notification.show("Make sure to fill out all required artifact IDs!");
-                    }
-                } catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-                    log.error("CommandExecutionException: " + e.getMessage());
-                    e.printStackTrace();
-                    Notification.show("Creation failed! \r\n"+e.getMessage());
-                }
-            }
+        	if (processDefinition.getValue() == null) {
+        		Notification.show("Select a Process Definition first!");
+        	} else {
+
+        		// collect all input IDs
+        		Map<String, ArtifactIdentifier> inputs = new LinkedHashMap<>();
+        		AtomicInteger count = new AtomicInteger();
+        		source.getChildren()
+        		.filter(child -> child instanceof TextField)
+        		.map(child -> {
+        			count.getAndIncrement();
+        			return (TextField) child;
+        		})
+        		.filter(tf -> !tf.getValue().equals(""))
+        		.filter(tf -> !tf.getLabel().equals(""))
+        		.forEach(tf -> {
+        			String role = tf.getLabel().trim();
+        			String artId = tf.getValue().trim();
+        			String artType = tf.getHelperText().trim();
+        			ComboBox<String> idTypeSel = role2IdType.get(role);
+        			String idType = idTypeSel.getOptionalValue().orElse(artType);                            	                            	
+        			ArtifactIdentifier ai = new ArtifactIdentifier(artId, artType, idType);
+        			inputs.put(role,ai);
+        		});
+        		// send command
+        		if (count.get() == inputs.size()) {
+        			//inputs.keySet().stream().map(ai -> ai.get)
+        			String id = inputs.values().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
+        			Notification.show("Process Instantiation might take some time. UI will be updated automatically upon success.");
+        			new Thread(() -> { 
+        				try {
+        					commandGateway.instantiateProcess(id, inputs, processDefinition.getValue());
+        					this.getUI().get().access(() ->Notification.show("Success"));
+        				} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+        					log.error("CommandExecutionException: " + e.getMessage());
+        					e.printStackTrace();
+        					this.getUI().get().access(() ->Notification.show("Creation failed! \r\n"+e.getMessage()));
+        				}
+        			} ).start();
+        		} else {
+        			Notification.show("Make sure to fill out all required artifact IDs!");
+        		}
+
+        	}
         });
         importOrUpdateArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
 
@@ -502,7 +507,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 		String idType = idTypeBox.getOptionalValue().get();
                 		
                 		ArtifactIdentifier ai = new ArtifactIdentifier(idValue, artType, idType);
-                		Instance inst = artRes.get(ai);
+                		boolean forceRefetch = true;
+                		Instance inst = artRes.get(ai, forceRefetch);
                 		if (inst != null) {
                 			// redirect to new page:
                 			UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));

@@ -137,9 +137,21 @@ public class DemoServiceWrapper implements IArtifactProvider{
 	}
 
 	@Override
-	public ServiceResponse[] getServiceResponse(Set<String> id, String identifierType) {
-		// TODO Auto-generated method stub
-		return null;
+	public ServiceResponse[] getServiceResponse(Set<String> ids, String identifierType) {
+		return (ServiceResponse[]) ids.stream()
+			.map(id -> getServiceResponse(id, identifierType))
+			.collect(Collectors.toSet())
+			.toArray();
+	}
+
+	@Override
+	public ServiceResponse getServiceResponse(String id, String identifierType, boolean doForceRefetch) {
+		return getServiceResponse(id, identifierType);
+	}
+
+	@Override
+	public ServiceResponse[] getServiceResponse(Set<String> ids, String identifierType, boolean doForceRefetch) {
+		return getServiceResponse(ids, identifierType);
 	}
     
 }
