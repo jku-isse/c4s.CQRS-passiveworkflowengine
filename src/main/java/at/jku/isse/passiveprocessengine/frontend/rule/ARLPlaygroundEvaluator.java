@@ -2,22 +2,29 @@ package at.jku.isse.passiveprocessengine.frontend.rule;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.vaadin.flow.component.Component;
 
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Tool;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.model.ConsistencyRuleType;
 import at.jku.isse.designspace.rule.model.Rule;
+import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.frontend.ui.ARLPlaygroundView;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import lombok.Data;
 
 public class ARLPlaygroundEvaluator {
 
 	private static Workspace playground = null;
 	
-	public static Map<Instance, String> evaluateRule(Workspace ws, InstanceType type, String id, String arlString) throws ProcessException {
+	public static Set<ResultEntry> evaluateRule(Workspace ws, InstanceType type, String id, String arlString) throws ProcessException {
 		assert(ws != null);
 		initPlayground(ws);
 		ProcessException pex = new ProcessException("Errors while evaluating: "+arlString);
@@ -36,14 +43,16 @@ public class ARLPlaygroundEvaluator {
 				throw pex;
 			}
 			// now evaluate on instances:
-			Map<Instance, String> result = new HashMap<Instance, String>();
-			crt.ruleEvaluations().get().stream()
-					.forEach(rule -> { 
-							Rule r = (Rule)rule;
-							Instance ctx = r.contextInstance();
-							String res = r.hasEvaluationError() ? r.evaluationError() : ""+r.result();
-							result.put( ctx, res); 
-							});
+			Set<ResultEntry> result = 
+					(Set<ResultEntry>) crt.ruleEvaluations().get().stream()
+					.map(rule -> {
+						ConsistencyRule r = (ConsistencyRule)rule;
+						Instance ctx = r.contextInstance();
+						String error = r.hasEvaluationError() ? r.evaluationError() : null;
+						Boolean bresult = r.hasEvaluationError() ? null : Boolean.valueOf(r.result());
+						return new ResultEntry(ctx, bresult, error, r);
+					})
+					.collect(Collectors.toSet());
 			return result;
 		} catch (Exception e) {
 			if (!(e instanceof ProcessException))  
@@ -62,4 +71,13 @@ public class ARLPlaygroundEvaluator {
 			playground = parent.create("ArlPlayground", parent, new User("ARLPlaygroundEvaluatorBot"), new Tool("ArlPlayground", "V1"), true, false);
 		}
 	}
+	
+	 @Data
+	 public static class ResultEntry {
+	    	final Instance instance;
+	    	final Boolean result;
+	    	final String error;
+	    	final ConsistencyRule ruleInstance;
+	    	
+	    }
 }

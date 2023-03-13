@@ -43,10 +43,10 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	private static final long serialVersionUID = 1L;
 
 	private int repairCount = 0;
-	private UsageMonitor usageMonitor;
+	//private UsageMonitor usageMonitor;
 	
 	public RepairTreeGrid(UsageMonitor monitor) {
-		this.usageMonitor = monitor;
+	//	this.usageMonitor = monitor;
 	}
 	
 	public void initTreeGrid() {

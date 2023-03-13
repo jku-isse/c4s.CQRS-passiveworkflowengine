@@ -1,9 +1,13 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
+import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 
 import com.vaadin.componentfactory.ToggleButton;
@@ -11,6 +15,8 @@ import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -20,6 +26,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
+
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
@@ -153,10 +161,17 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         	layout.add(comboBox);
         	
         	
-        	TextArea resultArea = new TextArea();
-        	resultArea.setWidthFull();
-        	resultArea.setMinHeight("100px");
-        	resultArea.setLabel("Result");
+        	TextArea errorResultArea = new TextArea();
+        	errorResultArea.setWidthFull();
+        	errorResultArea.setMinHeight("100px");
+        	errorResultArea.setLabel("Rule Feedback");
+        	errorResultArea.setVisible(false);
+        	
+        	Grid<ResultEntry> grid = new Grid<>();
+        	Grid.Column<ResultEntry> instColumn = grid.addComponentColumn(rge -> resultEntryToInstanceLink(rge)).setHeader("Instance").setResizable(true).setSortable(true);
+        	Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
+        	Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
+        	
         	
         	// Button to send
         	Button button = new Button("Evaluate");
@@ -168,18 +183,24 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         		else {
         			
         			try {
-						Map<Instance, String> evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
+						Set<ResultEntry> evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
 															comboBox.getValue(),
 															""+counter.getAndIncrement(), 
 															arlArea.getValue());
-						resultArea.setValue(evalResult.entrySet().stream()
-								.map(entry -> entry.getKey().name() + " evaluated to " +entry.getValue())
-								.collect(Collectors.joining("\r\n")));
+						errorResultArea.setVisible(false);
+						Notification.show("Rule evaluated successfully.");
+//						errorResultArea.setValue(evalResult.entrySet().stream()
+//								.map(entry -> entry.getKey().name() + " evaluated to " +entry.getValue())
+//								.collect(Collectors.joining("\r\n")));
 						if (evalResult.isEmpty()) {
-							resultArea.setValue("No instances available to evaluate ARL rule on.");
+							//errorResultArea.setVisible(true);
+							Notification.show("No instances available to evaluate ARL rule on.");
+						} else {
+							grid.setItems(evalResult);
 						}
 					} catch (ProcessException e) {
-						resultArea.setValue(e.getMessage());
+						errorResultArea.setVisible(true);
+						errorResultArea.setValue(e.getMessage());
 					}
         		}
         	    
@@ -187,10 +208,43 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         	layout.add(button);
         	
         	// text field to show error message or result
-        	layout.add(resultArea);
+        	layout.add(errorResultArea);
+        	layout.add(grid);
         	
         }
         return layout;
+    }
+    
+    private Component resultEntryToInstanceLink(ResultEntry rge) {
+    	if (InstanceView.isFullyFetched(rge.getInstance())) {
+    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()));
+    	} else {
+    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()+" (lazy loaded only)"));
+    	}
+    }
+    
+    private Component resultEntryToButton(ResultEntry entry) {
+    	
+    	Button button = null;
+    	if (entry.getError() == null && entry.getResult() == false) {
+    		button = new Button("Show Repairs", evt -> {
+        		Dialog dialog = new Dialog();
+    			dialog.setWidth("80%");
+    			dialog.setMaxHeight("80%");
+    			RepairNode repairTree = RuleService.repairTree(entry.getRuleInstance());
+    			RepairTreeGrid rtg = new RepairTreeGrid(null);
+    			rtg.initTreeGrid();
+    			rtg.updateQAConstraintTreeGrid(repairTree);
+    			rtg.expandRecursively(repairTree.getChildren(), 3);
+    			rtg.setHeightByRows(true);
+    			dialog.add(rtg);
+    			dialog.open();
+    		});
+    	} else {
+    		button = new Button("Show Repairs");
+    		button.setEnabled(false);
+    	}
+    	return button;
     }
     
     public static class InstanceTypeComparator implements Comparator<InstanceType> {
@@ -201,5 +255,7 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
 		}
     	
     }
+    
+
    
 }

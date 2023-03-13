@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.designspace.core.model.CollectionProperty;
 import at.jku.isse.designspace.core.model.Element;
@@ -12,13 +13,16 @@ import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -30,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -156,7 +161,10 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	layout.add(elName);
         	Component grid = null;
         	if (el instanceof Instance) {
-        			grid = instanceAsList((Instance) el);
+        		Instance inst = (Instance) el;
+        		if (!isFullyFetched(inst))
+        		layout.add(addButtonToFullyFetchLazyLoadedInstance(inst));	
+        		grid = instanceAsList(inst);
         	} else if (el instanceof InstanceType) {
         		grid = instanceAsList((InstanceType) el);
             }
@@ -165,6 +173,49 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         }
         return layout;
     }
+    
+    private static Supplier<Boolean> falseSupplier = () -> Boolean.FALSE;
+    
+    public static boolean isFullyFetched(Instance element) {
+    	if ( element.hasProperty("fullyFetched") 
+				&& (      element.getPropertyAsValueOrElse("fullyFetched", falseSupplier) == null 
+				         || ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", falseSupplier)) == false     ))
+		{
+    		return false;
+		} else
+			return true;
+    }
+    
+    private Component addButtonToFullyFetchLazyLoadedInstance(Instance inst) {
+    	Button fetchButton = new Button("Fetch Properties", evt -> {
+    		Notification.show("Fetching properties via connector, this might take some time.");
+    		new Thread(() -> { 
+    			try {
+    				commandGateway.getArtifactResolver().get(getArtifactIdentifier(inst), true);
+    				this.getUI().get().access(() ->Notification.show("Fetching Success"));
+    				this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
+    			} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+    				log.error("Artifact fetching failed: " + e.getMessage());
+    				e.printStackTrace();
+    				this.getUI().get().access(() ->Notification.show("Fetching failed! \r\n"+e.getMessage()));
+    			}
+    		} ).start();
+    	});
+    	return fetchButton;
+    }
+    
+    private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
+		// less brittle, but requires consistent use by artifact connectors
+		String artId = (String) inst.getPropertyAsValue("id");
+		InstanceType instType = inst.getInstanceType();
+		List<String> idOptions = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(instType);
+		if (idOptions.isEmpty()) {
+			log.warn("Cannot determine identifier option for instance type: "+instType.name());
+			return new ArtifactIdentifier(artId, instType.name());
+		} 
+		String idType = idOptions.get(0);				
+		return new ArtifactIdentifier(artId, instType.name(), idType);
+	}
     
     private Component createSearchField() {    
     	TextField searchField = new TextField();
