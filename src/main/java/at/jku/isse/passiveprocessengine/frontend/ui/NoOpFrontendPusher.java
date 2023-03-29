@@ -6,7 +6,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 
 import java.util.Collection;
 
-public class SimpleFrontendPusher implements IFrontendPusher {
+public class NoOpFrontendPusher implements IFrontendPusher {
 
     @Override
     public void update(ProcessInstance wfi) {
@@ -35,7 +35,13 @@ public class SimpleFrontendPusher implements IFrontendPusher {
 
 	@Override
 	public void updateAll() {
-		// TODO Auto-generated method stub
+		// no op
+		
+	}
+
+	@Override
+	public void requestUpdate(UI ui, MainView view) {
+		// no op
 		
 	}
 }

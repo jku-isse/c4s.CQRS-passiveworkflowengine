@@ -6,6 +6,10 @@
     align-items: center;
 }
 
+.medtext {
+	font-size: medium;
+}
+
 .med {
     font-size: medium;
     width: 150px;

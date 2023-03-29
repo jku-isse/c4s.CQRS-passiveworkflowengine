@@ -1,4 +1,4 @@
-package at.jku.isse.passiveprocessengine.frontend.ui;
+package at.jku.isse.passiveprocessengine.frontend.ui.components;
 
 import java.util.stream.Collectors;
 

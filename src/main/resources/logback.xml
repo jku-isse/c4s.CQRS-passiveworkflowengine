@@ -46,12 +46,31 @@
 		</encoder>
 	</appender>
 
+	<appender name="ConsoleToFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOGS}/console.log</file>				
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily and when the file reaches 10 MegaBytes -->
+			<fileNamePattern>${LOGS}/archivedconsolelog/consolelog-%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		 <encoder>
+            <pattern>%d %p %c{1.} [%t] %m%n</pattern>
+        </encoder>
+	</appender>
+
 	<logger name="monitor" level="debug" additivity="false">
 		<appender-ref ref="RollingFile" />
 	</logger>
 
 	<root level="info">
 		<appender-ref ref="Console" />
+		<appender-ref ref="ConsoleToFile" />
 	</root>
 
 	

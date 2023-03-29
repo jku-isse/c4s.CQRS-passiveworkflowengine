@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.toolbridges.jiraToJama;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ import at.jku.isse.designspace.core.model.Cardinality;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.ReservedNames;
+import at.jku.isse.designspace.core.model.ServiceProvider;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceListener;
 import at.jku.isse.designspace.core.service.ServiceRegistry;
@@ -29,7 +31,7 @@ import at.jku.isse.designspace.jira.service.IJiraService.JiraIdentifier;
 @Service
 @DependsOn({"controleventengine"})
 @ConditionalOnExpression(value = "${jama.enabled:false} and ${jira.enabled:false}") 
-public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
+public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider {
 
 	@Autowired
 	IJamaService jamaService;
@@ -53,7 +55,7 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 	private boolean isSchemaUpdated = false;	
 	
 	public JiraJamaItemAugmentor() {		
-		ServiceRegistry.registerService("JiraJamaBridge", "1.0.0", 90, () -> this.initialize(), true);		
+		ServiceRegistry.registerService(this);		
 	}
 		
 	public void initialize() {
@@ -75,7 +77,27 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 	}
 	
 	@Override
-	public void handleUpdated(List<Operation> arg0) {
+	public String getName() {		
+		return "JiraJamaBridge";
+	}
+
+	@Override
+	public String getVersion() {
+		return "1.0.0";
+	}
+
+	@Override
+	public int getPriority() {
+		return 90;
+	}
+
+	@Override
+	public boolean isPersistenceAware() {
+		return true;
+	}
+
+	@Override
+	public void handleUpdated(Collection<Operation> arg0) {
 	
 		arg0.stream().forEach(op -> {
 			if (op instanceof ElementCreate && !isSchemaUpdated) {
@@ -219,4 +241,12 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, IService {
 			}
 		}
 	}
+
+	@Override
+	public void handleServiceRequest(Workspace workspace, Collection<Operation> operations) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

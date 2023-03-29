@@ -1,6 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend;
 
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,11 +55,14 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		//this.lazyLoader = lazyLoader;
 		this.resolver = resolver;
 	}
+	
+	public boolean foundLazyLoaded() {
+		return lazyLoaded.size() > 0;
+	}
 
 	@Override
-	public void handleUpdated(List<Operation> operations) {
+	public void handleUpdated(Collection<Operation> operations) {
 		counter.updateAndGet(i -> { return i < 0 ? 1 : i+1; });
-//		counter.incrementAndGet();
 		// get lazyloading
 		operations.stream()
 		 .map(operation -> {
@@ -160,22 +164,22 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 			return Collections.emptySet();
 	}
 
-	private void fetchLazyLoaded() {
-		Optional<ArtifactIdentifier> optAI = getLazyLoadedArtifact();
-		while (optAI.isPresent()) {
-			ArtifactIdentifier art = optAI.get();	
-			try {
-					log.debug("Trying to fetch lazyloaded artifact: "+art.toString());
-					Instance inst =  resolver.get(art);
-				} catch (ProcessException e) {
-					log.warn("Could not fetch lazyloaded artifact: "+art.toString()+" due to: "+e.getMessage());
-				}
-			lazyLoaded.remove(art);
-			optAI = getLazyLoadedArtifact(); // get the next one.
-		}
-	}
+//	private void fetchLazyLoaded() {
+//		Optional<ArtifactIdentifier> optAI = getLazyLoadedArtifact();
+//		while (optAI.isPresent()) {
+//			ArtifactIdentifier art = optAI.get();	
+//			try {
+//					log.debug("Trying to fetch lazyloaded artifact: "+art.toString());
+//					Instance inst =  resolver.get(art);
+//				} catch (ProcessException e) {
+//					log.warn("Could not fetch lazyloaded artifact: "+art.toString()+" due to: "+e.getMessage());
+//				}
+//			lazyLoaded.remove(art);
+//			optAI = getLazyLoadedArtifact(); // get the next one.
+//		}
+//	}
 	
-	private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
+	public ArtifactIdentifier getArtifactIdentifier(Instance inst) {
 		// less brittle, but requires consistent use by artifact connectors
 		String artId = (String) inst.getPropertyAsValue("id");
 		InstanceType instType = inst.getInstanceType();
@@ -192,7 +196,7 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		return lazyLoaded.stream().findAny();
 	}
 	
-	private void batchFetchLazyLoaded() {
+	public void batchFetchLazyLoaded() {
 		Map<String, Set<ArtifactIdentifier>> idsPerType = getIdsPerType();
 		
 		while (!idsPerType.isEmpty()) {
@@ -210,5 +214,11 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 		return lazyLoaded.stream()					
 				.map(ais -> { return new AbstractMap.SimpleEntry<String, ArtifactIdentifier>(ais.getIdType(), ais); })
 				.collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey, Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toSet())));
+	}
+	
+	public void executeConstraintStateInconsistencyRepairingCommands(List<ProcessScopedCmd> queuedInconEffects) {
+		prepareQueueExecution(queuedInconEffects);
+		Set<ProcessInstance> incons = executeCommands();
+		uiUpdater.update(incons);
 	}
 }

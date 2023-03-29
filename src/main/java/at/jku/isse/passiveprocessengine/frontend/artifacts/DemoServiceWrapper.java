@@ -40,7 +40,7 @@ public class DemoServiceWrapper implements IArtifactProvider{
 		if (demoType != null) {
 			startUpdateSimulator();
 			@SuppressWarnings("unchecked")
-			Optional<Id> optInst = demoType.getInstancesIncludingThoseOfSubtypes().get().stream()
+			Optional<Id> optInst = demoType.instancesIncludingThoseOfSubtypes()
 				.filter(inst -> ((Element<Instance>) inst).name().equalsIgnoreCase(id))
 				.map(inst -> ((Element<Instance>) inst).id())
 				.findAny();
@@ -91,7 +91,7 @@ public class DemoServiceWrapper implements IArtifactProvider{
     	
 		@Override
 		public void run() {
-			List<Instance> instances = (List<Instance>) demoType.getInstancesIncludingThoseOfSubtypes().get().stream()
+			List<Instance> instances = (List<Instance>) demoType.instancesIncludingThoseOfSubtypes()
 					.map(inst -> (Instance) inst)
 					.collect(Collectors.toList());
 			if (!instances.isEmpty()) {

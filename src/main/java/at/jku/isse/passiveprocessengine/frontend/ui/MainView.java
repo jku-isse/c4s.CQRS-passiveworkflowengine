@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -47,6 +49,8 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
@@ -55,6 +59,9 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -66,29 +73,20 @@ import lombok.extern.slf4j.Slf4j;
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Dashboard")
-public class MainView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
+@UIScope
+//@SpringComponent
+public class MainView extends VerticalLayout implements HasUrlParameter<String>, RefreshableComponent  {
 
     private boolean devMode = false;
-    public static final boolean anonymMode = false;
+   // public static final boolean anonymMode = false;
     
+    @Autowired
     private RequestDelegate commandGateway;
-    
+    @Autowired
     private IFrontendPusher pusher;
     private WorkflowTreeGrid grid;
     
     private @Getter List<WorkflowTreeGrid> grids = new ArrayList<>();
-
-
-    
-    @Inject
-    public void setCommandGateway(RequestDelegate commandGateway) {
-        this.commandGateway = commandGateway;
-    }
-
-    @Inject
-    public void setPusher(IFrontendPusher pusher) {
-        this.pusher = pusher;
-    }
 
    
     @Override
@@ -128,52 +126,58 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 //        settings.addLink("icons/favicon.ico", attributes);
 //    }
 
-    public MainView() {
-        setSizeFull();
+    public MainView(RequestDelegate reqDel, IFrontendPusher pusher) {
+    	 this.commandGateway = reqDel;
+    	 this.pusher = pusher;
+    	setSizeFull();
         setMargin(false);
         setPadding(false);
+       
 
-        HorizontalLayout header = new HorizontalLayout();
-        header.setClassName("header-theme");
-        header.setMargin(false);
-        header.setPadding(true);
-        header.setSizeFull();
-        header.setHeight("6%");
-        HorizontalLayout firstPart = new HorizontalLayout();
-        firstPart.setClassName("header-theme");
-        firstPart.setMargin(false);
-        firstPart.setPadding(true);
-        firstPart.setSizeFull();
-        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
-
-        ToggleButton toggle = new ToggleButton("Refresher ");
-        toggle.setClassName("med");
-        toggle.addValueChangeListener(evt -> {
-            devMode = !devMode;
-//            if (devMode) {
-//                Notification.show("Development mode enabled! Additional features activated.");
-//            }
-            initAccordion();
-            content();
-        });
-
-        /*
-        Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
-        shutdown.setColor("red");
-        shutdown.getStyle().set("cursor", "pointer");
-        shutdown.addClickListener(e -> SpringApp.shutdown());
-        shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
-        */
-
-        header.add(firstPart, toggle/*, shutdown*/);
-        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setClassName("footer-theme");
-        if (anonymMode)        
-        	footer.add(new Text("(C) 2023 - Anonymized "));
-        else 
-        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+//        HorizontalLayout header = new HorizontalLayout();
+//        header.setClassName("header-theme");
+//        header.setMargin(false);
+//        header.setPadding(true);
+//        header.setSizeFull();
+//        header.setHeight("6%");
+//        HorizontalLayout firstPart = new HorizontalLayout();
+//        firstPart.setClassName("header-theme");
+//        firstPart.setMargin(false);
+//        firstPart.setPadding(true);
+//        firstPart.setSizeFull();
+//        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
+//
+//        ToggleButton toggle = new ToggleButton("Refresher ");
+//        toggle.setClassName("med");
+//        toggle.addValueChangeListener(evt -> {
+//            devMode = !devMode;
+////            if (devMode) {
+////                Notification.show("Development mode enabled! Additional features activated.");
+////            }
+//            initAccordion();
+//            content();
+//        });
+//
+//        /*
+//        Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
+//        shutdown.setColor("red");
+//        shutdown.getStyle().set("cursor", "pointer");
+//        shutdown.addClickListener(e -> SpringApp.shutdown());
+//        shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
+//        */
+//
+//        header.add(firstPart, toggle/*, shutdown*/);
+//        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+//
+//        HorizontalLayout footer = new HorizontalLayout();
+//        footer.setClassName("footer-theme");
+//        if (anonymMode)        
+//        	footer.add(new Text("(C) 2023 - Anonymized "));
+//        else 
+//        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+        
+        AppHeader header = new AppHeader("Process Dashboard", this);  
+        AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
         add(
                 header,
                 main(),
@@ -191,44 +195,24 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     VerticalLayout pageContent = new VerticalLayout();
     private Component content() {
-       // Tab tab1 = new Tab("Current State");
-        VerticalLayout cur = statePanel(false);
+    	initAccordion();
+    	refreshContent();
+    	return pageContent;
+    }
+  
+	@Override
+	public void refreshContent() {		
+        VerticalLayout cur = statePanel();
         cur.setHeight("100%");
 
-
-//        Tab tab2 = new Tab("Snapshot State");
-//        tab2.setEnabled(devMode);
-//        VerticalLayout snap = snapshotPanel(false);
-//        snap.setHeight("100%");
-//        snap.setVisible(false);
-
-//        Tab tab3 = new Tab("Compare");
-//        tab3.setEnabled(devMode);
-//        VerticalLayout split = new VerticalLayout();
-//        split.setClassName("layout-style");
-//        split.add(statePanel(true), snapshotPanel(true));
-//        split.setVisible(false);
-
- //       Map<Tab, Component> tabsToPages = new HashMap<>();
-  //      tabsToPages.put(tab1, cur);
-//        tabsToPages.put(tab2, snap);
-//        tabsToPages.put(tab3, split);
-//        Tabs tabs = new Tabs(tab1); //, tab2, tab3
         Div pages = new Div(cur); //, snap, split
         pages.setHeight("97%");
         pages.setWidthFull();
 
-//        tabs.addSelectedChangeListener(event -> {
-//            tabsToPages.values().forEach(page -> page.setVisible(false));
-//            Component selectedPage = tabsToPages.get(tabs.getSelectedTab());
-//            selectedPage.setVisible(true);
-//        });
-
         pageContent.removeAll();
         pageContent.setClassName("layout-style");
         pageContent.add(/*tabs,*/ pages);
-        return pageContent;
-    }
+	}
 
     private Component menu() {
         VerticalLayout menu = new VerticalLayout();
@@ -256,9 +240,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
-        if (commandGateway != null && !anonymMode) {
+        if (commandGateway != null && !commandGateway.getUIConfig().isAnonymized()) {
         	accordion.add("Fetch Artifact", fetchArtifact(commandGateway.getArtifactResolver()));
-            accordion.add("Dump Designspace", dumpDesignSpace(commandGateway));
+           // accordion.add("Dump Designspace", dumpDesignSpace(commandGateway));
         }
 
         accordion.add("Filter", filterTable(key, val, name));
@@ -335,10 +319,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	if (commandGateway != null) {
     		int count = commandGateway.resetAndUpdate();
     		if (count <= 0) // otherwise there is an update called from the FrontendPusher
-    			pusher.updateAll();
+    			pusher.requestUpdate(getUI().get(), this);
     	} else {
     		Notification.show("Toogle Refresher to trigger backend update!");
-    		pusher.updateAll();
+    		pusher.requestUpdate(getUI().get(), this);
     	}
     }
     
@@ -511,7 +495,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 		Instance inst = artRes.get(ai, forceRefetch);
                 		if (inst != null) {
                 			// redirect to new page:
-                			UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));
+                			UI.getCurrent().getPage().open("instance/show?id="+inst.id(), "_blank");
+                		//	UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));
                 		}
                 	}
                 } catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
@@ -538,7 +523,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	return layout;
     }
 
-    private VerticalLayout statePanel(boolean addHeader) {
+    private VerticalLayout statePanel() {
         grid = new WorkflowTreeGrid(commandGateway);
         grid.initTreeGrid();
         grids.add(grid);
@@ -548,8 +533,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
-//        if (addHeader)
-//            layout.add(new Text("Current State"));
+
         layout.add(
                 grid,
                 currentStateControls(grid)

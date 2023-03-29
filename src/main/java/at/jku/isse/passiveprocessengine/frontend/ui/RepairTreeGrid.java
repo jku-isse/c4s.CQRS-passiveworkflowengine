@@ -10,11 +10,16 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
@@ -30,7 +35,10 @@ import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
+import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
+import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,10 +51,15 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	private static final long serialVersionUID = 1L;
 
 	private int repairCount = 0;
+	private RepairTreeFilter rtf;
+	RequestDelegate reqDel;
 	//private UsageMonitor usageMonitor;
 	
-	public RepairTreeGrid(UsageMonitor monitor) {
+	public RepairTreeGrid(UsageMonitor monitor, RepairTreeFilter rtf, RequestDelegate reqDel) {
 	//	this.usageMonitor = monitor;
+		this.rtf = rtf;		
+		this.reqDel = reqDel;
+		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 	}
 	
 	public void initTreeGrid() {
@@ -74,7 +87,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
         .setHeader("Execute any one of the following actions to fulfill constraint:"); //.setWidth("100%");
     }
 	
-	public static Collection<Component> nodeToDescription(RepairNode rn) {
+	public Collection<Component> nodeToDescription(RepairNode rn) {
 		switch(rn.getNodeType()) {
 		case ALTERNATIVE:
 			return Set.of(new Paragraph("Do one of:"));
@@ -101,13 +114,36 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		}
 	}
 	
-	private static Collection<Component> generateRestrictedRepair(AbstractRepairAction ra, String restriction) {
-		Component target = ra.getElement() != null ? new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Paragraph("");		
+	private Component getReloadIcon(Instance inst) {
+		if (inst == null && reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+        Icon icon = new Icon(VaadinIcon.REFRESH);
+		icon.getStyle().set("cursor", "pointer");
+        icon.getElement().setProperty("title", "Refetch Artifact");
+        icon.addClickListener(e -> { 
+        	ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
+        	new Thread(() -> { 
+        		try {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			reqDel.getArtifactResolver().get(ai, true);
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        		} catch (ProcessException e1) {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        		}}
+        			).start();
+        });
+        return icon;
+	}
+	
+	private Collection<Component> generateRestrictedRepair(AbstractRepairAction ra, String restriction) {
+		
+		Component target = ra.getElement() != null ? new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Paragraph("");	
+		Component reload = getReloadIcon((Instance)ra.getElement());
 		switch(ra.getOperator()) {
 		case ADD:
 			List<Component> list = new ArrayList<>();			 
 			list.add(new Paragraph(String.format("Add to %s of ", ra.getProperty())));
-			list.add(target);							
+			list.add(target);		
+			list.add(reload);
 			list.add(new Paragraph(restriction));
 			return list;
 		case MOD_EQ:
@@ -116,7 +152,8 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		case MOD_NEQ:
 			List<Component> list3 = new ArrayList<>();
 			list3.add(new Paragraph(String.format("Set the %s of ", ra.getProperty())));
-			list3.add(target);			
+			list3.add(target);		
+			list3.add(reload);
 			list3.add(new Paragraph(" to"));
 			list3.add(new Paragraph(restriction));
 			return list3;
@@ -124,6 +161,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			List<Component> list2 = new ArrayList<>();			
 			list2.add(new Paragraph(String.format("Remove from %s of ", ra.getProperty())));
 			list2.add(target);
+			list2.add(reload);
 			list2.add(new Paragraph(restriction));
 			return list2;
 		default:
@@ -133,8 +171,9 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	}
 	
 	
-	private static Collection<Component> generatePlainRepairs(AbstractRepairAction ra) {
+	private Collection<Component> generatePlainRepairs(AbstractRepairAction ra) {
 		Component target = ra.getElement() != null ? new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Paragraph("");
+		Component reload = getReloadIcon((Instance)ra.getElement());
 		Collection<Component> change = object2String(ra);
 		switch(ra.getOperator()) {
 		case ADD:
@@ -142,7 +181,8 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			list.add(new Paragraph("Add "));
 			change.stream().forEach(comp -> list.add(comp)); 
 			list.add(new Paragraph(String.format(" to %s of ", ra.getProperty())));
-			list.add(target);									
+			list.add(target);					
+			list.add(reload);
 			return list;
 		case MOD_EQ:
 		case MOD_GT:
@@ -151,6 +191,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			List<Component> list3 = new ArrayList<>();
 			list3.add(new Paragraph(String.format("Change %s of ", ra.getProperty())));
 			list3.add(target);
+			list3.add(reload);
 			if (isSimpleRepairValue(ra)) {
 				list3.add(new Paragraph(String.format(" to %s ", ra.getOperator().toString())));
 				change.stream().forEach(comp -> list3.add(comp));
@@ -163,6 +204,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			change.stream().forEach(comp -> list2.add(comp)); 
 			list2.add(new Paragraph(String.format(" from %s of ", ra.getProperty())));
 			list2.add(target);
+			list2.add(reload);
 //			Entry<String,String> hint2 = generateHintForInOrOutProperty(ra.getProperty());
 //			if (hint2 != null) {
 //				Paragraph pHint = new Paragraph(hint2.getKey());
@@ -205,30 +247,30 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			return false;
 	}	
 	
-	public void updateQAConstraintTreeGrid(RepairNode rootNode) {
-		rtf.filterRepairTree(rootNode);
-		repairCount = rootNode.getRepairActions().size();
-		if (repairCount == 0) {
-			rootNode.getChildren().add(new DummyRepairNode(null));
-		} 
-		this.setItems(rootNode.getChildren().stream()
-				.map(x->x),
-				o -> {
-					if (o instanceof DummyRepairNode) {
-						return Stream.empty();
-					} else if (o instanceof RepairNode) { 
-						RepairNode rn = (RepairNode) o;
-						return rn.getChildren().stream().map(x -> (RepairNode)x);
-					} else {
-						log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
-						return Stream.empty();
-					}
-				});		
-		this.getDataProvider().refreshAll();
-	}
+//	public void updateQAConstraintTreeGrid(RepairNode rootNode) {
+//		rtf.filterRepairTree(rootNode);
+//		repairCount = rootNode.getRepairActions().size();
+//		if (repairCount == 0) {
+//			rootNode.getChildren().add(new DummyRepairNode(null));
+//		} 
+//		this.setItems(rootNode.getChildren().stream()
+//				.map(x->x),
+//				o -> {
+//					if (o instanceof DummyRepairNode) {
+//						return Stream.empty();
+//					} else if (o instanceof RepairNode) { 
+//						RepairNode rn = (RepairNode) o;
+//						return rn.getChildren().stream().map(x -> (RepairNode)x);
+//					} else {
+//						log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
+//						return Stream.empty();
+//					}
+//				});		
+//		this.getDataProvider().refreshAll();
+//	}
 	
 	public void updateConditionTreeGrid(RepairNode rootNode) {
-		rtfCond.filterRepairTree(rootNode);
+		rtf.filterRepairTree(rootNode);
 		repairCount = rootNode.getRepairActions().size();
 		if (repairCount == 0) {
 			rootNode.getChildren().add(new DummyRepairNode(null));
@@ -247,46 +289,6 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		this.getDataProvider().refreshAll();
 	}
 	
-	private static RepairTreeFilter rtf = new QARepairTreeFilter();
-	
-	
-	private static class QARepairTreeFilter extends RepairTreeFilter {
-
-		@Override
-		public boolean compliesTo(RepairAction ra) {
-			//FIXME: lets not suggest any repairs that cannot be navigated to in an external tool. 
-			if (ra.getElement() == null) return false;
-			Instance artifact = (Instance) ra.getElement();
-			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
-			else
-			return ra.getProperty() != null 
-					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
-					&& !ra.getProperty().startsWith("in_")
-					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace
-		
-		}
-		
-	}
-	
-	private static RepairTreeFilter rtfCond = new ConditionRepairTreeFilter();
-	
-	private static class ConditionRepairTreeFilter extends RepairTreeFilter {
-
-		@Override
-		public boolean compliesTo(RepairAction ra) {
-			//FIXME: lets not suggest any repairs that cannot be navigated to in an external tool. 
-			if (ra.getElement() == null) return false;
-			Instance artifact = (Instance) ra.getElement();
-			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
-			else
-			return ra.getProperty() != null 
-					&& !ra.getProperty().startsWith("out_") // no change to input or output 
-					&& !ra.getProperty().startsWith("in_")
-					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace
-		
-		}
-		
-	}
 	
 	private static class DummyRepairNode extends SequenceRepairNode {
 

@@ -33,11 +33,13 @@ import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.ui.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
+import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
+import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScopedCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.messages.WorkspaceListenerSequencer;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
@@ -51,8 +53,14 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestDelegate {
 
 	
+	@Autowired
+	WorkspaceService wss;
+	
 	Workspace ws;
 
+	@Autowired
+	UIConfig uiconfig;
+	
 	@Autowired
 	ArtifactResolver resolver;
 	
@@ -211,7 +219,9 @@ public class RequestDelegate {
 	}
 
 	public void initialize() {
-		Tool tool = new Tool("PPEv3", "v1.0");
+		if (isInitialized)
+			return;
+		//Tool tool = new Tool("PPEv3", "v1.0");
 		//ws = WorkspaceService.createWorkspace("PPEv3", WorkspaceService.PUBLIC_WORKSPACE, WorkspaceService.ANY_USER, tool, true, false);
 		ws = WorkspaceService.PUBLIC_WORKSPACE;
 		resolver.inject(ws);
@@ -230,6 +240,21 @@ public class RequestDelegate {
 		isInitialized = true;
 	}
 	
+	public ProcessChangeListenerWrapper getProcessChangeListenerWrapper() {
+		// to enable automatic lazyloading from ARL playground
+		return picp;
+	}
+	
+	public UIConfig getUIConfig() {
+		return uiconfig;
+	}
+	
+	public void ensureConstraintStatusConsistency(ProcessInstance proc) {
+		log.info("ConstraintStatus Consistency check requested for process instance: "+proc.getName());
+		List<ProcessScopedCmd> incons = proc.ensureRuleToStateConsistency();
+		picp.executeConstraintStateInconsistencyRepairingCommands(incons);
+	}
+	
 	public int resetAndUpdate() { // just a quick hack for now.
 		return picp.resetAndUpdate();
 	}
@@ -238,7 +263,7 @@ public class RequestDelegate {
 		Set<ProcessInstance> existingPI = getSubtypesRecursively(ProcessInstance.getOrCreateDesignSpaceCoreSchema(ws))
 				//.allSubTypes() // everything that is of steptype (thus also process type) --> NOT YET IMPLEMENTED				
 				.stream().filter(stepType -> stepType.name().startsWith(ProcessInstance.designspaceTypeId)) //everthing that is a process type
-				.flatMap(procType -> procType.getInstancesIncludingThoseOfSubtypes().stream()) // everything that is a process instance
+				.flatMap(procType -> procType.instancesIncludingThoseOfSubtypes()) // everything that is a process instance
 				.map(procInst -> WrapperCache.getWrappedInstance(ProcessInstance.class, procInst)) // wrap instance
 				.map(procInst -> (ProcessInstance)procInst)
 				.collect(Collectors.toSet());
@@ -248,7 +273,7 @@ public class RequestDelegate {
 	}
 	
 	private Set<InstanceType> getSubtypesRecursively(InstanceType type) {
-		Set<InstanceType> subTypes = new HashSet<>(type.subTypes().get()); 				
+		Set<InstanceType> subTypes = type.subTypes(); 				
         for (InstanceType subType : Set.copyOf(subTypes)) {
             subTypes.addAll( getSubtypesRecursively(subType));
         }

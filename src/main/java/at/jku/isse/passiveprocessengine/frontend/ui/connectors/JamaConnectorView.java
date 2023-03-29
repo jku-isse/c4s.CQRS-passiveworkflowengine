@@ -6,6 +6,9 @@ import at.jku.isse.designspace.jama.model.JamaBaseElementType;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jama.service.JamaService;
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
+import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -21,6 +24,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
@@ -34,12 +40,16 @@ import java.util.stream.Collectors;
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Jama Connector")
+//@SpringComponent
+@UIScope
 public class JamaConnectorView extends VerticalLayout  /*implements PageConfigurator*/ {
 
 
     
     protected JamaService jamaService;
 
+    @Inject
+    private UIConfig conf;
     
     @Inject
     public void setCommandGateway(JamaService jamaService) {
@@ -47,8 +57,9 @@ public class JamaConnectorView extends VerticalLayout  /*implements PageConfigur
     }
 
     
-    public JamaConnectorView() {
-        setSizeFull();
+    public JamaConnectorView(UIConfig conf) {
+    	this.conf = conf;
+    	setSizeFull();
         setMargin(false);
         setPadding(false);
 
@@ -78,13 +89,7 @@ public class JamaConnectorView extends VerticalLayout  /*implements PageConfigur
         header.add(firstPart, toggle/*, shutdown*/);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setClassName("footer-theme");
-        if (MainView.anonymMode)        
-        	footer.add(new Text("(C) 2022 - Anonymized "));
-        else 
-        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
-
+        HorizontalLayout footer = new AppFooter(conf);
         add(
                 header,
                 main(),
@@ -217,14 +222,14 @@ public class JamaConnectorView extends VerticalLayout  /*implements PageConfigur
         return value.toLowerCase().contains(searchTerm.toLowerCase());
     }
     
-    private static class InstanceContextMenu extends GridContextMenu<Instance> {
+    private class InstanceContextMenu extends GridContextMenu<Instance> {
     	public InstanceContextMenu(Grid<Instance> target, JamaService js) {
     		super(target);
     		
             addItem("Refetch", e -> e.getItem().ifPresent(instance -> {
             	js.forceRefetch((String) instance.getPropertyAsValue("id"), JamaIdentifiers.JamaItemId);
             }));
-            if (!MainView.anonymMode)        
+            if (!conf.isAnonymized())        
             addItem("Internal Details", e -> e.getItem().ifPresent(instance -> {
             	UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(instance.id().toString()))));
             }));

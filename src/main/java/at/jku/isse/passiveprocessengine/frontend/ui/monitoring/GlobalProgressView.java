@@ -3,6 +3,10 @@ package at.jku.isse.passiveprocessengine.frontend.ui.monitoring;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
+import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
@@ -18,6 +22,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZoneId;
@@ -26,6 +33,8 @@ import java.time.format.FormatStyle;
 
 import javax.inject.Inject;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 @Slf4j
 @Route("progress")
@@ -33,72 +42,63 @@ import javax.inject.Inject;
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Connector Progress Overview")
-public class GlobalProgressView extends VerticalLayout {
+@UIScope
+//@SpringComponent
+public class GlobalProgressView extends VerticalLayout implements RefreshableComponent {
         
+	@Autowired
     protected RequestDelegate commandGateway;
-    protected ProgressPusher pusher;
+    @Autowired
+	protected ProgressPusher pusher;
     //private Grid<ProgressEntry> grid = new Grid<ProgressEntry>();
-    Component grid;
-    Component searchField;
+    Grid<ProgressEntry> grid;
+    TextField searchField;
     private ListDataProvider<ProgressEntry> dataProvider;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault());
-    
-    
-    
-    @Inject
-    public void setCommandGateway(RequestDelegate commandGateway) {
-        this.commandGateway = commandGateway;
-    }
-
-    @Inject
-    public void setPusher(ProgressPusher pusher) {
-        this.pusher = pusher;
-    }
     
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         dataProvider = pusher.add(attachEvent.getUI());
-        grid = createProgressGrid(); 
-        searchField = createSearchField();
+        addDataProviderToGrid();
+        addDataProviderToSearchField();
+        dataProvider.refreshAll();
     }
         
-    public GlobalProgressView() {
+    public GlobalProgressView(RequestDelegate reqDel, ProgressPusher pusher) {
+    	this.commandGateway = reqDel;
+    	this.pusher = pusher;
         setSizeFull();
         setMargin(false);
         setPadding(false);
 
-        HorizontalLayout header = new HorizontalLayout();
-        header.setClassName("header-theme");
-        header.setMargin(false);
-        header.setPadding(true);
-        header.setSizeFull();
-        header.setHeight("6%");
-        HorizontalLayout firstPart = new HorizontalLayout();
-        firstPart.setClassName("header-theme");
-        firstPart.setMargin(false);
-        firstPart.setPadding(true);
-        firstPart.setSizeFull();
-        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Connector Progress Overview"));
-       
-        ToggleButton toggle = new ToggleButton("Refresher ");
-        toggle.setClassName("med");
-        toggle.addValueChangeListener(evt -> {
-//            if (devMode) {
-//                Notification.show("Development mode enabled! Additional features activated.");
-//            }
-            content();
-        });
-        
-        header.add(firstPart, toggle);
-        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+//        HorizontalLayout header = new HorizontalLayout();
+//        header.setClassName("header-theme");
+//        header.setMargin(false);
+//        header.setPadding(true);
+//        header.setSizeFull();
+//        header.setHeight("6%");
+//        HorizontalLayout firstPart = new HorizontalLayout();
+//        firstPart.setClassName("header-theme");
+//        firstPart.setMargin(false);
+//        firstPart.setPadding(true);
+//        firstPart.setSizeFull();
+//        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Connector Progress Overview"));
+//       
+//        ToggleButton toggle = new ToggleButton("Refresher ");
+//        toggle.setClassName("med");
+//        toggle.addValueChangeListener(evt -> {
+////            if (devMode) {
+////                Notification.show("Development mode enabled! Additional features activated.");
+////            }
+//            content();
+//        });
+//        
+//        header.add(firstPart, toggle);
+//        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setClassName("footer-theme");
-        if (MainView.anonymMode)        
-        	footer.add(new Text("(C) 2023 - Anonymized "));
-        else 
-        	footer.add(new Text("(C) 2023 JKU - Institute for Software Systems Engineering"));
+        AppHeader header = new AppHeader("Connector Progress Overview", this);        
+        AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
 
         add(
                 header,
@@ -118,7 +118,12 @@ public class GlobalProgressView extends VerticalLayout {
     VerticalLayout pageContent = new VerticalLayout();
     
     private Component content() {
-       // Tab tab1 = new Tab("Current State");
+    	refreshContent();
+    	return pageContent;
+    }
+  
+	@Override
+	public void refreshContent() {		
         VerticalLayout cur = statePanel();
         cur.setHeight("100%");
 
@@ -129,8 +134,7 @@ public class GlobalProgressView extends VerticalLayout {
         pageContent.removeAll();
         pageContent.setClassName("layout-style");
         pageContent.add(/*tabs,*/ pages);
-        return pageContent;
-    }
+	}
   
 
 
@@ -141,20 +145,16 @@ public class GlobalProgressView extends VerticalLayout {
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
-        if (pusher != null) {        	
+        searchField = createSearchField();
+        grid = createProgressGrid();
+       // if (pusher != null) {        	
         	layout.add(searchField);
         	layout.add(grid);        
-        	dataProvider.refreshAll();
-        }
+       // }
         return layout;
     }
     
-    private Component createSearchField() {    
-    	TextField searchField = new TextField();
-    	searchField.setWidth("50%");
-    	searchField.setPlaceholder("Search");
-    	searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-    	searchField.setValueChangeMode(ValueChangeMode.EAGER);
+    private void addDataProviderToSearchField() {
     	searchField.addValueChangeListener(e -> dataProvider.refreshAll());
 
     	dataProvider.addFilter(pe -> {
@@ -170,18 +170,31 @@ public class GlobalProgressView extends VerticalLayout {
 
     	    return matchesSource || matchesActivity || matchesComment;
     	});    	    	
+    }
+    
+    private TextField createSearchField() {    
+    	searchField = new TextField();
+    	searchField.setWidth("50%");
+    	searchField.setPlaceholder("Search");
+    	searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+    	searchField.setValueChangeMode(ValueChangeMode.EAGER);
+    	
     	return searchField;
     }
     
-    private Component createProgressGrid() {    	
-    	Grid<ProgressEntry> grid = new Grid<ProgressEntry>();
+    private void addDataProviderToGrid() {
+    	grid.setDataProvider(dataProvider);  
+    }
+    
+    private  Grid<ProgressEntry>  createProgressGrid() {    	
+    	grid = new Grid<ProgressEntry>();
     	grid.setColumnReorderingAllowed(false);
     	Grid.Column<ProgressEntry> tsColumn = grid.addColumn(p -> formatter.format(p.getTimestamp())).setHeader("Timestamp").setResizable(true).setSortable(true);
     	Grid.Column<ProgressEntry> sourceColumn = grid.addColumn(p -> p.getSource()).setHeader("Source").setResizable(true);
     	Grid.Column<ProgressEntry> activityColumn = grid.addColumn(p -> p.getActivity()).setHeader("Activity").setResizable(true);    	
     	Grid.Column<ProgressEntry> statusColumn = grid.addColumn(p -> p.getStatus()).setHeader("Status").setResizable(true);
     	Grid.Column<ProgressEntry> commentColumn = grid.addColumn(p -> p.getStatusComment()).setHeader("Comment").setResizable(true);    	    	    
-    	grid.setDataProvider(dataProvider);    	
+    	  	
     	return grid;
     }
     

@@ -93,11 +93,16 @@ public class FrontendPusher implements IFrontendPusher {
             UI ui = state.getUi();
             MainView view = state.getView();
             if (ui != null && view != null) {
-                ui.access(() -> view.getGrids().stream()
-                        .filter(com.vaadin.flow.component.Component::isVisible)
-                        .forEach(grid -> grid.updateTreeGrid(processes.values())));
+                requestUpdate(ui, view);
             }
         }
+	}
+
+	@Override
+	public void requestUpdate(UI ui, MainView view) {
+		ui.access(() -> view.getGrids().stream()
+                .filter(com.vaadin.flow.component.Component::isVisible)
+                .forEach(grid -> grid.updateTreeGrid(processes.values())));
 	}
 
 }

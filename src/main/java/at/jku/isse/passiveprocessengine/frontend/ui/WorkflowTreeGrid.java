@@ -1,23 +1,26 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
+import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
-import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
@@ -43,8 +46,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.swing.text.html.HTML;
-
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
 @CssImport(
@@ -63,6 +64,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private Map<String, ProcessInstance> content;
     private String nameFilter;
     private Map<String, String> propertiesFilter;
+    private UIConfig conf;
 
     public WorkflowTreeGrid(RequestDelegate f) {
         this.reqDel = f;       
@@ -70,6 +72,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         nameFilter = ""; // default filter
         propertiesFilter = new HashMap<>();
         propertiesFilter.put("", ""); // default filter
+        this.conf = f.getUIConfig();
     }
     
     protected void injectRequestDelegate(RequestDelegate f) {
@@ -298,9 +301,17 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
-        if (!MainView.anonymMode)        
+        if (!conf.isAnonymized())        
         	l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));                
         l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
+        
+        Button consBtn = new Button("Ensure Constraint State Consistency");
+        consBtn.setClassName("med");
+        consBtn.addClickListener(evt -> {
+        	if (reqDel != null)
+        		reqDel.ensureConstraintStatusConsistency(wfi);
+        });
+        l.add(consBtn);
         
         Dialog dialog = new Dialog();
         dialog.setWidth("80%");
@@ -447,7 +458,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //    				h.setPadding(false);
     				try {
     					RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor());
+    					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
     					rtg.initTreeGrid();
     					rtg.updateConditionTreeGrid(repairTree);    					    					
     					rtg.expandRecursively(repairTree.getChildren(), 3);
@@ -549,6 +560,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 if (artifactList.size() == 1) {
                     Instance a = artifactList.iterator().next();
                     line.add(ComponentUtils.convertToResourceLinkWithBlankTarget(a));
+                    line.add(getReloadIcon(a));
                     // ADDING/DELETING NOT SUPPORTED CURRENTLY
                    // line.add(deleteInOut(wft, isIn, entry, a));
                   //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
@@ -561,6 +573,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                         HorizontalLayout nestedLine = new HorizontalLayout();
                         nestedLine.setClassName("line");
                         nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
+                        nestedLine.add(getReloadIcon(a));
                       //  nestedLine.add(deleteInOut(wft, isIn, entry, a));
                         nestedList.add(nestedLine);
                     }
@@ -581,6 +594,26 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         return list;
     }
 
+	private Component getReloadIcon(Instance inst) {
+		if (inst == null && conf.doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+        Icon icon = new Icon(VaadinIcon.REFRESH);
+		icon.getStyle().set("cursor", "pointer");
+        icon.getElement().setProperty("title", "Refetch Artifact");
+        icon.addClickListener(e -> { 
+        	ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
+        	new Thread(() -> { 
+        		try {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			reqDel.getArtifactResolver().get(ai, true);
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        		} catch (ProcessException e1) {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        		}}
+        			).start();
+        });
+        return icon;
+	}
+    
 //    private Component deleteInOut(ProcessStep wft, boolean isIn, Map.Entry<String, ArtifactType> entry, IArtifact a) {
 //        Icon icon = new Icon(VaadinIcon.TRASH);
 //        icon.setColor("red");
@@ -622,9 +655,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
         	try {
         		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor());
+        		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
         		rtg.initTreeGrid();
-        		rtg.updateQAConstraintTreeGrid(repairTree);
+        		rtg.updateConditionTreeGrid(repairTree);
         		rtg.expandRecursively(repairTree.getChildren(), 3);
         		rtg.setHeightByRows(true);
         		l.add(rtg); 
@@ -748,4 +781,24 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 			return o1.getDefinition().getSpecOrderIndex().compareTo(o2.getDefinition().getSpecOrderIndex());
 		}
     }
+    
+    private static RepairTreeFilter rtf = new ProcessRepairTreeFilter();	
+	
+	private static class ProcessRepairTreeFilter extends RepairTreeFilter {
+
+		@Override
+		public boolean compliesTo(RepairAction ra) {
+			//FIXME: lets not suggest any repairs that cannot be navigated to in an external tool. 
+			if (ra.getElement() == null) return false;
+			Instance artifact = (Instance) ra.getElement();
+			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
+			else
+			return ra.getProperty() != null 
+					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
+					&& !ra.getProperty().startsWith("in_")
+					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace
+		
+		}
+		
+	}
 }

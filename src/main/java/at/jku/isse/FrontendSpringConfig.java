@@ -1,5 +1,8 @@
 package at.jku.isse;
 
+import java.io.FileReader;
+import java.io.IOException;
+
 //import javax.jms.ConnectionFactory;
 
 import org.springframework.context.annotation.Bean;
@@ -10,13 +13,14 @@ import at.jku.isse.designspace.azure.service.IAzureService;
 import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
-import at.jku.isse.designspace.rule.repair.order.RepairNodeScorer;
-import at.jku.isse.designspace.rule.repair.order.RepairStats;
-import at.jku.isse.designspace.rule.repair.order.SortOnRepairPercentage;
+import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
+import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
+import at.jku.isse.designspace.rule.arl.repair.order.SortOnRepairPercentage;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
+import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
@@ -59,6 +63,18 @@ public class FrontendSpringConfig {
 	//-------------------------------------------PROJECT COMPONENTS-----------------------------------------------------
 	//------------------------------------------------------------------------------------------------------------------
 
+	
+	@Bean UIConfig getUIConfig() {
+		UIConfig props = new UIConfig();
+		try {
+            FileReader reader = new FileReader("./application.properties");
+            props.load(reader);
+		} catch(IOException e) {
+			log.error("No ./application.properties found");
+		}
+		
+		return props;
+	}
 
 	@Bean 
 	public ProgressPusher getIProgressObserver(ITimeStampProvider tsProvider) {
@@ -97,7 +113,7 @@ public class FrontendSpringConfig {
     @Bean
     public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider) {
     	RepairNodeScorer scorer= new SortOnRepairPercentage();
-    	return new RepairAnalyzer(null,rs, scorer, tsProvider); // workspace will/must be injected in RequestDelegate
+    	return new RepairAnalyzer(null,rs, scorer, tsProvider); // workspace will/must be injected in RequestDelegate    	
     }
 
 	

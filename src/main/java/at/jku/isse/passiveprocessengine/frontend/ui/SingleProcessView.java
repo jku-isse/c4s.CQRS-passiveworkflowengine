@@ -5,6 +5,7 @@ import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 
@@ -18,8 +19,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -30,16 +36,15 @@ import java.util.*;
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Instance")
+@UIScope
+//@SpringComponent
 public class SingleProcessView extends VerticalLayout implements HasUrlParameter<String> {
-        
+     
+	@Autowired
     protected RequestDelegate commandGateway;
 
     private Id id = null;
-    
-    @Inject
-    public void setCommandGateway(RequestDelegate commandGateway) {
-        this.commandGateway = commandGateway;
-    }
+   
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, String s) {
@@ -60,7 +65,8 @@ public class SingleProcessView extends VerticalLayout implements HasUrlParameter
         
     }
     
-    public SingleProcessView() {
+    public SingleProcessView(RequestDelegate commandGateway) {
+    	this.commandGateway = commandGateway;
         setSizeFull();
         setMargin(false);
         setPadding(false);
@@ -81,12 +87,7 @@ public class SingleProcessView extends VerticalLayout implements HasUrlParameter
         header.add(firstPart/*, shutdown*/);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setClassName("footer-theme");
-        if (MainView.anonymMode)        
-        	footer.add(new Text("(C) 2023 - Anonymized "));
-        else 
-        	footer.add(new Text("(C) 2023 JKU - Institute for Software Systems Engineering"));
+        HorizontalLayout footer = new AppFooter(commandGateway.getUIConfig());
 
         add(
                 header,

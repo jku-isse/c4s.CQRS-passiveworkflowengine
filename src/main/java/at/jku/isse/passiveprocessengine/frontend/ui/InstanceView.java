@@ -12,6 +12,10 @@ import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
+
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -30,8 +34,13 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -44,19 +53,16 @@ import java.util.stream.Collectors;
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Instance overview")
-public class InstanceView extends VerticalLayout implements HasUrlParameter<String> /*implements PageConfigurator*/ {
+@UIScope
+//@SpringComponent
+public class InstanceView extends VerticalLayout implements HasUrlParameter<String>, RefreshableComponent /*implements PageConfigurator*/ {
 
     
-    
+    @Autowired
     private RequestDelegate commandGateway;
 
     private Id id = null;
     private ListDataProvider<Property> dataProvider = null;
-    
-    @Inject
-    public void setCommandGateway(RequestDelegate commandGateway) {
-        this.commandGateway = commandGateway;
-    }
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, String s) {
@@ -66,7 +72,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
         String strid = parametersMap.getOrDefault("id", List.of("")).get(0);
-        if (MainView.anonymMode) {  
+        if (commandGateway.getUIConfig().isAnonymized()) {  
          id = null;
         }
         try {
@@ -81,33 +87,30 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     }
     
     
-    public InstanceView() {
+    public InstanceView(RequestDelegate commandGateway) {
+    	this.commandGateway = commandGateway;
         setSizeFull();
         setMargin(false);
         setPadding(false);
 
-        HorizontalLayout header = new HorizontalLayout();
-        header.setClassName("header-theme");
-        header.setMargin(false);
-        header.setPadding(true);
-        header.setSizeFull();
-        header.setHeight("6%");
-        HorizontalLayout firstPart = new HorizontalLayout();
-        firstPart.setClassName("header-theme");
-        firstPart.setMargin(false);
-        firstPart.setPadding(true);
-        firstPart.setSizeFull();
-        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Instance Overview"));
+//        HorizontalLayout header = new HorizontalLayout();
+//        header.setClassName("header-theme");
+//        header.setMargin(false);
+//        header.setPadding(true);
+//        header.setSizeFull();
+//        header.setHeight("6%");
+//        HorizontalLayout firstPart = new HorizontalLayout();
+//        firstPart.setClassName("header-theme");
+//        firstPart.setMargin(false);
+//        firstPart.setPadding(true);
+//        firstPart.setSizeFull();
+//        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Instance Overview"));
+//
+//        header.add(firstPart/*, toggle, shutdown*/);
+//        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        header.add(firstPart/*, toggle, shutdown*/);
-        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setClassName("footer-theme");
-        if (MainView.anonymMode)        
-        	footer.add(new Text("(C) 2022 - Anonymized "));
-        else 
-        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
+        AppHeader header = new AppHeader("Instance Overview", this);
+        AppFooter footer = new AppFooter(commandGateway.getUIConfig());        
 
         add(
                 header,
@@ -127,7 +130,12 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     VerticalLayout pageContent = new VerticalLayout();
     
     private Component content() {
-       // Tab tab1 = new Tab("Current State");
+    	refreshContent();
+    	return pageContent;
+    }
+  
+	@Override
+	public void refreshContent() {		
         VerticalLayout cur = statePanel();
         cur.setHeight("100%");
 
@@ -138,8 +146,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         pageContent.removeAll();
         pageContent.setClassName("layout-style");
         pageContent.add(/*tabs,*/ pages);
-        return pageContent;
-    }
+	}
   
 
 
@@ -150,7 +157,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
-        if (MainView.anonymMode)  {
+        if (commandGateway.getUIConfig().isAnonymized())  {
         	layout.add(new Paragraph("This view is not available in double blind reviewing mode"));
         } else         
         if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
@@ -232,7 +239,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     	        return true;
 
     	    boolean matchesProperty= matchesTerm(pe.name, searchTerm);
-    	    boolean matchesValue = matchesTerm(valueToString(pe.value), searchTerm);
+    	    boolean matchesValue = matchesTerm(valueToString(pe.getValue()), searchTerm);
 
     	    return matchesProperty || matchesValue;
     	});    	    	

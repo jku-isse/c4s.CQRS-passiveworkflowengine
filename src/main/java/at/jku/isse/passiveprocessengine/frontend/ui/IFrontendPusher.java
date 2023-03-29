@@ -20,4 +20,6 @@ public interface IFrontendPusher {
     void add(int id, UI ui, MainView view);
 
     void remove(int id);
+    
+    void requestUpdate(UI ui, MainView view);
 }

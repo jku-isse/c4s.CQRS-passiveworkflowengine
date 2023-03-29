@@ -19,12 +19,14 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.frontend.ui.ARLPlaygroundView;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ARLPlaygroundEvaluator {
 
 	private static Workspace playground = null;
 	
-	public static Set<ResultEntry> evaluateRule(Workspace ws, InstanceType type, String id, String arlString) throws ProcessException {
+	public static Set<ResultEntry> evaluateRule(Workspace ws, InstanceType type, String id, String arlString, boolean removeRule) throws ProcessException {
 		assert(ws != null);
 		initPlayground(ws);
 		ProcessException pex = new ProcessException("Errors while evaluating: "+arlString);
@@ -59,7 +61,7 @@ public class ARLPlaygroundEvaluator {
 				pex.getErrorMessages().add(e.getMessage());
 			throw e;
 		} finally {
-			if (crt != null && !ruleExisted) {
+			if (crt != null && !ruleExisted && ( removeRule || crt.hasRuleError()) ) {
 				crt.delete();
 				playground.concludeTransaction();
 			}
@@ -68,7 +70,10 @@ public class ARLPlaygroundEvaluator {
 	
 	private static void initPlayground(Workspace parent) {
 		if (playground == null) {
-			playground = parent.create("ArlPlayground", parent, new User("ARLPlaygroundEvaluatorBot"), new Tool("ArlPlayground", "V1"), true, false);
+			//log.info("Creating rule evaluation workspace: 'ArlPlayground'");
+			//playground = parent.create("ArlPlayground", parent, new User("ARLPlaygroundEvaluatorBot"), new Tool("ArlPlayground", "V1"), true, false);
+			log.debug("Using process workspace as rule playground to allow for lazy loading of artifacts");
+			playground = parent;
 		}
 	}
 	
