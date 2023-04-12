@@ -6,8 +6,8 @@ import at.jku.isse.designspace.jama.model.JamaBaseElementType;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jama.service.JamaService;
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
-import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;

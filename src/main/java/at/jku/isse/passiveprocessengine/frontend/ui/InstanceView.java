@@ -15,6 +15,7 @@ import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
+import at.jku.isse.passiveprocessengine.instance.ProcessException;
 
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
@@ -161,20 +162,25 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	layout.add(new Paragraph("This view is not available in double blind reviewing mode"));
         } else         
         if (commandGateway != null && commandGateway.getWorkspace() != null && id != null) {
+        	HorizontalLayout hl = new HorizontalLayout();
         	Element el = commandGateway.getWorkspace().findElement(id);
         	Paragraph elName = new Paragraph(el.name());
         	if (el.isDeleted) 
         		elName.getStyle().set("background-color", "#ffbf00");
-        	layout.add(elName);
+        	hl.add(elName);
         	Component grid = null;
-        	if (el instanceof Instance) {
+        	if (el instanceof Instance) {        		
         		Instance inst = (Instance) el;
+        		
         		if (!isFullyFetched(inst))
-        		layout.add(addButtonToFullyFetchLazyLoadedInstance(inst));	
+        			hl.add(addButtonToFullyFetchLazyLoadedInstance(inst));
+        		else if (inst.hasProperty("fullyFetched"))
+        			hl.add(getReloadIcon(inst));
         		grid = instanceAsList(inst);
         	} else if (el instanceof InstanceType) {
         		grid = instanceAsList((InstanceType) el);
             }
+        	layout.add(hl);
         	layout.add(createSearchField());
         	layout.add(grid);
         }
@@ -295,7 +301,27 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     	return grid;
     }
     
-    private static class PropertyComparator implements Comparator<Property> {
+	private Component getReloadIcon(Instance inst) {
+		if (inst == null && commandGateway.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+        Icon icon = new Icon(VaadinIcon.REFRESH);
+		icon.getStyle().set("cursor", "pointer");
+        icon.getElement().setProperty("title", "Force Refetch Artifact");
+        icon.addClickListener(e -> { 
+        	ArtifactIdentifier ai = commandGateway.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
+        	new Thread(() -> { 
+        		try {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			commandGateway.getArtifactResolver().get(ai, true);
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        		} catch (ProcessException e1) {
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        		}}
+        			).start();
+        });
+        return icon;
+	}
+    
+    public static class PropertyComparator implements Comparator<Property> {
 
 		@Override
 		public int compare(Property o1, Property o2) {

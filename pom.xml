@@ -159,7 +159,7 @@
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
 			<artifactId>ProcessDefinitionConverter</artifactId>
-			<version>0.1.3-SNAPSHOT</version>
+			<version>0.1.4-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>

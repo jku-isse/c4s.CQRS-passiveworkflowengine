@@ -6,6 +6,7 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 

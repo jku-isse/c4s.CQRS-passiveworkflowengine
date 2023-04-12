@@ -12,6 +12,8 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
@@ -278,7 +280,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         }
         if(wfi.getDefinition().getDescription()!=null)
         {
-        	wfi.getDefinition().setDescription("<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>");
+        	//wfi.getDefinition().setDescription("<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>");
         	Html h=new Html("<span>"+wfi.getDefinition().getDescription()+"</span>");
         	l.add(h);
         }

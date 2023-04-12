@@ -1,0 +1,118 @@
+{
+  "steps": [
+    {
+      "inDNDid": "1",
+      "outDNDid": "exit",
+      "input": {
+        "SystemRequirementsSpecification": "azure_workitem"
+      },
+      "output": {
+        "SystemTestReport": "azure_workitem"
+      },
+      "ioMapping": {
+        "SystemTestReport": "self.in_SystemRequirementsSpecification-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems-\u003eselect(refItem | refItem.workItemType\u003d\u0027TestReport\u0027)"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003eforAll( art_1 | art_1.childItems-\u003eselect( refItem_2 : \u003croot/types/azure/azure_workitem\u003e | refItem_2.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_2 : \u003croot/types/azure/azure_workitem\u003e | child_2.verificationCriteria.size() \u003e 0) )",
+        "POSTCONDITION": "self.out_SystemTestReport-\u003esize() \u003e 0 \r\n"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_SystemTestReport-\u003eforAll( art_3 | art_3.state \u003d \u0027RegressionTested\u0027 )",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "SystemTestReport::regressiontested",
+          "description": "SystemTestReport::regressiontested"
+        }
+      ],
+      "specOrderIndex": 3,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_8nUH0FpndRuNKpN5qYq0Wg)",
+      "_type": "Step",
+      "code": "Testsystemfunctions"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "1",
+      "input": {},
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "POSTCONDITION": "self-\u003eisDefined()"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 2,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_gei0sNUwdRqNKpN5qYq0Wg)",
+      "_type": "Step",
+      "code": "Testsysteminterfaces"
+    },
+    {
+      "inDNDid": "entry",
+      "outDNDid": "2",
+      "input": {},
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "POSTCONDITION": "self-\u003eisDefined()"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "html_url": "https://ceps.stagesasaservice.com/stages/#/workspace/211/_wv/(process/activity/_hO6AgBU-dRmNKpN5qYq0Wg)",
+      "_type": "Step",
+      "code": "Integratesystemcomponents"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "entry"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "Testsystemfunctions",
+          "fromParam": "SystemTestReport",
+          "toStep": "SystemIntegrationandTest",
+          "toParam": "SystemTestReport"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "exit"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SystemIntegrationandTest",
+          "fromParam": "SystemRequirementsSpecification",
+          "toStep": "Testsystemfunctions",
+          "toParam": "SystemRequirementsSpecification"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "2"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "SystemRequirementsSpecification": "azure_workitem"
+  },
+  "output": {
+    "SystemTestReport": "azure_workitem"
+  },
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SystemIntegrationandTest"
+}

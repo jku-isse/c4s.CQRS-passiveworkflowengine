@@ -1,0 +1,124 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "epic": "jama_item"
+      },
+      "output": {
+        "sss": "jama_item",
+        "srs": "jama_item"
+      },
+      "ioMapping": {
+        "sss": "self.in_epic-\u003eany()\n-\u003easType(\u003croot/types/jama/jama_item\u003e)\n   .upstream\n-\u003eselect(srs | srs.typeKey\u003d\u0027SSS\u0027 and not(srs.status.startsWith(\u0027Deleted\u0027)))",
+        "srs": "self.in_epic-\u003eany()\n-\u003easType(\u003croot/types/jama/jama_item\u003e)\n   .downstream\n-\u003eselect(srs | srs.typeKey\u003d\u0027SRS\u0027 and not(srs.status.startsWith(\u0027Deleted\u0027)))"
+      },
+      "conditions": {
+        "POSTCONDITION": "self.out_srs-\u003esize() \u003e 0",
+        "PRECONDITION": "self.in_epic-\u003esize() \u003e 0"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.in_epic\n-\u003eforAll(epic : \u003croot/types/jama/EPIC\u003e \n| epic.upstream\n -\u003eexists(item | item.typeKey \u003d \u0027SSS\u0027) \n)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "epic2sss",
+          "description": "Does the epic has at least one upstream SSS traced?"
+        },
+        {
+          "arlRule": " self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e | \n   srs.downstream\n    -\u003eexists(el : \u003croot/types/jama/jama_item\u003e | el.typeKey\u003d\u0027TC\u0027 \n      and el.status \u003c\u003e \u0027Deleted\u0027      \n  )\n)",
+          "specOrderIndex": 7,
+          "_type": "QAConstraint",
+          "code": "SRStoTCtrace",
+          "description": "Ensure that all SRS trace to at least one Test Case that matches the requirement\u0027s verification method.."
+        },
+        {
+          "arlRule": "self.in_epic-\u003esize() \u003e 1",
+          "specOrderIndex": 8,
+          "_type": "QAConstraint",
+          "code": "EpicStoriesClosed",
+          "description": "Ensure that there are some Epic stories and that all epic stories are in status \u0027Closed\u0027"
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n    | srs.upstream\n        -\u003e collect(item | item.typeKey \u003d \u0027SSS\u0027)\n        -\u003e forAll(sss  | self.out_sss.includes(sss))\n )",
+          "specOrderIndex": 1,
+          "_type": "QAConstraint",
+          "code": "SRStraceToSSS",
+          "description": "Ensure that each SRS only traces to SSS that are linked in the same epic."
+        },
+        {
+          "arlRule": "self.out_sss\n-\u003eforAll(sss : \u003croot/types/jama/SSS\u003e \n| sss.status\u003d\u0027Released\u0027)",
+          "specOrderIndex": 4,
+          "_type": "QAConstraint",
+          "code": "SSSreleased",
+          "description": "Ensure that all SSS are in status \u0027Released\u0027."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e | \nsrs.verificationMethod.size() \u003e 0\n)",
+          "specOrderIndex": 6,
+          "_type": "QAConstraint",
+          "code": "SRSverification",
+          "description": "Ensure that all SRS have a verificationmethod assigned"
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.status\u003d\u0027Released\u0027)",
+          "specOrderIndex": 2,
+          "_type": "QAConstraint",
+          "code": "SRSreleased",
+          "description": "Ensure that all SRS are in status \u0027Released\u0027."
+        },
+        {
+          "arlRule": "self.out_sss\n-\u003eforAll(sss : \u003croot/types/jama/SSS\u003e \n| sss.release.isDefined())",
+          "specOrderIndex": 5,
+          "_type": "QAConstraint",
+          "code": "SSSrelease",
+          "description": "Ensure that all SSS have a release assigned."
+        },
+        {
+          "arlRule": "self.out_srs\n-\u003eforAll(srs : \u003croot/types/jama/SRS\u003e \n| srs.release.isDefined())",
+          "specOrderIndex": 3,
+          "_type": "QAConstraint",
+          "code": "SRSrelease",
+          "description": "Ensure that all SRS have a release assigned."
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "epicStep"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "SubWP-frq-X10v3",
+          "fromParam": "epic",
+          "toStep": "epicStep",
+          "toParam": "epic"
+        }
+      ],
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "epic": "jama_item"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "SubWP-frq-X10v3"
+}

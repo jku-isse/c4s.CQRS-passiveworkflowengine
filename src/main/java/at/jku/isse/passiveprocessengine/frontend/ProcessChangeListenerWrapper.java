@@ -17,6 +17,7 @@ import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdenti
 import at.jku.isse.designspace.core.events.Operation;
 import at.jku.isse.designspace.core.events.PropertyUpdateAdd;
 import at.jku.isse.designspace.core.model.Element;
+import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
@@ -102,17 +103,19 @@ public class ProcessChangeListenerWrapper extends ProcessInstanceChangeProcessor
 	private static Supplier<Boolean> falseSupplier = () -> Boolean.FALSE;
 	
 	private Instance processPropertyUpdateAdd(PropertyUpdateAdd op) {
-		if (op.name().endsWith("@rl_ruleScopes") ) {
-			//Id addedId = (Id) op.value();
-			//Element added = ws.findElement(addedId);
-			Element element = ws.findElement(op.elementId());
-			if (element instanceof Instance 
-					&& element.hasProperty("fullyFetched") 
-					&& (      element.getPropertyAsValueOrElse("fullyFetched", falseSupplier) == null 
-					         || ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", falseSupplier)) == false     )
-			){
-				return (Instance) element;
-			}
+		if (op.name().endsWith("@rl_ruleScopes") ) {		
+			Id ruleId = (Id) op.value();
+			Element rule = ws.findElement(ruleId);
+			if (rule.name().startsWith("crd")) {
+				Element element = ws.findElement(op.elementId());
+				if (element instanceof Instance 
+						&& element.hasProperty("fullyFetched") 
+						&& (      element.getPropertyAsValueOrElse("fullyFetched", falseSupplier) == null 
+						|| ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", falseSupplier)) == false     )
+						){
+					return (Instance) element;
+				}
+			}			
 		}
 		return null;
 	}

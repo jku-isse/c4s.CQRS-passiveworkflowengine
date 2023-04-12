@@ -20,8 +20,8 @@ import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
-import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;

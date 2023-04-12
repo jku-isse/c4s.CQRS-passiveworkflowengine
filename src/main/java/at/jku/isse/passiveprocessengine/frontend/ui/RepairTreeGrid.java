@@ -200,10 +200,16 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			//return String.format("Change %s of %s to %s %s", ra.getProperty(), target, ra.getOperator().toString(), change);
 		case REMOVE:
 			List<Component> list2 = new ArrayList<>();
-			list2.add(new Paragraph("Remove "));
-			change.stream().forEach(comp -> list2.add(comp)); 
-			list2.add(new Paragraph(String.format(" from %s of ", ra.getProperty())));
-			list2.add(target);
+			if (ra.getProperty() != null)
+			{
+				list2.add(new Paragraph("Remove "));
+				change.stream().forEach(comp -> list2.add(comp)); 			
+				list2.add(new Paragraph(String.format(" from %s of ", ra.getProperty())));
+				list2.add(target);
+			} else {
+				list2.add(new Paragraph("Delete "));
+				change.stream().forEach(comp -> list2.add(comp));				
+			}
 			list2.add(reload);
 //			Entry<String,String> hint2 = generateHintForInOrOutProperty(ra.getProperty());
 //			if (hint2 != null) {

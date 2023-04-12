@@ -1,4 +1,4 @@
-package at.jku.isse.passiveprocessengine.frontend.ui;
+package at.jku.isse.passiveprocessengine.frontend.ui.utils;
 
 import java.util.Properties;
 

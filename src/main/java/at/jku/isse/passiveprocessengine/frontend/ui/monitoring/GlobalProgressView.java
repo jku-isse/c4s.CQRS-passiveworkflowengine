@@ -3,10 +3,10 @@ package at.jku.isse.passiveprocessengine.frontend.ui.monitoring;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
-import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.*;
@@ -63,6 +63,12 @@ public class GlobalProgressView extends VerticalLayout implements RefreshableCom
         addDataProviderToGrid();
         addDataProviderToSearchField();
         dataProvider.refreshAll();
+    }
+    
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        pusher.remove(detachEvent.getUI().getUIId());
     }
         
     public GlobalProgressView(RequestDelegate reqDel, ProgressPusher pusher) {

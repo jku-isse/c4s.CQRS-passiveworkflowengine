@@ -1,6 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -26,6 +27,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -52,6 +54,10 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     
     @Autowired
     protected RequestDelegate commandGateway;
+    
+    private Set<ResultEntry> result = new HashSet<>();
+    private ListDataProvider<ResultEntry> dataProvider = new ListDataProvider<>(result);
+    
     
     public ARLPlaygroundView(RequestDelegate commandGateway) {
     	this.commandGateway = commandGateway;
@@ -169,12 +175,27 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         	Grid.Column<ResultEntry> instColumn = grid.addComponentColumn(rge -> resultEntryToInstanceLink(rge)).setHeader("Instance").setResizable(true).setSortable(true);
         	Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
         	Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
-        	
+        	grid.setDataProvider(dataProvider);
         	
         	HorizontalLayout fetchPart = new HorizontalLayout();        	
         	Checkbox checkbox = new Checkbox(false);
-        	checkbox.setLabel("Fetch lazy loaded artifacts? (may significantly increase evaluation duration!)");      
+        	checkbox.setLabel("Fetch incompletely loaded artifacts? (may significantly increase evaluation duration!)");      
         	checkbox.setClassName("medtext");
+        	Checkbox checkboxLL = new Checkbox(true);
+        	checkboxLL.setLabel("Show results for fully fetched artifacts only");        	
+        	checkboxLL.setClassName("medtext");
+        	
+        	checkboxLL.addValueChangeListener(e -> 
+        		dataProvider.refreshAll());
+        		dataProvider.addFilter(pe -> {
+        			if (!checkboxLL.getValue()) {
+        				return true;
+        			} else {
+        				return InstanceView.isFullyFetched(pe.getInstance());
+        			}
+        		}
+        	);  
+        	
         	// Button to send
         	Button button = new Button("Evaluate");
         	button.addClickListener(clickEvent -> {
@@ -184,6 +205,9 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         			Notification.show("Make sure to select an Instance Type!");
         		else {     
         			errorResultArea.setVisible(false);
+        			//grid.setItems(Collections.emptySet());
+        			result.clear();
+        			dataProvider.refreshAll(); 
         			new Thread(() -> { 
         				try {
         					Set<ResultEntry> evalResult = null;
@@ -215,12 +239,16 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         						//errorResultArea.setVisible(true);
         						this.getUI().get().access(() ->Notification.show("No instances available to evaluate OCL/ARL constraint on."));
         					} else {
-        						this.getUI().get().access(() -> grid.setItems(finalResult));
+        						this.getUI().get().access(() -> { 
+        							result.clear();
+        							result.addAll(finalResult); 
+        							dataProvider.refreshAll(); 
+        						});
         					}
         				} catch (ProcessException e) {
         					this.getUI().get().access(() -> {
         						errorResultArea.setVisible(true);
-        						errorResultArea.setValue(e.getMessage());
+        						errorResultArea.setValue(e.getMessage());        						
         					});
         				}
         			}).start();
@@ -228,7 +256,8 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         	    
         	});
         	fetchPart.add(button);
-        	fetchPart.add(checkbox);
+        	fetchPart.add(checkboxLL);
+        	fetchPart.add(checkbox);        	
         	layout.add(fetchPart);
         	// text field to show error message or result
         	layout.add(errorResultArea);
@@ -242,7 +271,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     	if (InstanceView.isFullyFetched(rge.getInstance())) {
     		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()));
     	} else {
-    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()+" (lazy loaded only)"));
+    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
     	}
     }
     

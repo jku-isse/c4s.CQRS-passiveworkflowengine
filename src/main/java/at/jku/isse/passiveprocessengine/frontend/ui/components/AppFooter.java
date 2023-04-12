@@ -4,7 +4,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
-import at.jku.isse.passiveprocessengine.frontend.ui.UIConfig;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 
 public class AppFooter extends HorizontalLayout{
 	

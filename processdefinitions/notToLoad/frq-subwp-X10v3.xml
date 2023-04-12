@@ -1,0 +1,218 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">epic</variable>
+    <variable id="ka%y1}j@C~zmt4L(h!2@">srs</variable>
+    <variable id="_x83z3HB~Ksh[g[5mZn5">sss</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="-37">
+    <field name="NAME">SubWP-frq-X10v4</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">jama_item</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                <field name="StepId">epicStep</field>
+                <statement name="Input">
+                  <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="t:P!kMUZ-edY8eS;31Vq">
+                    <field name="State">POSTCONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="|=.Wl1,bZp^p{,yZB3^y">
+                        <field name="arlRule">self.out_srs-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="bam=tWlt5pj-k`GC_^Xw">
+                    <field name="mappingId">sss</field>
+                    <field name="mappingSpec">self.in_epic-&gt;any()&#10;-&gt;asType(&lt;root/types/jama/jama_item&gt;)&#10;   .upstream&#10;-&gt;select(srs | srs.typeKey='SSS' and not(srs.status.startsWith('Deleted')))</field>
+                    <next>
+                      <block type="datamapping" id="}G#R{$pFr.{1xOQl5U_t">
+                        <field name="mappingId">srs</field>
+                        <field name="mappingSpec">self.in_epic-&gt;any()&#10;-&gt;asType(&lt;root/types/jama/jama_item&gt;)&#10;   .downstream&#10;-&gt;select(srs | srs.typeKey='SRS' and not(srs.status.startsWith('Deleted')))</field>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="i9K7yLpu.M=,DZ[~u|5|">
+                    <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="~Up1MNVs.9cf~?qgX*}@">
+                        <field name="Type">jama_item</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="w^Ib96=l?+4mw?FbBe=+">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="8.wa5jBV,Kx~PbZ51L{q">
+                            <field name="VAR" id="ka%y1}j@C~zmt4L(h!2@">srs</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="7pI9sJ8=)mb23i`X^CB?">
+                            <field name="VAR" id="_x83z3HB~Ksh[g[5mZn5">sss</field>
+                            <value name="VALUE">
+                              <block type="artifact" id=")0A?|VU10r^jz61UZ_z6">
+                                <field name="Type">jama_item</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="Ez3qJ@u8(nRNE~84Q;xI">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="r%GkZ2wIQB_HQ~}xFoJ0">
+                                    <field name="VAR" id="_x83z3HB~Ksh[g[5mZn5">sss</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="2BosIdq9!g!ZWX]5%,?k">
+                    <field name="qacheckId">epic2sss</field>
+                    <field name="description">Does the epic has at least one upstream SSS traced?</field>
+                    <value name="constraint">
+                      <block type="constraint" id="R*|[1k*gDzcmYHe*W%I.">
+                        <field name="arlRule">self.in_epic&#10;-&gt;forAll(epic : &lt;root/types/jama/EPIC&gt; &#10;| epic.upstream&#10; -&gt;exists(item | item.typeKey = 'SSS') &#10;)</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="qacheck" id="2cvX4}.%iwKmT)eFzd^X">
+                        <field name="qacheckId">SRStraceToSSS</field>
+                        <field name="description">Ensure that each SRS only traces to SSS that are linked in the same epic.</field>
+                        <value name="constraint">
+                          <block type="constraint" id=".TWT4m]-l$rR[04-7^B4">
+                            <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; &#10;    | srs.upstream&#10;        -&gt; collect(item | item.typeKey = 'SSS')&#10;        -&gt; forAll(sss  | self.out_sss.includes(sss))&#10; )</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="qacheck" id="c]o3^xUMz3E*?l$XSys#">
+                            <field name="qacheckId">SRSreleased</field>
+                            <field name="description">Ensure that all SRS are in status 'Released'.</field>
+                            <value name="constraint">
+                              <block type="constraint" id="TOhB?nPuJS9@+}!:lnlM">
+                                <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; &#10;| srs.status='Released')</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="qacheck" id="V3G2mKsJo!*ja!Z2-DX9">
+                                <field name="qacheckId">SRSrelease</field>
+                                <field name="description">Ensure that all SRS have a release assigned.</field>
+                                <value name="constraint">
+                                  <block type="constraint" id="bq_0h[:piXtJbekq0yfS">
+                                    <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; &#10;| srs.release.isDefined())</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="qacheck" id="5zLU1JMC;]y]7KW3=Z=~">
+                                    <field name="qacheckId">SSSreleased</field>
+                                    <field name="description">Ensure that all SSS are in status 'Released'.</field>
+                                    <value name="constraint">
+                                      <block type="constraint" id="x=Wh}Y{qg{VV^[[;!.}y">
+                                        <field name="arlRule">self.out_sss&#10;-&gt;forAll(sss : &lt;root/types/jama/SSS&gt; &#10;| sss.status='Released')</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="qacheck" id="C+5L6uxN#(ym0KU,zdZ:">
+                                        <field name="qacheckId">SSSrelease</field>
+                                        <field name="description">Ensure that all SSS have a release assigned.</field>
+                                        <value name="constraint">
+                                          <block type="constraint" id="AF9+O!udl(RYzC|2,zOl">
+                                            <field name="arlRule">self.out_sss&#10;-&gt;forAll(sss : &lt;root/types/jama/SSS&gt; &#10;| sss.release.isDefined())</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="qacheck" id="$8/(@q.wBAN`A^P/7`2R">
+                                            <field name="qacheckId">SRSverification</field>
+                                            <field name="description">Ensure that all SRS have a verificationmethod assigned</field>
+                                            <value name="constraint">
+                                              <block type="constraint" id="VaeVdWX[b.#C8u7:.*0]">
+                                                <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; | &#10;srs.verificationMethod.size() &gt; 0&#10;)</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="qacheck" id="2MC@ibqk8saKOJEB8Ae)">
+                                                <field name="qacheckId">SRStoTCtrace</field>
+                                                <field name="description">Ensure that all SRS trace to at least one Test Case that matches the requirement's verification method..</field>
+                                                <value name="constraint">
+                                                  <block type="constraint" id="M#1_7oW),0}0d~y|I.*K">
+                                                    <field name="arlRule"> self.out_srs&#10;-&gt;forAll(srs : &lt;root/types/jama/SRS&gt; | &#10;   srs.downstream&#10;    -&gt;exists(el : &lt;root/types/jama/jama_item&gt; | el.typeKey='TC' &#10;      and el.status &lt;&gt; 'Deleted'      &#10;  )&#10;)</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="qacheck" id="44Ik}{_e!;7lYH,$=7AO">
+                                                    <field name="qacheckId">SRStoEpic</field>
+                                                    <field name="description">Ensure that all SRS trace only to maximally one Epic with a status other than 'closed'.</field>
+                                                    <value name="constraint">
+                                                      <block type="constraint" id="LRmq@QaalW0@byoq(8SE">
+                                                        <field name="arlRule">self.out_srs&#10;-&gt;forAll(srs | srs.upstream&#10;    -&gt;select(req | req.typeKey='EPIC')&#10;    -&gt;select(swp : &lt;root/types/jama/FEAT&gt; | swp.jiraFeatureStatus &lt;&gt; 'Closed')&#10;    -&gt;size() &lt; 2&#10;)</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="qacheck" id="+3%,^NsyT#2SAk]0TgL=">
+                                                        <field name="qacheckId">EpicStoriesClosed</field>
+                                                        <field name="description">Ensure that there are some Epic stories and that all epic stories are in status 'Closed'</field>
+                                                        <value name="constraint">
+                                                          <block type="constraint" id="]b8XnM7QmV[rG:5xJLx|">
+                                                            <field name="arlRule">self.in_epic-&gt;size() &gt; -1</field>
+                                                          </block>
+                                                        </value>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
