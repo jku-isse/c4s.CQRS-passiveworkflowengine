@@ -113,10 +113,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         QueryParameters queryParameters = location.getQueryParameters();
 
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
-        String key = parametersMap.getOrDefault("key", List.of("")).get(0);
-        String value = parametersMap.getOrDefault("value", List.of("")).get(0);
+        String id = parametersMap.getOrDefault("id", List.of("")).get(0);
+        //String key = parametersMap.getOrDefault("key", List.of("")).get(0);
+        //String value = parametersMap.getOrDefault("value", List.of("")).get(0);
         String name = parametersMap.getOrDefault("name", List.of("")).get(0);
-        initAccordion(key, value, name);
+        String focus = parametersMap.getOrDefault("focus", List.of("")).get(0);
+        initAccordion(id, name, focus);
     }
 
 //    @Override
@@ -132,49 +134,6 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
     	setSizeFull();
         setMargin(false);
         setPadding(false);
-       
-
-//        HorizontalLayout header = new HorizontalLayout();
-//        header.setClassName("header-theme");
-//        header.setMargin(false);
-//        header.setPadding(true);
-//        header.setSizeFull();
-//        header.setHeight("6%");
-//        HorizontalLayout firstPart = new HorizontalLayout();
-//        firstPart.setClassName("header-theme");
-//        firstPart.setMargin(false);
-//        firstPart.setPadding(true);
-//        firstPart.setSizeFull();
-//        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Process Dashboard"));
-//
-//        ToggleButton toggle = new ToggleButton("Refresher ");
-//        toggle.setClassName("med");
-//        toggle.addValueChangeListener(evt -> {
-//            devMode = !devMode;
-////            if (devMode) {
-////                Notification.show("Development mode enabled! Additional features activated.");
-////            }
-//            initAccordion();
-//            content();
-//        });
-//
-//        /*
-//        Icon shutdown = new Icon(VaadinIcon.POWER_OFF);
-//        shutdown.setColor("red");
-//        shutdown.getStyle().set("cursor", "pointer");
-//        shutdown.addClickListener(e -> SpringApp.shutdown());
-//        shutdown.getElement().setProperty("title", "Shut down Process Dashboard");
-//        */
-//
-//        header.add(firstPart, toggle/*, shutdown*/);
-//        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-//
-//        HorizontalLayout footer = new HorizontalLayout();
-//        footer.setClassName("footer-theme");
-//        if (anonymMode)        
-//        	footer.add(new Text("(C) 2023 - Anonymized "));
-//        else 
-//        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
         
         AppHeader header = new AppHeader("Process Dashboard", this);  
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
@@ -236,7 +195,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         initAccordion("", "", "");
     }
 
-    private void initAccordion(String key, String val, String name) {
+    private void initAccordion(String id, String name, String focus) {
         accordion.getChildren().forEach(c -> accordion.remove(c));
         accordion.add("Create Process Instance", importArtifact());
     //    accordion.add("Fetch Updates", updates());
@@ -245,60 +204,69 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
            // accordion.add("Dump Designspace", dumpDesignSpace(commandGateway));
         }
 
-        accordion.add("Filter", filterTable(key, val, name));
+        accordion.add("Filter", filterTable(id, name, focus));
     //    if (devMode) accordion.add("Backend Queries", backend());
         accordion.close();
         accordion.open(0);
         accordion.setWidthFull();
     }
 
-    private Component filterTable(String k, String v, String n) {
+    private Component filterTable(String id, String n, String focus) {
         Paragraph p1 = new Paragraph("Filter on process properties:");
-        TextField key = new TextField();
-        key.setLabel("KEY");
-        key.setValue(k);
-        TextField val = new TextField();
-        val.setLabel("VALUE");
-        val.setValue(v);
-        val.setValueChangeMode(ValueChangeMode.EAGER);
-        key.setValueChangeMode(ValueChangeMode.EAGER);
+//        TextField key = new TextField();
+//        key.setLabel("KEY");
+//        key.setValue(k);
+//        TextField val = new TextField();
+//        val.setLabel("VALUE");
+//        val.setValue(v);
+//        val.setValueChangeMode(ValueChangeMode.EAGER);
+//        key.setValueChangeMode(ValueChangeMode.EAGER);
         HorizontalLayout line = new HorizontalLayout();
         line.setWidthFull();
-        line.add(key, val);
+//        line.add(key, val);
         Paragraph p2 = new Paragraph("Filter on process name:");
-        TextField name = new TextField();
-        name.setLabel("NAME");
-        name.setValue(n);
-        name.setValueChangeMode(ValueChangeMode.EAGER);
+        TextField nameField = new TextField();
+        //nameField.setLabel("NAME");
+        nameField.setValue(n);
+        nameField.setValueChangeMode(ValueChangeMode.EAGER);
 
-        val.addValueChangeListener(e -> {
-            Map<String, String> filter = new HashMap<>();
-            filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
+        Paragraph p3 = new Paragraph("Filter on process id:");
+        TextField idField = new TextField();
+        //idField.setLabel("ID");
+        idField.setValue(id);
+        idField.setValueChangeMode(ValueChangeMode.EAGER);
+        
+//        val.addValueChangeListener(e -> {
+//            Map<String, String> filter = new HashMap<>();
+//            filter.put(key.getValue(), val.getValue());
+//            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
+//        });
+//        key.addValueChangeListener(e -> {
+//            Map<String, String> filter = new HashMap<>();
+//            filter.put(key.getValue(), val.getValue());
+//            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
+//        });
+        nameField.addValueChangeListener(e -> {
+           // Map<String, String> filter = new HashMap<>();
+           // filter.put(key.getValue(), val.getValue());
+            grids.forEach(grid -> grid.setFilters(idField.getValue(), nameField.getValue(), focus));
         });
-        key.addValueChangeListener(e -> {
-            Map<String, String> filter = new HashMap<>();
-            filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
-        });
-        name.addValueChangeListener(e -> {
-            Map<String, String> filter = new HashMap<>();
-            filter.put(key.getValue(), val.getValue());
-            grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
-        });
+        idField.addValueChangeListener(e -> {
+            // Map<String, String> filter = new HashMap<>();
+            // filter.put(key.getValue(), val.getValue());
+             grids.forEach(grid -> grid.setFilters(idField.getValue(), nameField.getValue(), focus));
+         });
+        
+        
+        grids.forEach(grid -> grid.setFilters(idField.getValue(), nameField.getValue(), focus));
 
-        Map<String, String> filter = new HashMap<>();
-        filter.put(key.getValue(), val.getValue());
-        grids.forEach(grid -> grid.setFilters(filter, name.getValue()));
-
-        Button clearFilters = new Button("Clear all Filters", e -> {
-            val.setValue("");
-            key.setValue("");
-            name.setValue("");
+        Button clearFilters = new Button("Clear all Filters", e -> {            
+            nameField.setValue("");
+            idField.setValue("");
         });
         clearFilters.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
-        return new VerticalLayout(p2, name, p1, line, clearFilters);
+        return new VerticalLayout(p2, nameField, p3, idField, line, clearFilters);
     }
 
     private Component currentStateControls(WorkflowTreeGrid grid) {

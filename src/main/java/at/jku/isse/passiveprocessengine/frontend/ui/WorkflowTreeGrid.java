@@ -9,6 +9,7 @@ import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.InstanceWrapper;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
@@ -20,6 +21,8 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+
+import com.google.common.collect.Lists;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
@@ -65,15 +68,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
     private Map<String, ProcessInstance> content;
     private String nameFilter;
-    private Map<String, String> propertiesFilter;
+    private String idFilter;
+    private String focusedElementId = "";
+    private ProcessInstanceScopedElement focusedElement = null;
+//    private Map<String, String> propertiesFilter;
     private UIConfig conf;
 
     public WorkflowTreeGrid(RequestDelegate f) {
         this.reqDel = f;       
         content = new HashMap<>();
         nameFilter = ""; // default filter
-        propertiesFilter = new HashMap<>();
-        propertiesFilter.put("", ""); // default filter
+        idFilter = "";
+//        propertiesFilter = new HashMap<>();
+//        propertiesFilter.put("", ""); // default filter
         this.conf = f.getUIConfig();
     }
     
@@ -706,10 +713,12 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             return icon;
         }
         return icon;
-    }
+    }        
     
-    public void setFilters(Map<String, String> filter, String name) {
-        propertiesFilter = filter;
+    public void setFilters(String id, String name, String focusedElementId) {
+        //propertiesFilter = filter;
+    	this.focusedElementId = focusedElementId;
+    	idFilter = id;
         nameFilter = name;
         updateTreeGrid();
     }
@@ -739,9 +748,16 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
     private void updateTreeGrid() {
-        Predicate<ProcessInstance> predicate = wfi -> ( nameFilter.equals("") 
+    	
+        Predicate<ProcessInstance> predicate = wfi -> ( 
+        		( nameFilter.equals("") 
         		|| wfi.getDefinition().getName().startsWith(nameFilter) 
-        		|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter)) );// &&
+        		|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
+        		&& 
+        		( idFilter.equals("") 
+        		|| wfi.getInstance().id().toString().equals(idFilter)		
+        		)
+        	);// &&
          //       ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
          //               .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
          //                       .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
@@ -751,24 +767,50 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 o -> {
                     if (o instanceof ProcessInstance) {
                         ProcessInstance wfi = (ProcessInstance) o;
+                        if (wfi.getInstance().id().toString().equals(focusedElementId))
+                        	this.focusedElement = wfi;
                         return wfi.getProcessSteps().stream()
                               //  .filter(wft -> !(wft.getType() instanceof NoOpTaskDefinition))
                         		.sorted(new StepComparator())
                         		.map(wft -> (ProcessInstanceScopedElement) wft);
                     } else if (o instanceof ProcessStep) {
                         ProcessStep wft = (ProcessStep) o;
+                        if (wft.getInstance().id().toString().equals(focusedElementId))
+                        	this.focusedElement = wft;
                         return wft.getQAstatus().stream().sorted(new ConstraintWrapperComparator()).map(x -> (ConstraintWrapper)x);
                     } else if (o instanceof ConstraintWrapper) { 
                     	ConstraintWrapper cw = (ConstraintWrapper) o;
+                    	if (cw.getInstance().id().toString().equals(focusedElementId)) {
+                        	this.focusedElement = cw;                        
+                    	}
                     	return Stream.empty();
                     } else {
                         log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                         return Stream.empty();
                     }
                 });
-        this.getDataProvider().refreshAll();
+        this.getDataProvider().refreshAll();        
+        if (focusedElement != null) {
+        	List<ProcessInstanceScopedElement> expandStack = expandElementStack(focusedElement);
+        	Lists.reverse(expandStack).stream().forEach(element -> {
+        		this.expand(element);            	
+        	});
+        	this.select(focusedElement);        	
+        }
     }
 
+    private List<ProcessInstanceScopedElement> expandElementStack(ProcessInstanceScopedElement focusedElement) {
+    	if (focusedElement == null)
+    		return Collections.emptyList();
+    	List<ProcessInstanceScopedElement> stack = new ArrayList<>();
+    	stack.add(focusedElement);
+    	if (focusedElement instanceof ProcessStep)
+    		stack.addAll(expandElementStack(focusedElement.getProcess()));
+    	else if (focusedElement instanceof ConstraintWrapper)
+    		stack.addAll(expandElementStack(((ConstraintWrapper) focusedElement).getParentStep()));
+    	return stack;
+    }
+    
     
     private static class ConstraintWrapperComparator implements Comparator<ConstraintWrapper> {
 		@Override

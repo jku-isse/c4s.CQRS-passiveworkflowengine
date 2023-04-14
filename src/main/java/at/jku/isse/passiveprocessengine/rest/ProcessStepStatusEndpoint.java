@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.rest;
 
+import java.net.URI;
 import java.util.Optional;
 
 import javax.ws.rs.QueryParam;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
@@ -121,11 +123,15 @@ public class ProcessStepStatusEndpoint {
 							status = "draft";//"NOT_YET_EVALUATED";															
 						} else {
 							status = cw.getEvalResult() ? "released" : "not existent" ;//"FULFILLED" : "UNFULFILLED";
-						}							
+						}			
+						
+						String link = getConstraintURI(proc.getInstance().id().toString(), cw.getInstance().id().toString()) ;
+						
 						log.debug(String.format("Process %s constraint %s returned as '%s'", processId, document, status));
 						return ResponseEntity.status(HttpStatus.OK)
 									.body("{\"id\" : \""+cw.getName()+"\", "
-											+"\"evaluationStatus\" : \""+status+"\""
+											+"\"evaluationStatus\" : \""+status+"\", "
+											+"\"link\" : \""+link+"\""
 											+ " }");
 					}
 				}
@@ -137,6 +143,18 @@ public class ProcessStepStatusEndpoint {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body("{\"error\": \"Provided Id does not identifiy a process instance\"}");
 		}
+	}
+		
+	private String getConstraintURI(String procId, String cwId) {
+		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequestUri();						
+		URI uri = builder.build().toUri();
+		StringBuffer sb = new StringBuffer(	uri.getScheme()+"://"+uri.getHost() );
+		if (uri.getPort() > 0) {
+			sb.append(":");
+			sb.append(uri.getPort());
+		}
+		sb.append("/home/?id="+procId+"&focus="+cwId);
+		return sb.toString();
 	}
 	
 //	@GetMapping( value="/ceps/status", produces="application/json")
