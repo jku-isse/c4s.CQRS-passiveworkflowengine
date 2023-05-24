@@ -77,7 +77,7 @@ public class RequestDelegate {
 	
 	ProcessChangeListenerWrapper picp;
 	
-	Map<String, ProcessInstance> pInstances = new HashMap<>();
+	//Map<String, ProcessInstance> pInstances = new HashMap<>();
 	
 	boolean isInitialized = false;
 	
@@ -120,13 +120,13 @@ public class RequestDelegate {
 		}
 	
 		List<ProcessException> pexs = new LinkedList<>();
-		Map<String, Instance> procInput = new HashMap<>();
+		Map<String, Set<Instance>> procInput = new HashMap<>();
 		inputs.entrySet().stream()
 				.forEach(entry -> {
 						Instance inst;
 						try {
 							inst = resolver.get(entry.getValue());
-							procInput.put(entry.getKey(), inst);
+							procInput.put(entry.getKey(), Set.of(inst));
 						} catch (ProcessException e) {
 							pexs.add(e);
 						}
@@ -136,28 +136,30 @@ public class RequestDelegate {
 			pexs.stream().forEach(pex -> pe.getErrorMessages().add(pex.getMainMessage()));
 			throw pe;
 		}
-		String namePostfix = generateProcessNamePostfix(procInput);
-		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get(), namePostfix);
-		List<IOResponse> errResp = procInput.entrySet().stream()
-			.map(entry -> pInst.addInput(entry.getKey(), entry.getValue()))
-			.filter(resp -> resp.getError() != null)
-			.collect(Collectors.toList());
+		
+		return procReg.instantiateProcess(optProcDef.get(), procInput);
+//		String namePostfix = generateProcessNamePostfix(procInput);
+//		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get(), namePostfix);
+//		List<IOResponse> errResp = procInput.entrySet().stream()
+//			.map(entry -> pInst.addInput(entry.getKey(), entry.getValue()))
+//			.filter(resp -> resp.getError() != null)
+//			.collect(Collectors.toList());
 		//ws.commit();
 		
-		if (errResp.isEmpty()) {
-			pInstances.put(pInst.getName(), pInst);
-			ws.concludeTransaction();
-			return pInst;
-			//ws.commit();
-			//fetchLazyLoaded();
-			//frontend.update(pInst);
-		} else {
-			pInst.deleteCascading();
-			ws.concludeTransaction();
-			ProcessException ex = new ProcessException("Unable to instantiate process");
-			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
-			throw ex;
-		}		
+//		if (errResp.isEmpty()) {
+//			pInstances.put(pInst.getName(), pInst);
+//			ws.concludeTransaction();
+//			return pInst;
+//			//ws.commit();
+//			//fetchLazyLoaded();
+//			//frontend.update(pInst);
+//		} else {
+//			pInst.deleteCascading();
+//			ws.concludeTransaction();
+//			ProcessException ex = new ProcessException("Unable to instantiate process");
+//			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
+//			throw ex;
+//		}		
 	}
 	
 	private String generateProcessNamePostfix(Map<String, Instance> procInput) {
@@ -168,7 +170,8 @@ public class RequestDelegate {
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {
 		if (!isInitialized) initialize();
 		ProcessException pex = new ProcessException("Error adding i/o of step: "+stepId);
-		ProcessInstance pi = pInstances.get(procId);
+	//	ProcessInstance pi = pInstances.get(procId);
+		ProcessInstance pi = procReg.getProcess(procId);
 		if (pi != null) {
 			pi.getProcessSteps().stream()
 				.filter(step -> step.getName().equals(stepId))
@@ -205,17 +208,14 @@ public class RequestDelegate {
 	}
 	
 	public ProcessInstance getProcess(String id) {
-		return pInstances.get(id);
+		return procReg.getProcess(id);
+		//return pInstances.get(id);
 	}
 	
 	public void deleteProcessInstance(String id) {
 		if (!isInitialized) initialize();
 		frontend.remove(id);
-		ProcessInstance pi = pInstances.remove(id);
-		if (pi != null) {
-			pi.deleteCascading();
-			ws.concludeTransaction();
-		}
+		procReg.removeProcess(id);
 	}
 
 	public void initialize() {
@@ -260,15 +260,7 @@ public class RequestDelegate {
 	}
 	
 	private void loadPersistedProcesses() {
-		Set<ProcessInstance> existingPI = getSubtypesRecursively(ProcessInstance.getOrCreateDesignSpaceCoreSchema(ws))
-				//.allSubTypes() // everything that is of steptype (thus also process type) --> NOT YET IMPLEMENTED				
-				.stream().filter(stepType -> stepType.name().startsWith(ProcessInstance.designspaceTypeId)) //everthing that is a process type
-				.flatMap(procType -> procType.instancesIncludingThoseOfSubtypes()) // everything that is a process instance
-				.map(procInst -> WrapperCache.getWrappedInstance(ProcessInstance.class, procInst)) // wrap instance
-				.map(procInst -> (ProcessInstance)procInst)
-				.collect(Collectors.toSet());
-		log.info(String.format("Loaded %s preexisting process instances", existingPI.size()));
-		existingPI.stream().forEach(pi -> pInstances.put(pi.getName(), pi));
+		Set<ProcessInstance> existingPI = procReg.loadPersistedProcesses();
 		frontend.update(existingPI);
 	}
 	
