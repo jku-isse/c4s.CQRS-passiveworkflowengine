@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.rest;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.JsonSyntaxException;
 
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinitionError;
 import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
@@ -44,20 +46,18 @@ public class ProcessDeployEndpoint {
 			DTOs.Process procD = serializer.fromJson(json);
 
 			if (procD != null) {
-				Optional<ProcessDefinition> prevPD = procReg.getProcessDefinition(procD.getCode());
+				Optional<ProcessDefinition> prevPD = procReg.getProcessDefinition(procD.getCode(), true);
 				prevPD.ifPresent(pd -> {
 					log.debug("Removing previous process definition: "+procD.getCode());
 					procReg.removeProcessDefinition(pd.getName());
 				});
-				ProcessDefinition pd;
-				try {
-					pd = procReg.storeProcessDefinitionIfNotExists(procD);
-				} catch (ProcessException e) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-							.body(e.getMessage());
-				}
-				return ResponseEntity.status(HttpStatus.OK)
+					SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD);
+					if (pd.getValue().isEmpty())
+						return ResponseEntity.status(HttpStatus.OK)
 						.body("Successfully stored process "+procD.getCode());
+					else
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+								.body(pd.getValue().toString());
 			}
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("Unable to process json");

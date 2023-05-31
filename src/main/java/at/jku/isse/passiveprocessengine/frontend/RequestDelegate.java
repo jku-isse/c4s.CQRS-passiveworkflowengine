@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -39,6 +40,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
+import at.jku.isse.passiveprocessengine.instance.ProcessInstanceError;
 import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScopedCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.messages.WorkspaceListenerSequencer;
@@ -112,7 +114,7 @@ public class RequestDelegate {
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
 		if (!isInitialized) initialize();
 		
-		Optional<ProcessDefinition> optProcDef = procReg.getProcessDefinition(procDefinitionId);
+		Optional<ProcessDefinition> optProcDef = procReg.getProcessDefinition(procDefinitionId, true);
 		if (optProcDef.isEmpty()) {
 			String msg = String.format("ProcessDefinition %s not found", procDefinitionId);
 			log.warn(msg);
@@ -136,8 +138,12 @@ public class RequestDelegate {
 			pexs.stream().forEach(pex -> pe.getErrorMessages().add(pex.getMainMessage()));
 			throw pe;
 		}
-		
-		return procReg.instantiateProcess(optProcDef.get(), procInput);
+		SimpleEntry<ProcessInstance,List<ProcessInstanceError>> pd = procReg.instantiateProcess(optProcDef.get(), procInput);
+		if (pd.getValue().isEmpty())
+			return pd.getKey();
+		else
+			throw new ProcessException(pd.getValue().toString());
+	//	return procReg.instantiateProcess(optProcDef.get(), procInput);
 //		String namePostfix = generateProcessNamePostfix(procInput);
 //		ProcessInstance pInst = ProcessInstance.getInstance(ws, optProcDef.get(), namePostfix);
 //		List<IOResponse> errResp = procInput.entrySet().stream()

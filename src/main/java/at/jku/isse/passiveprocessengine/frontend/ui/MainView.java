@@ -304,7 +304,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         Set<String> wfdKeys = new HashSet<>();
         // Process Definition
         if (commandGateway != null) {
-        	wfdKeys.addAll(commandGateway.getRegistry().getAllDefinitionIDs());
+        	wfdKeys.addAll(commandGateway.getRegistry().getAllDefinitionIDs(true));
         	if (grid != null)
         		grid.injectRequestDelegate(commandGateway);
         }
@@ -327,7 +327,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         Map<String, ComboBox<String>> role2IdType = new HashMap<>();
         
         processDefinition.addValueChangeListener( e -> {
-            ProcessDefinition wfdContainer = commandGateway.getRegistry().getProcessDefinition(e.getValue()).get(); // we fetched the ids earlier, should exist here
+            ProcessDefinition wfdContainer = commandGateway.getRegistry().getProcessDefinition(e.getValue(), true).get(); // we fetched the ids earlier, should exist here
             source.removeAll();
             role2IdType.clear();
             for (Map.Entry<String, InstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
