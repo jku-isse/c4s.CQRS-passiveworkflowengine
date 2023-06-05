@@ -51,6 +51,9 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
 @CssImport(
@@ -73,6 +76,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private ProcessInstanceScopedElement focusedElement = null;
 //    private Map<String, String> propertiesFilter;
     private UIConfig conf;
+    private Authentication authentication;
 
     public WorkflowTreeGrid(RequestDelegate f) {
         this.reqDel = f;       
@@ -82,6 +86,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        propertiesFilter = new HashMap<>();
 //        propertiesFilter.put("", ""); // default filter
         this.conf = f.getUIConfig();
+        this.authentication = SecurityContextHolder.getContext().getAuthentication();
     }
     
     protected void injectRequestDelegate(RequestDelegate f) {
@@ -469,7 +474,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     					RepairNode repairTree = RuleService.repairTree(crOpt.get());
     					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
     					rtg.initTreeGrid();
-    					rtg.updateConditionTreeGrid(repairTree);    					    					
+    					rtg.updateConditionTreeGrid(repairTree, pStep.getProcess());    					    					
     					rtg.expandRecursively(repairTree.getChildren(), 3);
     					rtg.setHeightByRows(true);
     					rtg.setWidth("100%");
@@ -666,7 +671,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
         		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
         		rtg.initTreeGrid();
-        		rtg.updateConditionTreeGrid(repairTree);
+        		rtg.updateConditionTreeGrid(repairTree, rebc.getProcess());
         		rtg.expandRecursively(repairTree.getChildren(), 3);
         		rtg.setHeightByRows(true);
         		l.add(rtg); 
@@ -751,18 +756,28 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	
         Predicate<ProcessInstance> predicate = wfi -> ( 
         		( nameFilter.equals("") 
-        		|| wfi.getDefinition().getName().startsWith(nameFilter) 
-        		|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
+        				|| wfi.getDefinition().getName().startsWith(nameFilter) 
+        			|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
         		&& 
         		( idFilter.equals("") 
-        		|| wfi.getInstance().id().toString().equals(idFilter)		
+        				|| wfi.getInstance().id().toString().equals(idFilter)		
         		)
         	);// &&
          //       ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
          //               .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
          //                       .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
+        if (SecurityContextHolder.getContext().getAuthentication() == null) // when called via PUSH
+        	SecurityContextHolder.getContext().setAuthentication(authentication);
+        Predicate<ProcessInstance> accessRight = wfi -> { 
+        		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
+        		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
+        		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+        		return authorized;
+        };
+        
         this.setItems(this.content.values().stream()
                         .filter(predicate)
+                        .filter(accessRight)
                         .map(x->x),
                 o -> {
                     if (o instanceof ProcessInstance) {

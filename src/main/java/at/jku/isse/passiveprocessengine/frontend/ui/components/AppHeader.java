@@ -9,6 +9,8 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
+import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+
 public class AppHeader extends HorizontalLayout{
 	
 	
@@ -16,8 +18,10 @@ public class AppHeader extends HorizontalLayout{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private SecurityService sec;
 
-	public AppHeader(String pageTitle, RefreshableComponent comp) {
+	public AppHeader(String pageTitle, SecurityService securityService /*, RefreshableComponent comp*/) {
 		this.setClassName("header-theme");
         this.setMargin(false);
         this.setPadding(true);
@@ -29,12 +33,12 @@ public class AppHeader extends HorizontalLayout{
         firstPart.setPadding(true);
         firstPart.setSizeFull();
         firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text(pageTitle));
-
-        Button toggle = new Button("Refresh");
-        toggle.setClassName("med");
-        toggle.addClickListener(evt -> {
-            comp.refreshContent();
-        });
+        this.sec = securityService;
+//        Button toggle = new Button("Refresh");
+//        toggle.setClassName("med");
+//        toggle.addClickListener(evt -> {
+//            comp.refreshContent();
+//        });
 
         Button progress = new Button("Connector Progress");         
         progress.setClassName("med");
@@ -54,7 +58,14 @@ public class AppHeader extends HorizontalLayout{
         	UI.getCurrent().navigate("home");
         });
         
-        this.add(firstPart, home, progress, arl/*, toggle*/);
+        Button logout = new Button("Logout");
+        logout.setClassName("med");
+        logout.addClickListener(evt -> {
+        	sec.logout();
+        });
+        
+        
+        this.add(firstPart, home, progress, arl, logout/*, toggle*/);
         this.setJustifyContentMode(JustifyContentMode.BETWEEN);
 	}
 }

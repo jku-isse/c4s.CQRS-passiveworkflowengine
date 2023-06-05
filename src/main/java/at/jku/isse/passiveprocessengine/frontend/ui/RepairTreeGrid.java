@@ -39,6 +39,8 @@ import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +55,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	private int repairCount = 0;
 	private RepairTreeFilter rtf;
 	RequestDelegate reqDel;
+	ProcessInstance scope;
 	//private UsageMonitor usageMonitor;
 	
 	public RepairTreeGrid(UsageMonitor monitor, RepairTreeFilter rtf, RequestDelegate reqDel) {
@@ -97,7 +100,7 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
-			if (rootNode != null) {
+			if (rootNode != null && reqDel.doShowRestrictions(scope)) {
 				try {
 					String restriction = rootNode.printNodeTree(false);
 					return generateRestrictedRepair(ra, restriction);
@@ -275,7 +278,8 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 //		this.getDataProvider().refreshAll();
 //	}
 	
-	public void updateConditionTreeGrid(RepairNode rootNode) {
+	public void updateConditionTreeGrid(RepairNode rootNode, ProcessInstance scope) {
+		this.scope = scope;
 		rtf.filterRepairTree(rootNode);
 		repairCount = rootNode.getRepairActions().size();
 		if (repairCount == 0) {

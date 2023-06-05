@@ -34,6 +34,8 @@ import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.security.persistence.ProcessProxyRepository;
+import at.jku.isse.passiveprocessengine.frontend.security.persistence.RestrictionProxyRepository;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
@@ -77,7 +79,13 @@ public class RequestDelegate {
 	
 	@Autowired UsageMonitor monitor;
 	
+	@Autowired ProcessProxyRepository processACL;
+	
+	@Autowired RestrictionProxyRepository restrictionACL;
+	
+	
 	ProcessChangeListenerWrapper picp;
+	
 	
 	//Map<String, ProcessInstance> pInstances = new HashMap<>();
 	
@@ -166,11 +174,6 @@ public class RequestDelegate {
 //			errResp.stream().forEach(err -> ex.getErrorMessages().add(err.getError()));
 //			throw ex;
 //		}		
-	}
-	
-	private String generateProcessNamePostfix(Map<String, Instance> procInput) {
-		return procInput.entrySet().stream().map(entry ->ComponentUtils.generateDisplayNameForInstance(entry.getValue())).collect(Collectors.joining(",", "[", "]"));
-		//return procInput.entrySet().stream().map(entry -> entry.getKey()+":"+entry.getValue().name()).collect(Collectors.joining(" ,", "[", "]"));
 	}
 	
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {
@@ -270,14 +273,6 @@ public class RequestDelegate {
 		frontend.update(existingPI);
 	}
 	
-	private Set<InstanceType> getSubtypesRecursively(InstanceType type) {
-		Set<InstanceType> subTypes = type.subTypes(); 				
-        for (InstanceType subType : Set.copyOf(subTypes)) {
-            subTypes.addAll( getSubtypesRecursively(subType));
-        }
-        return subTypes;
-	}
-	
 	public void dumpDesignSpace() {
 		Optional<String> dumpOpt = ControlEventEngine.exportAsString();
 		if (dumpOpt.isPresent()) {
@@ -292,5 +287,16 @@ public class RequestDelegate {
 				log.error(ex.getMessage());
 			}
 		}
+	}
+	
+	public boolean doShowRestrictions(ProcessInstance proc) {
+		if (proc == null)
+			return true;
+		else
+			return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()));				
+	}
+	
+	public boolean doAllowProcessInstantiation(String procInputId) {
+		return processACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(procInputId));
 	}
 }

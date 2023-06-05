@@ -12,6 +12,7 @@ import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
@@ -58,8 +59,6 @@ import java.util.stream.Collectors;
 //@SpringComponent
 public class InstanceView extends VerticalLayout implements HasUrlParameter<String>, RefreshableComponent /*implements PageConfigurator*/ {
 
-    
-    @Autowired
     private RequestDelegate commandGateway;
 
     private Id id = null;
@@ -88,7 +87,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     }
     
     
-    public InstanceView(RequestDelegate commandGateway) {
+    public InstanceView(RequestDelegate commandGateway, SecurityService securityService) {
     	this.commandGateway = commandGateway;
         setSizeFull();
         setMargin(false);
@@ -110,7 +109,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 //        header.add(firstPart/*, toggle, shutdown*/);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Instance Overview", this);
+        AppHeader header = new AppHeader("Instance Overview", securityService);
         AppFooter footer = new AppFooter(commandGateway.getUIConfig());        
 
         add(

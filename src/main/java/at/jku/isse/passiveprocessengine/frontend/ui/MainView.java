@@ -59,6 +59,7 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
@@ -77,9 +78,9 @@ import lombok.extern.slf4j.Slf4j;
 //@SpringComponent
 public class MainView extends VerticalLayout implements HasUrlParameter<String>, RefreshableComponent  {
 
-    private boolean devMode = false;
+   // private boolean devMode = false;
    // public static final boolean anonymMode = false;
-    
+    	
     @Autowired
     private RequestDelegate commandGateway;
     @Autowired
@@ -128,14 +129,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
 //        settings.addLink("icons/favicon.ico", attributes);
 //    }
 
-    public MainView(RequestDelegate reqDel, IFrontendPusher pusher) {
+    public MainView(RequestDelegate reqDel, IFrontendPusher pusher, SecurityService securityService) {
     	 this.commandGateway = reqDel;
     	 this.pusher = pusher;
     	setSizeFull();
         setMargin(false);
         setPadding(false);
         
-        AppHeader header = new AppHeader("Process Dashboard", this);  
+        AppHeader header = new AppHeader("Process Dashboard", securityService);  
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
         add(
                 header,
@@ -379,19 +380,25 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         		});
         		// send command
         		if (count.get() == inputs.size()) {
-        			//inputs.keySet().stream().map(ai -> ai.get)
-        			String id = inputs.values().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
-        			Notification.show("Process Instantiation might take some time. UI will be updated automatically upon success.");
-        			new Thread(() -> { 
-        				try {
-        					commandGateway.instantiateProcess(id, inputs, processDefinition.getValue());
-        					this.getUI().get().access(() ->Notification.show("Success"));
-        				} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
-        					log.error("CommandExecutionException: " + e.getMessage());
-        					e.printStackTrace();
-        					this.getUI().get().access(() ->Notification.show("Creation failed! \r\n"+e.getMessage()));
-        				}
-        			} ).start();
+        			// FIXME: hack for ensuring only input that user is allowed to access can be used to instantiate a process:
+        			String artId = inputs.values().iterator().next().getId();
+        			if (!commandGateway.doAllowProcessInstantiation(artId)) {
+        				Notification.show("You are not authorized to access the artifact used as process input - unable to instantiate process.");
+        			} else {
+        				//inputs.keySet().stream().map(ai -> ai.get)
+        				String id = inputs.values().stream().map(ai -> ai.getId()).collect(Collectors.joining(""))+processDefinition.getValue(); //getNewId()
+        				Notification.show("Process Instantiation might take some time. UI will be updated automatically upon success.");
+        				new Thread(() -> { 
+        					try {
+        						commandGateway.instantiateProcess(id, inputs, processDefinition.getValue());
+        						this.getUI().get().access(() ->Notification.show("Success"));
+        					} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+        						log.error("CommandExecutionException: " + e.getMessage());
+        						e.printStackTrace();
+        						this.getUI().get().access(() ->Notification.show("Creation failed! \r\n"+e.getMessage()));
+        					}
+        				} ).start();
+        			}
         		} else {
         			Notification.show("Make sure to fill out all required artifact IDs!");
         		}
