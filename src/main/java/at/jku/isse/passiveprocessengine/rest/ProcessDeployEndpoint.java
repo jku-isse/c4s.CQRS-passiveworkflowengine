@@ -51,7 +51,7 @@ public class ProcessDeployEndpoint {
 					log.debug("Removing previous process definition: "+procD.getCode());
 					procReg.removeProcessDefinition(pd.getName());
 				});
-					SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD);
+					SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD, true);
 					if (pd.getValue().isEmpty())
 						return ResponseEntity.status(HttpStatus.OK)
 						.body("Successfully stored process "+procD.getCode());
