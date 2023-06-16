@@ -1,5 +1,8 @@
 package at.jku.isse.passiveprocessengine.frontend.security.persistence;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -25,5 +28,9 @@ public class ProcessProxy {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public List<String> tokenize() {
+		return Arrays.asList(name.split("::"));
 	}
 }

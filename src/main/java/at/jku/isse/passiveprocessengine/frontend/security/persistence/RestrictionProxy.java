@@ -12,6 +12,10 @@ import javax.persistence.Table;
 @Entity
 @Table(name="restrictionproxy")
 public class RestrictionProxy {
+
+	public static String RESTRICTION_SELECTOR = "_RESTRICTION";
+	public static String REPAIR_SELECTOR = "_REPAIR";
+	
 	@Id
 	@Column
 	private Integer id;

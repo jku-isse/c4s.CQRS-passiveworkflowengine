@@ -381,7 +381,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon = getStepIcon(wft);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().stepViewed(wft);
+        	reqDel.getMonitor().stepViewed(wft, authentication != null ? authentication.getName() : null);
         	dialog.open();	
         });
         //icon.getElement().setProperty("title", "Show more information about this process step");
@@ -465,35 +465,46 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			l.add(line);
     			//l.add(new Paragraph(arl));
     			
-    			if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-//    				HorizontalLayout h = new HorizontalLayout();
-//    				h.setWidthFull();
-//    				h.setMargin(false);
-//    				h.setPadding(false);
-    				try {
-    					RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-    					rtg.initTreeGrid();
-    					rtg.updateConditionTreeGrid(repairTree, pStep.getProcess());    					    					
-    					rtg.expandRecursively(repairTree.getChildren(), 3);
-    					rtg.setHeightByRows(true);
-    					rtg.setWidth("100%");
-    					
-    					//    				h.setClassName("const-margin");
+    			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
+    				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
+    					//    				HorizontalLayout h = new HorizontalLayout();
     					//    				h.setWidthFull();
-    					//    				h.add(rtg);
-    					//Details details = new Details("Repair Instructions", rtg);
-    					//details.setOpened(true);
-    					//rtg.setClassName("width80");
+    					//    				h.setMargin(false);
+    					//    				h.setPadding(false);
+    					try {
+    						RepairNode repairTree = RuleService.repairTree(crOpt.get());
+    						RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    						rtg.initTreeGrid();
+    						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+    						rtg.expandRecursively(repairTree.getChildren(), 3);
+    						rtg.setHeightByRows(true);
+    						rtg.setWidth("100%");
 
-    					l.add(rtg);
-    				} catch (RepairException e) {
-    					l.add(new Paragraph(e.getMessage()));
-    				}
-    			} 
+    						//    				h.setClassName("const-margin");
+    						//    				h.setWidthFull();
+    						//    				h.add(rtg);
+    						//Details details = new Details("Repair Instructions", rtg);
+    						//details.setOpened(true);
+    						//rtg.setClassName("width80");
+
+    						l.add(rtg);
+    					} catch (RepairException e) {
+    						l.add(new Paragraph(e.getMessage()));
+    					}
+    				} 
+    			}
     			
     		});
     	}
+    }
+    
+    public static ProcessInstance getTopMostProcess(ProcessStep step) {
+    	if (step.getProcess() != null)
+    		return getTopMostProcess(step.getProcess());
+    	else if (step instanceof ProcessInstance) {
+    		return (ProcessInstance) step;
+    	} else
+    		return null;
     }
     
     private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
@@ -665,23 +676,24 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         l.add(line);
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         
-        
-        if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
-        	try {
-        		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        		rtg.initTreeGrid();
-        		rtg.updateConditionTreeGrid(repairTree, rebc.getProcess());
-        		rtg.expandRecursively(repairTree.getChildren(), 3);
-        		rtg.setHeightByRows(true);
-        		l.add(rtg); 
-            } catch(Exception e) {
-            	TextArea resultArea = new TextArea();
-            	resultArea.setWidthFull();
-            	resultArea.setMinHeight("100px");
-            	resultArea.setLabel("Error evaluating Repairtree");
-            	resultArea.setValue(e.toString());
-            	l.add(resultArea);
+        if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
+        	if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
+        		try {
+        			RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+        			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+        			rtg.initTreeGrid();
+        			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
+        			rtg.expandRecursively(repairTree.getChildren(), 3);
+        			rtg.setHeightByRows(true);
+        			l.add(rtg); 
+        		} catch(Exception e) {
+        			TextArea resultArea = new TextArea();
+        			resultArea.setWidthFull();
+        			resultArea.setMinHeight("100px");
+        			resultArea.setLabel("Error evaluating Repairtree");
+        			resultArea.setValue(e.toString());
+        			l.add(resultArea);
+        		}
         	}
         }
         
@@ -692,7 +704,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon= getQAIcon(rebc);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().constraintedViewed(rebc);
+        	reqDel.getMonitor().constraintedViewed(rebc, authentication != null ? authentication.getName() : null);
         	dialog.open();	
         });
         icon.getElement().setProperty("title", "Show details");
@@ -748,8 +760,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
     public void removeWorkflow(String id) {
-        this.content.remove(id);
-        updateTreeGrid();
+        ProcessInstance removed = this.content.remove(id);
+        this.getDataProvider().refreshAll();
+        //updateTreeGrid();
     }
 
     private void updateTreeGrid() {

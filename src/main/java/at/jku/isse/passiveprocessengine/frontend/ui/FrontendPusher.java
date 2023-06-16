@@ -56,7 +56,8 @@ public class FrontendPusher implements IFrontendPusher {
 
     @Override
     public void remove(String wfiId) {
-        for (MainViewState state : views.values()) {
+    	processes.remove(wfiId);
+    	for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
          //   if (Duration.between(lastUpdate, Instant.now()).getNano() > 200000000) {
@@ -69,7 +70,7 @@ public class FrontendPusher implements IFrontendPusher {
                 }
         //    }
         }
-        processes.remove(wfiId);
+        
     }
 
 	@Override
