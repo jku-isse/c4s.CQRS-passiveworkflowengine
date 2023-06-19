@@ -405,6 +405,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         							if (auth != null && auth.getName() != null) {
         								pi.getInstance().addOwner(new User(auth.getName()));
         							}
+        							commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
         							this.getUI().get().access(() ->Notification.show("Success"));
         						} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
         							log.error("CommandExecutionException: " + e.getMessage());

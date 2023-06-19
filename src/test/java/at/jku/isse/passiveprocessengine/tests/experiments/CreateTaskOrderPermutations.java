@@ -27,10 +27,12 @@ class CreateTaskOrderPermutations {
 		
 		// for x participants above, 9 process inputs each
 		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
-		List<String> processInputIds = List.of("UserStudy1Prep/868", "UserStudy2Prep/881", "IO3", "IO4", "IO5", "IO6", "UserStudy1Prep/868", "UserStudy1Prep/868", "UserStudy1Prep/868");
+		List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
+				"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
+				"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
 
 		// and 9 processes types, representing the taskss		
-		List<String> processTypeIds = List.of("SystemRequirementsAnalysis", "Proc2", "Proc3");
+		List<String> processTypeIds = List.of("Task1", "Task2", "Task3");
 		
 		
 
@@ -62,7 +64,7 @@ class CreateTaskOrderPermutations {
 		sb.append(createAclObjIdentityTable(processTypeIds, processInputIds, participantIds));
 		sb.append("\r\n \r\n");
 		// and permutate tasks 1-9 within groups of three
-		initTestPermuations();
+		initTestPermuations(); //TODO: switch to regular permutation for 9 tasks
 		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds));
 		
 		return sb.toString();
@@ -94,6 +96,7 @@ class CreateTaskOrderPermutations {
 	}
 
 	public static void initTaskOrderPermuations() {				
+		// TODO: extend for 9 tasks!!!
 		permTask.add(List.of(2,0,1));
 		permTask.add(List.of(1,0,2));
 		permTask.add(List.of(2,1,0));		

@@ -9,26 +9,26 @@ INSERT INTO acl_sid (id, principal, sid) VALUES
 (1000, 0, 'ROLE_EDITOR');
  
 INSERT INTO processproxy(id,name) VALUES 
-(101, 'Proc2::SystemRequirementsAnalysis::Proc3'),
-(102, 'Proc3::Proc2::SystemRequirementsAnalysis'),
-(103, 'SystemRequirementsAnalysis::Proc2::Proc3'),
-(201, 'UserStudy1Prep/868'),
-(202, 'UserStudy2Prep/881'),
-(203, 'IO3'),
-(204, 'IO4'),
-(205, 'IO5'),
-(206, 'IO6'),
+(101, 'Task2::Task1::Task3'),
+(102, 'Task3::Task2::Task1'),
+(103, 'Task1::Task2::Task3'),
+(201, 'UserStudy1Prep/882'),
+(202, 'UserStudy1Prep/883'),
+(203, 'UserStudy1Prep/884'),
+(204, 'UserStudy1Prep/885'),
+(205, 'UserStudy1Prep/886'),
+(206, 'UserStudy1Prep/887'),
 (207, 'UserStudy1Prep/868'),
-(208, 'UserStudy1Prep/868'),
-(209, 'UserStudy1Prep/868');
+(208, 'UserStudy1Prep/888'),
+(209, 'UserStudy1Prep/889');
  
 INSERT INTO restrictionproxy(id,name) VALUES  
-(1, 'SystemRequirementsAnalysis_REPAIR'),
-(2, 'SystemRequirementsAnalysis_RESTRICTION'),
-(3, 'Proc2_REPAIR'),
-(4, 'Proc2_RESTRICTION'),
-(5, 'Proc3_REPAIR'),
-(6, 'Proc3_RESTRICTION');
+(1, 'Task1_REPAIR'),
+(2, 'Task1_RESTRICTION'),
+(3, 'Task2_REPAIR'),
+(4, 'Task2_RESTRICTION'),
+(5, 'Task3_REPAIR'),
+(6, 'Task3_RESTRICTION');
  
 INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES 
 (1, 2, 1, NULL, 1000, 0), 

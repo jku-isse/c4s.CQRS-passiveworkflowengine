@@ -311,7 +311,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         delIcon.getStyle().set("cursor", "pointer");
         delIcon.addClickListener(e -> {
             if (reqDel != null)
+            	reqDel.getMonitor().processDeleted(wfi, authentication != null ? authentication.getName() : null);
             	reqDel.deleteProcessInstance(wfi.getName());
+            	updateTreeGrid();
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
@@ -334,7 +336,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon = getStepIcon(wfi);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().processViewed(wfi);
+        	reqDel.getMonitor().processViewed(wfi, authentication != null ? authentication.getName() : null);
         	dialog.open(); });
         //icon.getElement().setProperty("title", "Show more information about this process instance");
         dialog.add(l);

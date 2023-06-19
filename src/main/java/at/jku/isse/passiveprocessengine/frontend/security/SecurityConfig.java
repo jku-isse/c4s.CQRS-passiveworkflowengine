@@ -69,7 +69,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
 	Random rand = new Random(654654l);	  	  	  
 	Set<UserDetails> users = new HashSet<>();
-	for (int i = 1; i <= 100; i++) {
+	for (int i = 1; i < 50; i++) {
 		String name = "P"+i;		
 		String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
 		users.add(User.withUsername(name)
@@ -87,7 +87,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   public void configure(WebSecurity web) {
     web.ignoring().antMatchers(
-        // Client-side JS
+        // webhook endpoints
+    	"/azure/**",
+    	"/jira/**",
+    	"/jama/**",
+    	"/ceps/**",	
+    	// Client-side JS
         "/VAADIN/**",
 
         // the standard favicon URI
