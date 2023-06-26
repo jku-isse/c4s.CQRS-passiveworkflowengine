@@ -114,7 +114,7 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(1);
 		return participantIds.stream()
 				.map(id -> String.format("(%s, 1, '%s')", counter.getAndIncrement(), id))
-				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n(1000, 0, 'ROLE_EDITOR');"));
+				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n(999, 1, 'dev'),\r\n(1000, 0, 'ROLE_EDITOR');"));
 	}
 	
 	/* 
@@ -124,7 +124,18 @@ class CreateTaskOrderPermutations {
 	public static String createProcessProxyTable(List<String> processInputIds, List<String> participantIds, List<String> processTypeIds) {
 		/* 	
 		for every participant also the order of the tasks/processes within each group is determined 
-		*/			
+		*/	
+		String pythonOutTypes = processTypeIds.stream().map(id -> "'"+id+"'").collect(Collectors.joining(", ", "procTypes = (", ")\r\n"));
+		System.out.println(pythonOutTypes);
+		
+		AtomicInteger counterPython = new AtomicInteger(1);
+		AtomicInteger permCounterPython = new AtomicInteger(1);
+		String pythonOut = participantIds.stream()
+				.map(id -> String.format(" \"P%s\": %s ", counterPython.getAndIncrement(), createPythonSequence(permCounterPython, processTypeIds)))
+				.collect(Collectors.joining("\r\n,", "taskorder = {", "}"));
+		System.out.println(pythonOut+"\r\n");
+		
+		
 		AtomicInteger counter = new AtomicInteger(101);
 		AtomicInteger permCounter = new AtomicInteger(1);
 		Stream<String> s1= participantIds.stream()
@@ -135,17 +146,24 @@ class CreateTaskOrderPermutations {
 		Stream<String> s2 = processInputIds.stream()
 				.map(id -> String.format("(%s, '%s')", counter1.getAndIncrement(), id));
 				
-		return Stream.concat(s1, s2).collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ";"));		
+		return Stream.concat(s1, s2).collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ",\r\n(9999, '*');"));		
 	}
 	
-
+	private static String createPythonSequence(AtomicInteger counterPerm, List<String> processTypeIds) {
+		List<Integer> selPerm = permTask.get(counterPerm.getAndIncrement()%permTask.size());
+		String pythonOut =  selPerm.stream()
+				.map(index -> processTypeIds.get(index))			
+				.collect(Collectors.joining("','","['","']"));		
+		return pythonOut;
+	}
+	
 	
 	private static String createSequence(AtomicInteger counterPerm, List<String> processTypeIds) {
 		// select permutation		
 		List<Integer> selPerm = permTask.get(counterPerm.getAndIncrement()%permTask.size());
-		assert(selPerm.size()==processTypeIds.size());
+		assert(selPerm.size()==processTypeIds.size());				
 		return selPerm.stream()
-			.map(index -> processTypeIds.get(index))
+			.map(index -> processTypeIds.get(index))			
 			.collect(Collectors.joining("::"));
 	}
 	
@@ -158,7 +176,7 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(1);
 		return processTypeIds.stream()
 				.map(id -> String.format("(%s, '%s_REPAIR'),\r\n(%s, '%s_RESTRICTION')", counter.getAndIncrement(), id, counter.getAndIncrement(), id))
-				.collect(Collectors.joining(",\r\n", RESTRICTIONPROXYHEADER, ";"));
+				.collect(Collectors.joining(",\r\n", RESTRICTIONPROXYHEADER, ",\r\n(9999, '*');"));
 	}
 		
 	public static final String ACL_OBJ_IDENTITY_HEADER = "INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES \r\n";
@@ -189,7 +207,8 @@ class CreateTaskOrderPermutations {
 				.map(id -> String.format("(%s, 1, %s, NULL, 1000, 0)", counterIds.getAndIncrement(), counterInput.getAndIncrement()))
 				.collect(Collectors.joining(",\r\n")));		
 		
-		content.append(";");
+		content.append("\r\n,(9998, 1, 9999, NULL, 1000, 0),\r\n"
+					+ "(9999, 2, 9999, NULL, 1000, 0);");
 		return content.toString();
 	}
 	
@@ -237,6 +256,17 @@ class CreateTaskOrderPermutations {
 		ace order (column 3) needs to count up from 1 to N (participants) per process type (1-9)   
 		we only need READ writes, hence right part of matrix consists only of four 1s 
 		*/
+		AtomicInteger counterPythonPerm = new AtomicInteger(0);		
+		String pythonOut = (participantIds.stream()
+				.map(pId -> { 
+					// select permutation
+					List<Integer> selPerm = perm.get(counterPythonPerm.getAndIncrement()%perm.size());															
+					return String.format(" \"%s\": %s ", pId, createPythonRepairPermutationEntry(selPerm, processTypeIds));
+				})
+				.collect(Collectors.joining(",\r\n", "repairPerm = {\r\n","}"))	
+				);
+		System.out.println("\r\n"+pythonOut);
+		
 		
 		AtomicInteger counterP2 = new AtomicInteger(1);
 		AtomicInteger counterPerm = new AtomicInteger(0);
@@ -249,7 +279,9 @@ class CreateTaskOrderPermutations {
 				})
 				.collect(Collectors.joining(",\r\n"))	
 				);
-		content.append(";");
+		content.append(",\r\n"
+				+ "(9998, 9998, 1, 999,     1, 1, 1, 1),\r\n"
+				+ "(9999, 9999, 1, 999,     1, 1, 1, 1);");
 		return content.toString();
 	}
 	
@@ -276,5 +308,29 @@ class CreateTaskOrderPermutations {
 		
 	}
 	
+	private static String createPythonRepairPermutationEntry(List<Integer> permutation, List<String> processTypeIds) {
+		AtomicInteger counterTypes = new AtomicInteger(0);		
+		return permutation.stream()				
+				.map(perm -> String.format(" \"%s\": \"T%s-R%s\" ", processTypeIds.get(counterTypes.get()), calcTaskGroup(counterTypes.getAndIncrement()) , perm))
+				.collect(Collectors.joining(",", "{", "}"));
+		
+		
+	}
 	
+	private static int calcTaskGroup(int counter) {
+		return Math.floorDiv(counter, 3)+1;		
+	}
+	
+	@Test
+	void testFloor() {
+		System.out.println(Math.floorDiv(0, 3));
+		System.out.println(Math.floorDiv(1, 3));
+		System.out.println(Math.floorDiv(2, 3));
+		System.out.println(Math.floorDiv(3, 3));
+		System.out.println(Math.floorDiv(4, 3));
+		System.out.println(Math.floorDiv(5, 3));
+		System.out.println(Math.floorDiv(6, 3));
+		System.out.println(Math.floorDiv(7, 3));
+		System.out.println(Math.floorDiv(8, 3));
+	}
 }

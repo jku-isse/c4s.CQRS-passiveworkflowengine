@@ -6,7 +6,9 @@ INSERT INTO acl_sid (id, principal, sid) VALUES
 (1, 1, 'P1'),
 (2, 1, 'P2'),
 (3, 1, 'P3'),
+(999, 1, 'dev'),
 (1000, 0, 'ROLE_EDITOR');
+
  
 INSERT INTO processproxy(id,name) VALUES 
 (101, 'Task2::Task1::Task3'),
@@ -20,7 +22,8 @@ INSERT INTO processproxy(id,name) VALUES
 (206, 'UserStudy1Prep/887'),
 (207, 'UserStudy1Prep/868'),
 (208, 'UserStudy1Prep/888'),
-(209, 'UserStudy1Prep/889');
+(209, 'UserStudy1Prep/889'),
+(9999, '*');
  
 INSERT INTO restrictionproxy(id,name) VALUES  
 (1, 'Task1_REPAIR'),
@@ -28,7 +31,8 @@ INSERT INTO restrictionproxy(id,name) VALUES
 (3, 'Task2_REPAIR'),
 (4, 'Task2_RESTRICTION'),
 (5, 'Task3_REPAIR'),
-(6, 'Task3_RESTRICTION');
+(6, 'Task3_RESTRICTION'),
+(9999, '*');
  
 INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES 
 (1, 2, 1, NULL, 1000, 0), 
@@ -48,7 +52,9 @@ INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent
 (206, 1, 206, NULL, 1000, 0),
 (207, 1, 207, NULL, 1000, 0),
 (208, 1, 208, NULL, 1000, 0),
-(209, 1, 209, NULL, 1000, 0);
+(209, 1, 209, NULL, 1000, 0),
+(9998, 1, 9999, NULL, 1000, 0),
+(9999, 2, 9999, NULL, 1000, 0);
  
 INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, granting, audit_success, audit_failure) VALUES 
 (1, 201, 1, 1,     1, 1, 1, 1),
@@ -71,4 +77,6 @@ INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, 
 (18, 5, 18, 2,     1, 1, 1, 1),
 (19, 1, 19, 3,     1, 1, 1, 1),
 (20, 3, 20, 3,     1, 1, 1, 1),
-(21, 4, 21, 3,     1, 1, 1, 1);
+(21, 4, 21, 3,     1, 1, 1, 1),
+(9998, 9998, 1, 999,     1, 1, 1, 1),
+(9999, 9999, 1, 999,     1, 1, 1, 1);

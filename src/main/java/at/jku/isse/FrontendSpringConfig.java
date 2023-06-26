@@ -111,9 +111,9 @@ public class FrontendSpringConfig {
     }
 	
     @Bean
-    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider) {
+    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
     	RepairNodeScorer scorer= new SortOnRepairPercentage();
-    	return new RepairAnalyzer(null,rs, scorer, tsProvider); // workspace will/must be injected in RequestDelegate    	
+    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor); // workspace will/must be injected in RequestDelegate    	
     }
 
 	

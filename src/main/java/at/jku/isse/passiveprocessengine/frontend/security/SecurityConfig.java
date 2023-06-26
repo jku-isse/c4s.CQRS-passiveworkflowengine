@@ -78,6 +78,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .build());		
 		System.out.println(String.format("Created user credentials %s : %s", name, pw));
     }
+	users.add(User.withUsername("dev")
+            .password("{noop}dev")
+            .roles("USER")
+            .build());	
     return new InMemoryUserDetailsManager(users);
   }
 
@@ -92,6 +96,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	"/jira/**",
     	"/jama/**",
     	"/ceps/**",	
+    	"/transform**",	
+    	"/deploySnapshot**",
+    	"/deploySnapshotFromXML**",
+    	"/processlogs/**",
+    	"/repairstatistics**",	
+    	"/qastatistics**",	
+    	
+    	
     	// Client-side JS
         "/VAADIN/**",
 

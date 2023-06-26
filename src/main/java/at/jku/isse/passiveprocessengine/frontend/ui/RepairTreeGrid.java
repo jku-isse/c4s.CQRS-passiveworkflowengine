@@ -234,17 +234,20 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		} else if (ra.getValue() instanceof InstanceType) {
 			return List.of(new Paragraph("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget((InstanceType) ra.getValue()));
 		} else {
-			if (ra.getValue()!=null)
-				return List.of(new Paragraph(ra.getValue().toString()));
-			else {
-				Instance subject = (Instance) ra.getElement();
-				if (subject.hasProperty(ra.getProperty())) {
-					PropertyType propT = subject.getProperty(ra.getProperty()).propertyType();
-					String propType = propT.referencedInstanceType().name();
-					return List.of(new Paragraph("some "+propType));
-				} else {
-					return List.of(new Paragraph("something"));
-				}
+			if (ra.getValue()!=null) {
+				if (ra.getValue()==UnknownRepairValue.UNKNOWN) {
+					Instance subject = (Instance) ra.getElement();
+					if (subject.hasProperty(ra.getProperty())) {
+						PropertyType propT = subject.getProperty(ra.getProperty()).propertyType();
+						String propType = propT.referencedInstanceType().name();
+						return List.of(new Paragraph("some suitable "+propType));
+					} else {
+						return List.of(new Paragraph("something suitable"));
+					}
+				} else
+					return List.of(new Paragraph(ra.getValue().toString()));
+			} else {
+				return List.of(new Paragraph("null"));
 			}
 		}
 	}

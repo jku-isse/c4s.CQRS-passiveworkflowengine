@@ -240,14 +240,17 @@ public class RequestDelegate {
 		procReg.inject(ws);
 		if (repAnalyzer != null)
 			repAnalyzer.inject(ws);
-		RuleService.setEvaluator(new ArlRuleEvaluator());
+		ArlRuleEvaluator arl = new ArlRuleEvaluator();
+		arl.registerListener(repAnalyzer);
+		RuleService.setEvaluator(arl);
 		RuleService.currentWorkspace = ws;		
+		
 		// load any persisted process instances
 		loadPersistedProcesses();		
 		picp = new ProcessChangeListenerWrapper(ws, frontend, resolver, eventDistributor);
 		WorkspaceListenerSequencer wsls = new WorkspaceListenerSequencer(ws);
-		if (repAnalyzer != null)
-			wsls.registerListener(repAnalyzer);
+		//if (repAnalyzer != null)
+		//	wsls.registerListener(repAnalyzer);
 		wsls.registerListener(picp);
 		isInitialized = true;
 	}
@@ -307,14 +310,19 @@ public class RequestDelegate {
 		if (proc == null)
 			return true;
 		else
-			return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.REPAIR_SELECTOR));				
+			return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.REPAIR_SELECTOR)
+																	|| proxy.getName().equalsIgnoreCase("*"));				
 	}
 	
 	public boolean doAllowProcessInstantiation(String procInputId) {
-		return processACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(procInputId));
+		return processACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(procInputId) 
+															|| proxy.getName().equalsIgnoreCase("*"));
 	}
 
 	public String isAllowedAsNextProc(String procDefId, String userId) {
+		if (processACL.findAll().stream().anyMatch(entry -> entry.getName().equalsIgnoreCase("*")))
+			return procDefId;
+
 		Optional<List<String>> orderOpt = processACL.findAll().stream()
 				.filter(entry -> entry.getName().contains("::"))
 				.map(entry -> entry.tokenize())
