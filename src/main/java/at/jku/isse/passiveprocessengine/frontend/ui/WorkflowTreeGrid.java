@@ -51,6 +51,9 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
 @CssImport(
@@ -73,6 +76,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private ProcessInstanceScopedElement focusedElement = null;
 //    private Map<String, String> propertiesFilter;
     private UIConfig conf;
+    private Authentication authentication;
 
     public WorkflowTreeGrid(RequestDelegate f) {
         this.reqDel = f;       
@@ -82,6 +86,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        propertiesFilter = new HashMap<>();
 //        propertiesFilter.put("", ""); // default filter
         this.conf = f.getUIConfig();
+        this.authentication = SecurityContextHolder.getContext().getAuthentication();
     }
     
     protected void injectRequestDelegate(RequestDelegate f) {
@@ -306,7 +311,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         delIcon.getStyle().set("cursor", "pointer");
         delIcon.addClickListener(e -> {
             if (reqDel != null)
+            	reqDel.getMonitor().processDeleted(wfi, authentication != null ? authentication.getName() : null);
             	reqDel.deleteProcessInstance(wfi.getName());
+            	updateTreeGrid();
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
@@ -329,7 +336,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon = getStepIcon(wfi);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().processViewed(wfi);
+        	reqDel.getMonitor().processViewed(wfi, authentication != null ? authentication.getName() : null);
         	dialog.open(); });
         //icon.getElement().setProperty("title", "Show more information about this process instance");
         dialog.add(l);
@@ -376,7 +383,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon = getStepIcon(wft);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().stepViewed(wft);
+        	reqDel.getMonitor().stepViewed(wft, authentication != null ? authentication.getName() : null);
         	dialog.open();	
         });
         //icon.getElement().setProperty("title", "Show more information about this process step");
@@ -460,35 +467,46 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			l.add(line);
     			//l.add(new Paragraph(arl));
     			
-    			if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-//    				HorizontalLayout h = new HorizontalLayout();
-//    				h.setWidthFull();
-//    				h.setMargin(false);
-//    				h.setPadding(false);
-    				try {
-    					RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    					RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-    					rtg.initTreeGrid();
-    					rtg.updateConditionTreeGrid(repairTree);    					    					
-    					rtg.expandRecursively(repairTree.getChildren(), 3);
-    					rtg.setHeightByRows(true);
-    					rtg.setWidth("100%");
-    					
-    					//    				h.setClassName("const-margin");
+    			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
+    				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
+    					//    				HorizontalLayout h = new HorizontalLayout();
     					//    				h.setWidthFull();
-    					//    				h.add(rtg);
-    					//Details details = new Details("Repair Instructions", rtg);
-    					//details.setOpened(true);
-    					//rtg.setClassName("width80");
+    					//    				h.setMargin(false);
+    					//    				h.setPadding(false);
+    					try {
+    						RepairNode repairTree = RuleService.repairTree(crOpt.get());
+    						RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    						rtg.initTreeGrid();
+    						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+    						rtg.expandRecursively(repairTree.getChildren(), 3);
+    						rtg.setHeightByRows(true);
+    						rtg.setWidth("100%");
 
-    					l.add(rtg);
-    				} catch (RepairException e) {
-    					l.add(new Paragraph(e.getMessage()));
-    				}
-    			} 
+    						//    				h.setClassName("const-margin");
+    						//    				h.setWidthFull();
+    						//    				h.add(rtg);
+    						//Details details = new Details("Repair Instructions", rtg);
+    						//details.setOpened(true);
+    						//rtg.setClassName("width80");
+
+    						l.add(rtg);
+    					} catch (RepairException e) {
+    						l.add(new Paragraph(e.getMessage()));
+    					}
+    				} 
+    			}
     			
     		});
     	}
+    }
+    
+    public static ProcessInstance getTopMostProcess(ProcessStep step) {
+    	if (step.getProcess() != null)
+    		return getTopMostProcess(step.getProcess());
+    	else if (step instanceof ProcessInstance) {
+    		return (ProcessInstance) step;
+    	} else
+    		return null;
     }
     
     private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
@@ -660,23 +678,24 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         l.add(line);
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         
-        
-        if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
-        	try {
-        		RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        		RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        		rtg.initTreeGrid();
-        		rtg.updateConditionTreeGrid(repairTree);
-        		rtg.expandRecursively(repairTree.getChildren(), 3);
-        		rtg.setHeightByRows(true);
-        		l.add(rtg); 
-            } catch(Exception e) {
-            	TextArea resultArea = new TextArea();
-            	resultArea.setWidthFull();
-            	resultArea.setMinHeight("100px");
-            	resultArea.setLabel("Error evaluating Repairtree");
-            	resultArea.setValue(e.toString());
-            	l.add(resultArea);
+        if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
+        	if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
+        		try {
+        			RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+        			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+        			rtg.initTreeGrid();
+        			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
+        			rtg.expandRecursively(repairTree.getChildren(), 3);
+        			rtg.setHeightByRows(true);
+        			l.add(rtg); 
+        		} catch(Exception e) {
+        			TextArea resultArea = new TextArea();
+        			resultArea.setWidthFull();
+        			resultArea.setMinHeight("100px");
+        			resultArea.setLabel("Error evaluating Repairtree");
+        			resultArea.setValue(e.toString());
+        			l.add(resultArea);
+        		}
         	}
         }
         
@@ -687,7 +706,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         Icon icon= getQAIcon(rebc);
         icon.getStyle().set("cursor", "pointer");
         icon.addClickListener(e -> { 
-        	reqDel.getMonitor().constraintedViewed(rebc);
+        	reqDel.getMonitor().constraintedViewed(rebc, authentication != null ? authentication.getName() : null);
         	dialog.open();	
         });
         icon.getElement().setProperty("title", "Show details");
@@ -743,26 +762,37 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
     public void removeWorkflow(String id) {
-        this.content.remove(id);
-        updateTreeGrid();
+        ProcessInstance removed = this.content.remove(id);
+        this.getDataProvider().refreshAll();
+        //updateTreeGrid();
     }
 
     private void updateTreeGrid() {
     	
         Predicate<ProcessInstance> predicate = wfi -> ( 
         		( nameFilter.equals("") 
-        		|| wfi.getDefinition().getName().startsWith(nameFilter) 
-        		|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
+        				|| wfi.getDefinition().getName().startsWith(nameFilter) 
+        			|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
         		&& 
         		( idFilter.equals("") 
-        		|| wfi.getInstance().id().toString().equals(idFilter)		
+        				|| wfi.getInstance().id().toString().equals(idFilter)		
         		)
         	);// &&
          //       ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
          //               .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
          //                       .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
+        if (SecurityContextHolder.getContext().getAuthentication() == null) // when called via PUSH
+        	SecurityContextHolder.getContext().setAuthentication(authentication);
+        Predicate<ProcessInstance> accessRight = wfi -> { 
+        		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
+        		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
+        		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+        		return authorized;
+        };
+        
         this.setItems(this.content.values().stream()
                         .filter(predicate)
+                        .filter(accessRight)
                         .map(x->x),
                 o -> {
                     if (o instanceof ProcessInstance) {

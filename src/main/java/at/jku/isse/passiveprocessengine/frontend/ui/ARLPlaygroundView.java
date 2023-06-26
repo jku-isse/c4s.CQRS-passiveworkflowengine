@@ -9,6 +9,7 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
+import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
@@ -52,14 +53,13 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
 
     protected AtomicInteger counter = new AtomicInteger(0);
     
-    @Autowired
     protected RequestDelegate commandGateway;
     
     private Set<ResultEntry> result = new HashSet<>();
     private ListDataProvider<ResultEntry> dataProvider = new ListDataProvider<>(result);
     
     
-    public ARLPlaygroundView(RequestDelegate commandGateway) {
+    public ARLPlaygroundView(RequestDelegate commandGateway, SecurityService securityService) {
     	this.commandGateway = commandGateway;
         setSizeFull();
         setMargin(false);
@@ -91,7 +91,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
 //        header.add(firstPart, toggle/*, shutdown*/);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Constraint Editor - OCL/ARL Playground", this);
+        AppHeader header = new AppHeader("Constraint Editor - OCL/ARL Playground", securityService);
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
 //        HorizontalLayout footer = new HorizontalLayout();
 //        footer.setClassName("footer-theme");
@@ -286,7 +286,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     			RepairNode repairTree = RuleService.repairTree(entry.getRuleInstance());
     			RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
     			rtg.initTreeGrid();
-    			rtg.updateConditionTreeGrid(repairTree);
+    			rtg.updateConditionTreeGrid(repairTree, null);
     			rtg.expandRecursively(repairTree.getChildren(), 3);
     			rtg.setHeightByRows(true);
     			dialog.add(rtg);

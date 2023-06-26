@@ -2,6 +2,7 @@ package at.jku.isse.passiveprocessengine.frontend.ui.monitoring;
 
 import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
@@ -46,9 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 //@SpringComponent
 public class GlobalProgressView extends VerticalLayout implements RefreshableComponent {
         
-	@Autowired
+
     protected RequestDelegate commandGateway;
-    @Autowired
 	protected ProgressPusher pusher;
     //private Grid<ProgressEntry> grid = new Grid<ProgressEntry>();
     Grid<ProgressEntry> grid;
@@ -71,7 +71,7 @@ public class GlobalProgressView extends VerticalLayout implements RefreshableCom
         pusher.remove(detachEvent.getUI().getUIId());
     }
         
-    public GlobalProgressView(RequestDelegate reqDel, ProgressPusher pusher) {
+    public GlobalProgressView(RequestDelegate reqDel, ProgressPusher pusher, SecurityService securityService) {
     	this.commandGateway = reqDel;
     	this.pusher = pusher;
         setSizeFull();
@@ -103,7 +103,7 @@ public class GlobalProgressView extends VerticalLayout implements RefreshableCom
 //        header.add(firstPart, toggle);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Connector Progress Overview", this);        
+        AppHeader header = new AppHeader("Connector Progress Overview", securityService);        
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
 
         add(
