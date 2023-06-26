@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
@@ -24,6 +26,7 @@ import at.jku.isse.passiveprocessengine.definition.ProcessDefinitionError;
 import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry.ProcessDeployResult;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import c4s.processdefinition.blockly2java.Transformer;
 import c4s.processdefinition.blockly2java.Xml2Java;
@@ -37,6 +40,11 @@ public class ProcessDeployEndpoint {
 
 	private static final JsonDefinitionSerializer serializer = new JsonDefinitionSerializer();
 
+	private static final Gson gson = new GsonBuilder()
+			 .registerTypeAdapterFactory(new at.jku.isse.passiveprocessengine.definition.serialization.TransformationResultAdapterFactory())
+			 .setPrettyPrinting()
+			 .create();
+	
 	@Autowired
 	ProcessRegistry procReg;
 
@@ -46,18 +54,21 @@ public class ProcessDeployEndpoint {
 			DTOs.Process procD = serializer.fromJson(json);
 
 			if (procD != null) {
-				Optional<ProcessDefinition> prevPD = procReg.getProcessDefinition(procD.getCode(), true);
-				prevPD.ifPresent(pd -> {
-					log.debug("Removing previous process definition: "+procD.getCode());
-					procReg.removeProcessDefinition(pd.getName());
-				});
-					SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD, true);
-					if (pd.getValue().isEmpty())
-						return ResponseEntity.status(HttpStatus.OK)
-						.body("Successfully stored process "+procD.getCode());
-					else
-						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-								.body(pd.getValue().toString());
+//				Optional<ProcessDefinition> prevPD = procReg.getProcessDefinition(procD.getCode(), true);
+//				prevPD.ifPresent(pd -> {
+//					log.debug("Removing previous process definition: "+procD.getCode());
+//					procReg.removeProcessDefinition(pd.getName());
+//				});
+				ProcessDeployResult result = procReg.createOrReplaceProcessDefinition(procD, true);				
+				//SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD, true);
+				//	if (pd.getValue().isEmpty())
+				if (result.getDefinitionErrors().isEmpty())
+					return ResponseEntity.status(HttpStatus.OK)
+						.body(gson.toJson(result));
+				else
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body(gson.toJson(result));
+								//.body(pd.getValue().toString());
 			}
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("Unable to process json");
