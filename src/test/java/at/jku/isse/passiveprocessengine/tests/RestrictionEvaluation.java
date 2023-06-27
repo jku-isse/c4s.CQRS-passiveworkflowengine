@@ -35,11 +35,13 @@ import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.model.ConsistencyRuleType;
 import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 
 @ExtendWith(SpringExtension.class)
@@ -75,10 +77,155 @@ public class RestrictionEvaluation {
 		//	RuleService.currentWorkspace = ws;
 		//	typeJira = TestArtifacts.getJiraInstanceType(ws);
 	}
+	
+	/* Assessing Requirement Approved Conditions
+	 * Requirement:  Users, including healthcare providers, administrators, and patients, should authenticate 
+	 * themselves before accessing the system or patient data.
+	 * Child Requirement: healthcare Provider authentication, administrator authentication, patient authentication
+	 * Priority: 4
+	 * Constraint: A requirement can only be approved if it's associated requirements are approved, test cases > 0 & bugs are closed, 
+	 * and change requests are released. 
+	 * Start: user loggs into azure devops services. The process is instantialized on REQ workitem req, which have 3 child requirements 
+	 * (2 in state approved & 1 in In progress), 0 test cases, 2 bugs (both in state active), 1 change request in state reviewed.
+	 * End: When participant declares to be done.
+	 * Success Criteria: After participant declares to be done the requirement 
+	*/ 
+	@Test 
+	void testGroup1_3() throws ProcessException
+	{
+		loadAll();
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		Instance azureIssue1 = artRes.get(new ArtifactIdentifier("UserStudy2Prep/911", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		InstanceType azureType=azureIssue.getInstanceType();
+		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"if self.workItemType='Requirement' then "
+				+ "self.childItems->select(c1: <"+azureType.getQualifiedName()+"> | c1.workItemType='Change Request')"
+						+ "->forAll(c101:<"+azureType.getQualifiedName()+"> | c101.project.toString().equalsIgnoreCase(self.project.toString()))"
+								+ "else true endif");
+		ws.concludeTransaction();
+		System.out.println(crt.getProperty("ruleError").toString());
+		System.out.println(azureIssue.getPropertyAsValue("project").toString().equalsIgnoreCase(azureIssue1.getPropertyAsValue("project").toString()));
+		// Instance-UserStudy2Prep{372}<InstanceType-project{206}>
+		// Instance-UserStudy2Prep{372}<InstanceType-project{206}>
+		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
+		{ 
+			RepairNode repairTree = RuleService.repairTree(cr);
+		});
+		RepairNode rnodeA = crt.consistencyRuleEvaluations().getValue().stream()
+				.filter(cr -> cr.contextInstance().equals(azureIssue))
+				.map(cr -> RuleService.repairTree(cr))
+				.findAny().get();		
+		if(rnodeA!=null)
+			printRepairActions(rnodeA);	
+	}
+	
+	@Test 
+	void testGroup1_2() throws ProcessException
+	{
+		loadAll();
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		InstanceType azureType=azureIssue.getInstanceType();
+		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"if self.workItemType='Requirement' then "
+						+"if self.state='Released' then "
+						+ "self.childItems->select(c1: <"+azureType.getQualifiedName()+"> | c1.workItemType='Change Request') "
+								+ "->forAll(c101:<"+azureType.getQualifiedName()+"> | c101.state='Released') and"
+										+ " self.testedbyItems->select(t1:<"+azureType.getQualifiedName()+"> | t1.workItemType='Test Case')"
+										+ "->forAll(t101: <"+azureType.getQualifiedName()+"> | t101.state='Closed') and"
+												+ " self.relatedItems->select(r1:<"+azureType.getQualifiedName()+"> |r1.workItemType='Risk')"
+														+ "->forAll(r101: <"+azureType.getQualifiedName()+">| r101.state='Closed')"
+												+ " else self.state<>'Released' endif else true endif");
+		ws.concludeTransaction();
+		System.out.println(crt.getProperty("ruleError").toString());
+		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
+		{ 
+			RepairNode repairTree = RuleService.repairTree(cr);
+		});
+		RepairNode rnodeA = crt.consistencyRuleEvaluations().getValue().stream()
+				.filter(cr -> cr.contextInstance().equals(azureIssue))
+				.map(cr -> RuleService.repairTree(cr))
+				.findAny().get();		
+		if(rnodeA!=null)
+			printRepairActions(rnodeA);	
+	}
+	
+	@Test 
+	void testGroup1_1() throws ProcessException
+	{
+		loadAll();
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		InstanceType azureType=azureIssue.getInstanceType();
+		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.name.contains(self.name))");
+		ws.concludeTransaction();
+		System.out.println(crt.getProperty("ruleError").toString());
+		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
+		{ 
+			RepairNode repairTree = RuleService.repairTree(cr);
+		});
+		RepairNode rnodeA = crt.consistencyRuleEvaluations().getValue().stream()
+				.filter(cr -> cr.contextInstance().equals(azureIssue))
+				.map(cr -> RuleService.repairTree(cr))
+				.findAny().get();		
+		if(rnodeA!=null)
+			printRepairActions(rnodeA);	
+	}
+	@Test 
+	void testGroup1() throws ProcessException
+	{
+		loadAll();
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		InstanceType azureType=azureIssue.getInstanceType();
+		/*ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				" if self.priority=4 "
+							+ "then self.testedbyItems.size()>3 and "
+							+ "self.testedbyItems->forAll(t1:<"+azureType.getQualifiedName()+"> | t1.priority<=self.priority) "
+							+ "else true endif");*/
+		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"if self.workItemType='Requirement' then"
+						+ " if self.priority=4 "
+							+ "then self.testedbyItems.size()>3 and "
+							+ "self.testedbyItems->forAll(t1:<"+azureType.getQualifiedName()+"> | t1.priority<=self.priority) "
+							+ "else if self.priority=3"
+							+ " then self.testedbyItems.size()>2 and "
+							+ "self.testedbyItems->forAll(t2:<"+azureType.getQualifiedName()+"> | t2.priority<=self.priority) "
+							+ " else if self.priority<=2 then"
+							+ " self.testedbyItems.size()>=1 and"
+							+ " self.testedbyItems->forAll(t3:<"+azureType.getQualifiedName()+"> | t3.priority<=self.priority) "
+							+ " else true endif endif endif else true endif");
+		ws.concludeTransaction();
+		System.out.println(crt.getProperty("ruleError").toString());
+		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
+		{ 
+			RepairNode repairTree = RuleService.repairTree(cr);
+		});
+		RepairNode rnodeA = crt.consistencyRuleEvaluations().getValue().stream()
+				.filter(cr -> cr.contextInstance().equals(azureIssue))
+				.map(cr -> RuleService.repairTree(cr))
+				.findAny().get();		
+		if(rnodeA!=null)
+			printRepairActions(rnodeA);	
+	}
+	void loadAll() throws ProcessException
+	{
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/907", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/908", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/909", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/910", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/911", "azure_workitem"));
+		
+	}
+	
+	
 	// Further List of Possible constraints
-	// TODO: Constraint: Test cases should be associated with the same requirement as their parent work items.
+	//TODO: Constraint: Test cases should be associated with the same requirement as their parent work items. X
 	//TODO: Constraint: Bugs should only be assigned to team members who are responsible for the related requirement.
 	//TODO: Change requests should only be linked to requirements that belong to the same project and have a higher priority.
+	//Description, Start Condition, Success Condition
 	@Test
 	void testExperimentTask503() throws ProcessException
 	{
@@ -243,17 +390,22 @@ public class RestrictionEvaluation {
 			printRepairActions(rnodeA);	
 	}
 
+	//TODO: Check for restrictions.
 	// Could be warm up task.
 	@Test
 	void testExperimentTask0() throws ProcessException
 	{
-		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/893", "azure_workitem"));
+		Instance azureIssue2 =artRes.get(new ArtifactIdentifier("UserStudy2Prep/911", "azure_workitem"));
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
 		InstanceType azureType=azureIssue.getInstanceType();
-		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("UserStudy2Prep/893"));
+		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("UserStudy2Prep/906"));
 		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
-		System.out.println(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE));
+		System.out.println(azureIssue.getPropertyAsValue(AzureBaseElementType.NAME));
+		System.out.println(azureIssue2.getPropertyAsValue(AzureBaseElementType.NAME));
 		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
 				"self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.name.contains(self.name))");
+		/*ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"self.childItems -> select(child: <"+azureType.getQualifiedName()+"> | child.name.contains(self.name)).size()=self.childItems.size()");*/
 		ws.concludeTransaction();
 		System.out.println(crt.getProperty("ruleError").toString());
 		Collection<ConsistencyRule> prop1=crt.consistencyRuleEvaluations().getValue();
@@ -283,6 +435,8 @@ public class RestrictionEvaluation {
 		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("UserStudy2Prep/901"));
 		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 		System.out.println(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE));
+		// related item state check missing.
+		// features or bugs as well. change requests.
 		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
 				"self.testsItems -> forAll(par: <"+azureType.getQualifiedName()+"> | par.relatedItems.size()>1 or par.state='Work in Progress')");
 		ws.concludeTransaction();
@@ -312,7 +466,7 @@ public class RestrictionEvaluation {
 		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 		System.out.println(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE));
 		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
-				"self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.testedbyItems.size()>1 and "
+				"self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.testedbyItems.size()>0 and "
 						+ "child.testedbyItems -> forAll(test: <"+azureType.getQualifiedName()+"> | test.state='Draft'))");
 		ws.concludeTransaction();
 		System.out.println(crt.getProperty("ruleError").toString());
@@ -400,6 +554,7 @@ public class RestrictionEvaluation {
 
 
 
+	// 3 test cases but 2 req 1 would not be linked.
 	//Test Cases
 	// For system authentication requirement there should be at least 3 child requirements with at least one test case associated.
 	@Test
@@ -411,7 +566,7 @@ public class RestrictionEvaluation {
 		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 		System.out.println(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE));
 		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
-				"self.childItems.size()>3 and self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.testedbyItems.size()>1)");
+				"self.childItems.size()>2 and self.childItems -> forAll(child: <"+azureType.getQualifiedName()+"> | child.testedbyItems.size()>1)");
 		ws.concludeTransaction();
 		System.out.println(crt.getProperty("ruleError").toString());
 		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
