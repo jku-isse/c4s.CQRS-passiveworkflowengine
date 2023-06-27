@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -25,9 +26,11 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
+import at.jku.isse.designspace.rule.arl.exception.ChangeExecutionException;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.AlternativeRepairNode;
 import at.jku.isse.designspace.rule.arl.repair.Operator;
+import at.jku.isse.designspace.rule.arl.repair.Repair;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -45,7 +48,7 @@ import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RepairTreeGrid extends TreeGrid<RepairNode>{
+public class RepairTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengine.frontend.ui.RepairTreeGrid.WrappedRepairNode>{
 
 	/**
 	 * 
@@ -67,16 +70,16 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 	
 	public void initTreeGrid() {
         this.addComponentHierarchyColumn(o -> {
-           if (o instanceof DummyRepairNode) {
+           if (o.getRepairNode() instanceof DummyRepairNode) {
         	   Span span = new Span("Insufficient Input or Output.");
         	   return span;
-           }else if (o instanceof ConstraintWrapper) {
-                ConstraintWrapper rebc = (ConstraintWrapper) o;
+           }else if (o.getRepairNode() instanceof ConstraintWrapper) {
+                ConstraintWrapper rebc = (ConstraintWrapper) o.getRepairNode();
                 Span span = new Span(rebc.getQaSpec().getHumanReadableDescription());
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
-            } else if (o instanceof RepairNode) {
-            	RepairNode rn = (RepairNode) o;  	
+            } else if (o.getRepairNode() instanceof RepairNode) {
+            	RepairNode rn = (RepairNode) o.getRepairNode();  	
             	HorizontalLayout hl = new HorizontalLayout();
             	//Span span = new Span();
             	nodeToDescription(rn).stream().forEach(comp -> hl.add(comp));
@@ -289,11 +292,11 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 			rootNode.getChildren().add(new DummyRepairNode(null));
 		} 
 		this.setItems(rootNode.getChildren().stream()
-                .map(x->x),
+                .map(x->new WrappedRepairNode(x)),
         o -> {
-            if (o instanceof RepairNode) { 
-            	RepairNode rn = (RepairNode) o;
-            	return rn.getChildren().stream().map(x -> (RepairNode)x);
+        	if (o instanceof WrappedRepairNode) { 
+            	WrappedRepairNode rn = (WrappedRepairNode) o;
+            	return rn.getRepairNode().getChildren().stream().map(x -> new WrappedRepairNode(x));
             } else {
                 log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                 return Stream.empty();
@@ -302,12 +305,24 @@ public class RepairTreeGrid extends TreeGrid<RepairNode>{
 		this.getDataProvider().refreshAll();
 	}
 	
+	private static java.util.Random random = new java.util.Random();
 	
 	private static class DummyRepairNode extends SequenceRepairNode {
-
+		long rand;		
 		public DummyRepairNode(RepairNode parent) {
 			super(parent);
+			rand = random.nextLong(); // to avoid duplicate grid entry error
 		}
-		
+	}
+	
+	public static class WrappedRepairNode {
+		RepairNode wrapped = null;
+		public WrappedRepairNode(RepairNode wrapped) {
+			assert (wrapped != null);
+			this.wrapped = wrapped;
+		}
+		public RepairNode getRepairNode() {
+			return wrapped;
+		}
 	}
 }

@@ -478,7 +478,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     						RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
     						rtg.initTreeGrid();
     						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
-    						rtg.expandRecursively(repairTree.getChildren(), 3);
+    						//rtg.expandRecursively(repairTree.getChildren(), 3);
     						rtg.setHeightByRows(true);
     						rtg.setWidth("100%");
 
@@ -685,7 +685,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
         			rtg.initTreeGrid();
         			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
-        			rtg.expandRecursively(repairTree.getChildren(), 3);
+        		//	rtg.expandRecursively(repairTree.getChildren(), 3);
         			rtg.setHeightByRows(true);
         			l.add(rtg); 
         		} catch(Exception e) {

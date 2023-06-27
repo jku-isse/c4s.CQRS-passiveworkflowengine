@@ -287,7 +287,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     			RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
     			rtg.initTreeGrid();
     			rtg.updateConditionTreeGrid(repairTree, null);
-    			rtg.expandRecursively(repairTree.getChildren(), 3);
+    			//rtg.expandRecursively(repairTree.getChildren(), 3);
     			rtg.setHeightByRows(true);
     			dialog.add(rtg);
     			dialog.open();
