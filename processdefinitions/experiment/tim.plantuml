@@ -1,0 +1,30 @@
+@startuml
+
+skin rose
+
+title Traceability Information Model
+
+together{
+[Change Request] as cr
+[Issue] as issue
+}
+[Requirement] as req
+[Test Case] as tc
+[Bug] as bug
+[Review] as revreq
+[Review] as revtc
+[ReviewFinding] as finding
+
+
+cr -left- req : successor >
+req - tc : testedby >
+tc - bug : tests >
+req - bug : affectedby >
+cr -down- bug : successor >
+req -down- revreq : successor >
+revreq -down- finding : successor >
+tc -down- revtc : successor >
+cr -down- issue : parent <
+req - issue : predecessor >
+
+@enduml
