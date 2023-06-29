@@ -1,0 +1,102 @@
+@startuml
+
+allowmixing
+
+skin rose
+
+title PPE Core - Class Diagram
+
+package "DesignSpace Core" {
+	class Workspace {
+		commit()
+	}
+	
+	abstract class Service {
+		handleUpdates() // adds additional operations
+	}
+	
+	Workspace::commit --> Service::handleUpdates : notify about operations
+	
+}
+
+package "PPE Data Modeling" {
+	
+	
+	metaclass "StepDefinition" <<InstanceType>>  {
+
+	}
+	
+	metaclass "ProcessDefinition" <<InstanceType>>  {
+
+	} 
+	
+	"StepDefinition" <|-- ProcessDefinition
+	
+	metaclass "ProcessInstance" <<InstanceType>>  {
+		ProcessDefinition definition
+	}
+	
+	metaclass "ProcessStep" <<InstanceType>>  {
+		StepDefinition stepDefinition
+	}
+	
+	metaclass "SpecificProcessStep" <<InstanceType>> {
+		
+	}
+	
+	"SpecificProcessStep" -up-|> "ProcessStep"
+	
+	"ProcessInstance" -up-|> "SpecificProcessStep"
+	
+	
+	ProcessInstance::definition -up-> ProcessDefinition
+	ProcessStep::stepDefinition -up-> StepDefinition
+	
+	class ProcessRegistry {
+		deployDefinition(definitionDTO)
+		instantiateProcess(definition, processInput)
+	}
+	
+	class DefinitionTransformer {
+		ProcessDefinition fromDTO(dto)
+		ProcessDTO toDTO(processDefinition)
+	
+	}
+	
+	DefinitionTransformer::fromDTO -up-> ProcessInstance : generate
+	DefinitionTransformer::fromDTO -up-> ProcessDefinition : instantiate
+	ProcessRegistry::instantiateProcess -up-> ProcessInstance : create instance of
+}
+
+
+cloud "SerializedProcessDefinition"  {
+	component [FileSystemLoader]
+	component [ProcessEditor (via REST endpoint)]
+	component [Stages (via REST endpoint and transformer)]
+
+}
+
+SerializedProcessDefinition --> ProcessRegistry::deployDefinition
+ProcessRegistry::instantiateProcess --> Workspace::commit : signal instances created
+
+
+package "PPE Tracking" {
+
+	Workspace::commit --> ProcessInstanceChangeProcessor::handleUpdated
+
+	class ProcessInstanceChangeProcessor <<WorkspaceListener>> {
+		handleUpdated(Collection<Operation> operations)
+	 // filters out changes to the outcome of preconditions, post conditions, QA constraints, 
+	 // changes to step input and step output
+	}
+
+}
+
+
+
+
+
+
+
+
+@enduml

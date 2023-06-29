@@ -1,0 +1,52 @@
+@startuml
+
+skin rose
+
+title "Process Instantiation - Sequence Diagram"
+
+box "Frontend"
+actor "Web UI" as UI
+control "Request Delegate" as Del
+control "Artifact Resolver" as Art
+control "Bootstrapper" as boot
+end box
+
+control "Azure Connector" as azure
+
+box "PPE Core"
+control "Process Registry" as Reg
+
+entity "ProcessInstance <<Instance>>" as pInst
+end box
+database "DesignSpace" as DS
+
+boot -> boot : obtain all tool connector services
+loop for all connectors
+boot -> Art : register artifact identifier types
+end
+
+UI ->  Del : get all valid definitions
+Del -> Reg  
+Reg -> Del 
+Del -> UI : process definitions <<Instance>>
+UI -> Del : init process with input ids
+Del -> Art : resolve input ids to artifact <<Instance>>
+Art -> azure : fetch work item
+azure -> Art : return from origin or from cache
+Art -> Del : artifact instance <<Instance>>
+Del -> Reg : init process with input instance(s)
+Reg -> pInst ** : create from ProcessDefinition <<Instance>>
+Reg -> Reg : ensure input complete and compatible
+Reg -> pInst: add input artifacts
+alt success
+	Reg -> DS : concludeTransaction
+	Reg -> Del : return ProcessInstance
+else errors
+	Reg -> pInst : delete
+	Reg -> DS : concludeTransaction
+	Reg -> Del : return errors
+end
+Del -> UI : return response
+
+
+@enduml

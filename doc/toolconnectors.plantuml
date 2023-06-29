@@ -1,0 +1,80 @@
+
+@startuml
+
+allowmixing
+
+skin rose
+
+title ToolConnector - Class Diagram
+
+package "ToolConnector Core" {
+	interface IArtifactProvider {
+		InstanceType getArtifactInstanceType()  // returns the default type
+		Set<InstanceType> getArtifactInstanceTypes(); // returns all supported types
+		Map<InstanceType, List<String>> getSupportedIdentifier(); // returns for each supported instance type the various supported identifiers
+	.....
+	 // identifierType needs to be globally unique across all supported types to identify connector and also which artifact type to return.
+    
+	}
+	
+	interface  IResponder{
+	ServiceResponse getServiceResponse(String id, String identifierType) 
+	ServiceResponse getServiceResponse(String id, String identifierType, boolean doForceRefetch) 
+  ServiceResponse[] getServiceResponse(Set<String> ids, String identifierType)
+  ServiceResponse[] getServiceResponse(Set<String> ids, String identifierType, boolean doForceRefetch)
+	// service response just identifies id of instance if successful
+	}
+	
+	metaclass "BaseElementType Artifact" <<InstanceType>>  {
+		id
+		key
+		html_url
+		fullyFetched
+	} 
+	
+	IResponder -[hidden]-> IArtifactProvider
+}
+
+
+package "Azure" {
+	class AzureService {
+
+	}
+	
+	metaclass AzureWorkItem<<InstanceType>> {
+		priority
+		description
+		state
+		successorItems
+		predecessorItems
+		...
+	}
+	
+	AzureService -right-> AzureWorkItem : defines
+	
+	class UpdateWebHook {
+		pushUpdate() 
+	}
+	
+	cloud AzureCloud
+	AzureCloud --> UpdateWebHook : REST call
+	
+}
+
+IResponder <|-- AzureService
+IArtifactProvider <|-- AzureService
+"BaseElementType Artifact" <|-- AzureWorkItem
+
+
+
+package "DesignSpace Core" {
+	class Workspace {
+		commit()
+	}
+}
+
+Workspace::commit <-- UpdateWebHook::pushUpdate
+
+
+
+@enduml

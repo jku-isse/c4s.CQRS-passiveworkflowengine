@@ -1,0 +1,48 @@
+@startuml
+
+skin rose
+
+title Process Guidance Framework - Dependency Diagram (managed via Maven)
+
+package "DesignSpace" {
+component [DesignSpace.Core] as core
+component [DesignSpace.Interface] as intf
+component [DesignSpace.Rule] as rule
+}
+
+package "PPE" {
+component [PPE.Core] as ppe 
+component [PPE.UI] as ui
+component [Transformation.Stages] as stages
+}
+
+package "Tool Connectors" {
+component [ToolConnector.Core] as tool 
+component [ToolConnector.Azure] as azure 
+component [ToolConnector.Git] as git 
+component [ToolConnector.Jira] as jira
+}
+
+
+intf -up-> core
+rule -up-> core
+rule -up-> intf
+
+tool -up-> core
+azure -up-> tool
+git -up-> tool
+jira -up-> tool
+
+ppe -up-> core
+ppe -up-> rule
+
+stages -up-> ppe
+stages -up-> azure
+
+ui -up-> ppe
+ui -up-> azure
+ui -up-> jira
+ui -up-> git
+ui -up-> stages
+
+@enduml

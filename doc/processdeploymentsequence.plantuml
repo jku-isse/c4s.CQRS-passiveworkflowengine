@@ -1,0 +1,57 @@
+@startuml
+
+skin rose
+
+title "Process Definition Deployment - Sequence Diagram"
+
+actor "Process Editor" as UI
+actor "REST" as REST
+boundary "FileSystemLoader" as File
+control "Process Registry" as Reg
+control "DefinitionTransformer" as Def 
+entity "ProcessDefinition\n<<Instance>>" as pdef
+entity "SpecificProcessDefinition\n<<InstanceType>>" as pdef2
+entity "SpecificProcessStep\n<<InstanceType>>" as sdef
+control "RuleAugmentation" as aug
+database "DesignSpace" as ds
+
+alt standard user case
+UI -> Reg
+else via stages
+REST -> Reg
+else upon PPE bootup
+File -> Reg
+end
+
+Reg -> Def : stage process definition (ProcessDefinitionDTO)
+Def -> pdef : create instance of ProcessDefinition
+Def -> ds : check all used instance types available
+Def -> Reg : staged process definition
+Reg -> pdef : initializeInstanceTypes
+pdef -> pdef2 : define instance type 
+loop over all step definitions
+pdef -> sdef : define instance type
+alt "step is a subprocess"
+	pdef -> pdef : initializeInstanceTypes
+end
+pdef -> pdef : check process structure
+pdef -> ds : concludeTransaction
+pdef -> aug : augment process rules
+pdef -> pdef : ensure all rules are valid
+end
+
+
+pdef -> Reg : definition errors
+alt successful
+Reg -> Reg : collect input to current process instances (if any)
+Reg -> Reg : delete existing process instances (if any)
+Reg -> Def : (same as above)
+Reg -> Reg : redeploy preexisting process instances (where possible)
+[<- Reg : deploy result response
+else errors
+[<- Reg : deploy errors response
+end
+
+
+
+@enduml

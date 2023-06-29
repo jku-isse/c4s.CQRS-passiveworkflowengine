@@ -4,27 +4,36 @@ skin rose
 
 title Traceability Information Model
 
-together{
-[Change Request] as cr
-[Issue] as issue
-}
-[Requirement] as req
-[Test Case] as tc
-[Bug] as bug
-[Review] as revreq
-[Review] as revtc
-[ReviewFinding] as finding
+
+Class "Change Request" as cr
+Class "Issue" as issue
+
+Class "Requirement" as req
+Class "Test Case" as tc
+Class "Bug" as bug
+Class "Review" as revreq
+Class "Review" as revtc
+Class "ReviewFinding" as finding
 
 
-cr -left- req : successor >
-req - tc : testedby >
-tc - bug : tests >
+cr -[#blue]left- req : successor >
+req -[#green]down- tc : testedby >
+tc -[#green]right- bug : tests >
 req - bug : affectedby >
-cr -down- bug : successor >
-req -down- revreq : successor >
-revreq -down- finding : successor >
-tc -down- revtc : successor >
-cr -down- issue : parent <
-req - issue : predecessor >
+cr -[#blue]down- tc : successor >
+cr -[#blue]down- bug : successor >
+req -[#blue]down- revreq : successor >
+revreq -[#blue]down- finding : successor >
+tc -[#blue]down- revtc : successor >
+cr -[#purple]down- issue : parent <
+issue -[#blue]- req : successor <
+
+note as N0
+Trace links are bidirectional:
+<color:blue>- successor/predecessor</color>
+<color:green>- testedby/tests</color>
+<color:red>- affectedby/affects</color>
+<color:purple>- parent/child</color>
+end note
 
 @enduml

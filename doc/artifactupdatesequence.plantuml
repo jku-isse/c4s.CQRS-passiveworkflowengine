@@ -1,0 +1,77 @@
+@startuml
+
+skin rose
+
+title "Process Constraint Evaluation - Sequence Diagram"
+
+actor "Engineer" as user
+boundary "Azure Devops Services" as web
+control "Azure Connector" as azure
+database "DesignSpace" as DS
+control "Rule Service" as rule
+
+box "PPE Core"
+control "ProcessInstanceChangeProcessor" as listener
+entity "ProcessStep" as step
+control "InputOutputMapper" as iomapper
+entity "DecisionNode" as dni
+end box
+
+box "Frontend"
+control "ProcessChangeListenerWrapper \n extends ProcessInstanceChangeProcessor" as listener2
+control "Artifact Resolver" as Art
+control "Update Pusher" as pusher
+boundary "Web UI" as UI
+end box
+actor "Engineer" as user2
+
+user -> web : update work item
+web -> azure : push change via webhook
+azure -> azure : update instance
+azure -> DS : concludeTransaction
+DS -> rule : send operations to all services
+rule -> rule : identify affected rule instances and reevaluate
+rule -> DS : added operations to transaction
+DS -> listener : notify all listeners
+
+loop for all changes to constraints and changes to step input and output
+listener -> step : calculate effective impact
+step -> listener : change impact
+end 
+
+listener -> listener : prepare impact execution
+listener --> listener2 : <extended behavior>
+alt for artifacts used in rule that are not fully fetched
+listener2 -> Art : fetch lazy loaded artifacts
+Art -> azure : fetch
+azure -> web : fetch from origin
+azure -> azure : same as update instance ...
+else
+listener -> listener : sort impacts by severity
+loop for each impact
+listener -> step : execute impact
+
+alt step input change
+step -> iomapper : ensure output consistent with input
+iomapper -> step : add/remove from output (via repair operation on Instance directly)
+else pre/post/QA conditions changed
+step -> step : update expected and actual state
+step -> dni : notify on state update
+dni -> dni : determine downstream step activation etc.
+else output changed
+step -> dni : notify on output changed
+dni -> dni : determine artifact propagation
+dni -> step : update input of downstream steps where necessary
+end
+
+end
+listener -> DS : concludeTransaction
+DS -> rule : send operations to all services etc.
+
+listener --> listener2 : <extended behavior>
+listener2 -> pusher : changed process instances
+pusher -> UI : push process instance
+UI -> user2 : observe changes
+
+
+@enduml

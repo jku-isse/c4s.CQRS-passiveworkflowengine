@@ -17,8 +17,34 @@ import org.junit.jupiter.api.Test;
 
 class CreateTaskOrderPermutations {
 
+	
 	@Test
 	void createACLDataTableContent() {
+
+		// for participants 1 to 30
+		List<String> participantIds = IntStream.range(1, 2)
+                .mapToObj(x -> "P"+x)
+                .collect(Collectors.toList()); 
+		
+		// for x participants above, 9 process inputs each
+		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
+		//List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
+		//		"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
+		//		"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
+		List<String> processInputIds = List.of("P1-UserStudy2/988", "P1-UserStudy2/989", "P1-UserStudy2/990", "P1-UserStudy2/991", "P1-UserStudy2/992", "P1-UserStudy2/993", "P1-UserStudy2/994", "P1-UserStudy2/995", "P1-UserStudy2/996");
+		
+		// and 9 processes types, representing the taskss		
+		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
+		
+		
+
+		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds));
+		
+	}
+
+	
+	@Test
+	void createTestACLDataTableContent() {
 
 		// for participants 1 to 30
 		List<String> participantIds = IntStream.range(1, 4)
@@ -64,7 +90,7 @@ class CreateTaskOrderPermutations {
 		sb.append(createAclObjIdentityTable(processTypeIds, processInputIds, participantIds));
 		sb.append("\r\n \r\n");
 		// and permutate tasks 1-9 within groups of three
-		initTestPermuations(); //TODO: switch to regular permutation for 9 tasks
+		initPermuations(); // switch to regular permutation for 9 tasks
 		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds));
 		
 		return sb.toString();
@@ -96,13 +122,13 @@ class CreateTaskOrderPermutations {
 	}
 
 	public static void initTaskOrderPermuations() {				
-		// TODO: extend for 9 tasks!!!
-		permTask.add(List.of(2,0,1));
-		permTask.add(List.of(1,0,2));
-		permTask.add(List.of(2,1,0));		
-		permTask.add(List.of(0,1,2));
-		permTask.add(List.of(0,2,1));
-		permTask.add(List.of(1,2,0));
+		// extended for 9 tasks
+		permTask.add(List.of(2,0,1,5,3,4,8,6,7));
+		permTask.add(List.of(1,0,2,4,3,5,7,6,8));
+		permTask.add(List.of(2,1,0,5,4,3,8,7,6));		
+		permTask.add(List.of(0,1,2,3,4,5,6,7,8));
+		permTask.add(List.of(0,2,1,3,5,4,6,8,7));
+		permTask.add(List.of(1,2,0,4,5,3,7,8,6));
 
 	}
 	
