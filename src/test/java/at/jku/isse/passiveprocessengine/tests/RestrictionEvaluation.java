@@ -65,7 +65,27 @@ public class RestrictionEvaluation {
 
 	static Workspace ws;
 
-
+	void loadAll() throws ProcessException
+	{
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/907", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/908", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/909", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/910", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/911", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/917", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/918", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/919", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/920", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/921", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/922", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/923", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/924", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/925", "azure_workitem"));
+		artRes.get(new ArtifactIdentifier("UserStudy2Prep/926", "azure_workitem"));
+		
+		
+	}
 	@BeforeEach
 	void setup() throws Exception {
 		//RuleService.setEvaluator(new ArlRuleEvaluator());
@@ -90,6 +110,34 @@ public class RestrictionEvaluation {
 	 * End: When participant declares to be done.
 	 * Success Criteria: After participant declares to be done the requirement 
 	*/ 
+	
+	@Test 
+	void testGroup1114() throws ProcessException
+	{
+		loadAll();
+		Instance azureIssue = artRes.get(new ArtifactIdentifier("UserStudy2Prep/920", "azure_workitem"));
+		InstanceType azureType=azureIssue.getInstanceType();
+		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
+				"self.affectedbyItems->select(item: <"+azureType.getQualifiedName()+"> | item.workItemType='Bug')"
+						+ "->forAll(bug: <"+azureType.getQualifiedName()+"> | bug.testedbyItems->intersection("
+								+ "self.testedbyItems-> select(item3: <"+azureType.getQualifiedName()+"> | item3.workItemType='Test Case')"
+										+ "-> collect(tc: <"+azureType.getQualifiedName()+"> | tc.testsItems) ->"
+												+ "select(item2: <"+azureType.getQualifiedName()+"> | item2.workItemType='Bug') ) -> size()>0 )");
+		ws.concludeTransaction();
+		System.out.println(crt.getProperty("ruleError").toString());
+		System.out.println(crt.toString().substring(69,150));
+		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
+		{ 
+			RepairNode repairTree = RuleService.repairTree(cr);
+		});
+		RepairNode rnodeA = crt.consistencyRuleEvaluations().getValue().stream()
+				.filter(cr -> cr.contextInstance().equals(azureIssue))
+				.map(cr -> RuleService.repairTree(cr))
+				.findAny().get();		
+		if(rnodeA!=null)
+			printRepairActions(rnodeA);	
+	}
+	
 	@Test 
 	void testGroup1_3() throws ProcessException
 	{
@@ -101,13 +149,10 @@ public class RestrictionEvaluation {
 		ConsistencyRuleType crt = ConsistencyRuleType.create(ws, azureType, "crd_TranverseTest", 
 				"if self.workItemType='Requirement' then "
 				+ "self.childItems->select(c1: <"+azureType.getQualifiedName()+"> | c1.workItemType='Change Request')"
-						+ "->forAll(c101:<"+azureType.getQualifiedName()+"> | c101.project.toString().equalsIgnoreCase(self.project.toString()))"
+						+ "->forAll(c101:<"+azureType.getQualifiedName()+"> | c101.project.name<>self.project.name)"
 								+ "else true endif");
 		ws.concludeTransaction();
 		System.out.println(crt.getProperty("ruleError").toString());
-		System.out.println(azureIssue.getPropertyAsValue("project").toString().equalsIgnoreCase(azureIssue1.getPropertyAsValue("project").toString()));
-		// Instance-UserStudy2Prep{372}<InstanceType-project{206}>
-		// Instance-UserStudy2Prep{372}<InstanceType-project{206}>
 		crt.consistencyRuleEvaluations().getValue().forEach(cr -> 
 		{ 
 			RepairNode repairTree = RuleService.repairTree(cr);
@@ -209,16 +254,7 @@ public class RestrictionEvaluation {
 		if(rnodeA!=null)
 			printRepairActions(rnodeA);	
 	}
-	void loadAll() throws ProcessException
-	{
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/906", "azure_workitem"));
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/907", "azure_workitem"));
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/908", "azure_workitem"));
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/909", "azure_workitem"));
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/910", "azure_workitem"));
-		artRes.get(new ArtifactIdentifier("UserStudy2Prep/911", "azure_workitem"));
-		
-	}
+	
 	
 	
 	// Further List of Possible constraints

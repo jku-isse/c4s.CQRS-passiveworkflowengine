@@ -300,7 +300,8 @@ public class RequestDelegate {
 			return true;
 		else {
 			//if (doShowRepairs(proc)) // shortcut, as we only show repairtree when repairs are enabled, we dont need to check here again	
-				return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.RESTRICTION_SELECTOR));
+				return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.RESTRICTION_SELECTOR)
+																		|| proxy.getName().equalsIgnoreCase("*"));
 			//else
 			//	return false;
 		}
