@@ -131,7 +131,7 @@
                     <field name="description">Ensure that each requirement trace to maximally one change request that is not in state 'Closed".</field>
                     <value name="constraint">
                       <block type="constraint" id="iR$^ELL1uAp24zcl`y8Z">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.predecessorItems&#10;    -&gt;select(pre | pre.workItemType='CR' &#10;                   and pre.state &lt;&gt; 'Released')&#10;    -&gt;size() &lt; 2&#10;)</field>
+                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.predecessorItems&#10;    -&gt;select(pre | pre.workItemType='Change Request'   and pre.state &lt;&gt; 'Released')&#10;    -&gt;size() &lt; 2&#10;)</field>
                       </block>
                     </value>
                   </block>

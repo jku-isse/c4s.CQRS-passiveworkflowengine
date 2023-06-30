@@ -22,7 +22,7 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.predecessorItems\n    -\u003eselect(pre | pre.workItemType\u003d\u0027CR\u0027 \n                   and pre.state \u003c\u003e \u0027Released\u0027)\n    -\u003esize() \u003c 2\n)",
+          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.predecessorItems\n    -\u003eselect(pre | pre.workItemType\u003d\u0027Change Request\u0027   and pre.state \u003c\u003e \u0027Released\u0027)\n    -\u003esize() \u003c 2\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "REQtoCR",

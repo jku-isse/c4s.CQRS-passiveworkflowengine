@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">AssessingReqIssueTraceability</field>
+                <field name="StepId">AssessingTraceability</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
-                    <field name="qacheckId">ReqIssueParentTraceability</field>
-                    <field name="description">Ensure all requirements that are referenced in an Active subissue, have the same predecessor as the subissue's parent.</field>
+                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
+                    <field name="qacheckId">BugAndTestCasesTraceabiltiyToReq</field>
+                    <field name="description">Ensure that all Test Cases that are testing Bugs have link to the Change Request and also linked to the same set of requirements.</field>
                     <value name="constraint">
-                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;       req2.predecessorItems&#10;     -&gt;select(item3 | item3.workItemType='Change Request' &#10;               and item3.state&lt;&gt;'Released')&#10;     -&gt;intersection(&#10;   req2.successorItems&#10;   -&gt;select(item2 | item2.workItemType='Issue'&#10;          and item2.state='Active' )&#10;   -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; ) )&#10;   )-&gt;size() &gt; 0&#10;)</field>
+                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
+                        <field name="arlRule">self.out_TCs&#10;-&gt;select(tc | tc.testsItems&#10;    -&gt;exists(item | item.workItemType='Bug'&#10;             and &#10;        item.predecessorItems&#10;        -&gt;intersection(self.in_CRs).size() &gt; 0           &#10;))&#10;-&gt;forAll(tc2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           tc2.testsItems&#10;    -&gt;select(item2 | item2.workItemType='Bug')&#10;           -&gt;asList()-&gt;first()&#10;          -&gt;asType(&#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;     .affectsItems&#10;    -&gt;select(item3 | &#10;                item3.workItemType='Requirement')&#10;    -&gt;intersection(tc2.testsItems &#10;         -&gt;select(item4 | &#10;                item4.workItemType='Requirement')&#10;       )-&gt;size() &gt; 0&#10;)</field>
                       </block>
                     </value>
                   </block>
