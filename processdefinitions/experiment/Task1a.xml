@@ -6,7 +6,7 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">ProcessTaskA3</field>
+    <field name="NAME">Task1a</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">AssessingReqIssueTraceability</field>
+                <field name="StepId">BugReqTrace</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,25 +38,25 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
-                    <field name="State">PRECONDITION</field>
+                  <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                    <field name="State">POSTCONDITION</field>
                     <value name="condition">
-                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
-                        <field name="arlRule">self.out_REQs-&gt;exists(req|req.predecessorItems.size()&gt;0)</field>
+                      <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Active')</field>
                       </block>
                     </value>
                   </block>
                 </statement>
                 <statement name="Datamappings">
-                  <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
+                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
                     <field name="mappingId">REQs</field>
                     <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
                     <next>
-                      <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
+                      <block type="datamapping" id="IAXyBKMo5{yF(HGU6tNG">
                         <field name="mappingId">TCs</field>
                         <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
                         <next>
-                          <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
+                          <block type="datamapping" id="VZjM`~Jg9vN~/l$X/wM(">
                             <field name="mappingId">Bugs</field>
                             <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
                           </block>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
-                    <field name="qacheckId">ReqIssueParentTraceability</field>
-                    <field name="description">Ensure all requirements that are referenced in an Active subissue, have the same predecessor as the subissue's parent.</field>
+                  <block type="qacheck" id="c@{G]5_;a=PxS.H-}Vtg">
+                    <field name="qacheckId">BugsToREQ</field>
+                    <field name="description">Ensure that all bugs trace to at least one requirement that is not in status 'Released'..</field>
                     <value name="constraint">
-                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;       req2.predecessorItems&#10;     -&gt;select(item3 | item3.workItemType='Change Request' &#10;               and item3.state&lt;&gt;'Released')&#10;     -&gt;intersection(&#10;   req2.successorItems&#10;   -&gt;select(item2 | item2.workItemType='Issue'&#10;          and item2.state='Active' )&#10;   -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; ) )&#10;   )-&gt;size() &gt; 0&#10;)</field>
+                      <block type="constraint" id="h}u$vR/hc}Z:oVk/EsZ0">
+                        <field name="arlRule">self.out_Bugs-&gt;forAll(bug | bug.affectedbyItems&#10;-&gt;exists(item | item.workItemType = 'Requirement'&#10;              and item.state &lt;&gt; 'Released')&#10;)</field>
                       </block>
                     </value>
                   </block>
