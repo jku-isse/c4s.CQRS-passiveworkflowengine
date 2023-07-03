@@ -1,0 +1,70 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "1",
+      "input": {
+        "CRs": "azure_workitem"
+      },
+      "output": {
+        "Bugs": "azure_workitem",
+        "REQs": "azure_workitem"
+      },
+      "ioMapping": {
+        "Bugs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.workItemType\u003d\u0027Bug\u0027)",
+        "REQs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.workItemType\u003d\u0027Requirement\u0027)"
+      },
+      "conditions": {
+        "PRECONDITION": "self.in_CRs-\u003esize() \u003e 0",
+        "POSTCONDITION": "self.in_CRs-\u003eforAll(cr | cr.state\u003d\u0027Released\u0027)"
+      },
+      "qaConstraints": [
+        {
+          "arlRule": "self.out_REQs\n-\u003e select(req | req.state\u003d\u0027Reviewed\u0027)\n-\u003e forAll(req2:  \u003croot/types/azure/azure_workitem\u003e| req2.affectedbyItems\n-\u003eselect(bug: \u003croot/types/azure/azure_workitem\u003e  | bug.workItemType\u003d\u0027Bug\u0027)\n-\u003eexists(bug2:\u003croot/types/azure/azure_workitem\u003e|bug2.state\u003d\u0027Closed\u0027)\n)",
+          "specOrderIndex": 0,
+          "_type": "QAConstraint",
+          "code": "ClosedReqToBugState",
+          "description": "Ensure that all requirements in state \u0027reviewed\u0027 have at least one bug in state closed."
+        }
+      ],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "AssessingBugStates"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "AND",
+      "mapping": [
+        {
+          "fromStep": "_TaskWarmup",
+          "fromParam": "CRs",
+          "toStep": "AssessingBugStates",
+          "toParam": "CRs"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "1"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "CRs": "azure_workitem"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "_TaskWarmup"
+}

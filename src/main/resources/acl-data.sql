@@ -9,17 +9,17 @@ INSERT INTO acl_sid (id, principal, sid) VALUES
 (1000, 0, 'ROLE_EDITOR');
  
 INSERT INTO processproxy(id,name) VALUES 
-(101, '_Warmup::Task1b::Task1a::Task1c::Task2b::Task2a::Task2c::Task3b::Task3a::Task3c'),
-(201, 'P1-UserStudy2/988'),
-(202, 'P1-UserStudy2/989'),
-(203, 'P1-UserStudy2/990'),
-(204, 'P1-UserStudy2/991'),
-(205, 'P1-UserStudy2/992'),
-(206, 'P1-UserStudy2/993'),
-(207, 'P1-UserStudy2/994'),
-(208, 'P1-UserStudy2/995'),
-(209, 'P1-UserStudy2/996'),
-(210, 'P1-UserStudy2/988'),
+(101, '_TaskWarmup::Task1b::Task1a::Task1c::Task2b::Task2a::Task2c::Task3b::Task3a::Task3c'),
+(201, 'TestExperiment/2691'),
+(202, 'TestExperiment/2717'),
+(203, 'TestExperiment/2761'),
+(204, 'TestExperiment/2785'),
+(205, 'TestExperiment/2811'),
+(206, 'TestExperiment/2855'),
+(207, 'TestExperiment/2879'),
+(208, 'TestExperiment/2905'),
+(209, 'TestExperiment/2951'),
+(210, 'TestExperiment/2977'),
 (9999, '*');
  
 INSERT INTO restrictionproxy(id,name) VALUES  
@@ -41,8 +41,8 @@ INSERT INTO restrictionproxy(id,name) VALUES
 (16, 'Task3b_RESTRICTION'),
 (17, 'Task3c_REPAIR'),
 (18, 'Task3c_RESTRICTION'),
-(19, '_Warmup_REPAIR'),
-(20, '_Warmup_RESTRICTION'),
+(19, '_TaskWarmup_REPAIR'),
+(20, '_TaskWarmup_RESTRICTION'),
 (9997, '+'),
 (9998, '*');
  
