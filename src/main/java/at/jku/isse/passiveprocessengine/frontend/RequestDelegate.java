@@ -312,7 +312,8 @@ public class RequestDelegate {
 			return true;
 		else
 			return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.REPAIR_SELECTOR)
-																	|| proxy.getName().equalsIgnoreCase("*"));				
+																	|| proxy.getName().equalsIgnoreCase("*") 
+																	|| proxy.getName().equalsIgnoreCase("+"));				
 	}
 	
 	public boolean doAllowProcessInstantiation(String procInputId) {

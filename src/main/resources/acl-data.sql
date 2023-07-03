@@ -4,11 +4,12 @@ INSERT INTO acl_class (id, class) VALUES
  
 INSERT INTO acl_sid (id, principal, sid) VALUES 
 (1, 1, 'P1'),
+(990, 1, 'repaironly'),
 (999, 1, 'dev'),
 (1000, 0, 'ROLE_EDITOR');
  
 INSERT INTO processproxy(id,name) VALUES 
-(101, 'Task1b::Task1a::Task1c::Task2b::Task2a::Task2c::Task3b::Task3a::Task3c'),
+(101, '_Warmup::Task1b::Task1a::Task1c::Task2b::Task2a::Task2c::Task3b::Task3a::Task3c'),
 (201, 'P1-UserStudy2/988'),
 (202, 'P1-UserStudy2/989'),
 (203, 'P1-UserStudy2/990'),
@@ -18,6 +19,7 @@ INSERT INTO processproxy(id,name) VALUES
 (207, 'P1-UserStudy2/994'),
 (208, 'P1-UserStudy2/995'),
 (209, 'P1-UserStudy2/996'),
+(210, 'P1-UserStudy2/988'),
 (9999, '*');
  
 INSERT INTO restrictionproxy(id,name) VALUES  
@@ -39,7 +41,10 @@ INSERT INTO restrictionproxy(id,name) VALUES
 (16, 'Task3b_RESTRICTION'),
 (17, 'Task3c_REPAIR'),
 (18, 'Task3c_RESTRICTION'),
-(9999, '*');
+(19, '_Warmup_REPAIR'),
+(20, '_Warmup_RESTRICTION'),
+(9997, '+'),
+(9998, '*');
  
 INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES 
 (1, 2, 1, NULL, 1000, 0), 
@@ -60,6 +65,8 @@ INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent
 (16, 2, 16, NULL, 1000, 0),
 (17, 2, 17, NULL, 1000, 0), 
 (18, 2, 18, NULL, 1000, 0),
+(19, 2, 19, NULL, 1000, 0), 
+(20, 2, 20, NULL, 1000, 0),
 (101, 1, 101, NULL, 1000, 0),
 (201, 1, 201, NULL, 1000, 0),
 (202, 1, 202, NULL, 1000, 0),
@@ -69,9 +76,11 @@ INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent
 (206, 1, 206, NULL, 1000, 0),
 (207, 1, 207, NULL, 1000, 0),
 (208, 1, 208, NULL, 1000, 0),
-(209, 1, 209, NULL, 1000, 0)
-,(9998, 1, 9999, NULL, 1000, 0),
-(9999, 2, 9999, NULL, 1000, 0);
+(209, 1, 209, NULL, 1000, 0),
+(210, 1, 210, NULL, 1000, 0),
+(9997, 2, 9997, NULL, 1000, 0),
+(9998, 2, 9998, NULL, 1000, 0),
+(9999, 1, 9999, NULL, 1000, 0);
  
 INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, granting, audit_success, audit_failure) VALUES 
 (1, 201, 1, 1,     1, 1, 1, 1),
@@ -83,15 +92,20 @@ INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, 
 (7, 207, 1, 1,     1, 1, 1, 1),
 (8, 208, 1, 1,     1, 1, 1, 1),
 (9, 209, 1, 1,     1, 1, 1, 1),
-(10, 101, 10, 1,     1, 1, 1, 1),
-(11, 3, 11, 1,     1, 1, 1, 1),
-(12, 5, 12, 1,     1, 1, 1, 1),
-(13, 6, 13, 1,     1, 1, 1, 1),
-(14, 9, 14, 1,     1, 1, 1, 1),
-(15, 11, 15, 1,     1, 1, 1, 1),
-(16, 12, 16, 1,     1, 1, 1, 1),
-(17, 15, 17, 1,     1, 1, 1, 1),
-(18, 17, 18, 1,     1, 1, 1, 1),
-(19, 18, 19, 1,     1, 1, 1, 1),
+(10, 210, 1, 1,     1, 1, 1, 1),
+(11, 101, 11, 1,     1, 1, 1, 1),
+(14, 5, 14, 1,     1, 1, 1, 1),
+(15, 7, 15, 1,     1, 1, 1, 1),
+(16, 8, 16, 1,     1, 1, 1, 1),
+(17, 11, 17, 1,     1, 1, 1, 1),
+(18, 13, 18, 1,     1, 1, 1, 1),
+(19, 14, 19, 1,     1, 1, 1, 1),
+(20, 17, 20, 1,     1, 1, 1, 1),
+(21, 19, 21, 1,     1, 1, 1, 1),
+(22, 20, 22, 1,     1, 1, 1, 1),
+(12, 1, 12, 1,     1, 1, 1, 1),
+(13, 2, 13, 1,     1, 1, 1, 1),
+(9996, 9999, 1, 990,     1, 1, 1, 1),
+(9997, 9997, 1, 990,     1, 1, 1, 1),
 (9998, 9998, 1, 999,     1, 1, 1, 1),
-(9999, 9999, 1, 999,     1, 1, 1, 1);
+(9999, 9999, 2, 999,     1, 1, 1, 1);

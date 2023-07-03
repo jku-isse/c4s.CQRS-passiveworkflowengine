@@ -82,6 +82,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .password("{noop}dev")
             .roles("USER")
             .build());	
+	users.add(User.withUsername("repaironly")
+            .password("{noop}repaironly")
+            .roles("USER")
+            .build());
+	
+	
     return new InMemoryUserDetailsManager(users);
   }
 

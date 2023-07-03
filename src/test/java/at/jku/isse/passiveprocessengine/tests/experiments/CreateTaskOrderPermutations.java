@@ -144,7 +144,7 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(1);
 		return participantIds.stream()
 				.map(id -> String.format("(%s, 1, '%s')", counter.getAndIncrement(), id))
-				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n(999, 1, 'dev'),\r\n(1000, 0, 'ROLE_EDITOR');"));
+				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n(990, 1, 'repaironly'),\r\n(999, 1, 'dev'),\r\n(1000, 0, 'ROLE_EDITOR');"));
 	}
 	
 	/* 
@@ -178,7 +178,7 @@ class CreateTaskOrderPermutations {
 		Stream<String> s2 = allInputs.stream()
 				.map(id -> String.format("(%s, '%s')", counter1.getAndIncrement(), id));
 				
-		return Stream.concat(s1, s2).collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ",\r\n(9999, '*');"));		
+		return Stream.concat(s1, s2).collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ",\r\n(9999, '*');"));	
 	}
 	
 	private static String createPythonSequence(AtomicInteger counterPerm, List<String> processTypeIds) {
@@ -211,7 +211,8 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(1);
 		return allTypes.stream()
 				.map(id -> String.format("(%s, '%s_REPAIR'),\r\n(%s, '%s_RESTRICTION')", counter.getAndIncrement(), id, counter.getAndIncrement(), id))
-				.collect(Collectors.joining(",\r\n", RESTRICTIONPROXYHEADER, ",\r\n(9999, '*');"));
+				.collect(Collectors.joining(",\r\n", RESTRICTIONPROXYHEADER, ",\r\n(9997, '+'),\r\n(9998, '*');"));
+		// 																			9990 just repairs, 9999 repairs and restrictions
 	}
 		
 	public static final String ACL_OBJ_IDENTITY_HEADER = "INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES \r\n";
@@ -242,15 +243,17 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counterInput = new AtomicInteger(201);
 		content.append(processInputIds.stream()
 				.map(id -> String.format("(%s, 1, %s, NULL, 1000, 0)", counterIds.getAndIncrement(), counterInput.getAndIncrement()))
-				.collect(Collectors.joining(",\r\n")));		
+				.collect(Collectors.joining(",\r\n")));	
+		content.append(",\r\n");
 		// entries for each warmup input
 		content.append(warmupInputIds.stream()
 				.map(id -> String.format("(%s, 1, %s, NULL, 1000, 0)", counterIds.getAndIncrement(), counterInput.getAndIncrement()))
 				.collect(Collectors.joining(",\r\n")));		
+		content.append(",\r\n");
 		
-		
-		content.append("\r\n,(9998, 1, 9999, NULL, 1000, 0),\r\n"
-					+ "(9999, 2, 9999, NULL, 1000, 0);");
+		content.append("(9997, 2, 9997, NULL, 1000, 0),"
+				+ "\r\n(9998, 2, 9998, NULL, 1000, 0),\r\n"
+					+ "(9999, 1, 9999, NULL, 1000, 0);");
 		return content.toString();
 	}
 	
@@ -326,8 +329,10 @@ class CreateTaskOrderPermutations {
 				.collect(Collectors.joining(",\r\n"))	
 				);
 		content.append(",\r\n"
-				+ "(9998, 9998, 1, 999,     1, 1, 1, 1),\r\n"
-				+ "(9999, 9999, 1, 999,     1, 1, 1, 1);");
+				+ "(9996, 9999, 1, 990,     1, 1, 1, 1),\r\n" // only repairs for user :repaironly
+				+ "(9997, 9997, 1, 990,     1, 1, 1, 1),\r\n" // all processes for user: repaironly
+				+ "(9998, 9998, 1, 999,     1, 1, 1, 1),\r\n" //restrictions and repairs for user: dev
+				+ "(9999, 9999, 2, 999,     1, 1, 1, 1);");    // all process for user : dev
 		return content.toString();
 	}
 	
