@@ -32,13 +32,14 @@ class CreateTaskOrderPermutations {
 		//		"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
 		//		"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
 		List<String> processInputIds = List.of("P1-UserStudy2/988", "P1-UserStudy2/989", "P1-UserStudy2/990", "P1-UserStudy2/991", "P1-UserStudy2/992", "P1-UserStudy2/993", "P1-UserStudy2/994", "P1-UserStudy2/995", "P1-UserStudy2/996");
+		List<String> warmupInputs = List.of("P1-UserStudy2/988");
 		
 		// and 9 processes types, representing the taskss		
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
 		
 		
 
-		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds));
+		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds, warmupInputs, "_Warmup"));
 		
 	}
 
@@ -47,7 +48,7 @@ class CreateTaskOrderPermutations {
 	void createTestACLDataTableContent() {
 
 		// for participants 1 to 30
-		List<String> participantIds = IntStream.range(1, 4)
+		List<String> participantIds = IntStream.range(1, 2)
                 .mapToObj(x -> "P"+x)
                 .collect(Collectors.toList()); 
 		
@@ -58,16 +59,19 @@ class CreateTaskOrderPermutations {
 				"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
 
 		// and 9 processes types, representing the taskss		
-		List<String> processTypeIds = List.of("Task1", "Task2", "Task3");
-		
+		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
+		String warmupTask = "_WarmupTest";
+		List<String> warmupInputs = List.of("UserStudy1Prep/8800");
 		
 
-		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds));
+		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds, warmupInputs, warmupTask));
 		
 	}
 
-	public static String createTableContent(List<String> processInputIds, List<String> processTypeIds, List<String> participantIds) {
+	public static String createTableContent(List<String> processInputIds, List<String> processTypeIds, List<String> participantIds, List<String> warmupInputs, String warmupTask) {
 		// we need for every participant and task we need one dedicated input.
+		assert(participantIds.size()==warmupInputs.size());
+		
 		assert((participantIds.size()*processTypeIds.size())==processInputIds.size());
 		// we dont support more than 49 processTypes/experimentTasks
 		assert(processTypeIds.size() < 50);
@@ -83,15 +87,15 @@ class CreateTaskOrderPermutations {
 		sb.append(createParticipantsTable(participantIds));
 		sb.append("\r\n \r\n");
 		initTaskOrderPermuations();
-		sb.append(createProcessProxyTable(processInputIds, participantIds, processTypeIds));						
+		sb.append(createProcessProxyTable(processInputIds, participantIds, processTypeIds, warmupTask, warmupInputs));						
 		sb.append("\r\n \r\n");
-		sb.append(createRestrictionProxyTable(processTypeIds));
+		sb.append(createRestrictionProxyTable(processTypeIds, warmupTask));
 		sb.append("\r\n \r\n");
-		sb.append(createAclObjIdentityTable(processTypeIds, processInputIds, participantIds));
+		sb.append(createAclObjIdentityTable(processTypeIds, processInputIds, participantIds, warmupInputs, warmupTask));
 		sb.append("\r\n \r\n");
 		// and permutate tasks 1-9 within groups of three
 		initPermuations(); // switch to regular permutation for 9 tasks
-		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds));
+		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds, warmupInputs, warmupTask));
 		
 		return sb.toString();
 	}
@@ -147,7 +151,7 @@ class CreateTaskOrderPermutations {
 	every process instance, respectively the input artifact is listed here, one for each task X participant	
 	*/
 	public static final String PROCESSPROXYHEADER = "INSERT INTO processproxy(id,name) VALUES \r\n";			
-	public static String createProcessProxyTable(List<String> processInputIds, List<String> participantIds, List<String> processTypeIds) {
+	public static String createProcessProxyTable(List<String> processInputIds, List<String> participantIds, List<String> processTypeIds, String warmupTask, List<String> warmupInputs) {
 		/* 	
 		for every participant also the order of the tasks/processes within each group is determined 
 		*/	
@@ -165,11 +169,13 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(101);
 		AtomicInteger permCounter = new AtomicInteger(1);
 		Stream<String> s1= participantIds.stream()
-				.map(id -> String.format("(%s, '%s')", counter.getAndIncrement(), createSequence(permCounter, processTypeIds)));
+				.map(id -> String.format("(%s, '%s')", counter.getAndIncrement(), createSequence(permCounter, processTypeIds, warmupTask)));
 				//.collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ";"));
 		
 		AtomicInteger counter1 = new AtomicInteger(201);
-		Stream<String> s2 = processInputIds.stream()
+		List<String> allInputs = new LinkedList<>(processInputIds);
+		allInputs.addAll(warmupInputs);
+		Stream<String> s2 = allInputs.stream()
 				.map(id -> String.format("(%s, '%s')", counter1.getAndIncrement(), id));
 				
 		return Stream.concat(s1, s2).collect(Collectors.joining(",\r\n", PROCESSPROXYHEADER, ",\r\n(9999, '*');"));		
@@ -184,13 +190,14 @@ class CreateTaskOrderPermutations {
 	}
 	
 	
-	private static String createSequence(AtomicInteger counterPerm, List<String> processTypeIds) {
+	private static String createSequence(AtomicInteger counterPerm, List<String> processTypeIds, String warmupProc) {
 		// select permutation		
 		List<Integer> selPerm = permTask.get(counterPerm.getAndIncrement()%permTask.size());
 		assert(selPerm.size()==processTypeIds.size());				
-		return selPerm.stream()
+		String order = selPerm.stream()
 			.map(index -> processTypeIds.get(index))			
 			.collect(Collectors.joining("::"));
+		return warmupProc+"::"+order;
 	}
 	
 	/* 
@@ -198,22 +205,26 @@ class CreateTaskOrderPermutations {
 	(without repair and with restriction makes no sense and is not modelled) 
 	*/
 	public static final String RESTRICTIONPROXYHEADER = "INSERT INTO restrictionproxy(id,name) VALUES  \r\n";	
-	public static String createRestrictionProxyTable(List<String> processTypeIds) {
+	public static String createRestrictionProxyTable(List<String> processTypeIds, String warmupTask) {
+		List<String> allTypes = new LinkedList<>(processTypeIds);
+		allTypes.add(warmupTask);
 		AtomicInteger counter = new AtomicInteger(1);
-		return processTypeIds.stream()
+		return allTypes.stream()
 				.map(id -> String.format("(%s, '%s_REPAIR'),\r\n(%s, '%s_RESTRICTION')", counter.getAndIncrement(), id, counter.getAndIncrement(), id))
 				.collect(Collectors.joining(",\r\n", RESTRICTIONPROXYHEADER, ",\r\n(9999, '*');"));
 	}
 		
 	public static final String ACL_OBJ_IDENTITY_HEADER = "INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting) VALUES \r\n";
-	public static String createAclObjIdentityTable(List<String> processTypeIds, List<String> processInputIds, List<String> participantIds) {
+	public static String createAclObjIdentityTable(List<String> processTypeIds, List<String> processInputIds, List<String> participantIds, List<String> warmupInputIds, String warmupTask) {
 		/* 
 		each process type (upper rows) and process instance resp input (lower rows) belongs to the role editor role, nothing else needed 
 		*/
 		StringBuffer content = new StringBuffer(ACL_OBJ_IDENTITY_HEADER);
 		//entries for each restriction
 		AtomicInteger counterIds = new AtomicInteger(1);
-		content.append(processTypeIds.stream()
+		List<String> allTypes = new LinkedList<>(processTypeIds);
+		allTypes.add(warmupTask);
+		content.append(allTypes.stream()
 				.map(id -> String.format("(%s, 2, %s, NULL, 1000, 0), \r\n(%s, 2, %s, NULL, 1000, 0)", counterIds.get(), counterIds.getAndIncrement(), counterIds.get(), counterIds.getAndIncrement()))
 				.collect(Collectors.joining(",\r\n")));
 		content.append(",\r\n");
@@ -232,6 +243,11 @@ class CreateTaskOrderPermutations {
 		content.append(processInputIds.stream()
 				.map(id -> String.format("(%s, 1, %s, NULL, 1000, 0)", counterIds.getAndIncrement(), counterInput.getAndIncrement()))
 				.collect(Collectors.joining(",\r\n")));		
+		// entries for each warmup input
+		content.append(warmupInputIds.stream()
+				.map(id -> String.format("(%s, 1, %s, NULL, 1000, 0)", counterIds.getAndIncrement(), counterInput.getAndIncrement()))
+				.collect(Collectors.joining(",\r\n")));		
+		
 		
 		content.append("\r\n,(9998, 1, 9999, NULL, 1000, 0),\r\n"
 					+ "(9999, 2, 9999, NULL, 1000, 0);");
@@ -240,7 +256,7 @@ class CreateTaskOrderPermutations {
 	
 
 	public static final String ACL_ENTRY_HEADER = "INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, granting, audit_success, audit_failure) VALUES \r\n";
-	public static String createAclEntryTable(List<String> processTypeIds, List<String> processInputIds, List<String> participantIds) {
+	public static String createAclEntryTable(List<String> processTypeIds, List<String> processInputIds, List<String> participantIds, List<String> warmupInputIds, String warmupTask) {
 		StringBuffer content = new StringBuffer(ACL_ENTRY_HEADER);
 		/* 
 		Every participant obtains read access to 'their' dedicated process instances as represented by the process input:
@@ -250,15 +266,19 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counterIds = new AtomicInteger(1);
 		AtomicInteger counterP = new AtomicInteger(0);
 		AtomicInteger counterInput = new AtomicInteger(201);
+		List<String> allTypes = new LinkedList<>(processTypeIds);
+		allTypes.add(warmupTask);
 		content.append(participantIds.stream()
 				.flatMap(pId -> { 
 					counterP.getAndIncrement();
-					return processTypeIds.stream()
+					return allTypes.stream()
 						.map(pType ->  String.format("(%s, %s, 1, %s,     1, 1, 1, 1)", counterIds.getAndIncrement(), counterInput.getAndIncrement(), counterP.get()));
 					})
 				.collect(Collectors.joining(",\r\n"))	
 				);
-		assert((counterInput.get()-1) == (processInputIds.size()+200));
+		assert((counterInput.get()-1) == (processInputIds.size()+warmupInputIds.size()+200));
+		//content.append(participants)
+		
 		content.append(",\r\n");
 
 		/*
@@ -314,7 +334,7 @@ class CreateTaskOrderPermutations {
 	private static Stream<String> createEntry(AtomicInteger counterIds, int participantId, List<Integer> permutation, List<String> processTypeIds) {
 		assert(permutation.size()==processTypeIds.size());
 		AtomicInteger counterTypes = new AtomicInteger(1);
-		return permutation.stream()
+		Stream<String> taskACL = permutation.stream()
 			.flatMap(perm -> {
 				if (perm == 0) {
 					// no access, just increment to next type
@@ -331,6 +351,11 @@ class CreateTaskOrderPermutations {
 							String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId));
 				}				
 			});
+		// add the warmup task permissions to see repairs and restrictions (warmup task is appended at the end of the processTypes List)
+		return Stream.concat(taskACL, Stream.of(
+				String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(),  counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId) ,
+				String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId)
+				));
 		
 	}
 	
