@@ -53,7 +53,7 @@
                     <next>
                       <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                         <field name="mappingId">Bugs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug ')</field>
                       </block>
                     </next>
                   </block>
