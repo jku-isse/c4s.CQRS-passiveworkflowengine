@@ -22,7 +22,7 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.testedbyItems\n -\u003eexists(tc |  tc.workItemType \u003d \u0027Test Case\u0027 \n               and tc.state \u003d \u0027Released\u0027)\n)",
+          "arlRule": "self.out_REQs\n-\u003eforAll(req | \n   req.testedbyItems-\u003esize() \u003e 0 \n   and\n   req.testedbyItems\n -\u003eforAll(tc |  tc.workItemType \u003d \u0027Test Case\u0027 \n               and tc.state \u003d \u0027Released\u0027)\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "REQtoTC",
