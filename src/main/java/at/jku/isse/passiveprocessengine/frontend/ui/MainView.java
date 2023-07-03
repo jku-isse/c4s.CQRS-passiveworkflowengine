@@ -1,9 +1,11 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -306,14 +308,14 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setWidth("90%");
-        Set<String> wfdKeys = new HashSet<>();
+        List<String> wfdKeys = new LinkedList<>();
         // Process Definition
         if (commandGateway != null) {
         	wfdKeys.addAll(commandGateway.getRegistry().getAllDefinitionIDs(true));
         	if (grid != null)
         		grid.injectRequestDelegate(commandGateway);
         }
-        	
+        Collections.sort(wfdKeys);	
         RadioButtonGroup<String> processDefinition = new RadioButtonGroup<>();
         processDefinition.setItems(wfdKeys);
         processDefinition.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
