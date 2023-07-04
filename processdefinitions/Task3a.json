@@ -17,16 +17,16 @@
         "TCs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.workItemType\u003d\u0027Test Case\u0027)"
       },
       "conditions": {
-        "PRECONDITION": "self.in_CRs-\u003esize() \u003e 0",
-        "POSTCONDITION": "self.in_CRs-\u003eforAll(cr | cr.state\u003d\u0027Released\u0027)"
+        "POSTCONDITION": "self.in_CRs-\u003eforAll(cr | cr.state\u003d\u0027Released\u0027)",
+        "PRECONDITION": "self.in_CRs-\u003esize() \u003e 0"
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_Bugs\n-\u003eselect(bug | bug.affectsItems\n  -\u003eexists(item : \n           \u003croot/types/azure/azure_workitem\u003e  | \n             item.workItemType\u003d\u0027Requirement\u0027 and \n             item.priority\u003d1))\n-\u003eforAll(bug2 : \n           \u003croot/types/azure/azure_workitem\u003e  | \n            bug2.state\u003d\u0027Closed\u0027 \n     or  \n     bug2.affectsItems\n  -\u003eselect(item2 | \n                item2.workItemType\u003d\u0027Requirement\u0027 \n                and \n                item2.priority\u003d1)\n  -\u003eforAll(req : \n           \u003croot/types/azure/azure_workitem\u003e  | \n              req.successorItems\n             -\u003eexists(item3 | item3.workItemType \u003d \n                                        \u0027Issue\u0027 and item3.state\u003d\u0027Active\u0027 \n               and item3.parentItems                       \n               -\u003eintersection(self.in_CRs).size() \u003e 0\n      )\n  )\n)",
+          "arlRule": "self.out_Bugs\n-\u003eselect(bug | bug.affectsItems\n  -\u003eexists(item : \n           \u003croot/types/azure/azure_workitem\u003e  | \n             item.workItemType\u003d\u0027Requirement\u0027 and \n             item.priority\u003d1))\n-\u003eforAll(bug2 : \n           \u003croot/types/azure/azure_workitem\u003e  | \n            bug2.state\u003d\u0027Resolved\u0027 \n     or  \n     bug2.affectsItems\n  -\u003eselect(item2 | \n                item2.workItemType\u003d\u0027Requirement\u0027 \n                and \n                item2.priority\u003d1)\n  -\u003eforAll(req : \n           \u003croot/types/azure/azure_workitem\u003e  | \n              req.successorItems\n             -\u003eexists(item3 | item3.workItemType \u003d \n                                        \u0027Issue\u0027 and item3.state\u003d\u0027Active\u0027 \n               and item3.parentItems                       \n               -\u003eintersection(self.in_CRs).size() \u003e 0\n      )\n  )\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "Priority1ReqBugsState",
-          "description": "Ensure that either all Bugs for priority 1 Requirements are \u0027Closed\u0027 or the Requirement is traced from one of the Change Request\u0027s \u0027active\u0027 child Issues."
+          "description": "Ensure that either all Bugs for priority 1 Requirements are \u0027Resolved\u0027 or the Requirement is traced from one of the Change Request\u0027s \u0027active\u0027 child Issues."
         }
       ],
       "specOrderIndex": 1,
