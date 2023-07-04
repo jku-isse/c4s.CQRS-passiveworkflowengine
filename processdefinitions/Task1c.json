@@ -26,7 +26,7 @@
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "REQtoTC",
-          "description": "Ensure that each requirement traces to at least one testcase in state \u0027Released\u0027."
+          "description": "Ensure that each Requirement traces to at least one Test Case in state \u0027Released\u0027."
         }
       ],
       "specOrderIndex": 1,

@@ -26,7 +26,7 @@
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "Prio1TCreviewed",
-          "description": "Ensure that each requirement with priority 1 traces to at least one test case that in turn traces to a closed review."
+          "description": "Ensure that each Requirement with priority 1 does trace to at least one Test Case that in turn traces to a \u0027closed\u0027 Review."
         }
       ],
       "specOrderIndex": 1,

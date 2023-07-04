@@ -22,11 +22,11 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.predecessorItems\n    -\u003eselect(pre | pre.workItemType\u003d\u0027Change Request\u0027   and pre.state \u003c\u003e \u0027Released\u0027)\n    -\u003esize() \u003c 2\n)",
+          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.predecessorItems\n-\u003eselect( pre | pre.workItemType\u003d\u0027Change Request\u0027)    \n-\u003edifference(self.in_CRs)\n-\u003eforAll(cr |   cr.state \u003d \u0027Released\u0027 \n             or cr.successorItems\n               -\u003eselect(suc | suc.workItemType\u003d\u0027Issue\u0027)\n               -\u003eexists(issue : \u003croot/types/azure/azure_workitem\u003e | issue.priority \u003d 1)\n   )\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "REQtoCR",
-          "description": "Ensure that each requirement trace to maximally one change request that is not in state \u0027Closed\"."
+          "description": "Ensure that each Requirement traces only to other Change Requests which are in state \u0027Released\u0027 or have a priority 1 Issue as a child."
         }
       ],
       "specOrderIndex": 1,

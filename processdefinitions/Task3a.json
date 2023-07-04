@@ -26,7 +26,7 @@
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "Priority1ReqBugsState",
-          "description": "Ensure either all bugs for priortiy 1 requirements are either \u0027Closed\u0027 or the requirement can be traced from an active issue of the change request."
+          "description": "Ensure that either all Bugs for priority 1 Requirements are \u0027Closed\u0027 or the Requirement is traced from one of the Change Request\u0027s \u0027active\u0027 child Issues."
         }
       ],
       "specOrderIndex": 1,

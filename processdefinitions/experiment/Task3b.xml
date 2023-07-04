@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
                     <field name="qacheckId">ReqIssueParentTraceability</field>
-                    <field name="description">Ensure all requirements that are referenced in an Active subissue, have the same predecessor as the subissue's parent.</field>
+                    <field name="description">Ensure all Requirements with a trace to an 'active' Issue, need to have that Issue be traced as a child from one of the Requirement's preceeding Change Requests.</field>
                     <value name="constraint">
                       <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
                         <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;       req2.predecessorItems&#10;     -&gt;select(item3 | item3.workItemType='Change Request' &#10;               and item3.state&lt;&gt;'Released')&#10;     -&gt;intersection(&#10;   req2.successorItems&#10;   -&gt;select(item2 | item2.workItemType='Issue'&#10;          and item2.state='Active' )&#10;   -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; ) )&#10;   )-&gt;size() &gt; 0&#10;)</field>

@@ -25,8 +25,8 @@
           "arlRule": "self.out_TCs\n-\u003eselect(tc | tc.testsItems\n    -\u003eexists(item | item.workItemType\u003d\u0027Bug\u0027\n             and \n        item.predecessorItems\n        -\u003eintersection(self.in_CRs).size() \u003e 0           \n))\n-\u003eforAll(tc2 : \n           \u003croot/types/azure/azure_workitem\u003e  | \n           tc2.testsItems\n    -\u003eselect(item2 | item2.workItemType\u003d\u0027Bug\u0027)\n           -\u003easList()-\u003efirst()\n          -\u003easType(\n           \u003croot/types/azure/azure_workitem\u003e )\n     .affectsItems\n    -\u003eselect(item3 | \n                item3.workItemType\u003d\u0027Requirement\u0027)\n    -\u003eintersection(tc2.testsItems \n         -\u003eselect(item4 | \n                item4.workItemType\u003d\u0027Requirement\u0027)\n       )-\u003esize() \u003e 0\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
-          "code": "BugAndTestCasesTraceabiltiyToReq",
-          "description": "Ensure that all Test Cases that are testing Bugs have link to the Change Request and also linked to the same set of requirements."
+          "code": "BugAndTestCasesTraceabilityToReq",
+          "description": "Ensure that all Test Cases that are testing Bugs have a predecessor link to the Change Request and also are linked to the Bug\u0027s affected set of Requirements."
         }
       ],
       "specOrderIndex": 1,

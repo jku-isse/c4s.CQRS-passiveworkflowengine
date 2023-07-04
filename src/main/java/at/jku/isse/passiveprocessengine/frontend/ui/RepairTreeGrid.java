@@ -121,7 +121,7 @@ public class RepairTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengine.fr
 	}
 	
 	private Component getReloadIcon(Instance inst) {
-		if (inst == null && reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+		if (inst == null || !reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");

@@ -26,7 +26,7 @@
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "ReqAndBugTestCaseLinking",
-          "description": "Ensure for each requirement that has a bug that, at least one test case traces to this bug."
+          "description": "Ensure for each Requirement that is affected by a Bug has at least one of its Test Cases trace to this Bug."
         }
       ],
       "specOrderIndex": 1,

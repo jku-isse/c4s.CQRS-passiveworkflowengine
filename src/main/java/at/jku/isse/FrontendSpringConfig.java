@@ -1,7 +1,9 @@
 package at.jku.isse;
 
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 
 //import javax.jms.ConnectionFactory;
 
@@ -67,8 +69,8 @@ public class FrontendSpringConfig {
 	@Bean UIConfig getUIConfig() {
 		UIConfig props = new UIConfig();
 		try {
-            FileReader reader = new FileReader("./application.properties");
-            props.load(reader);
+			InputStream input = new FileInputStream("application.properties") ;
+            props.load(input);
 		} catch(IOException e) {
 			log.error("No ./application.properties found");
 		}

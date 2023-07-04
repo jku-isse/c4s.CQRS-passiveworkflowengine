@@ -26,7 +26,7 @@
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "ReqIssueParentTraceability",
-          "description": "Ensure all requirements that are referenced in an Active subissue, have the same predecessor as the subissue\u0027s parent."
+          "description": "Ensure all Requirements with a trace to an \u0027active\u0027 Issue, need to have that Issue be traced as a child from one of the Requirement\u0027s preceeding Change Requests."
         }
       ],
       "specOrderIndex": 1,

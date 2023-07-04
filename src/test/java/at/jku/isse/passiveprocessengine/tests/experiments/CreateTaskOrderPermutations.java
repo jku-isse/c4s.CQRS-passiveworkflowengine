@@ -31,10 +31,9 @@ class CreateTaskOrderPermutations {
 		//List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
 		//		"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
 		//		"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
-		List<String> processInputIds = List.of("TestExperiment/2691", "TestExperiment/2717", "TestExperiment/2761", "TestExperiment/2785", "TestExperiment/2811", "TestExperiment/2855", "TestExperiment/2879", "TestExperiment/2905", "TestExperiment/2951");
-
+		List<String> processInputIds = List.of("T1/2986", "T1/3012", "T1/3056", "T1/3080", "T1/3106", "T1/3150", "T1/3174", "T1/3200", "T1/3246");
 		
-		List<String> warmupInputs = List.of("TestExperiment/2977");
+		List<String> warmupInputs = List.of("T1/3272");
 		
 		// and 9 processes types, representing the taskss		
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");

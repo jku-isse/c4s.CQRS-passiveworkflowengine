@@ -22,11 +22,11 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_REQs\n-\u003eforAll(req | req.state \u003d \u0027Released\u0027\nand \nreq.successorItems\n-\u003eexists(item3 | item3.workItemType \u003d \u0027Review\u0027)\nand \nreq.successorItems\n-\u003eselect(item | item.workItemType \u003d \u0027Review\u0027)\n-\u003eforAll(rev : \n           \u003croot/types/azure/azure_workitem\u003e | \n     rev.successorItems\n       -\u003eselect(item2 | item2.workItemType \u003d \n                                 \u0027ReviewFinding\u0027)\n       -\u003eforAll(finding : \n           \u003croot/types/azure/azure_workitem\u003e \n          | finding.state \u003c\u003e \u0027Open\u0027)\n  )\n)",
+          "arlRule": "self.out_REQs\n-\u003eselect (req2 | req2.state \u003d \u0027Released\u0027)\n-\u003eforAll(req  : \n           \u003croot/types/azure/azure_workitem\u003e | req.successorItems\n-\u003eexists(item3 | item3.workItemType \u003d \u0027Review\u0027)\nand \nreq.successorItems\n-\u003eselect(item | item.workItemType \u003d \u0027Review\u0027)\n-\u003eforAll(rev : \n           \u003croot/types/azure/azure_workitem\u003e | \n     rev.successorItems\n       -\u003eselect(item2 | item2.workItemType \u003d \n                                 \u0027ReviewFinding\u0027)\n       -\u003eforAll(finding : \n           \u003croot/types/azure/azure_workitem\u003e \n          | finding.state \u003c\u003e \u0027Open\u0027)\n  )\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "ReleasedReqReviewFindings",
-          "description": "Ensure that all requirements in state \u0027released\u0027 have no trace to a review with an open review finding."
+          "description": "Ensure that all Requirements in state \u0027released\u0027 trace only to Reviews without any \u0027open\u0027 Review Findings."
         }
       ],
       "specOrderIndex": 1,

@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
                     <field name="qacheckId">Prio1TCreviewed</field>
-                    <field name="description">Ensure that each requirement with priority 1 traces to at least one test case that in turn traces to a closed review.</field>
+                    <field name="description">Ensure that each Requirement with priority 1 does trace to at least one Test Case that in turn traces to a 'closed' Review.</field>
                     <value name="constraint">
                       <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
                         <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.priority = 1)&#10;-&gt;forAll(vipreq : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           vipreq.testedbyItems&#10; -&gt;select(item | item.workItemType = 'Test Case')&#10; -&gt;exists(tc : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;         tc.successorItems&#10;    -&gt;exists(item2 | item2.workItemType="Review')&#10;and&#10;tc.successorItems&#10;    -&gt;select(item3 | item3.workItemType="Review')&#10;    -&gt;forAll(rev : &#10;           &lt;root/types/azure/azure_workitem&gt; | &#10;               rev.state='Closed')&#10; ) &#10;)</field>

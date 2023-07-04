@@ -622,7 +622,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     }
 
 	private Component getReloadIcon(Instance inst) {
-		if (inst == null && conf.doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+		if (inst == null || !conf.doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -868,6 +868,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
 			else
 			return ra.getProperty() != null 
+					&& !ra.getProperty().equalsIgnoreCase("workItemType") // FIXME: just for testing purposes
 					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
 					&& !ra.getProperty().startsWith("in_")
 					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace

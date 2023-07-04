@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
                     <field name="qacheckId">ReqAndBugTestCaseLinking</field>
-                    <field name="description">Ensure for each requirement that has a bug that, at least one of its test case traces to this bug.</field>
+                    <field name="description">Ensure for each Requirement that is affected by a Bug has at least one of its Test Cases trace to this Bug.</field>
                     <value name="constraint">
                       <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
                         <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.affectedbyItems&#10; -&gt;select(item | item.workItemType='Bug')&#10; -&gt;forAll(bug : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;              bug.testedbyItems&#10; -&gt;intersection(&#10;  req.testedbyItems&#10;   -&gt;select(item3 | item3.workItemType='Test Case')&#10;  )-&gt;size() &gt;0&#10; )&#10;)&#10;</field>
