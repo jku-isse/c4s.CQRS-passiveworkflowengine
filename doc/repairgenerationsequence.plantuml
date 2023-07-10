@@ -1,0 +1,28 @@
+@startuml
+
+skin rose
+
+title "Constraint Repair - Sequence Diagram"
+
+actor "Engineer" as user
+control "Web UI" as source
+entity "Rule Evaluator" as arl 
+entity "RuleEvaluation" as eval
+entity "EvaluationNode" as node
+entity "Expression" as expr
+
+user -> source: request guidance for violated rule
+source -> arl : get repair tree for constraint 
+arl -> eval : get repair tree
+eval -> node : generate repairs on root node
+node -> expr : recursively navigate expression/evaluation tree 
+note left: where eval result does not match expected result
+expr -> expr : add repair option to repair tree
+node -> node : flatten repair tree
+node -> eval : repair tree
+eval -> arl : repair treea
+arl -> source : repair tree
+source -> source : filter repairs
+source -> user : suggested guidance actions
+
+@enduml

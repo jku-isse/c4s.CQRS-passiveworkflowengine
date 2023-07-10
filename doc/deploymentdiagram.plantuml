@@ -1,0 +1,37 @@
+@startuml
+
+skin rose
+
+
+cloud {
+	component "Stages" as stages
+}
+
+component "Web UI" as webui
+package {
+component "Passive Process Guidance Framework" as ppe {
+	
+}
+interface "Azure Change Events Webhook (REST)" as webhook
+interface "Process Deployment (REST)" as deploy
+interface "WebUI (WebSockets)" as ui
+interface "QA Status (REST)" as qaREST
+ppe -down- webhook
+ppe -down- deploy 
+ppe -down- qaREST
+ppe -down- ui
+}	
+
+cloud {
+ component "Azure DevOps Services" as azure
+ interface "WorkItems (REST)" as rest 
+ azure -up- rest
+}
+
+webhook <-- azure
+deploy <-- stages
+qaREST <-- stages
+ui <-- webui
+rest <-- ppe
+
+@endum

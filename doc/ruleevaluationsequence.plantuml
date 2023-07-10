@@ -1,0 +1,68 @@
+@startuml
+
+skin rose
+
+title "Constraint Evaluation - Sequence Diagram"
+
+actor "Engineer/Plugin/Service" as source
+database "DesignSpace" as DS
+control "Rule Service" as ruleS
+entity "Rule Evaluator" as arl 
+entity "ConsistencyRule \n <<Instance>>" as rule
+entity "ConsistencyRuleType \n <<InstanceType>>" as type
+entity "RuleEvaluation" as eval
+entity "Expression" as expr
+
+source -> DS : changes to instances
+source -> DS : concludeTransaction
+DS -> ruleS : send operations to all services
+
+loop for each operation/change
+ruleS -> arl : operation
+
+alt : rule type changed
+	arl -> arl: rule created/updated/deleted
+
+else new instance
+	loop for each consistency rule type this instance is context
+		arl -> rule : create
+		arl -> type : register instance and rule
+	end
+
+else instance updated
+	arl -> arl : store which operation caused reevaluation
+end
+arl -> ruleS : update set of rules to evaluate
+end 
+
+ruleS -> arl : evaluate
+
+loop for each rule (instance)
+	arl -> eval : get or create 
+	activate eval
+	arl -> eval : evaluate affected/new rules
+	alt : happy path
+	eval -> expr : eval root expression
+	expr -> expr : recursively navigate through rule expression tree
+	expr -> expr : store accessed instances in scope
+	expr -> eval : return evaluation tree
+	eval -> eval : determine scope changes
+	eval -> arl : return result
+	eval -> arl : update elements in scope
+	else : parsing error
+	eval -> type : set rule error
+	eval -> arl : return null
+	end
+	eval -> rule : set consistency value
+end
+
+arl -> RuleResultListener : push rule changes
+arl -> ruleS : done
+
+ruleS -> DS : added operations to transaction
+DS -> WorkspaceListener : notify all listeners with original operation and rule eval operations
+
+
+
+
+@enduml

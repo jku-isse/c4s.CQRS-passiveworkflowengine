@@ -6,24 +6,17 @@ skin rose
 
 title PPE Core - Class Diagram
 
-package "DesignSpace Core" {
-	class Workspace {
-		commit()
-	}
-	
-	abstract class Service {
-		handleUpdates() // adds additional operations
-	}
-	
-	Workspace::commit --> Service::handleUpdates : notify about operations
-	
-}
-
 package "PPE Data Modeling" {
 	
 	
 	metaclass "StepDefinition" <<InstanceType>>  {
-
+	Map expectedInput
+	Map expectedOutput
+	Set transitionConditions
+	Set QAconstraints
+	Map ioMappingRules
+	=========
+		OCL rule/constraints as text
 	}
 	
 	metaclass "ProcessDefinition" <<InstanceType>>  {
@@ -32,65 +25,63 @@ package "PPE Data Modeling" {
 	
 	"StepDefinition" <|-- ProcessDefinition
 	
-	metaclass "ProcessInstance" <<InstanceType>>  {
+	class "ProcessInstance" <<InstanceType>>  {
 		ProcessDefinition definition
 	}
 	
-	metaclass "ProcessStep" <<InstanceType>>  {
+	class "ProcessStep" <<InstanceType>>  {
 		StepDefinition stepDefinition
+		State actualState
+	  State expectedState
 	}
 	
-	metaclass "SpecificProcessStep" <<InstanceType>> {
-		
+	class "SpecificProcessStep" <<InstanceType>> {
+		Input in_x 
+		Output out_y
+		Precondition pre
+	  Postcondition post
+	  Set QAconstraints
+	  DataMapping dm_xy
+	=========
+		OCL rule/constraints as objects
 	}
+	
+
 	
 	"SpecificProcessStep" -up-|> "ProcessStep"
 	
 	"ProcessInstance" -up-|> "SpecificProcessStep"
 	
 	
-	ProcessInstance::definition -up-> ProcessDefinition
-	ProcessStep::stepDefinition -up-> StepDefinition
+	ProcessInstance::definition -left-> ProcessDefinition : references
+	ProcessStep::stepDefinition -left-> StepDefinition : references
 	
-	class ProcessRegistry {
-		deployDefinition(definitionDTO)
-		instantiateProcess(definition, processInput)
+	
+	struct ProcessDTO {
+		serializable process definition
 	}
 	
-	class DefinitionTransformer {
-		ProcessDefinition fromDTO(dto)
-		ProcessDTO toDTO(processDefinition)
-	
-	}
-	
-	DefinitionTransformer::fromDTO -up-> ProcessInstance : generate
-	DefinitionTransformer::fromDTO -up-> ProcessDefinition : instantiate
-	ProcessRegistry::instantiateProcess -up-> ProcessInstance : create instance of
 }
 
+class ConsistencyRuleType <<InstanceType>> {
+	String rule
+	boolean hasError
+	getEvaluationResult(Instance context)
+}
+
+SpecificProcessStep --> ConsistencyRuleType : references
 
 cloud "SerializedProcessDefinition"  {
 	component [FileSystemLoader]
-	component [ProcessEditor (via REST endpoint)]
-	component [Stages (via REST endpoint and transformer)]
+	component [ProcessEditor \n (via REST endpoint)]
+	component [Stages \n (via REST endpoint and transformer)]
 
 }
 
-SerializedProcessDefinition --> ProcessRegistry::deployDefinition
-ProcessRegistry::instantiateProcess --> Workspace::commit : signal instances created
+SerializedProcessDefinition --> ProcessDTO : provide
+ProcessDTO -right-> ProcessDefinition : becomes
+ProcessDTO -right-> StepDefinition : becomes
 
-
-package "PPE Tracking" {
-
-	Workspace::commit --> ProcessInstanceChangeProcessor::handleUpdated
-
-	class ProcessInstanceChangeProcessor <<WorkspaceListener>> {
-		handleUpdated(Collection<Operation> operations)
-	 // filters out changes to the outcome of preconditions, post conditions, QA constraints, 
-	 // changes to step input and step output
-	}
-
-}
 
 
 
