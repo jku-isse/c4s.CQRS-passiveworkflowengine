@@ -12,6 +12,7 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Tool;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.model.ConsistencyRuleType;
 import at.jku.isse.designspace.rule.model.Rule;
@@ -52,7 +53,8 @@ public class ARLPlaygroundEvaluator {
 						Instance ctx = r.contextInstance();
 						String error = r.hasEvaluationError() ? r.evaluationError() : null;
 						Boolean bresult = r.hasEvaluationError() ? null : Boolean.valueOf(r.result());
-						return new ResultEntry(ctx, bresult, error, r);
+						EvaluationNode node = RuleService.evaluationTree(r);
+						return new ResultEntry(ctx, bresult, error, node, r);
 					})
 					.collect(Collectors.toSet());
 			return result;
@@ -82,7 +84,9 @@ public class ARLPlaygroundEvaluator {
 	    	final Instance instance;
 	    	final Boolean result;
 	    	final String error;
+	    	final EvaluationNode rootNode;
 	    	final ConsistencyRule ruleInstance;
+	    	
 	    	
 	    }
 }

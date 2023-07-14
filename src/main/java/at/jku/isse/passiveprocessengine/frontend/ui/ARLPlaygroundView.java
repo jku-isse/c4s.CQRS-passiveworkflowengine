@@ -57,14 +57,14 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     
     private Set<ResultEntry> result = new HashSet<>();
     private ListDataProvider<ResultEntry> dataProvider = new ListDataProvider<>(result);
-    
+    final private ConstraintTreeGrid evalTree;
     
     public ARLPlaygroundView(RequestDelegate commandGateway, SecurityService securityService) {
     	this.commandGateway = commandGateway;
         setSizeFull();
         setMargin(false);
         setPadding(false);
-
+        evalTree = new ConstraintTreeGrid(commandGateway); 
 //        HorizontalLayout header = new HorizontalLayout();
 //        header.setClassName("header-theme");
 //        header.setMargin(false);
@@ -174,6 +174,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         	Grid<ResultEntry> grid = new Grid<>();
         	Grid.Column<ResultEntry> instColumn = grid.addComponentColumn(rge -> resultEntryToInstanceLink(rge)).setHeader("Instance").setResizable(true).setSortable(true);
         	Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
+        	Grid.Column<ResultEntry> evalColumn = grid.addComponentColumn(rge -> resultEntryToEvalButton(rge)).setHeader("EvalTree").setResizable(true).setSortable(false);        	
         	Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
         	grid.setDataProvider(dataProvider);
         	
@@ -273,6 +274,28 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     	} else {
     		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
     	}
+    }
+    
+  
+    
+ private Component resultEntryToEvalButton(ResultEntry entry) {
+    	
+    	Button button = null;
+    	if (entry.getError() == null && entry.getResult() == false) {
+    		button = new Button("Show Eval", evt -> {
+        		Dialog dialog = new Dialog();
+    			dialog.setWidth("80%");
+    			dialog.setMaxHeight("80%");    			
+    			evalTree.updateGrid(entry.getRootNode(), null);    			
+    			evalTree.setHeightByRows(true);
+    			dialog.add(evalTree);
+    			dialog.open();
+    		});
+    	} else {
+    		button = new Button("Show Eval");
+    		button.setEnabled(false);
+    	}
+    	return button;
     }
     
     private Component resultEntryToButton(ResultEntry entry) {

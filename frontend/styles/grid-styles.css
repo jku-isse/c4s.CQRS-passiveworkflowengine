@@ -6,6 +6,14 @@
     background: rgba(255, 0, 0, 0.51);
 }
 
+.warn {
+  background-color: yellow;
+}
+
+.repair {
+  background-color: lightgreen;
+}
+
 .column-center {
     text-align: center;
     text-overflow: clip;
