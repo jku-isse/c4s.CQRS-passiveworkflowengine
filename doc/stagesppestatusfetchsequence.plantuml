@@ -1,0 +1,36 @@
+@startuml
+
+skin rose
+
+title "Constraint Fetching Integration - Sequence Diagram"
+
+actor "Engineer" as user
+box "PPE"
+control "PPE Web UI" as ppe
+boundary "Status Endpoint" as rest
+entity "DesignSpace" as ds
+end box
+
+box "Stages"
+control "Stages UI" as stages
+boundary "Stages Connector" as plugin
+end box
+
+user -> ppe: instantiate process
+user -> ppe: obtain internal process id 
+ppe -> user : e.g., 1234
+user -> ppe: obtain QA constraint id
+ppe -> user : e.g. StepName::ConstraintName 
+user -> stages : add 'file' with identifier 1234::StepName::ConstraintName
+stages -> plugin : fetch status
+plugin -> rest : request status
+rest -> ds : lookup instance with process id 
+rest -> rest : extract QA constraint from process instance
+rest -> plugin : return status
+plugin -> stages : return status
+stages -> user : display QA status
+
+
+
+
+@enduml
