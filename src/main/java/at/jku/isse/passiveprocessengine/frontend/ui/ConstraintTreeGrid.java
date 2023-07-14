@@ -48,12 +48,12 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 	private void initGrid() {
 		this.addComponentHierarchyColumn(ror -> {
 			return getExpression(ror);
-		}).setHeader("Expression").setKey("expression");
+		}).setHeader("Expression").setKey("expression").setResizable(true);
 		
 		this.addColumn( ror -> {
 			String exp = getExplanation(ror);
 			return exp;
-		}).setHeader("Explanation");
+		}).setHeader("Explanation").setResizable(true);
 		
 		this.getColumnByKey("expression").setClassNameGenerator(node -> {
 			if (node.hasRepair())

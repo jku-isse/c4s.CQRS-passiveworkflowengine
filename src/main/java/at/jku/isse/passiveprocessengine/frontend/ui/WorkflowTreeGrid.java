@@ -3,6 +3,7 @@ package at.jku.isse.passiveprocessengine.frontend.ui;
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
@@ -469,26 +470,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			
     			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
     				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-    					//    				HorizontalLayout h = new HorizontalLayout();
-    					//    				h.setWidthFull();
-    					//    				h.setMargin(false);
-    					//    				h.setPadding(false);
     					try {
     						RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    						RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-    						rtg.initTreeGrid();
-    						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+    						
+    						ConstraintTreeGrid rtg = new ConstraintTreeGrid(reqDel);
+    						EvaluationNode node = RuleService.evaluationTree(crOpt.get());
+    						rtg.updateGrid(node, getTopMostProcess(pStep));
+    						
+    						//RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    						//rtg.initTreeGrid();
+    						//rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
     						//rtg.expandRecursively(repairTree.getChildren(), 3);
     						rtg.setHeightByRows(true);
     						rtg.setWidth("100%");
-
-    						//    				h.setClassName("const-margin");
-    						//    				h.setWidthFull();
-    						//    				h.add(rtg);
-    						//Details details = new Details("Repair Instructions", rtg);
-    						//details.setOpened(true);
-    						//rtg.setClassName("width80");
-
     						l.add(rtg);
     					} catch (RepairException e) {
     						l.add(new Paragraph(e.getMessage()));
@@ -682,9 +676,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
         		try {
         			RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        			rtg.initTreeGrid();
-        			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
+        			ConstraintTreeGrid rtg = new ConstraintTreeGrid(reqDel);
+					EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
+					rtg.updateGrid(node, getTopMostProcess(rebc.getProcess()));
+        			
+        		//	RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+        		//	rtg.initTreeGrid();
+        		//	rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
         		//	rtg.expandRecursively(repairTree.getChildren(), 3);
         			rtg.setHeightByRows(true);
         			l.add(rtg); 
