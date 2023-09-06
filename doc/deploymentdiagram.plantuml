@@ -10,8 +10,9 @@ cloud {
 component "Web UI" as webui
 package {
 component "Passive Process Guidance Framework" as ppe {
-	
 }
+component "Polling Component \n(alternative to webhook)" as polling	#line.dotted
+
 interface "Azure Change Events Webhook (REST)" as webhook
 interface "Process Deployment (REST)" as deploy
 interface "WebUI (WebSockets)" as ui
@@ -33,5 +34,7 @@ deploy <-- stages
 qaREST <-- stages
 ui <-- webui
 rest <-- ppe
+polling .down.> rest
+
 
 @endum

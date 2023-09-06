@@ -470,20 +470,24 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			
     			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
     				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-    					try {
+    					try {    									    	        			        						    		
     						RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    						
-    						ConstraintTreeGrid rtg = new ConstraintTreeGrid(reqDel);
-    						EvaluationNode node = RuleService.evaluationTree(crOpt.get());
-    						rtg.updateGrid(node, getTopMostProcess(pStep));
-    						
-    						//RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-    						//rtg.initTreeGrid();
-    						//rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
-    						//rtg.expandRecursively(repairTree.getChildren(), 3);
-    						rtg.setHeightByRows(true);
-    						rtg.setWidth("100%");
-    						l.add(rtg);
+    						if (this.conf.doUseIntegratedEvalRepairTree()) {
+    	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel);
+    	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
+    	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
+    	        				ctg.setHeightByRows(true);
+    	        				ctg.setWidth("100%");
+    	        				l.add(ctg); 
+    	        			} else {
+    	        				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+        						rtg.initTreeGrid();
+        						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+        					//	rtg.expandRecursively(repairTree.getChildren(), 3);
+        						rtg.setHeightByRows(true);
+        						rtg.setWidth("100%");
+        						l.add(rtg);
+    	        			}
     					} catch (RepairException e) {
     						l.add(new Paragraph(e.getMessage()));
     					}
@@ -675,17 +679,20 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
         	if (rebc.getEvalResult() == false  && rebc.getCr() != null) {
         		try {
-        			RepairNode repairTree = RuleService.repairTree(rebc.getCr());
-        			ConstraintTreeGrid rtg = new ConstraintTreeGrid(reqDel);
-					EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
-					rtg.updateGrid(node, getTopMostProcess(rebc.getProcess()));
-        			
-        		//	RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        		//	rtg.initTreeGrid();
-        		//	rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
-        		//	rtg.expandRecursively(repairTree.getChildren(), 3);
-        			rtg.setHeightByRows(true);
-        			l.add(rtg); 
+        			RepairNode repairTree = RuleService.repairTree(rebc.getCr());        			
+        			if (this.conf.doUseIntegratedEvalRepairTree()) {
+        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel);
+        				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
+        				ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
+        				ctg.setHeightByRows(true);
+        				l.add(ctg); 
+        			} else {
+                			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+                			rtg.initTreeGrid();
+                			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
+                			//rtg.expandRecursively(repairTree.getChildren(), 3);
+                			l.add(rtg); 
+        			}        			        			
         		} catch(Exception e) {
         			TextArea resultArea = new TextArea();
         			resultArea.setWidthFull();

@@ -25,7 +25,34 @@ package "PPE Data Modeling" {
 	
 	"StepDefinition" <|-- ProcessDefinition
 	
-	class "ProcessInstance" <<InstanceType>>  {
+	struct ProcessDTO {
+		serializable process definition
+	}
+	
+	entity ProcessDefinitionA <<Instance>> #aliceblue
+	
+	entity StepDefinitionB <<Instance>> #aliceblue
+	
+
+	ProcessDTO -down-> ProcessDefinitionA : becomes
+	ProcessDTO -down-> StepDefinitionB : becomes
+
+	ProcessDefinitionA -up-|> ProcessDefinition
+	StepDefinitionB -up-|> StepDefinition
+	
+}
+
+cloud "SerializedProcessDefinition"  {
+	component [FileSystemLoader]
+	component [ProcessEditor \n (via REST endpoint)]
+	component [Stages \n (via REST endpoint and transformer)]
+}
+
+	SerializedProcessDefinition -left-> ProcessDTO : provide
+
+package "Process Definition-Specific Generated Types" {
+
+	class "ProcessInstanceTypeA" <<InstanceType>>  {
 		ProcessDefinition definition
 	}
 	
@@ -35,32 +62,45 @@ package "PPE Data Modeling" {
 	  State expectedState
 	}
 	
-	class "SpecificProcessStep" <<InstanceType>> {
-		Input in_x 
-		Output out_y
+	class "ProcessStepB" <<InstanceType>> {
+		Input<<InstanceType>> in_x 
+		Output<<InstanceType>> out_y
 		Precondition pre
 	  Postcondition post
-	  Set QAconstraints
+	  QAconstraints qa
 	  DataMapping dm_xy
 	=========
 		OCL rule/constraints as objects
 	}
 	
-
-	
-	"SpecificProcessStep" -up-|> "ProcessStep"
-	
-	"ProcessInstance" -up-|> "SpecificProcessStep"
-	
-	
-	ProcessInstance::definition -left-> ProcessDefinition : references
-	ProcessStep::stepDefinition -left-> StepDefinition : references
-	
-	
-	struct ProcessDTO {
-		serializable process definition
+		
+	class "ProcessStepProcessA" <<InstanceType>> {
+		Input<<InstanceType>> in_x 
+		Output<<InstanceType>> out_y
+		Precondition pre
+	  Postcondition post
+	  QAconstraints qa
+	  DataMapping dm_xy
+	=========
+		OCL rule/constraints as objects
 	}
 	
+	class PreConditionStepB<<ConsistencyRuleType>> 
+	class PostConditionStepB<<ConsistencyRuleType>>
+	class QAConstraint1StepB<<ConsistencyRuleType>>
+	class MappingXYStepB<<ConsistencyRuleType>>
+
+	ProcessStepB::pre o-down- "0..1" PreConditionStepB
+	ProcessStepB::post o-down- "1" PostConditionStepB
+	ProcessStepB::qa o-down- "0..n" QAConstraint1StepB
+	ProcessStepB::dm_xy o-down- "0..n" MappingXYStepB
+
+	"ProcessStepB" -up-|> "ProcessStep"
+	"ProcessStepProcessA" -up-|> "ProcessStep"
+	"ProcessInstanceTypeA" -up-|> "ProcessStepProcessA"
+	
+	ProcessInstanceTypeA::definition -left-> ProcessDefinition : hasDefinition
+	ProcessStep::stepDefinition -left-> StepDefinition : hasDefinition
 }
 
 class ConsistencyRuleType <<InstanceType>> {
@@ -69,25 +109,37 @@ class ConsistencyRuleType <<InstanceType>> {
 	getEvaluationResult(Instance context)
 }
 
-SpecificProcessStep --> ConsistencyRuleType : references
+PreConditionStepB -up-|> ConsistencyRuleType
+PostConditionStepB -up-|> ConsistencyRuleType
+QAConstraint1StepB -up-|> ConsistencyRuleType
+MappingXYStepB -up-|> ConsistencyRuleType
 
-cloud "SerializedProcessDefinition"  {
-	component [FileSystemLoader]
-	component [ProcessEditor \n (via REST endpoint)]
-	component [Stages \n (via REST endpoint and transformer)]
+
+
+package "Process Instance Objects/Entities" {
+
+entity ProcessInstanceA257 <<Instance>> #aliceblue
+ProcessInstanceA257 -up-|> "ProcessInstanceTypeA"
+ProcessInstanceA257 -left-> ProcessDefinitionA : hasDefinition
+
+entity ProcessStepB578  <<Instance>> #aliceblue
+ProcessStepB578 -up-|> ProcessStepB
+ProcessStepB578 -left-> StepDefinitionB : hasDefinition
+entity RuleEvalPreCondition578 <<ConsistencyRuleEvaluation>> #aliceblue
+RuleEvalPreCondition578 -up-> PreConditionStepB : hasDefinition
+RuleEvalPreCondition578 -up-> ProcessStepB578 : hasContext
+
+entity ProcessInstanceA879 <<Instance>> #aliceblue
+ProcessInstanceA879 -up-|> "ProcessInstanceTypeA"
+ProcessInstanceA879 -left-> ProcessDefinitionA : hasDefinition
+
+entity ProcessStepB978  <<Instance>> #aliceblue
+ProcessStepB978 -up-|> ProcessStepB
+ProcessStepB978 -left-> StepDefinitionB : hasDefinition
+entity RuleEvalPreCondition978 <<ConsistencyRuleEvaluation>> #aliceblue
+RuleEvalPreCondition978 -up-> PreConditionStepB : hasDefinition
+RuleEvalPreCondition978 -up-> ProcessStepB978 : hasContext
 
 }
-
-SerializedProcessDefinition --> ProcessDTO : provide
-ProcessDTO -right-> ProcessDefinition : becomes
-ProcessDTO -right-> StepDefinition : becomes
-
-
-
-
-
-
-
-
 
 @enduml

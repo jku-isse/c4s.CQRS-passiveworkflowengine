@@ -1,0 +1,52 @@
+@startuml
+
+allowmixing
+
+skin rose
+
+title Process Instance Objects/Entities - Class Diagram
+
+
+entity ProcessInstanceA257 <<Instance>> #aliceblue
+ProcessInstanceA257 -up-|> "ProcessInstanceTypeA"
+
+entity ProcessStepB578  <<Instance>> #aliceblue
+ProcessStepB578 -up-|> ProcessStepB
+entity RuleEvalPreCondition578 <<ConsistencyRuleEvaluation>> #aliceblue
+entity RuleEvalPostCondition377 <<ConsistencyRuleEvaluation>> #aliceblue
+RuleEvalPreCondition578 -up-> PreConditionStepB : hasDefinition
+RuleEvalPostCondition377 -up-> PostConditionStepB : hasDefinition
+RuleEvalPreCondition578 -up-> ProcessStepB578 : contextInstance
+RuleEvalPostCondition377 -up-> ProcessStepB578 : contextInstance
+
+entity ChangeRequest1 <<Instance>> #aliceblue {
+	status "Open"
+} 
+
+
+
+entity RequirementX <<Instance>> #aliceblue
+
+entity RequirementY <<Instance>> #aliceblue
+
+
+ChangeRequest1 --> RequirementX : successorItems
+ChangeRequest1 --> RequirementY : successorItems
+
+ProcessInstanceA257 --> ProcessStepB578 : hasSteps
+ProcessStepB578 --> ChangeRequest1 : in_CRs 
+ProcessStepB578 --> RequirementX : out_REQs 
+ProcessStepB578 --> RequirementY : out_REQs
+
+ProcessStepB578 --> RuleEvalPreCondition578 : @rl_ruleContexts
+ProcessStepB578 --> RuleEvalPreCondition578 : in_CRs/@rl_ruleScopes
+
+ProcessStepB578 --> RuleEvalPostCondition377 : @rl_ruleContexts
+ProcessStepB578 --> RuleEvalPostCondition377 : out_REQs/@rl_ruleScopes
+
+ChangeRequest1 --> RuleEvalPreCondition578 : status/@rl_ruleScopes
+RequirementX --> RuleEvalPostCondition377 : predecessor/@rl_ruleScopes
+RequirementY --> RuleEvalPostCondition377 : predecessor/@rl_ruleScopes
+
+
+@enduml

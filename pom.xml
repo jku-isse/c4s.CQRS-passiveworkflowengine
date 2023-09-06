@@ -4,7 +4,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.6.3-SNAPSHOT</version>
+	<version>1.6.4-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -23,7 +23,7 @@
 		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
 		<vaadin.version>14.4.9</vaadin.version>
 		<lombok.version>1.18.0</lombok.version>
-		<connector.azure.version>2.2.0</connector.azure.version>
+		<connector.azure.version>2.2.1</connector.azure.version>
 		<connector.git.version>1.2.2</connector.git.version>
 		<connector.core.version>1.3.0</connector.core.version>
 		<connector.jira.version>1.6.0</connector.jira.version>

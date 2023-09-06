@@ -16,4 +16,8 @@ public class UIConfig extends Properties {
 	public boolean doGenerateRefetchButtonsPerArtifact() {
 		return Boolean.valueOf(this.getProperty("doGenerateRefetchButtonsPerArtifact", "false"));
 	}
+	
+	public boolean doUseIntegratedEvalRepairTree() {
+		return Boolean.valueOf(this.getProperty("doUseIntegratedEvalRepairTree", "false"));
+	}
 }
