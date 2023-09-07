@@ -1,13 +1,11 @@
 package at.jku.isse.passiveprocessengine.tests.experiments;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Collections;
+import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -15,14 +13,27 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
+
 class CreateTaskOrderPermutations {
 
+	
+	private static final String TASK_WARMUP = "_TaskWarmup";
+	private static final String AZURE_URL_PREFIX = "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/";
+	private static final String AZURE_ARTIFACTTYPE = "azure_workitem";
+	private static final String AZURE_IDTYPE = "azure_workitem";
+	private static final String AZURE_INPUTPARAM = "CRs";
 	
 	@Test
 	void createACLDataTableContent() {
 
 		// for participants 1 to 30
-		List<String> participantIds = IntStream.range(1, 2)
+		List<String> participantIds = IntStream.range(1, 3)
                 .mapToObj(x -> "P"+x)
                 .collect(Collectors.toList()); 
 		
@@ -31,16 +42,32 @@ class CreateTaskOrderPermutations {
 		//List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
 		//		"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
 		//		"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
-		List<String> processInputIds = List.of("T1/2986", "T1/3012", "T1/3056", "T1/3080", "T1/3106", "T1/3150", "T1/3174", "T1/3200", "T1/3246");
+		List<String> processInputIds = List.of("T1/2986", "T1/3012", "T1/3056", "T1/3080", "T1/3106", "T1/3150", "T1/3174", "T1/3200", "T1/3246",
+				"T4/4662", "T4/4688", "T4/4708", "T4/4732", "T4/4758", "T4/4778", "T4/4802", "T4/4828", "T4/4848");
 		
-		List<String> warmupInputs = List.of("T1/3272");
+		List<String> warmupInputs =List.of("T1/3272", "T4/4874");
+		
+		/*
+		 * 11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1a with input T4/4662
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1b with input T4/4688
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1c with input T4/4708
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2a with input T4/4732
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2b with input T4/4758
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2c with input T4/4778
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3a with input T4/4802
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3b with input T4/4828
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3c with input T4/4848
+11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: _TaskWarmup with input T4/4874
+List<String> processInputIds = List.of("T4/4662", "T4/4688", "T4/4708", "T4/4732", "T4/4758", "T4/4778", "T4/4802", "T4/4828", "T4/4848", "T4/4874");
+		 * */
+		
 		
 		// and 9 processes types, representing the taskss		
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
 		
 		
 
-		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds, warmupInputs, "_TaskWarmup"));
+		System.out.println(createTableContent(new ArrayList<String>(processInputIds), processTypeIds, participantIds,  new ArrayList<String>(warmupInputs), TASK_WARMUP));
 		
 	}
 
@@ -98,6 +125,8 @@ class CreateTaskOrderPermutations {
 		initPermuations(); // switch to regular permutation for 9 tasks
 		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds, warmupInputs, warmupTask));
 		
+		Map<String,ExperimentSequence> participantData = createParticipantTaskOrderData(participantIds, processInputIds, processTypeIds, warmupInputs);
+		storeExperimentSequenceToJsonFile(ExperimentSequenceProvider.FILENAME, participantData);
 		return sb.toString();
 	}
 	
@@ -271,15 +300,25 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counterP = new AtomicInteger(0);
 		AtomicInteger counterInput = new AtomicInteger(201);
 		List<String> allTypes = new LinkedList<>(processTypeIds);
-		allTypes.add(warmupTask);
+		//allTypes.add(warmupTask);
 		content.append(participantIds.stream()
 				.flatMap(pId -> { 
 					counterP.getAndIncrement();
 					return allTypes.stream()
-						.map(pType ->  String.format("(%s, %s, 1, %s,     1, 1, 1, 1)", counterIds.getAndIncrement(), counterInput.getAndIncrement(), counterP.get()));
+						.map(pType ->  String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterInput.getAndIncrement(), counterIds.getAndIncrement(), counterP.get()));
 					})
 				.collect(Collectors.joining(",\r\n"))	
 				);
+		content.append(",\r\n");
+		counterP.set(0); //reset participant counter to start again for warmup tasks
+		content.append(participantIds.stream()
+				.map(pId -> { 
+					counterP.getAndIncrement();
+					return String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterInput.getAndIncrement(), counterIds.getAndIncrement(), counterP.get());
+					})
+				.collect(Collectors.joining(",\r\n"))	
+				);
+		
 		assert((counterInput.get()-1) == (processInputIds.size()+warmupInputIds.size()+200));
 		//content.append(participants)
 		
@@ -325,7 +364,7 @@ class CreateTaskOrderPermutations {
 				.flatMap(pId -> { 
 					// select permutation
 					List<Integer> selPerm = perm.get(counterPerm.getAndIncrement()%perm.size());										
-					return createEntry(counterIds, counterP2.getAndIncrement(), selPerm, processTypeIds);
+					return createEntry(counterIds, counterP2.getAndIncrement(), new ArrayList<Integer>(selPerm), processTypeIds);
 				})
 				.collect(Collectors.joining(",\r\n"))	
 				);
@@ -340,7 +379,7 @@ class CreateTaskOrderPermutations {
 	private static Stream<String> createEntry(AtomicInteger counterIds, int participantId, List<Integer> permutation, List<String> processTypeIds) {
 		assert(permutation.size()==processTypeIds.size());
 		AtomicInteger counterTypes = new AtomicInteger(1);
-		Stream<String> taskACL = permutation.stream()
+		List<String> taskACL = permutation.stream()
 			.flatMap(perm -> {
 				if (perm == 0) {
 					// no access, just increment to next type
@@ -356,13 +395,14 @@ class CreateTaskOrderPermutations {
 					return Stream.of(String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(),  counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId) ,
 							String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId));
 				}				
-			});
+			}).collect(Collectors.toList());
+		assert((counterTypes.get()+1)!=2*processTypeIds.size()); /*{
+			System.out.println(counterTypes.get());
+		}*/
 		// add the warmup task permissions to see repairs and restrictions (warmup task is appended at the end of the processTypes List)
-		return Stream.concat(taskACL, Stream.of(
-				String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(),  counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId) ,
-				String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId)
-				));
-		
+		taskACL.add(String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(),  counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId)); 
+		taskACL.add(String.format("(%s, %s, %s, %s,     1, 1, 1, 1)", counterIds.get(), counterTypes.getAndIncrement(), counterIds.getAndIncrement(), participantId));				
+		return taskACL.stream();
 	}
 	
 	private static String createPythonRepairPermutationEntry(List<Integer> permutation, List<String> processTypeIds) {
@@ -373,6 +413,70 @@ class CreateTaskOrderPermutations {
 		
 		
 	}
+	
+	private static Map<String,ExperimentSequence> createParticipantTaskOrderData(List<String> participantIds, List<String> processInputIds, List<String> processTypeIds, List<String> processWarmupIds) {
+		Map<String,ExperimentSequence> sequences = new HashMap<>();
+		AtomicInteger taskPermCounterSheet = new AtomicInteger(1);
+		AtomicInteger repairPermCounterSheet = new AtomicInteger(0);
+		participantIds.stream().forEach(pId -> {
+			ExperimentSequence seq = new ExperimentSequence(pId);
+			String warmupId = processWarmupIds.remove(0);
+			seq.getSequence().add(new TaskInfo(TASK_WARMUP,  AZURE_INPUTPARAM, warmupId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(2), inputId2Url(warmupId)));
+			Map<String, String> mapping = createTask2InputMap(processInputIds, processTypeIds);
+
+			List<Integer> taskPermutation = permTask.get(taskPermCounterSheet.getAndIncrement()%permTask.size());
+			List<Integer> repairPermutation = perm.get(repairPermCounterSheet.getAndIncrement()%permTask.size());
+			for (int i = 0; i < processTypeIds.size(); i++) {
+				seq.getSequence().add(permToTaskLine(i, taskPermutation, repairPermutation, mapping, processTypeIds));
+			}
+			sequences.put(pId, seq);
+		});
+		return sequences;
+	}
+	
+	private static String permToRepairType(int i) {
+		if (i == 0)
+			return "No repair support";
+		if (i == 1)
+			return "Repairs without restriction details";
+		if (i == 2)
+			return "Repairs with restriction details";
+		else
+			throw new IllegalArgumentException("RepairType must be 0, 1, or 2");
+	}
+	
+	private static String inputId2Url(String input) {
+		return AZURE_URL_PREFIX+input.split("/")[1];
+	}
+	
+	private static ExperimentSequence.TaskInfo permToTaskLine(int index, List<Integer> taskPermutation, List<Integer> repairPermutation, Map<String, String> mapping, List<String> processTypeIds) {
+		int permIndex = taskPermutation.indexOf(index);
+		String pType = processTypeIds.get(permIndex);
+		int repairPerm = repairPermutation.get(permIndex);
+		String inputId = mapping.get(pType);
+		return new TaskInfo(pType,  AZURE_INPUTPARAM, inputId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(repairPerm), inputId2Url(inputId));
+	}
+	
+	private static Map<String, String> createTask2InputMap(List<String> processInputIds, List<String> processTypeIds) {
+		Map<String, String> mapping = new HashMap<>();
+		processTypeIds.stream().forEach(procId -> mapping.put(procId, processInputIds.remove(0)));
+		return mapping;
+	}
+	
+	private static void storeExperimentSequenceToJsonFile(String filename,  Map<String,ExperimentSequence> data) {
+		Gson gson = new GsonBuilder()				 
+				 .setPrettyPrinting()
+				 .create();
+		String json = gson.toJson(data);
+		try {
+			FileWriter file = new FileWriter(filename);
+			file.write(json);
+			file.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	private static int calcTaskGroup(int counter) {
 		return Math.floorDiv(counter, 3)+1;		

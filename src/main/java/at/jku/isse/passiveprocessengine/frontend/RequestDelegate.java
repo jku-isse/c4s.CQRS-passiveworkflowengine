@@ -317,6 +317,8 @@ public class RequestDelegate {
 	}
 	
 	public boolean doAllowProcessInstantiation(String procInputId) {
+		List<String> accessTo = processACL.findAll().stream().map(pp -> pp.getName()).collect(Collectors.toList());
+		
 		return processACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(procInputId) 
 															|| proxy.getName().equalsIgnoreCase("*"));
 	}

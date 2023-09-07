@@ -91,7 +91,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
 //        header.add(firstPart, toggle/*, shutdown*/);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Constraint Editor - OCL/ARL Playground", securityService);
+        AppHeader header = new AppHeader("Constraint Editor - OCL/ARL Playground", securityService, commandGateway.getUIConfig());
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
 //        HorizontalLayout footer = new HorizontalLayout();
 //        footer.setClassName("footer-theme");

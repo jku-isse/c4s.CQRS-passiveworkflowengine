@@ -109,7 +109,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 //        header.add(firstPart/*, toggle, shutdown*/);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Instance Overview", securityService);
+        AppHeader header = new AppHeader("Instance Overview", securityService, commandGateway.getUIConfig());
         AppFooter footer = new AppFooter(commandGateway.getUIConfig());        
 
         add(

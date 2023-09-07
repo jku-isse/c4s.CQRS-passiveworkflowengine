@@ -10,6 +10,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 
 public class AppHeader extends HorizontalLayout{
 	
@@ -21,7 +22,7 @@ public class AppHeader extends HorizontalLayout{
 	
 	private SecurityService sec;
 
-	public AppHeader(String pageTitle, SecurityService securityService /*, RefreshableComponent comp*/) {
+	public AppHeader(String pageTitle, SecurityService securityService, UIConfig uiconf /*, RefreshableComponent comp*/) {
 		this.setClassName("header-theme");
         this.setMargin(false);
         this.setPadding(true);
@@ -58,14 +59,23 @@ public class AppHeader extends HorizontalLayout{
         	UI.getCurrent().navigate("home");
         });
         
-        Button logout = new Button("Logout");
+        Button exp = new Button("Experiment");
+        exp.setClassName("med");
+        exp.addClickListener(evt -> {
+        	UI.getCurrent().navigate("exp");
+        });
+        
+        Button logout = new Button("Logout "+sec.getAuthenticatedUser().getUsername());
         logout.setClassName("med");
         logout.addClickListener(evt -> {
         	sec.logout();
         });
         
-        
-        this.add(firstPart, home, progress, arl, logout/*, toggle*/);
+        if (uiconf.doEnableExperimentMode()) {
+        	this.add(firstPart, home, exp, logout);
+        } else {
+        	this.add(firstPart, home, progress, arl, logout);
+        }
         this.setJustifyContentMode(JustifyContentMode.BETWEEN);
 	}
 }

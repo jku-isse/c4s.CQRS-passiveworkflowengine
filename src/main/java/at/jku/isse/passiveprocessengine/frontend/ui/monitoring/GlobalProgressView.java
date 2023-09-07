@@ -103,7 +103,7 @@ public class GlobalProgressView extends VerticalLayout implements RefreshableCom
 //        header.add(firstPart, toggle);
 //        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        AppHeader header = new AppHeader("Connector Progress Overview", securityService);        
+        AppHeader header = new AppHeader("Connector Progress Overview", securityService, commandGateway.getUIConfig());        
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
 
         add(

@@ -142,7 +142,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         setMargin(false);
         setPadding(false);
         
-        AppHeader header = new AppHeader("Process Dashboard", securityService);  
+        AppHeader header = new AppHeader("Process Dashboard", securityService, commandGateway.getUIConfig());  
         AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
         add(
                 header,

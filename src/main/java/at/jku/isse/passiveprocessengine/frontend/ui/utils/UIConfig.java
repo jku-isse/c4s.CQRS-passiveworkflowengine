@@ -20,4 +20,8 @@ public class UIConfig extends Properties {
 	public boolean doUseIntegratedEvalRepairTree() {
 		return Boolean.valueOf(this.getProperty("doUseIntegratedEvalRepairTree", "false"));
 	}
+	
+	public boolean doEnableExperimentMode() {
+		return Boolean.valueOf(this.getProperty("enableExperimentMode", "false"));
+	}
 }
