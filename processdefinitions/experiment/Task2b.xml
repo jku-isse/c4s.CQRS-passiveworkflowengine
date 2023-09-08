@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task2a</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task2b</field>
+    <comment pinned="true" h="271" w="926">In this task is about ensuring implementation of requirements can begin upon having priority 1 requirements (i.e., the most critical ones) are not only traced to test cases but also having explicit reviews of these test cases. &#10;Reviewing test cases ensures for the most important requirements that the test cases are indeed suitable to cover them.&#10;&#10;For this task, your goal is to ensure consistent test cases and their reviews. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqStateAnalysis</field>
+                <field name="StepId">PriorityReqToReviewTrace</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,10 +38,10 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="J?aBrHH#d32^Mj=7)hs_">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
-                      <block type="constraint" id="GSXvT,)P.p-m:vMI!rae">
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
                         <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
                       </block>
                     </value>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="L}^*UEpl;#R@HC{iu,$I">
-                    <field name="qacheckId">ReleasedReqReviewFindings</field>
-                    <field name="description">Ensure that all Requirements in state 'released' trace only to Reviews without any 'open' Review Findings.</field>
+                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
+                    <field name="qacheckId">Prio1TCreviewed</field>
+                    <field name="description">Ensure that each Requirement with priority 1 does trace to at least one Test Case that in turn traces to a 'closed' Review.</field>
                     <value name="constraint">
-                      <block type="constraint" id="#)RJt^YCegSzrki_!p1t">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select (req2 | req2.state = 'Released')&#10;-&gt;forAll(req  : &#10;           &lt;root/types/azure/azure_workitem&gt; | req.successorItems&#10;-&gt;exists(item3 | item3.workItemType = 'Review')&#10;and &#10;req.successorItems&#10;-&gt;select(item | item.workItemType = 'Review')&#10;-&gt;forAll(rev : &#10;           &lt;root/types/azure/azure_workitem&gt; | &#10;     rev.successorItems&#10;       -&gt;select(item2 | item2.workItemType = &#10;                                 'ReviewFinding')&#10;       -&gt;forAll(finding : &#10;           &lt;root/types/azure/azure_workitem&gt; &#10;          | finding.state &lt;&gt; 'Open')&#10;  )&#10;)</field>
+                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.priority = 1)&#10;-&gt;forAll(vipreq : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           vipreq.testedbyItems&#10; -&gt;select(item | item.workItemType = 'Test Case')&#10; -&gt;exists(tc : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;         tc.successorItems&#10;    -&gt;exists(item2 | item2.workItemType="Review')&#10;and&#10;tc.successorItems&#10;    -&gt;select(item3 | item3.workItemType="Review')&#10;    -&gt;forAll(rev : &#10;           &lt;root/types/azure/azure_workitem&gt; | &#10;               rev.state='Closed')&#10; ) &#10;)</field>
                       </block>
                     </value>
                   </block>

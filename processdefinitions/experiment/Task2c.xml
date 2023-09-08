@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task1b</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task2c</field>
+    <comment pinned="true" h="372" w="767">In this task is about ensuring any bugs found during implementation are tracked against requirements.  &#10;This helps understanding which requirements are difficult to implement and test. Hence these bugs also need to describe which test case needed to be added or updated to demonstrates the bug was fixed.&#10;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqChangeRequestTrace</field>
+                <field name="StepId">ReqBugTestLinking</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,25 +38,25 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                  <block type="transition" id="y*~*@0Qo^OrDaE~b)/$R">
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
-                      <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
-                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state&lt;&gt;'Draft')</field>
+                      <block type="constraint" id="I6mnc.1RtN^B7tmO`Pbq">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
                       </block>
                     </value>
                   </block>
                 </statement>
                 <statement name="Datamappings">
-                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                  <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
                     <field name="mappingId">REQs</field>
                     <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
                     <next>
-                      <block type="datamapping" id="IAXyBKMo5{yF(HGU6tNG">
+                      <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
                         <field name="mappingId">TCs</field>
                         <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
                         <next>
-                          <block type="datamapping" id="VZjM`~Jg9vN~/l$X/wM(">
+                          <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                             <field name="mappingId">Bugs</field>
                             <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
                           </block>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="i}Vn!zoajJxdZkSQ;mCV">
-                    <field name="qacheckId">REQtoCR</field>
-                    <field name="description">Ensure that each Requirement traces only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child.</field>
+                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
+                    <field name="qacheckId">ReqAndBugTestCaseLinking</field>
+                    <field name="description">Ensure for each Requirement that is affected by a Bug has at least one of its Test Cases trace to this Bug.</field>
                     <value name="constraint">
-                      <block type="constraint" id="iR$^ELL1uAp24zcl`y8Z">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.predecessorItems&#10;-&gt;select( pre | pre.workItemType='Change Request')    &#10;-&gt;difference(self.in_CRs)&#10;-&gt;forAll(cr |   cr.state = 'Released' &#10;             or cr.successorItems&#10;               -&gt;select(suc | suc.workItemType='Issue')&#10;               -&gt;exists(issue : &lt;root/types/azure/azure_workitem&gt; | issue.priority = 1)&#10;   )&#10;)</field>
+                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.affectedbyItems&#10; -&gt;select(item | item.workItemType='Bug')&#10; -&gt;forAll(bug : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;              bug.testedbyItems&#10; -&gt;intersection(&#10;  req.testedbyItems&#10;   -&gt;select(item3 | item3.workItemType='Test Case')&#10;  )-&gt;size() &gt;0&#10; )&#10;)&#10;</field>
                       </block>
                     </value>
                   </block>

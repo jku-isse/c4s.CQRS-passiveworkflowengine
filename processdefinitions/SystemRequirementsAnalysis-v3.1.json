@@ -69,12 +69,12 @@
           "output": {},
           "ioMapping": {},
           "conditions": {
-            "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003eforAll( art_17 | art_17.childItems-\u003eselect( refItem_18 : \u003croot/types/azure/azure_workitem\u003e | refItem_18.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_18 : \u003croot/types/azure/azure_workitem\u003e | not(child_18.category \u003d \u0027Uncategorized\u0027)) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_19 | art_19.childItems-\u003eselect( refItem_20 : \u003croot/types/azure/azure_workitem\u003e | refItem_20.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_20 : \u003croot/types/azure/azure_workitem\u003e | req_20.predecessorItems-\u003eexists( userreq_20 : \u003croot/types/azure/azure_workitem\u003e | (userreq_20.workItemType \u003d \u0027L3 Requirement\u0027 and userreq_20.state \u003d \u0027Accepted\u0027))) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_21 | art_21.childItems-\u003eselect( refItem_22 : \u003croot/types/azure/azure_workitem\u003e | refItem_22.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_22 : \u003croot/types/azure/azure_workitem\u003e | child_22.priority \u003e -1) )",
+            "PRECONDITION": "self.in_SystemRequirementsSpecification-\u003eforAll( art_17 | art_17.childItems-\u003eselect( refItem_18 : \u003croot/types/azure/azure_workitem\u003e | refItem_18.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_18 : \u003croot/types/azure/azure_workitem\u003e | not(child_18.category \u003d \u0027Uncategorized\u0027)) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_19 | art_19.childItems-\u003eselect( refItem_20 : \u003croot/types/azure/azure_workitem\u003e | refItem_20.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_20 : \u003croot/types/azure/azure_workitem\u003e | req_20.predecessorItems-\u003eexists( userreq_20 : \u003croot/types/azure/azure_workitem\u003e | (userreq_20.workItemType \u003d \u0027L3 Requirements\u0027 and userreq_20.state \u003d \u0027Accepted\u0027))) ) and \r\nself.in_SystemRequirementsSpecification-\u003eforAll( art_21 | art_21.childItems-\u003eselect( refItem_22 : \u003croot/types/azure/azure_workitem\u003e | refItem_22.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( child_22 : \u003croot/types/azure/azure_workitem\u003e | child_22.priority \u003e -1) )",
             "POSTCONDITION": "self.in_SystemRequirementsSpecification-\u003esize() \u003e 0  \r\n and self-\u003eisDefined()"
           },
           "qaConstraints": [
             {
-              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_23 | art_23.state \u003d \u0027Ready For Review\u0027 )",
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_23 | art_23.state \u003d \u0027ReadyForReview\u0027 )",
               "specOrderIndex": 6,
               "_type": "QAConstraint",
               "code": "SystemRequirementsSpecification::ReadyforReview",
@@ -129,7 +129,7 @@
           },
           "qaConstraints": [
             {
-              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_27 | art_27.childItems-\u003eselect( refItem_28 : \u003croot/types/azure/azure_workitem\u003e | refItem_28.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_28 : \u003croot/types/azure/azure_workitem\u003e | req_28.predecessorItems-\u003eexists( userreq_28 : \u003croot/types/azure/azure_workitem\u003e | (userreq_28.workItemType \u003d \u0027L3 Requirement\u0027 and userreq_28.state \u003d \u0027Accepted\u0027))) )",
+              "arlRule": "self.in_SystemRequirementsSpecification-\u003eforAll( art_27 | art_27.childItems-\u003eselect( refItem_28 : \u003croot/types/azure/azure_workitem\u003e | refItem_28.workItemType \u003d \u0027Requirement\u0027)-\u003eforAll( req_28 : \u003croot/types/azure/azure_workitem\u003e | req_28.predecessorItems-\u003eexists( userreq_28 : \u003croot/types/azure/azure_workitem\u003e | (userreq_28.workItemType \u003d \u0027L3 Requirements\u0027 and userreq_28.state \u003d \u0027Accepted\u0027))) )",
               "specOrderIndex": 8,
               "_type": "QAConstraint",
               "code": "SystemRequirementsSpecification::tracesadded",

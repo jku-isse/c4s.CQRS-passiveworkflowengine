@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task1c</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task1b</field>
+    <comment pinned="true" h="241" w="848">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability between requirements and change requests in this task is to support understanding which requirements  are implemented together or have been subject to earlier implementation iterations.&#10;&#10;For this task, your goal is to ensure the trace between requirements and change requests. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqTestTrace</field>
+                <field name="StepId">ReqChangeRequestTrace</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -42,7 +42,7 @@
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
                       <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
-                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Active')</field>
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state&lt;&gt;'Draft')</field>
                       </block>
                     </value>
                   </block>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="W1fbY4q$(rWfRrae@0K2">
-                    <field name="qacheckId">REQtoTC</field>
-                    <field name="description">Ensure that each Requirement traces to at least one Test Case in state 'Released'.</field>
+                  <block type="qacheck" id="i}Vn!zoajJxdZkSQ;mCV">
+                    <field name="qacheckId">REQtoCR</field>
+                    <field name="description">Ensure that each Requirement traces only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child.</field>
                     <value name="constraint">
-                      <block type="constraint" id="fv4uP?X:2{U0B5]32/XN">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;   req.testedbyItems-&gt;size() &gt; 0 &#10;   and&#10;   req.testedbyItems&#10; -&gt;forAll(tc |  tc.workItemType = 'Test Case' &#10;               and tc.state = 'Released')&#10;)</field>
+                      <block type="constraint" id="iR$^ELL1uAp24zcl`y8Z">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.predecessorItems&#10;-&gt;select( pre | pre.workItemType='Change Request')    &#10;-&gt;difference(self.in_CRs)&#10;-&gt;forAll(cr |   cr.state = 'Released' &#10;             or cr.successorItems&#10;               -&gt;select(suc | suc.workItemType='Issue')&#10;               -&gt;exists(issue : &lt;root/types/azure/azure_workitem&gt; | issue.priority = 1)&#10;   )&#10;)</field>
                       </block>
                     </value>
                   </block>

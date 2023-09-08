@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task3b</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task3a</field>
+    <comment pinned="true" h="237" w="641">This task is about ensuring that any bugs affecting the most important requirements are explicitly tracked. This ensures that critical bugs are definitely resolved before a release.&#10;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs, change requests and issues. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.is function.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">AssessingReqIssueTraceability</field>
+                <field name="StepId">AssessingBugStates</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
-                    <field name="qacheckId">ReqIssueParentTraceability</field>
-                    <field name="description">Ensure all Requirements with a trace to an 'active' Issue, need to have that Issue be traced as a child from one of the Requirement's preceeding Change Requests.</field>
+                  <block type="qacheck" id="L}^*UEpl;#R@HC{iu,$I">
+                    <field name="qacheckId">Priority1ReqBugsState</field>
+                    <field name="description">Ensure that either all Bugs for priority 1 Requirements are 'Closed' or the Requirement is traced from one of the Change Request's 'active' child Issues.</field>
                     <value name="constraint">
-                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;       req2.predecessorItems&#10;     -&gt;select(item3 | item3.workItemType='Change Request' &#10;               and item3.state&lt;&gt;'Released')&#10;     -&gt;intersection(&#10;   req2.successorItems&#10;   -&gt;select(item2 | item2.workItemType='Issue'&#10;          and item2.state='Active' )&#10;   -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; ) )&#10;   )-&gt;size() &gt; 0&#10;)</field>
+                      <block type="constraint" id="#)RJt^YCegSzrki_!p1t">
+                        <field name="arlRule">self.out_Bugs&#10;-&gt;select(bug | bug.affectsItems&#10;  -&gt;exists(item : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;             item.workItemType='Requirement' and &#10;             item.priority=1))&#10;-&gt;forAll(bug2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            bug2.state='Closed' &#10;     or  &#10;     bug2.affectsItems&#10;  -&gt;select(item2 | &#10;                item2.workItemType='Requirement' &#10;                and &#10;                item2.priority=1)&#10;  -&gt;forAll(req : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;              req.successorItems&#10;             -&gt;exists(item3 | item3.workItemType = &#10;                                        'Issue' and item3.state='Active' &#10;               and item3.parentItems                       &#10;               -&gt;intersection(self.in_CRs).size() &gt; 0&#10;      )&#10;  )&#10;)</field>
                       </block>
                     </value>
                   </block>

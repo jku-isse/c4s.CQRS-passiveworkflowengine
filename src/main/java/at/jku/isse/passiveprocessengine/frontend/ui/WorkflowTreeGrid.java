@@ -689,7 +689,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         			} else {
                 			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
                 			rtg.initTreeGrid();
-                			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));
+                			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));                			
                 			//rtg.expandRecursively(repairTree.getChildren(), 3);
                 			l.add(rtg); 
         			}        			        			

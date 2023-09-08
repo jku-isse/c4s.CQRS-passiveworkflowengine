@@ -93,7 +93,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
                 return new Paragraph(o.getClass().getSimpleName() );
             }
         })
-        .setAutoWidth(true)
+        .setAutoWidth(true)        
         .setHeader("Execute any one of the following actions to fulfill constraint:"); //.setWidth("100%");
     }
 	
@@ -158,7 +158,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
                 return Stream.empty();
             }
         });
-		this.getDataProvider().refreshAll();
+		this.getDataProvider().refreshAll();		
 	}
 	
 	private static java.util.Random random = new java.util.Random();

@@ -33,7 +33,7 @@ class CreateTaskOrderPermutations {
 	void createACLDataTableContent() {
 
 		// for participants 1 to 30
-		List<String> participantIds = IntStream.range(1, 3)
+		List<String> participantIds = IntStream.range(1, 2)
                 .mapToObj(x -> "P"+x)
                 .collect(Collectors.toList()); 
 		
@@ -42,24 +42,12 @@ class CreateTaskOrderPermutations {
 		//List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
 		//		"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
 		//		"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
-		List<String> processInputIds = List.of("T1/2986", "T1/3012", "T1/3056", "T1/3080", "T1/3106", "T1/3150", "T1/3174", "T1/3200", "T1/3246",
-				"T4/4662", "T4/4688", "T4/4708", "T4/4732", "T4/4758", "T4/4778", "T4/4802", "T4/4828", "T4/4848");
+		List<String> processInputIds = List.of("T1/5103", "T1/5129", "T1/5149", "T1/5173", "T1/5199", "T1/5219", "T1/5243", "T1/5269", "T1/5289"
+				);
 		
-		List<String> warmupInputs =List.of("T1/3272", "T4/4874");
+		List<String> warmupInputs =List.of("T1/5315");
 		
-		/*
-		 * 11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1a with input T4/4662
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1b with input T4/4688
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task1c with input T4/4708
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2a with input T4/4732
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2b with input T4/4758
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task2c with input T4/4778
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3a with input T4/4802
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3b with input T4/4828
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: Task3c with input T4/4848
-11:34:33.272 [main] DEBUG scenarioimporter.TestMultiProjectImport -- T4: _TaskWarmup with input T4/4874
-List<String> processInputIds = List.of("T4/4662", "T4/4688", "T4/4708", "T4/4732", "T4/4758", "T4/4778", "T4/4802", "T4/4828", "T4/4848", "T4/4874");
-		 * */
+
 		
 		
 		// and 9 processes types, representing the taskss		

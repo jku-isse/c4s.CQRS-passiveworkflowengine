@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task2b</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task3b</field>
+    <comment pinned="true" h="408" w="796">This task is about ensuring that any requirement linked to an active issue has that issue associated with the current change request (and not any of the requirements prior change request). This should ensure that any issue of that requirements is not left behind (and forgotten) in a prior iteration but explicitly in the scope of the current implementation iteration.&#10;&#10;For this task, your goal is to ensure consistent traces between requirements, change requests and issues. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.&#10;</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">PriorityReqToReviewTrace</field>
+                <field name="StepId">AssessingReqIssueTraceability</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -42,7 +42,7 @@
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
                       <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
-                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Released')</field>
                       </block>
                     </value>
                   </block>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
-                    <field name="qacheckId">Prio1TCreviewed</field>
-                    <field name="description">Ensure that each Requirement with priority 1 does trace to at least one Test Case that in turn traces to a 'closed' Review.</field>
+                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
+                    <field name="qacheckId">ReqIssueParentTraceability</field>
+                    <field name="description">Ensure all Requirements with a trace to an 'active' Issue, need to have that Issue never be traced as a child from one of the Requirement's preceeding Change Requests.</field>
                     <value name="constraint">
-                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.priority = 1)&#10;-&gt;forAll(vipreq : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           vipreq.testedbyItems&#10; -&gt;select(item | item.workItemType = 'Test Case')&#10; -&gt;exists(tc : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;         tc.successorItems&#10;    -&gt;exists(item2 | item2.workItemType="Review')&#10;and&#10;tc.successorItems&#10;    -&gt;select(item3 | item3.workItemType="Review')&#10;    -&gt;forAll(rev : &#10;           &lt;root/types/azure/azure_workitem&gt; | &#10;               rev.state='Closed')&#10; ) &#10;)</field>
+                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;       req2.predecessorItems&#10;     -&gt;select(item3 | item3.workItemType='Change Request' &#10;               and item3.state&lt;&gt;'Released')&#10;     -&gt;intersection(&#10;   req2.successorItems&#10;   -&gt;select(item2 | item2.workItemType='Issue'&#10;          and item2.state='Active' )&#10;   -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; ) )&#10;   )-&gt;size() &gt; 0&#10;)</field>
                       </block>
                     </value>
                   </block>

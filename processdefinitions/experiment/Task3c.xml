@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task2c</field>
-    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <field name="NAME">Task3c</field>
+    <comment pinned="true" h="299" w="874">This task is about ensuring that bugs are properly linked to test cases and requirements for software certification purposes. To this end, any bug identified within a change request needs to point to one requirements of that change request and also the respective test cases points to the same requirement. This allows for consistent navigation between requirements, bugs, and test cases. &#10;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs, and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.is function.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqBugTestLinking</field>
+                <field name="StepId">AssessingTraceability</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,11 +38,11 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="y*~*@0Qo^OrDaE~b)/$R">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
-                      <block type="constraint" id="I6mnc.1RtN^B7tmO`Pbq">
-                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Released')</field>
                       </block>
                     </value>
                   </block>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
-                    <field name="qacheckId">ReqAndBugTestCaseLinking</field>
-                    <field name="description">Ensure for each Requirement that is affected by a Bug has at least one of its Test Cases trace to this Bug.</field>
+                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
+                    <field name="qacheckId">BugAndTestCasesTraceabilityToReq</field>
+                    <field name="description">Ensure that all Test Cases that are testing Bugs have a predecessor link to the Change Request and also are linked to the Bug's affected set of Requirements.</field>
                     <value name="constraint">
-                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.affectedbyItems&#10; -&gt;select(item | item.workItemType='Bug')&#10; -&gt;forAll(bug : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;              bug.testedbyItems&#10; -&gt;intersection(&#10;  req.testedbyItems&#10;   -&gt;select(item3 | item3.workItemType='Test Case')&#10;  )-&gt;size() &gt;0&#10; )&#10;)&#10;</field>
+                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
+                        <field name="arlRule">self.out_TCs&#10;-&gt;select(tc | tc.testsItems&#10;    -&gt;exists(item | item.workItemType='Bug'&#10;             and &#10;        item.predecessorItems&#10;        -&gt;intersection(self.in_CRs).size() &gt; 0           &#10;))&#10;-&gt;forAll(tc2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           tc2.testsItems&#10;    -&gt;select(item2 | item2.workItemType='Bug')&#10;           -&gt;asList()-&gt;first()&#10;          -&gt;asType(&#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;     .affectsItems&#10;    -&gt;select(item3 | &#10;                item3.workItemType='Requirement')&#10;    -&gt;intersection(tc2.testsItems &#10;         -&gt;select(item4 | &#10;                item4.workItemType='Requirement')&#10;       )-&gt;size() &gt; 0&#10;)</field>
                       </block>
                     </value>
                   </block>
