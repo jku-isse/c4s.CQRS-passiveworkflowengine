@@ -133,7 +133,14 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         // Column "Last Changed"
 
         this.addColumn(o -> {
-            if (o instanceof ConstraintWrapper) {
+        	if (o instanceof ProcessInstance) {
+        		ProcessInstance pi = (ProcessInstance) o;
+                try {
+                    return "Created at: "+formatter.format(pi.getCreatedAt());
+                } catch (DateTimeException e) {
+                    return " ";
+                }
+            } else if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
                 try {
                     return formatter.format(rebc.getLastChanged());
@@ -318,17 +325,18 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
-        if (!conf.isAnonymized())        
+        if (!conf.isAnonymized() && !conf.doEnableExperimentMode())        
         	l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));                
-        l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
+        if(!conf.doEnableExperimentMode())
+        	l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
         
-        Button consBtn = new Button("Ensure Constraint State Consistency");
-        consBtn.setClassName("med");
-        consBtn.addClickListener(evt -> {
-        	if (reqDel != null)
-        		reqDel.ensureConstraintStatusConsistency(wfi);
-        });
-        l.add(consBtn);
+//        Button consBtn = new Button("Ensure Constraint State Consistency");
+//        consBtn.setClassName("med");
+//        consBtn.addClickListener(evt -> {
+//        	if (reqDel != null)
+//        		reqDel.ensureConstraintStatusConsistency(wfi);
+//        });
+//        l.add(consBtn);
         
         Dialog dialog = new Dialog();
         dialog.setWidth("80%");
