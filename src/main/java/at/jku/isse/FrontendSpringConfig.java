@@ -5,8 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 
-//import javax.jms.ConnectionFactory;
-
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -66,14 +66,24 @@ public class FrontendSpringConfig {
 	//------------------------------------------------------------------------------------------------------------------
 
 	
-	@Bean UIConfig getUIConfig() {
-		UIConfig props = new UIConfig();
+	@Bean UIConfig getUIConfig(ApplicationContext context) {
+		
+		
+		String  version = PPE3Webfrontend.class.getPackage().getImplementationVersion();
+		UIConfig props = new UIConfig(version);
+		
 		try {
 			InputStream input = new FileInputStream("application.properties") ;
             props.load(input);
 		} catch(IOException e) {
 			log.error("No ./application.properties found");
 		}
+		
+		
+
+	    
+
+	    
 		
 		return props;
 	}

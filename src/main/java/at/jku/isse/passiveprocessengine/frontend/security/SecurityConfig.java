@@ -109,6 +109,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	"/repairstatistics**",	
     	"/qastatistics**",	
     	"/participants**",
+    	"/stages/**",
     	
     	// Client-side JS
         "/VAADIN/**",

@@ -45,7 +45,9 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.extern.slf4j.Slf4j;
 import java.time.DateTimeException;
+import java.time.Duration;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
@@ -133,14 +135,23 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         // Column "Last Changed"
 
         this.addColumn(o -> {
-        	if (o instanceof ProcessInstance) {
-        		ProcessInstance pi = (ProcessInstance) o;
-                try {
-                    return "Created at: "+formatter.format(pi.getCreatedAt());
-                } catch (DateTimeException e) {
-                    return " ";
-                }
-            } else if (o instanceof ConstraintWrapper) {
+        	if (conf.doEnableExperimentMode()) {
+        		if (o instanceof ProcessInstance) {
+        			ProcessInstance pi = (ProcessInstance) o;
+        			try {
+        				ZonedDateTime now = ZonedDateTime.now();
+        				Duration diff = Duration.between(pi.getCreatedAt(), now);
+        			    String hms = String.format("%d:%02d:%02d", 
+        			                                diff.toHours(), 
+        			                                diff.toMinutesPart(), 
+        			                                diff.toSecondsPart());
+        				return "Running since: "+hms;
+        			} catch (DateTimeException e) {
+        				return " ";
+        			}
+        		} 
+        	}
+        	if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
                 try {
                     return formatter.format(rebc.getLastChanged());

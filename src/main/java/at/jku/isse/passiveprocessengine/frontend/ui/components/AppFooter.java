@@ -16,9 +16,9 @@ public class AppFooter extends HorizontalLayout{
 	public AppFooter(UIConfig conf) {
 		this.setClassName("footer-theme");
 	    if (conf.isAnonymized())        
-	    	this.add(new Text("(C) 2023 - Anonymized "));
+	    	this.add(new Text("Version "+conf.getVersion()+" (C) 2023 - Anonymized "));
 	    else 
-	    	this.add(new Text("(C) 2023 - JKU - Institute for Software Systems Engineering"));
+	    	this.add(new Text("Version "+conf.getVersion()+" (C) 2023 - JKU - Institute for Software Systems Engineering"));
 	}
 	
 	
