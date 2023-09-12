@@ -1,6 +1,6 @@
 package at.jku.isse.passiveprocessengine.rest;
 
-import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,13 +23,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinitionError;
 import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry.ProcessDeployResult;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import c4s.processdefinition.blockly2java.Transformer;
 import c4s.processdefinition.blockly2java.Xml2Java;
 import https.developers_google_com.blockly.xml.Xml;
@@ -47,6 +46,18 @@ public class ProcessDeployEndpoint {
 	
 	@Autowired
 	ProcessRegistry procReg;
+	
+	private static Map<String, ProcessDeployResult> results = new HashMap<>();
+	
+	@GetMapping(value="deployResult/{id}", produces="application/json")
+	public ResponseEntity<String> getLatestDeployResult(@PathVariable("id") String id) {
+		if (results.containsKey(id)) {
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(gson.toJson(results.get(id)));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{}");
+		}
+	}
 
 	@PostMapping( value="deploySnapshot", consumes="application/json")
 	public ResponseEntity<String> deployProcessJson(@RequestBody String json) { 
@@ -59,7 +70,8 @@ public class ProcessDeployEndpoint {
 //					log.debug("Removing previous process definition: "+procD.getCode());
 //					procReg.removeProcessDefinition(pd.getName());
 //				});
-				ProcessDeployResult result = procReg.createOrReplaceProcessDefinition(procD, true);				
+				ProcessDeployResult result = procReg.createOrReplaceProcessDefinition(procD, true);			
+				results.put(procD.getCode(), result);
 				//SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD, true);
 				//	if (pd.getValue().isEmpty())
 				if (result.getDefinitionErrors().isEmpty())

@@ -105,6 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	"/transform**",	
     	"/deploySnapshot**",
     	"/deploySnapshotFromXML**",
+    	"/deployResult**",
     	"/processlogs/**",
     	"/repairstatistics**",	
     	"/qastatistics**",	
