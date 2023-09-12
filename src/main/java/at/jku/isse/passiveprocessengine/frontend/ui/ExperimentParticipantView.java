@@ -40,6 +40,7 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.core.Authentication;
@@ -117,9 +118,11 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		pages.setHeight("97%");
 		pages.setWidthFull();
 
+		Image image = new Image("images/tim.png", "Traceability Information Model");		
+		
 		pageContent.removeAll();
 		pageContent.setClassName("layout-style");
-		pageContent.add(/*tabs,*/ pages);
+		pageContent.add(/*tabs,*/ pages, image);
 	}
 
 
