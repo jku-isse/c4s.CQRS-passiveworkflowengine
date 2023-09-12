@@ -77,7 +77,9 @@ public class RepairVisualizationUtil {
 			list.add(new Paragraph(String.format("Add to %s of ", ra.getProperty())));
 			list.add(target);		
 			list.add(reload);
-			list.add(new Paragraph(restriction));
+			Paragraph pAdd = new Paragraph(restriction);
+			pAdd.getStyle().set("white-space", "pre-line");
+			list.add(pAdd);
 			return list;
 		case MOD_EQ:
 		case MOD_GT:
@@ -88,14 +90,19 @@ public class RepairVisualizationUtil {
 			list3.add(target);		
 			list3.add(reload);
 			list3.add(new Paragraph(" to"));
-			list3.add(new Paragraph(restriction));
+			Paragraph pSet = new Paragraph(restriction);
+			pSet.getStyle().set("white-space", "pre-line");
+			list3.add(pSet);
 			return list3;
 		case REMOVE:
 			List<Component> list2 = new ArrayList<>();			
 			list2.add(new Paragraph(String.format("Remove from %s of ", ra.getProperty())));
 			list2.add(target);
 			list2.add(reload);
-			list2.add(new Paragraph(restriction));
+			Paragraph pDel = new Paragraph(restriction);
+			pDel.getStyle().set("white-space", "pre-line");
+			list2.add(pDel);
+
 			return list2;
 		default:
 			break;		
