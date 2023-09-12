@@ -50,7 +50,7 @@ public class RepairVisualizationUtil {
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
 			if (rootNode != null && reqDel.doShowRestrictions(scope)) {
 				try {
-					String restriction = rootNode.printNodeTree(false);
+					String restriction = rootNode.printNodeTree(false, 10);
 					return generateRestrictedRepair(ra, restriction);
 				} catch (Exception e) {
 					log.error(e.getMessage());
@@ -78,7 +78,7 @@ public class RepairVisualizationUtil {
 			list.add(target);		
 			list.add(reload);
 			Paragraph pAdd = new Paragraph(restriction);
-			pAdd.getStyle().set("white-space", "pre-line");
+			pAdd.getStyle().set("white-space", "pre");
 			list.add(pAdd);
 			return list;
 		case MOD_EQ:
@@ -91,7 +91,7 @@ public class RepairVisualizationUtil {
 			list3.add(reload);
 			list3.add(new Paragraph(" to"));
 			Paragraph pSet = new Paragraph(restriction);
-			pSet.getStyle().set("white-space", "pre-line");
+			pSet.getStyle().set("white-space", "pre");
 			list3.add(pSet);
 			return list3;
 		case REMOVE:
@@ -100,7 +100,7 @@ public class RepairVisualizationUtil {
 			list2.add(target);
 			list2.add(reload);
 			Paragraph pDel = new Paragraph(restriction);
-			pDel.getStyle().set("white-space", "pre-line");
+			pDel.getStyle().set("white-space", "pre");
 			list2.add(pDel);
 
 			return list2;
