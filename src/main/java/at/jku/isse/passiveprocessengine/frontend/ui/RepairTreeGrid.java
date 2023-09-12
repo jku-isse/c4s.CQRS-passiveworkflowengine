@@ -69,7 +69,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 		this.rtf = rtf;		
 		this.reqDel = reqDel;
 		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-		repairViz = new RepairVisualizationUtil(reqDel, this);
+		repairViz = new RepairVisualizationUtil(reqDel, this);		
 	}
 	
 	public void initTreeGrid() {

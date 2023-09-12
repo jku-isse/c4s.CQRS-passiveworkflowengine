@@ -50,7 +50,7 @@ public class RepairVisualizationUtil {
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
 			if (rootNode != null && reqDel.doShowRestrictions(scope)) {
 				try {
-					String restriction = rootNode.printTree(false,10);
+					String restriction = rootNode.printTree(false,2);
 //					String restriction1=rootNode.toTreeString(10);
 					restriction=restriction.replaceAll("(?m)^[ \t]*\r?\n", "");
 //					System.out.println(restriction);
