@@ -7,7 +7,7 @@
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
     <field name="NAME">Task2c</field>
-    <comment pinned="true" h="372" w="767">In this task is about ensuring any bugs found during implementation are tracked against requirements.  &#10;This helps understanding which requirements are difficult to implement and test. Hence these bugs also need to describe which test case needed to be added or updated to demonstrates the bug was fixed.&#10;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <comment pinned="true" h="372" w="767">In this task is about ensuring any bugs found during implementation are tracked against requirements.  &#10;This helps understanding which requirements are difficult to implement and test. Hence these bugs also need to describe which test case needed to be added or updated to demonstrates the bug was fixed.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>

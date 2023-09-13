@@ -150,7 +150,9 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 	}
 
 	private Component inputToProc(TaskInfo info) {
-		return new Paragraph(new Anchor(info.getInputUrl(), info.getInputId()));
+		Anchor a = new Anchor(info.getInputUrl(), info.getInputId());
+		a.setTarget("_blank");
+		return new Paragraph(a);
 	}
 
 

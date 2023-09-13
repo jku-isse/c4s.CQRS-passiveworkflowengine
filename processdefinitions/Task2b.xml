@@ -7,7 +7,7 @@
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
     <field name="NAME">Task2b</field>
-    <comment pinned="true" h="271" w="926">In this task is about ensuring implementation of requirements can begin upon having priority 1 requirements (i.e., the most critical ones) are not only traced to test cases but also having explicit reviews of these test cases. &#10;Reviewing test cases ensures for the most important requirements that the test cases are indeed suitable to cover them.&#10;&#10;For this task, your goal is to ensure consistent test cases and their reviews. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <comment pinned="true" h="271" w="926">In this task is about ensuring implementation of requirements can begin upon having priority 1 requirements (i.e., the most critical ones) are not only traced to test cases but also having explicit reviews of these test cases. &#10;Reviewing test cases ensures for the most important requirements that the test cases are indeed suitable to cover them.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent test cases and their reviews. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
