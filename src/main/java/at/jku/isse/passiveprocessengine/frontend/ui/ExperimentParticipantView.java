@@ -1,6 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.User;
@@ -8,6 +9,7 @@ import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
@@ -29,6 +31,8 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -67,7 +71,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 	protected RequestDelegate commandGateway;
 	protected ExperimentSequenceProvider sequenceProvider;
 	protected ExperimentSequence seq;
-
+	protected String participantId;
 	private ListDataProvider<ExperimentSequence.TaskInfo> dataProvider;
 
 	public ExperimentParticipantView(RequestDelegate commandGateway, ExperimentSequenceProvider sequenceProvider, SecurityService securityService) {
@@ -76,10 +80,10 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		setMargin(false);
 		setPadding(false);
 
-		String pId = securityService.getAuthenticatedUser().getUsername();
-		seq = sequenceProvider.getSequenceForParticipant(pId);
+		participantId = securityService.getAuthenticatedUser().getUsername();
+		seq = sequenceProvider.getSequenceForParticipant(participantId);
 		if (seq == null) {
-			seq = new ExperimentSequence(pId+" - no sequence configured for this user");
+			seq = new ExperimentSequence(participantId+" - no sequence configured for this user");
 		}
 		dataProvider = new ListDataProvider<>(seq.getSequence());
 
@@ -141,7 +145,8 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		Grid.Column<TaskInfo> procName = grid.addColumn(ti -> ti.getProcessId()).setHeader("Process/Task").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> procInput = grid.addComponentColumn(ti -> inputToProc(ti)).setHeader("Input").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> repair = grid.addColumn(ti -> ti.getRepairSupport()).setHeader("Config").setResizable(true).setSortable(false);
-		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Init").setResizable(false).setSortable(false);		
+		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start").setResizable(false).setSortable(false);	
+		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("End").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
 
 		layout.add(grid);
@@ -192,6 +197,26 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		return button;
 	}
 
+	private Component taskInfoToCompletionButton(TaskInfo entry) {
+		Button delButton = null;
+		Optional<Instance> optInst = commandGateway.findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		if (optInst.isPresent()) {
+			Instance procInst = optInst.get();
+			if (!procInst.isDeleted) {
+				ProcessInstance wfi = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+				delButton = new Button("Stop Task/Process", evt ->  {
+					commandGateway.getMonitor().processDeleted(wfi, participantId);
+					commandGateway.deleteProcessInstance(wfi.getName());
+					dataProvider.refreshAll();
+				});
+				return delButton;
+			}
+		} 
+		delButton = new Button("Stop Task/Process");
+		delButton.setEnabled(false);
+		return delButton;
+	}
 
+	
 
 }

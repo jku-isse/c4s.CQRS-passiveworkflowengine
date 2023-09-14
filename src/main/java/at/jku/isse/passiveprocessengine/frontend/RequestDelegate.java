@@ -335,7 +335,7 @@ public class RequestDelegate {
 		
 		List<String> order = orderOpt.get();
 		// check if that procDef has already been instantiated before, if so, then deny and search next 
-		Optional<Instance> procInst = findInstance(procDefId, userId);
+		Optional<Instance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, userId);
 		if (procInst.isPresent())
 			return "Process already (previously) instantiated, cannot instantiate again";
 		
@@ -344,7 +344,7 @@ public class RequestDelegate {
 		if (pos == 0) return procDefId; // all ok, good to go
 		if (pos > 0) {
 			String prevProcDef = order.get(pos-1);
-			Optional<Instance> prevInst = findInstance(prevProcDef, userId);
+			Optional<Instance> prevInst = findAnyProcessInstanceByDefinitionAndOwner(prevProcDef, userId);
 			// if not yet instantiated, check if prior one has been closed
 			if (prevInst.isPresent()) {
 				Instance prevP = prevInst.get();
@@ -359,7 +359,7 @@ public class RequestDelegate {
 		return "You are not allowed to instantiate this process";
 	}
 	
-	private Optional<Instance> findInstance(String processDefinition, String owner) {
+	public Optional<Instance> findAnyProcessInstanceByDefinitionAndOwner(String processDefinition, String owner) {
 		//InstanceType procType =	ProcessInstance.getOrCreateDesignSpaceInstanceType(ws, procReg.getProcessDefinition(processDefinition, true).get());
 		// instances() does not return deleted instances!!
 		return procReg.getExistingAndPriorInstances().stream()

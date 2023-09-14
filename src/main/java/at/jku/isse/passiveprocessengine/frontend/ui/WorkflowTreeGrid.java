@@ -206,8 +206,51 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
     }
 
-    
     private Icon getStepIcon(ProcessStep step) {
+    	Icon icon = null;
+    	State state = null;
+    	if ( step.getExpectedLifecycleState().equals(State.AVAILABLE) || step.getExpectedLifecycleState().equals(State.NO_WORK_EXPECTED) || step.getExpectedLifecycleState().equals(State.CANCELED) )
+    		state = step.getExpectedLifecycleState();
+    	else 
+    		state = step.getActualLifecycleState();
+        switch(state) {
+        case ACTIVE:
+			icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
+			icon.setColor("red");
+			break;
+		case AVAILABLE:
+			icon = new Icon(VaadinIcon.LOCK);
+			icon.setColor("red");
+			break;
+		case CANCELED:
+			icon = new Icon(VaadinIcon.FAST_FORWARD);
+			icon.setColor("orange");
+			break;
+		case COMPLETED:
+			icon = new Icon(VaadinIcon.CHECK);
+			icon.setColor("green");
+			break;
+		case ENABLED:
+			icon = new Icon(VaadinIcon.UNLOCK);
+			icon.setColor("green");
+			break;
+		case NO_WORK_EXPECTED:
+			icon = new Icon(VaadinIcon.BAN);
+			icon.setColor("orange");
+			break;
+		default:
+			icon = new Icon(VaadinIcon.ASTERISK);
+			break;
+        }
+        
+        StringBuffer sb = new StringBuffer("Lifecycle State is ");
+        sb.append(StepLifecycleStateMapper.translateState(step.getActualLifecycleState()));
+        icon.getStyle().set("cursor", "pointer");
+        icon.getElement().setProperty("title", sb.toString());
+        return icon;
+    }
+    
+    private Icon getDetailedStepIcon(ProcessStep step) {
     	boolean isPremature = (step.isInPrematureOperationModeDueTo().size() > 0);
         boolean isUnsafe = (step.isInUnsafeOperationModeDueTo().size() > 0);
         String color = (step.getExpectedLifecycleState().equals(step.getActualLifecycleState())) ? "green" : "orange";
@@ -332,7 +375,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             if (reqDel != null)
             	reqDel.getMonitor().processDeleted(wfi, authentication != null ? authentication.getName() : null);
             	reqDel.deleteProcessInstance(wfi.getName());
-            	updateTreeGrid();
+            	//updateTreeGrid();
         });
         delIcon.getElement().setProperty("title", "Remove this workflow");
         l.add(delIcon);
@@ -770,28 +813,43 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         //this.content = new HashMap<>();
     	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
     	// heuristic, if preDNI or postDNI are != null, then this is a subporcess    	
-        content.stream()
+        long changeCount = content.stream()
         	.filter(pi -> pi.getInDNI() == null && pi.getOutDNI() == null)
-        	.forEach(wfi -> this.content.put(wfi.getName(), wfi));
-        updateTreeGrid();
+        	.filter(pi -> doHaveAccessRight(pi))
+        	.peek(wfi -> this.content.put(wfi.getName(), wfi))
+        	.count();
+        if (changeCount > 0) {
+        	updateTreeGrid();
+        }
     }
-
-    public void updateTreeGrid(ProcessInstance wfi) {
-    	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
-    	// heuristic, if preDNI or postDNI are != null, then this is a subporcess
-        if (wfi.getInDNI() == null && wfi.getOutDNI() == null)
-        	this.content.put(wfi.getName(), wfi);
-        // we update in any case as the subprocess has changed
-        updateTreeGrid();
-    }
+    
+    private boolean doHaveAccessRight(ProcessInstance wfi)  { 
+  		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
+  		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
+  		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+  		return authorized;
+ 	 };
+    
+//    public void updateTreeGrid(ProcessInstance wfi) {
+//    	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
+//    	// heuristic, if preDNI or postDNI are != null, then this is a subporcess
+//        if (wfi.getInDNI() == null && wfi.getOutDNI() == null)
+//        	this.content.put(wfi.getName(), wfi);
+//        // we update in any case as the subprocess has changed
+//        updateTreeGrid();
+//    }
 
     public void removeWorkflow(String id) {
         ProcessInstance removed = this.content.remove(id);
-        this.getDataProvider().refreshAll();
-        //updateTreeGrid();
+        if (removed != null) {
+        	//this.getDataProvider().refreshAll();
+        	updateTreeGrid();
+        }
+        
     }
 
     private void updateTreeGrid() {
+
     	
         Predicate<ProcessInstance> predicate = wfi -> ( 
         		( nameFilter.equals("") 
@@ -805,18 +863,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
          //       ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
          //               .anyMatch(propertyEntry -> propertiesFilter.entrySet().stream()
          //                       .anyMatch(filterEntry -> propertyEntry.getKey().startsWith(filterEntry.getKey()) && propertyEntry.getValue().startsWith(filterEntry.getValue()) )) );
-        if (SecurityContextHolder.getContext().getAuthentication() == null) // when called via PUSH
-        	SecurityContextHolder.getContext().setAuthentication(authentication);
-        Predicate<ProcessInstance> accessRight = wfi -> { 
-        		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
-        		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
-        		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
-        		return authorized;
-        };
+    //    if (SecurityContextHolder.getContext().getAuthentication() == null ) { // when called via PUSH        	
+    //    	SecurityContextHolder.getContext().setAuthentication(authentication);
+    //    }
+       
         
         this.setItems(this.content.values().stream()
                         .filter(predicate)
-                        .filter(accessRight)
                         .map(x->x),
                 o -> {
                     if (o instanceof ProcessInstance) {
