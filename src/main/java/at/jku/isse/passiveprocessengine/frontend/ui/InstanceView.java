@@ -358,7 +358,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	PropertyType pt = (PropertyType)value;
         	return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.name(), pt.cardinality(), pt.referencedInstanceType()));
         } else
-    	return new Paragraph( value != null ? value.toString() : "null");
+    	return new Paragraph(Objects.toString(value));
     }
     
     private static Component collectionValueToComponent(Collection value) {
@@ -375,7 +375,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
     }
     
     
-    private static Component mapValueToComponent(Map value) {
+    protected static Component mapValueToComponent(Map value) {
     	Grid<Map.Entry<String, Object>> grid = new Grid<Map.Entry<String, Object>>();
     	grid.setColumnReorderingAllowed(false);
     	Grid.Column<Map.Entry<String, Object>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Key").setResizable(true).setSortable(true);

@@ -145,8 +145,8 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		Grid.Column<TaskInfo> procName = grid.addColumn(ti -> ti.getProcessId()).setHeader("Process/Task").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> procInput = grid.addComponentColumn(ti -> inputToProc(ti)).setHeader("Input").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> repair = grid.addColumn(ti -> ti.getRepairSupport()).setHeader("Config").setResizable(true).setSortable(false);
-		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start").setResizable(false).setSortable(false);	
-		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("End").setResizable(false).setSortable(false);	
+		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start Task/Process").setResizable(false).setSortable(false);	
+		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("Finish Task/Process").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
 
 		layout.add(grid);
@@ -166,7 +166,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		Button button = null;
 		String nextAllowedProc = commandGateway.isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
 		if (commandGateway.doAllowProcessInstantiation(entry.getInputId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
-			button = new Button("Start Process/Task", evt -> {
+			button = new Button("Start", evt -> {
 				String id = entry.getInputId()+entry.getProcessId();
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 				Notification.show("Process Instantiation might take some time. UI will be updated automatically upon success.");
@@ -191,7 +191,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 					}					
 			});
 		} else {
-			button = new Button("Start Process/Task");
+			button = new Button("Start");
 			button.setEnabled(false);
 		}
 		return button;
@@ -204,7 +204,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 			Instance procInst = optInst.get();
 			if (!procInst.isDeleted) {
 				ProcessInstance wfi = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
-				delButton = new Button("Stop Task/Process", evt ->  {
+				delButton = new Button("Finish", evt ->  {
 					commandGateway.getMonitor().processDeleted(wfi, participantId);
 					commandGateway.deleteProcessInstance(wfi.getName());
 					dataProvider.refreshAll();
@@ -212,7 +212,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 				return delButton;
 			}
 		} 
-		delButton = new Button("Stop Task/Process");
+		delButton = new Button("Finish");
 		delButton.setEnabled(false);
 		return delButton;
 	}

@@ -756,6 +756,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 			l.add(rtg); 
         			}        			        			
         		} catch(Exception e) {
+        			e.printStackTrace();
         			TextArea resultArea = new TextArea();
         			resultArea.setWidthFull();
         			resultArea.setMinHeight("100px");
