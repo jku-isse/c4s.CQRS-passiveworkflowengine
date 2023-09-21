@@ -36,6 +36,7 @@ import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.evaluator.RotationNode;
 import at.jku.isse.designspace.rule.arl.expressions.AsTypeExpression;
 import at.jku.isse.designspace.rule.arl.expressions.CollectExpression;
+import at.jku.isse.designspace.rule.arl.expressions.ExistsExpression;
 import at.jku.isse.designspace.rule.arl.expressions.Expression;
 import at.jku.isse.designspace.rule.arl.expressions.ForAllExpression;
 import at.jku.isse.designspace.rule.arl.expressions.LiteralExpression;
@@ -112,7 +113,7 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 		if (ror.hasRotation()) {
 			RotationNode rNode = ror.getRotationNode();
 			Expression expr = rNode.getNode().expression;
-			if (rNode.isCollectionOrCombinationNode() && !rNode.isCombinationNode() && !(expr instanceof ForAllExpression)) {
+			if (rNode.isCollectionOrCombinationNode() && !rNode.isCombinationNode() && !(expr instanceof ForAllExpression) && !(expr instanceof ExistsExpression)) {
 				Object coll = rNode.getNode().resultValue;
 				span.add(collectionValueToComponent((Collection) coll));
 			} else {
