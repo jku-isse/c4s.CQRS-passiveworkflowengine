@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
-public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengine.frontend.ui.ConstraintTreeGrid.RotationOrRepair> implements ReloadIconProvider{
+public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements ReloadIconProvider{
 	
 
 	RequestDelegate reqDel;
@@ -77,10 +77,8 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 			return getExpression(ror);
 		}).setHeader("Expression").setKey("expression").setResizable(true);		
 		this.getColumnByKey("expression").setClassNameGenerator(node -> {
-			if (node.hasRepair())
-				return "repair";
-			else if (node.getRotationNode().isNodeOnRepairPath()) {
-				if (node.getRotationNode().getNode().getRepairs().isEmpty())
+			if (node.isNodeOnRepairPath()) {
+				if (node.getNode().getRepairs().isEmpty())
 					return "warn";
 				else 
 					return "repairable";
@@ -102,9 +100,9 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 		});
 	}
 
-	private Component getExpression(RotationOrRepair ror) {
-		if (ror.hasRotation()) {
-			RotationNode rNode = ror.getRotationNode();
+	private Component getExpression(RotationNode ror) {
+
+			RotationNode rNode = ror;
 			RotationNode parent = rNode.getParent();
 			String constraint = rNode.getNode().expression.getOriginalARL(0, false);
 			String parentConstr = (parent != null && parent != RotationNode.ROOTROTATION) ? parent.getNode().expression.getOriginalARL(0, false) : "";
@@ -113,31 +111,22 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 				shortConstr = shortConstr.substring(parentConstr.length());
 			Paragraph para = new Paragraph(shortConstr);
 			para.getStyle().set("white-space", "pre");;
-			//Span span= new Span(shortConstr);
-			//span.setTitle(rNode.getNode().expression.getClass().getSimpleName());
-			//return span;
 			return para;
-		} else {
-			AbstractRepairAction rn = ror.getRepairAction();
-			HorizontalLayout hl = new HorizontalLayout();
-        	repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
-            hl.getElement().setProperty("title", rn.toString());
-            return hl;
-		}
+
 	}
 	
-	private static ComponentRenderer<Span, RotationOrRepair> createDetailedValueRenderer() {
+	private ComponentRenderer<Span, RotationNode> createDetailedValueRenderer() {
     	return new ComponentRenderer<>(Span::new, detailsBiConsumer);
     }
     
-	private static final SerializableBiConsumer<Span, RotationOrRepair> detailsBiConsumer = (span, ror) -> {
-		if (ror.hasRotation()) {
-			RotationNode rNode = ror.getRotationNode();
-			Expression expr = rNode.getNode().expression;
-			if (rNode.isCollectionOrCombinationNode() && !rNode.isCombinationNode() && !(expr instanceof ForAllExpression) && !(expr instanceof ExistsExpression)) {
-				Object coll = rNode.getNode().resultValue;
-				span.add(collectionValueToComponent((Collection) coll));
-			} else {
+	private final SerializableBiConsumer<Span, RotationNode> detailsBiConsumer = (span, rNode) -> {
+		Expression expr = rNode.getNode().expression;
+		if (rNode.isCollectionOrCombinationNode() && !rNode.isCombinationNode() && !(expr instanceof ForAllExpression) && !(expr instanceof ExistsExpression)) {
+			Object coll = rNode.getNode().resultValue;
+			span.add(collectionValueToComponent((Collection) coll));
+		} 
+		else {
+			
 				Object expl = rNode.getNode().expression.explain(rNode.getNode());					
 				if (expl instanceof Map) {				
 					span.add(InstanceView.mapValueToComponent((Map)expl));
@@ -145,19 +134,28 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 				else  if (expl instanceof Collection) {
 					span.add(collectionValueToComponent((Collection) expl));
 				} 
-				else span.add(singleValueToComponent(expl));
-			}
-		} else 
-			span.setText(" ");
-    }; 
+				else if (rNode.getNode().getRepairs().isEmpty()) {
+						span.add(singleValueToComponent(expl));
+				}	
+		}
+		augmentWithRepairComponent(rNode.getNode(), span);
+	}; 
     
-	private static ComponentRenderer<Span, RotationOrRepair> createDefaultValueRenderer() {
+	private void augmentWithRepairComponent(EvaluationNode node, Span span) {
+		for (AbstractRepairAction rn : node.getRepairs()) {
+			HorizontalLayout hl = new HorizontalLayout();
+			repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
+			hl.getElement().setProperty("title", rn.toString());
+			hl.setClassName("repair");
+			span.add(hl);
+		}
+	}
+    
+	private static ComponentRenderer<Span, RotationNode> createDefaultValueRenderer() {
     	return new ComponentRenderer<>(Span::new, defaultBiConsumer);
     }
     
-	private static final SerializableBiConsumer<Span, RotationOrRepair> defaultBiConsumer = (span, ror) -> {
-		if (ror.hasRotation()) {
-			RotationNode rNode = ror.getRotationNode();
+	private static final SerializableBiConsumer<Span, RotationNode> defaultBiConsumer = (span, rNode) -> {
 			Object expl = rNode.getNode().expression.explain(rNode.getNode());					
 			if (expl instanceof Map) {				
 				span.add(String.format("having %s entries", ((Map)expl).size()));
@@ -166,8 +164,7 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 				span.add(String.format("having %s entries", ((Collection)expl).size()));
 			} 
 			else span.add(singleValueToComponent(expl));
-		} else 
-			span.setText(" ");
+		
     }; 
     
     private static Component singleValueToComponent(Object value) {
@@ -206,34 +203,86 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 		newRoot.isNodeOnRepairPath(); // ensure that any variable expressions rotated towards the root are correctly reflecting their repairpath participation
 		
 		List<RotationNode> topNodes = new LinkedList<>(); 
-		collectFlattenedNodes(topNodes, newRoot);
-		if (topNodes.isEmpty())
-			topNodes.add(newRoot);				
-		//RotationOrRepair ror = new RotationOrRepair(newRoot);
-		this.setItems( /*Stream.of(ror)*/topNodes.stream()
+		collectFlattenedNodes(topNodes, newRoot);			
+		this.setItems( topNodes.stream()
 				.filter(rNode -> doShowNode(rNode))
-				.map(rNode -> new RotationOrRepair(rNode)) , ror1 -> {
-			return getSemiflatChildElements(ror1);
+				.map(rNode -> rNode) , rNode -> {
+			return getSemiflatChildElements(rNode);
 		});
 		this.getDataProvider().refreshAll();  
 	}
-	
+		
+	private Stream<RotationNode> getSemiflatChildElements(RotationNode rn) {
+		// we indent when the parent item is a quantifier, or an combinator (AND, OR, XOR)
+		// to avoid indentation, we need to fetch also child elements (which can only be one then)
+			if (rn.getNode() == null) return Stream.empty();
+			if (rn.isCollectionOrCombinationNode())	 {
+				// then we have to provide children			, the default behavior
+				// unless
+				Stream<RotationNode> rhsStream = null;
+				if (!rn.isCombinationNode()) { //thus a collection node,  hence we wont continue on rhs
+					rhsStream = Stream.empty();
+				} else {
+					rhsStream = rn.getRhs().stream()
+					.filter(node -> node.getNode() != null) 
+					.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
+					//.map(node -> new RotationOrRepair(node))
+					;
+				}
+				return Stream.concat(
+						rn.getLhs().stream()
+						.filter(node -> node.getNode() != null)
+						.filter(node -> !(node.getNode().expression instanceof LiteralExpression))	
+						,
+						rhsStream );
+			}
+			else if (
+					(!rn.getParent().equals(RotationNode.ROOTROTATION) 
+					&& rn.getParent().isCombinationNode() ) // either is a combination node, then do both
+					|| 
+					( !rn.getParent().equals(RotationNode.ROOTROTATION) // or a collection node, then only if left hand side
+							&& rn.getParent().isCollectionOrCombinationNode()
+							&& !rn.getParent().isCombinationNode()
+							&& rn.getParent().getLhs().contains(rn) )
+					) {
+				// we have to provide flattened children, but only if this is in lefthand side of parent
+				return Stream.concat(
+						rn.getLhs().stream()
+								.filter(node -> node.getNode() != null)	
+								.filter(node -> !(node.getNode().expression instanceof LiteralExpression))														
+								.flatMap(node -> {
+									List<RotationNode> flattenedNodes = new LinkedList<>(); 
+									collectFlattenedNodes(flattenedNodes, node);									
+									return flattenedNodes.stream().filter(rNode -> doShowNode(rNode));
+								})
+								,
+						rn.getRhs().stream()
+						.filter(node -> node.getNode() != null) 
+						.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
+						.flatMap(node -> {
+							List<RotationNode> flattenedNodes = new LinkedList<>(); 
+							collectFlattenedNodes(flattenedNodes, node);							
+							return flattenedNodes.stream().filter(rNode -> doShowNode(rNode));
+						})
+						 );
+			}
+			else { // just return repairs
+				return Stream.empty();
+			}
+	}
 	
 	private void collectFlattenedNodes(List<RotationNode> flattened, RotationNode currentNode) {		
-		if (currentNode.isCollectionOrCombinationNode()) {
-			flattened.add(currentNode);
-			if (!currentNode.isCombinationNode()) { //thus a collection node,  hence we continue on rhs
+		flattened.add(currentNode);
+		if (currentNode.isCollectionOrCombinationNode() ) {
+			if ( !currentNode.isCombinationNode()) {
+			 //thus a collection node,  hence we continue only on rhs which should only be one child
 				currentNode.getRhs().stream()
 				.filter(node -> node.getNode() != null)
 				.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
 				.findFirst()			
 				.ifPresent(childNode -> collectFlattenedNodes(flattened, childNode));
-			}
-		//} else if	(currentNode.getParent() != null && currentNode.getParent().isCollectionOrCombinationNode()) {
-		//	return;
+			} // else: a combination node that needs indentation hence children not added here
 		} else { // we can only have a single child in lhs or rhs (but never both), we dont know which one
-			flattened.add(currentNode);
-			
 			currentNode.getLhs().stream()
 			.filter(node -> node.getNode() != null)
 			.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
@@ -248,89 +297,18 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 		}
 	}
 	
-	
-	
-	private Stream<RotationOrRepair> getSemiflatChildElements(RotationOrRepair ror) {
-		// we indent when the parent item is a quantifier, or an combinator (AND, OR, XOR)
-		// to avoid indentation, we need to fetch also child elements (which can only be one then)
-		if (ror.hasRepair() )
-			return Stream.empty(); //repairs dont have children
-		else {
-			RotationNode rn = ror.getRotationNode();
-			if (rn.getNode() == null) return Stream.empty();
-			if (rn.isCollectionOrCombinationNode())	 {
-				// then we have to provide children			, the default behavior
-				// unless
-				Stream rhsStream = null;
-				if (!rn.isCombinationNode()) { //thus a collection node,  hence we wont continue on rhs
-					rhsStream = Stream.empty();
-				} else {
-					rhsStream = rn.getRhs().stream()
-					.filter(node -> node.getNode() != null) 
-					.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-					.map(node -> new RotationOrRepair(node));
-				}
-				return Stream.concat(
-					Stream.concat(rn.getNode().getRepairs().stream()
-							.map(rep -> new RotationOrRepair(rep)),							
-							rn.getLhs().stream()
-							.filter(node -> node.getNode() != null)
-							.filter(node -> !(node.getNode().expression instanceof LiteralExpression))														
-							.map(node -> new RotationOrRepair(node))),
-					rhsStream );
-			}
-			else if (!rn.getParent().equals(RotationNode.ROOTROTATION) && rn.getParent().isCollectionOrCombinationNode()) {
-				// we have to provide flattened children
-				return Stream.concat(
-						Stream.concat(rn.getNode().getRepairs().stream()
-								.map(rep -> new RotationOrRepair(rep)),							
-								rn.getLhs().stream()
-								.filter(node -> node.getNode() != null)	
-								.filter(node -> !(node.getNode().expression instanceof LiteralExpression))														
-								.flatMap(node -> {
-									List<RotationNode> flattenedNodes = new LinkedList<>(); 
-									collectFlattenedNodes(flattenedNodes, node);									
-									return flattenedNodes.stream().filter(rNode -> doShowNode(rNode));
-								})
-								.map(node -> new RotationOrRepair(node))),
-						rn.getRhs().stream()
-						.filter(node -> node.getNode() != null) 
-						.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-						.flatMap(node -> {
-							List<RotationNode> flattenedNodes = new LinkedList<>(); 
-							collectFlattenedNodes(flattenedNodes, node);							
-							return flattenedNodes.stream().filter(rNode -> doShowNode(rNode));
-						})
-						.map(node -> new RotationOrRepair(node)) );
-			}
-			else { // just return repairs
-				return rn.getNode().getRepairs().stream()
-						.map(rep -> new RotationOrRepair(rep));
-			}
-		}
-		
-	}
-	
-	private Stream<RotationOrRepair> getChildElements(RotationOrRepair ror) {
-		if (ror.hasRepair() )
-			return Stream.empty(); //repairs dont have children
-		else {
-			RotationNode rn = ror.getRotationNode();
-			if (rn.getNode() == null) return Stream.empty();
-			return Stream.concat(
-					Stream.concat(rn.getNode().getRepairs().stream()
-							.map(rep -> new RotationOrRepair(rep)),
-							rn.getLhs().stream()
-							.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-							.filter(node -> node.getNode() != null) 
-							.map(node -> new RotationOrRepair(node))),
-					rn.getRhs().stream()
-					.filter(node -> node.getNode() != null) 
-					.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-					.map(node -> new RotationOrRepair(node)) );
-
-		}
-	}
+//	private Stream<RotationNode> getChildElements(RotationNode rn) {
+//		return Stream.concat(
+//				rn.getLhs().stream()
+//				.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
+//				.filter(node -> node.getNode() != null) 
+//				,
+//				rn.getRhs().stream()
+//				.filter(node -> node.getNode() != null) 
+//				.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
+//
+//				);
+//	}
 	
 	
 	public Component getReloadIcon(Instance inst) {
@@ -374,46 +352,46 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 			return true;
 	}
 	
-	public static class RotationOrRepair {
-		RotationNode rNode = null;
-		AbstractRepairAction repair = null;
-		
-		RotationOrRepair(RotationNode rNode) {
-			this.rNode = rNode;
-			this.repair = null;
-		}
-		
-		RotationOrRepair(AbstractRepairAction repair) {
-			this.rNode = null;
-			this.repair = repair;
-		}
-		
-		boolean hasRotation() {
-			return this.rNode != null;
-		}
-		
-		boolean hasRepair() {
-			return this.repair != null;
-		}
-		
-		public RotationNode getRotationNode() {
-			return rNode;
-		}
-		
-		public AbstractRepairAction getRepairAction() {
-			return repair;
-		}
-		
-		public boolean shouldIndent() {
-			if (this.hasRepair()) return true;
-			if (this.rNode.getParent() == null || this.rNode.getParent().equals(RotationNode.ROOTROTATION)) { 
-				return false;
-			}
-			if (rNode.isCollectionOrCombinationNode() || this.rNode.getParent().isCollectionOrCombinationNode()) {
-				return true;
-			}
-			return false;
-		}				
-	}
+//	public static class RotationOrRepair {
+//		RotationNode rNode = null;
+//		AbstractRepairAction repair = null;
+//		
+//		RotationOrRepair(RotationNode rNode) {
+//			this.rNode = rNode;
+//			this.repair = null;
+//		}
+//		
+//		RotationOrRepair(AbstractRepairAction repair) {
+//			this.rNode = null;
+//			this.repair = repair;
+//		}
+//		
+//		boolean hasRotation() {
+//			return this.rNode != null;
+//		}
+//		
+//		boolean hasRepair() {
+//			return this.repair != null;
+//		}
+//		
+//		public RotationNode getRotationNode() {
+//			return rNode;
+//		}
+//		
+//		public AbstractRepairAction getRepairAction() {
+//			return repair;
+//		}
+//		
+//		public boolean shouldIndent() {
+//			if (this.hasRepair()) return true;
+//			if (this.rNode.getParent() == null || this.rNode.getParent().equals(RotationNode.ROOTROTATION)) { 
+//				return false;
+//			}
+//			if (rNode.isCollectionOrCombinationNode() || this.rNode.getParent().isCollectionOrCombinationNode()) {
+//				return true;
+//			}
+//			return false;
+//		}				
+//	}
 	
 }
