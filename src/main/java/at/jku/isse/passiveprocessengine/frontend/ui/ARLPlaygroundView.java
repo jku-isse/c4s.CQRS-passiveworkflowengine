@@ -64,7 +64,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         setSizeFull();
         setMargin(false);
         setPadding(false);
-        evalTree = new ConstraintTreeGrid(commandGateway); 
+        evalTree = new ConstraintTreeGrid(commandGateway, this.getElement()); 
 //        HorizontalLayout header = new HorizontalLayout();
 //        header.setClassName("header-theme");
 //        header.setMargin(false);
@@ -280,9 +280,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     
  private Component resultEntryToEvalButton(ResultEntry entry) {
     	
-    	Button button = null;
-    	if (entry.getError() == null && entry.getResult() == false) {
-    		button = new Button("Show Eval", evt -> {
+    	Button button = new Button("Show Eval", evt -> {
         		Dialog dialog = new Dialog();
     			dialog.setWidth("80%");
     			dialog.setMaxHeight("80%");    			
@@ -291,10 +289,6 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     			dialog.add(evalTree);
     			dialog.open();
     		});
-    	} else {
-    		button = new Button("Show Eval");
-    		button.setEnabled(false);
-    	}
     	return button;
     }
     

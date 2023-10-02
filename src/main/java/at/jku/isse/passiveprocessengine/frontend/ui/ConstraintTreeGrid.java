@@ -22,6 +22,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.function.SerializableBiConsumer;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
@@ -51,7 +52,9 @@ import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizati
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil.ReloadIconProvider;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengine.frontend.ui.ConstraintTreeGrid.RotationOrRepair> implements ReloadIconProvider{
 	
@@ -59,9 +62,11 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 	RequestDelegate reqDel;
 	ProcessInstance scope;
 	private RepairVisualizationUtil repairViz;
+	private Element parentToNotify;
 	
-	public ConstraintTreeGrid(RequestDelegate reqDel) {	
+	public ConstraintTreeGrid(RequestDelegate reqDel, Element parentToNotify) {	
 		this.reqDel = reqDel;
+		this.parentToNotify = parentToNotify;
 		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		repairViz = new RepairVisualizationUtil(reqDel, this);
 		initGrid();
@@ -71,31 +76,47 @@ public class ConstraintTreeGrid extends TreeGrid<at.jku.isse.passiveprocessengin
 		this.addComponentHierarchyColumn(ror -> {
 			return getExpression(ror);
 		}).setHeader("Expression").setKey("expression").setResizable(true);		
-		this.addColumn(createDefaultValueRenderer()).setHeader("Details").setResizable(true);		
-		
 		this.getColumnByKey("expression").setClassNameGenerator(node -> {
 			if (node.hasRepair())
 				return "repair";
-			else if (node.getRotationNode().isNodeOnRepairPath())
-				return "warn";
-			else 
+			else if (node.getRotationNode().isNodeOnRepairPath()) {
+				if (node.getRotationNode().getNode().getRepairs().isEmpty())
+					return "warn";
+				else 
+					return "repairable";
+			} else 
 				return null;
 		});
+		
+		this.addColumn(createDefaultValueRenderer()).setHeader("Details").setResizable(true);		
+		
 		this.setItemDetailsRenderer(createDetailedValueRenderer());
+		
+		// needed due to bug: https://github.com/vaadin/flow-components/issues/1492
+		// to recalculate scollbar on outer grid when this dynamically changes its size
+		this.addExpandListener(evt -> {
+			this.parentToNotify.executeJs("this.notifyResize()");
+		});
+		this.addCollapseListener(evt -> {
+			this.parentToNotify.executeJs("this.notifyResize()");
+		});
 	}
 
 	private Component getExpression(RotationOrRepair ror) {
 		if (ror.hasRotation()) {
 			RotationNode rNode = ror.getRotationNode();
 			RotationNode parent = rNode.getParent();
-			String constraint = rNode.getNode().expression.getOriginalARL();
-			String parentConstr = (parent != null && parent != RotationNode.ROOTROTATION) ? parent.getNode().expression.getOriginalARL() : "";
+			String constraint = rNode.getNode().expression.getOriginalARL(0, false);
+			String parentConstr = (parent != null && parent != RotationNode.ROOTROTATION) ? parent.getNode().expression.getOriginalARL(0, false) : "";
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			Span span= new Span(shortConstr);
-			span.setTitle(rNode.getNode().expression.getClass().getSimpleName());
-			return span;
+			Paragraph para = new Paragraph(shortConstr);
+			para.getStyle().set("white-space", "pre");;
+			//Span span= new Span(shortConstr);
+			//span.setTitle(rNode.getNode().expression.getClass().getSimpleName());
+			//return span;
+			return para;
 		} else {
 			AbstractRepairAction rn = ror.getRepairAction();
 			HorizontalLayout hl = new HorizontalLayout();

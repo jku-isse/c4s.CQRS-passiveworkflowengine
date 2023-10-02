@@ -526,6 +526,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String>,
         layout.setHeight("50%");
         layout.setWidthFull();
         layout.setFlexGrow(0);
+        
 
         layout.add(
                 grid,

@@ -4,7 +4,11 @@ import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdenti
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
+import at.jku.isse.designspace.rule.arl.evaluator.RotationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
+import at.jku.isse.designspace.rule.arl.expressions.ExistsExpression;
+import at.jku.isse.designspace.rule.arl.expressions.Expression;
+import at.jku.isse.designspace.rule.arl.expressions.ForAllExpression;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -13,6 +17,7 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.InstanceWrapper;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.ui.ConstraintTreeGrid.RotationOrRepair;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
@@ -33,6 +38,7 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -43,6 +49,8 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
+
 import lombok.extern.slf4j.Slf4j;
 import java.time.DateTimeException;
 import java.time.Duration;
@@ -80,6 +88,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //    private Map<String, String> propertiesFilter;
     private UIConfig conf;
     private Authentication authentication;
+    private String loggedInUserNameOrNull = null;
 
     public WorkflowTreeGrid(RequestDelegate f) {
         this.reqDel = f;       
@@ -90,6 +99,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        propertiesFilter.put("", ""); // default filter
         this.conf = f.getUIConfig();
         this.authentication = SecurityContextHolder.getContext().getAuthentication();
+        loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
+        this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
     
     protected void injectRequestDelegate(RequestDelegate f) {
@@ -106,16 +117,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 span.getElement().setProperty("title", wfi.getDefinition().getName() + " (" + wfi.getName() + ")");
                 return span;
             } else if (o instanceof ProcessStep) {
-                ProcessStep wft = (ProcessStep) o;
-//                if (wft.getName() != null) {
-//                    Span span = new Span(wft.getName());
-//                    span.getElement().setProperty("title", wft.getDefinition().getName());
-//                    return span;
-//                } else {
-                    Span span = new Span(wft.getDefinition().getName());                    
-                    span.getElement().setProperty("title", wft.getDefinition().getName());
-                    return span;
-                //}
+            	ProcessStep wft = (ProcessStep) o;
+            	Span span = new Span(wft.getDefinition().getName());                    
+            	span.getElement().setProperty("title", wft.getDefinition().getName());
+            	return span;
             } else if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
                 String title = rebc.getQaSpec().getHumanReadableDescription() != null ? rebc.getQaSpec().getHumanReadableDescription() : rebc.getQaSpec().getName();
@@ -164,19 +169,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         }).setHeader("Last Changed").setWidth("15%").setFlexGrow(0);
 
         // Column status
-
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
         	if (o instanceof ProcessInstance) {
-                return infoDialog((ProcessInstance)o);                                
+        		return getStepIcon((ProcessInstance)o);
+        		//return infoDialog((ProcessInstance)o);                                
             } else if (o instanceof ProcessStep) {
-                return infoDialog((ProcessStep)o);
+            	return getStepIcon((ProcessStep)o);
+               // return infoDialog((ProcessStep)o);
             } else {
             		return new Label("");
             }
         })).setClassNameGenerator(x -> "column-center").setHeader("State").setWidth("10%").setFlexGrow(0);
 
         // Column "Unsatisfied" or "Fulfilled"
-
         this.addColumn(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {      	
         	if (o instanceof ProcessInstance) {
         		ProcessInstance wfi = (ProcessInstance)o;
@@ -186,8 +191,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                         .anyMatch(wft -> wft.areQAconstraintsFulfilled());
                Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
                icon.setColor("grey");
-               return icon;
-        		//return infoDialog((ProcessInstance)o);                                
+               return icon;                              
             } else if (o instanceof ProcessStep) {
                ProcessStep wft = (ProcessStep)o;
             	boolean unsatisfied = wft.getQAstatus().stream()
@@ -197,14 +201,30 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                Icon icon = getIcon(unsatisfied, fulfilled, wft.getDefinition().getQAConstraints().size());
            	   icon.setColor("grey");
                return icon;
-            	//return infoDialog((ProcessStep)o);
             } else if (o instanceof ConstraintWrapper) {
-                return infoDialog((ConstraintWrapper)o);
+            	return getQAIcon((ConstraintWrapper)o);
+                //return infoDialog((ConstraintWrapper)o);
             } else {
                 return new Label("");
             }
         })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
+        
+        this.setItemDetailsRenderer(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
+        	if (o instanceof ProcessInstance) {
+        		return infoDialog((ProcessInstance)o);                          
+            } else if (o instanceof ProcessStep) {
+            	return infoDialog((ProcessStep)o);
+            } else if (o instanceof ConstraintWrapper) {
+            	return infoDialog((ConstraintWrapper)o);
+            } else {
+                return new Label("");
+            }
+        }));
+        
+        
+        
     }
+    
 
     private Icon getStepIcon(ProcessStep step) {
     	Icon icon = null;
@@ -306,6 +326,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         icon.getElement().setProperty("title", sb.toString());
         return icon;
     }
+    
     private Icon getIcon(boolean unsatisfied, boolean fulfilled, int nrConstr) {
         Icon icon;
         if (nrConstr <= 0) {
@@ -331,39 +352,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         }
         return icon;
     }
-    
-
-    
-    
-
+   
     private Component infoDialog(ProcessInstance wfi) {
-        VerticalLayout l = new VerticalLayout();
-        l.setClassName("scrollable");
-        Paragraph p = new Paragraph("Process Instance ID:  "+wfi.getId());
-        p.setClassName("info-header");
-        l.add(p);
-        H3 h3= new H3(wfi.getName());
-        h3.setClassName("info-header");
-        l.add(h3);
-        if(wfi.getDefinition().getHtml_url()!=null)
-        {
-        	Anchor a =new Anchor(wfi.getDefinition().getHtml_url(),wfi.getDefinition().getHtml_url());
-        	a.setClassName("info-header");
-        	a.setTarget("_blank");
-        	l.add(a);
-        }
-        if(wfi.getDefinition().getDescription()!=null)
-        {
-        	//wfi.getDefinition().setDescription("<ul><li>Inform participants about scope, review criteria, etc</li><li>Send work products to be reviewed to all participants</li><li>Schedule joint review</li><li>Set up mechanism to handle review outcomes</li></ul>");
-        	Html h=new Html("<span>"+wfi.getDefinition().getDescription()+"</span>");
-        	l.add(h);
-        }
-       // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
-        if (wfi.getActualLifecycleState() != null) {            
-        	//TODO for now we only show actual state
-        	//l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
-            l.add(new Paragraph("Process State: "+StepLifecycleStateMapper.translateState(wfi.getActualLifecycleState())));
-        }
+        VerticalLayout l = getInfoHeader(wfi, "Process");
         augmentWithConditions(wfi, l);
         infoDialogInputOutput(l, wfi);
         augmentWithPrematureTriggerConditions(wfi, l);
@@ -373,89 +364,88 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         delIcon.getStyle().set("cursor", "pointer");
         delIcon.addClickListener(e -> {
             if (reqDel != null)
-            	reqDel.getMonitor().processDeleted(wfi, authentication != null ? authentication.getName() : null);
+            	reqDel.getMonitor().processDeleted(wfi, loggedInUserNameOrNull);
             	reqDel.deleteProcessInstance(wfi.getName());
             	//updateTreeGrid();
         });
-        delIcon.getElement().setProperty("title", "Remove this workflow");
+        delIcon.getElement().setProperty("title", "Remove this process");
         l.add(delIcon);
-        if (!conf.isAnonymized() && !conf.doEnableExperimentMode())        
-        	l.add(new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details"));                
-        if(!conf.doEnableExperimentMode())
-        	l.add(new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log"));
-        
-//        Button consBtn = new Button("Ensure Constraint State Consistency");
-//        consBtn.setClassName("med");
-//        consBtn.addClickListener(evt -> {
-//        	if (reqDel != null)
-//        		reqDel.ensureConstraintStatusConsistency(wfi);
-//        });
-//        l.add(consBtn);
-        
-        Dialog dialog = new Dialog();
-        dialog.setWidth("80%");
-        dialog.setMaxHeight("80%");
-
-        Icon icon = getStepIcon(wfi);
-        icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> { 
-        	reqDel.getMonitor().processViewed(wfi, authentication != null ? authentication.getName() : null);
-        	dialog.open(); });
-        //icon.getElement().setProperty("title", "Show more information about this process instance");
-        dialog.add(l);
-
-        return icon;
-    }
-
-    private Component infoDialog(ProcessStep wft) {
-        VerticalLayout l = new VerticalLayout();
-        l.setClassName("scrollable");
-        Paragraph p = new Paragraph("Process Step ID:  " +wft.getId());
-        p.setClassName("info-header");
-        l.add(p);
-        H3 h3= new H3(wft.getName());
-        h3.setClassName("info-header");
-        l.add(h3);
-        if(wft.getDefinition().getHtml_url()!=null)
-        {
-        	Anchor a =new Anchor(wft.getDefinition().getHtml_url(),wft.getDefinition().getHtml_url());
-        	a.setClassName("info-header");
+        if (!conf.isAnonymized() && !conf.doEnableExperimentMode()) {        
+        	Anchor a = new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details (opens in new tab)");
+        	a.setTarget("_blank");
+        	l.add(a);                
+        } 
+        if(!conf.doEnableExperimentMode()) {
+        	Anchor a = new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);
         }
-        if(wft.getDefinition().getDescription()!=null)
-        {
-        	Html h=new Html("<span>"+wft.getDefinition().getDescription()+"</span>");
-        	l.add(h);
-        }
-        if (wft.getActualLifecycleState() != null) {
-         //TODO for now just actual state
-        	//l.add(new Paragraph(String.format("Lifecycle State: %s (Actual) - %s (Expected)", wft.getActualLifecycleState().name(), wft.getExpectedLifecycleState().name())));
-        	l.add(new Paragraph("Step State: "+StepLifecycleStateMapper.translateState(wft.getActualLifecycleState())));
-        }
-       
-        
+//        Dialog dialog = new Dialog();
+//        dialog.setWidth("80%");
+//        dialog.setMaxHeight("80%");
+//
+//        Icon icon = getStepIcon(wfi);
+//        icon.getStyle().set("cursor", "pointer");
+//        icon.addClickListener(e -> { 
+//        	reqDel.getMonitor().processViewed(wfi, authentication != null ? authentication.getName() : null);
+//        	dialog.open(); });
+//        dialog.add(l);
+//
+//        return icon;
+        return l;
+    }
+
+    private Component infoDialog(ProcessStep wft) {
+    	VerticalLayout l = getInfoHeader(wft, "Step");
         augmentWithConditions(wft, l);
         augmentWithPrematureUnsafeMode(wft, l);
         infoDialogInputOutput(l,  wft);
         
-        Dialog dialog = new Dialog();
-        dialog.setMaxHeight("80%");
-        dialog.setWidth("80%");
-
-        Icon icon = getStepIcon(wft);
-        icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> { 
-        	reqDel.getMonitor().stepViewed(wft, authentication != null ? authentication.getName() : null);
-        	dialog.open();	
-        });
-        //icon.getElement().setProperty("title", "Show more information about this process step");
-
-        dialog.add(l);
-
-        return icon;
+//        Dialog dialog = new Dialog();
+//        dialog.setMaxHeight("80%");
+//        dialog.setWidth("80%");
+//
+//        Icon icon = getStepIcon(wft);
+//        icon.getStyle().set("cursor", "pointer");
+//        icon.addClickListener(e -> { 
+//        	reqDel.getMonitor().stepViewed(wft, loggedInUserNameOrNull);
+//        	dialog.open();	
+//        });
+//        dialog.add(l);
+//        return icon;
+        return l;
     }
 
+	private VerticalLayout getInfoHeader(ProcessStep step, String type) {
+		VerticalLayout l = new VerticalLayout();
+       // l.setClassName("scrollable");
+        Paragraph p = new Paragraph(type+" Instance ID:  "+step.getId());
+        p.setClassName("info-header");
+        l.add(p);
+        H3 h3= new H3(step.getName());
+        h3.setClassName("info-header");
+        l.add(h3);
+        if(step.getDefinition().getHtml_url()!=null)
+        {
+        	Anchor a =new Anchor(step.getDefinition().getHtml_url(),step.getDefinition().getHtml_url());
+        	a.setClassName("info-header");
+        	a.setTarget("_blank");
+        	l.add(a);
+        }
+        if(step.getDefinition().getDescription()!=null)
+        {
+        	Html h=new Html("<span>"+step.getDefinition().getDescription()+"</span>");
+        	l.add(h);
+        }
+       // infoDialogInputOutput(l, wfi.getInput(), wfi.getOutput(), wfi.getDefinition().getExpectedInput(), wfi.getDefinition().getExpectedOutput(), wfi);
+        if (step.getActualLifecycleState() != null) {            
+        	//TODO for now we only show actual state
+        	//l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
+            l.add(new Paragraph(type+" State: "+StepLifecycleStateMapper.translateState(step.getActualLifecycleState())));
+        }
+		return l;
+	}
+    
     private void augmentWithPrematureTriggerConditions(ProcessInstance pInst, VerticalLayout l) {
     	Map<String,String> premTriggers = pInst.getDefinition().getPrematureTriggers();
     	if (premTriggers.isEmpty()) return;
@@ -484,8 +474,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		Grid<ProcessStep> grid2 = new Grid<ProcessStep>();
     		grid2.setColumnReorderingAllowed(false);
     		Grid.Column<ProcessStep> nameColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
-    		//Grid.Column<ProcessStep> nameColumn = grid2.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
-    		//Grid.Column<ProcessStep> linkColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
     		grid2.setItems(unsafe);
     		grid2.setHeightByRows(true);
     		l.add(grid2);
@@ -494,8 +482,6 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		Grid<ProcessStep> grid = new Grid<ProcessStep>();
     		grid.setColumnReorderingAllowed(false);
     		Grid.Column<ProcessStep> nameColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
-    		//Grid.Column<ProcessStep> nameColumn2 = grid.addColumn(p -> p.getDefinition().getName()).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
-    		//Grid.Column<ProcessStep> linkColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Step Link").setResizable(true);
     		grid.setItems(prem);
     		grid.setHeightByRows(true);
     		l.add(grid);
@@ -508,7 +494,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			
     			HorizontalLayout line = new HorizontalLayout();
     			String strCond = cond.toString().substring(0,1)+cond.toString().substring(1).toLowerCase();
-    			H5 h5cond = new H5(strCond+":");
+    			H5 h5cond = new H5(strCond+": ");
     			h5cond.setTitle(arl);
     			line.add(h5cond);
     			// now fetch rule instance and check if fulfilled, if not, show repair tree:
@@ -528,14 +514,13 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			}
     			line.add(new H5(icon));	
     			l.add(line);
-    			//l.add(new Paragraph(arl));
     			
     			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
     				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
     					try {    									    	        			        						    		
     						RepairNode repairTree = RuleService.repairTree(crOpt.get());
     						if (this.conf.doUseIntegratedEvalRepairTree()) {
-    	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel);
+    	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, this.getElement());
     	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
     	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
     	        				ctg.setHeightByRows(true);
@@ -720,7 +705,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 
     private Component infoDialog(ConstraintWrapper rebc) {
     	VerticalLayout l = new VerticalLayout();
-        l.setClassName("scrollable");
+      //  l.setClassName("scrollable");
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
@@ -741,7 +726,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
         	if (rebc.getCr() != null && this.conf.doUseIntegratedEvalRepairTree()) {
         		try {
-        			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel);
+        			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, this.getElement());
     				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
     				ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
     				ctg.setHeightByRows(true);
@@ -779,20 +764,21 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         		}
         }
         
-        Dialog dialog = new Dialog();
-        dialog.setWidth("80%");
-        dialog.setMaxHeight("80%");
-
-        Icon icon= getQAIcon(rebc);
-        icon.getStyle().set("cursor", "pointer");
-        icon.addClickListener(e -> { 
-        	reqDel.getMonitor().constraintedViewed(rebc, authentication != null ? authentication.getName() : null);
-        	dialog.open();	
-        });
-        icon.getElement().setProperty("title", "Show details");
-        
-        dialog.add(l);
-        return icon;
+//        Dialog dialog = new Dialog();
+//        dialog.setWidth("80%");
+//        dialog.setMaxHeight("80%");
+//
+//        Icon icon= getQAIcon(rebc);
+//        icon.getStyle().set("cursor", "pointer");
+//        icon.addClickListener(e -> { 
+//        	reqDel.getMonitor().constraintedViewed(rebc, loggedInUserNameOrNull);
+//        	dialog.open();	
+//        });
+//        icon.getElement().setProperty("title", "Show details");
+//        
+//        dialog.add(l);
+//        return icon;
+        return l;
     }
 
     private Icon getQAIcon(ConstraintWrapper rebc) {
