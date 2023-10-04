@@ -14,7 +14,7 @@ public class ComponentUtils {
 		if (artifact.hasProperty("html_url") && artifact.getPropertyAsValue("html_url") != null) {
 			a = new Anchor(artifact.getPropertyAsValue("html_url").toString(), generateDisplayNameForInstance(artifact));
 		} else {
-			a = new Anchor("/instance/show?id="+artifact.id(), generateDisplayNameForInstance(artifact));
+			a = new Anchor("/instance/"+artifact.id(), generateDisplayNameForInstance(artifact));
 		}
 		a.setTarget("_blank");
 		return a;
@@ -25,7 +25,7 @@ public class ComponentUtils {
 		if (artifact.hasProperty("html_url")) {
 			a = new Anchor(artifact.getPropertyAsValue("html_url").toString(), artifact.name());
 		} else {
-			a = new Anchor("/instance/show?id="+artifact.id(), artifact.name());
+			a = new Anchor("/instance/"+artifact.id(), artifact.name());
 		}
 		a.setTarget("_blank");
 		return a;

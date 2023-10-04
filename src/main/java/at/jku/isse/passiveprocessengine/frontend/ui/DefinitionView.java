@@ -5,100 +5,73 @@ import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
 import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.QAConstraintSpec;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition;
-import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
-import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition.InFlowType;
+import at.jku.isse.passiveprocessengine.definition.StepDefinition.CoreProperties;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
+
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 @Slf4j
-@Route("definitions")
-@Push
+@Route(value="definitions", layout = AppView.class)
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Definitions")
 @UIScope
 //@SpringComponent
-public class DefinitionView extends VerticalLayout  {
+public class DefinitionView extends VerticalLayout {
 
     
     protected RequestDelegate commandGateway;
     
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
-    //private ListDataProvider<ProcessDefinitionScopedElement> dataProvider = new ListDataProvider<>(pdefs);
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService) {
+    private VerticalLayout detailsContent = new VerticalLayout();
+    private SplitLayout splitLayout = null;
+    
+
+    
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService) {    	
     	this.commandGateway = commandGateway;
-        setSizeFull();
-        setMargin(false);
-        setPadding(false);
-        AppHeader header = new AppHeader("Process Definitions", securityService, commandGateway.getUIConfig());
-        AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
-        add(
-                header,
-                main(),
-                footer
-        );
+    	setMargin(false);
+    	setPadding(false);
+    	add(processTreeView());
     }
-
-    private Component main() {
-        HorizontalLayout main = new HorizontalLayout();
-        main.setClassName("layout-style");
-        main.setHeight("91%");
-        main.add( content());
-        return main;
-    }
-
-    VerticalLayout pageContent = new VerticalLayout();
-    
-    private Component content() {
-    	refreshContent();
-    	return pageContent;
-    }
-  
-	public void refreshContent() {		
-        VerticalLayout cur = statePanel();
-        cur.setHeight("100%");
-
-        Div pages = new Div(cur); //, snap, split
-        pages.setHeight("97%");
-        pages.setWidthFull();
-
-        pageContent.removeAll();
-        pageContent.setClassName("layout-style");
-        pageContent.add(/*tabs,*/ pages);
-	}
     
 
-    private VerticalLayout statePanel() {
+    private VerticalLayout processTreeView() {
         VerticalLayout layout = new VerticalLayout();
-        layout.setClassName("big-text");
         layout.setMargin(false);
-        layout.setHeight("50%");
         layout.setWidthFull();
-        layout.setFlexGrow(0);
         if (commandGateway != null ) {
 
         	ComboBox<ProcessDefinition> comboBox = new ComboBox<>("Process Definitions");
@@ -126,11 +99,15 @@ public class DefinitionView extends VerticalLayout  {
             	});
         		grid.getDataProvider().refreshAll();
         		grid.expandRecursively(Collections.singletonList(null), 10);
+        		   		        		        	
+        		splitLayout.setSplitterPosition(70);
         	});
-        	comboBox.setMinWidth("800px");
+        	comboBox.setMinWidth("600px");
         	layout.add(comboBox);        	      	
         	
         	grid = new TreeGrid<>();
+        	grid.setMinWidth("100px");
+        	grid.setHeightByRows(true);
         	grid.addComponentHierarchyColumn(o -> {
         		if (o instanceof ProcessDefinition || o instanceof StepDefinition) {
         			Span span = new Span(o.getName());
@@ -143,35 +120,148 @@ public class DefinitionView extends VerticalLayout  {
         		} else {
                     return new Paragraph(o.getClass().getSimpleName() +": " + o.getName());
                 }
-        	}).setHeader("Process Definition Structure");//.setWidth("60%");
-//        	grid.addComponentColumn(o -> {
-//        		if (o instanceof StepDefinition) {
-//        			return paramsToList( ((StepDefinition) o).getExpectedInput() );
-//        		} else
-//        			return new Paragraph("");
-//        	}).setHeader("Expected Input").setWidth("20%").setFlexGrow(0);
-//        	grid.addComponentColumn(o -> {
-//        		if (o instanceof StepDefinition) {
-//        			return paramsToList( ((StepDefinition) o).getExpectedOutput() );
-//        		} else
-//        			return new Paragraph("");
-//        	}).setHeader("Expected Output").setWidth("20%").setFlexGrow(0);
+        	}).setHeader("Process Definition Structure");
         	
-        	layout.add(grid);        	
+        	grid.addSelectionListener( o -> {
+        		o.getFirstSelectedItem().ifPresentOrElse(el -> fillDetailsView(el), () -> fillDetailsView(null));
+        	});
+        	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         	
+        	detailsContent.setMinWidth("100px");
+        	detailsContent.setSpacing(false);
+        	detailsContent.setPadding(false);
+        	resetDetailsContent();
+        	splitLayout = new SplitLayout(grid, detailsContent);
+        	splitLayout.setWidthFull();
+        	layout.add(splitLayout);        	
         }
         return layout;
     }
     
-    private Component paramsToList(Map<String, InstanceType> stepParams) {
-    	VerticalLayout l = new VerticalLayout();
-    	l.setMargin(false);
-        l.setPadding(false);
-    	stepParams.forEach((param,type) -> {
-    		l.add(new Paragraph(String.format("%s <%s>", param, type.name())));
-    	});
-    	return l;
+    private void resetDetailsContent() {
+    	detailsContent.removeAll();
+    	detailsContent.setVisible(false);
     }
+    
+    private void fillDetailsView(ProcessDefinitionScopedElement el) {    	
+    	if (el != null && !(el instanceof DecisionNodeDefinition)) {
+    		detailsContent.removeAll();
+    		detailsContent.setVisible(true);    		
+    		StepDefinition step = (StepDefinition)el;
+    		addInfoHeader(detailsContent, step);
+    		addConditionsTable(detailsContent, step);
+    		addQATable(detailsContent, step);    			
+    		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
+    		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		
+    	} else {    		
+    		resetDetailsContent();
+    		//grid.setWidthFull();
+    		//splitLayout.setSplitterPosition(70);    		    		
+    	}
+    }        
+    
+	private void addInfoHeader(VerticalLayout l,StepDefinition step) {		
+        H5 header= new H5(step.getName());
+        header.setClassName("info-header");
+        l.add(header);
+        if(step.getHtml_url()!=null)
+        {
+        	Anchor a =new Anchor(step.getHtml_url(),step.getHtml_url());
+        	a.setClassName("info-header");
+        	a.setTarget("_blank");
+        	l.add(a);
+        }
+        if(step.getDescription()!=null)
+        {
+        	Html h=new Html("<span>"+step.getDescription()+"</span>");
+        	l.add(h);
+        }		
+	}
+	
+	private void addConditionsTable(VerticalLayout l, StepDefinition step) {
+		
+		Grid<AbstractMap.SimpleEntry<Conditions,String>> grid = new Grid<AbstractMap.SimpleEntry<Conditions,String>>();
+		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Constraint Type").setResizable(true).setWidth("150px").setFlexGrow(0);
+    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getValue())).setHeader("Constraint").setResizable(true);
+    	Map<String, Object> prop = (Map<String, Object>) step.getInstance().getProperty(CoreProperties.conditions.toString()).getValue();
+    	List<AbstractMap.SimpleEntry<Conditions,String>> entries = prop.entrySet().stream()
+    			.map(entry -> new AbstractMap.SimpleEntry<Conditions,String>(Conditions.valueOf(entry.getKey()), Objects.toString(entry.getValue())) )
+    			.sorted(new Comparator<AbstractMap.SimpleEntry<Conditions, String>>(){
+    				@Override
+    				public int compare(AbstractMap.SimpleEntry<Conditions,String> o1, AbstractMap.SimpleEntry<Conditions,String> o2) {
+    					return Integer.compare(o1.getKey().ordinal(), o2.getKey().ordinal());
+					}})
+    			.collect(Collectors.toList()); 
+    	grid.setItems(entries);
+    	grid.setHeightByRows(true);    
+    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+    	l.add(grid);
+	}
+    
+	private void addQATable(VerticalLayout l, StepDefinition step) {
+		
+		Grid<QAConstraintSpec> grid = new Grid<QAConstraintSpec>();		
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<QAConstraintSpec> idColumn = grid.addColumn(p -> p.getQaConstraintId()).setHeader("QA ID").setResizable(true).setWidth("100px").setFlexGrow(0);
+    	Grid.Column<QAConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription())).setHeader("Explanation").setResizable(true);
+    	Grid.Column<QAConstraintSpec> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getQaConstraintSpec())).setHeader("Constraint").setResizable(true);
+    	if (step.getQAConstraints().isEmpty()) {    	
+    		grid.setItems(List.of(new DummyQASpec()));
+    	} else { grid.setItems(step.getQAConstraints().stream().sorted(new Comparator<QAConstraintSpec>() {
+			@Override
+			public int compare(QAConstraintSpec o1, QAConstraintSpec o2) {
+				return Integer.compare(o1.getOrderIndex(), o2.getOrderIndex());
+			}    		
+    	}));
+    	}
+    	grid.setHeightByRows(true);
+    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+    	l.add(grid);
+	}
+	
+	private Component createValueRenderer(String arl) {
+		Paragraph p = new Paragraph(arl);
+		p.getStyle().set("white-space", "pre");
+		return p;
+    }
+        
+    private void addParams(VerticalLayout l, Map<String, InstanceType> stepParams, String title) {
+    	Grid<Map.Entry<String, InstanceType>> grid = new Grid<Map.Entry<String, InstanceType>>();
+    	grid.setColumnReorderingAllowed(false);
+    	Grid.Column<Map.Entry<String, InstanceType>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader(title).setResizable(true);
+    	Grid.Column<Map.Entry<String, InstanceType>> valueColumn = grid.addColumn(createTypeRenderer()).setHeader("Type").setResizable(true);    	
+    	if (stepParams.isEmpty()) {
+    		grid.setItems(List.of(new AbstractMap.SimpleEntry<String, InstanceType>("None", null)));
+    	} else {
+    		grid.setItems(stepParams.entrySet().stream()
+    				.sorted(new Comparator<Map.Entry<String, InstanceType>>() {
+						@Override
+						public int compare(Entry<String, InstanceType> o1, Entry<String, InstanceType> o2) {
+							return o1.getKey().compareTo(o2.getKey());							
+						}    					
+    				}) 
+    			.collect(Collectors.toList())
+    			);
+    	}
+    	grid.setHeightByRows(true);
+    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+    	l.add(grid);
+    }
+    
+	private static ComponentRenderer<Span, Map.Entry<String, InstanceType>> createTypeRenderer() {
+    	return new ComponentRenderer<>(Span::new, type2Component);
+    }
+    
+    private static final SerializableBiConsumer<Span, Map.Entry<String, InstanceType>> type2Component = (span, obj) -> {
+    	if (obj.getValue() != null) {
+    		Paragraph p =  new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));		
+    		span.add(p);
+    	}
+    };
+    
+
     
     private Component getDndIcon(DecisionNodeDefinition dnd) {
     	Icon icon;
@@ -346,5 +436,42 @@ public class DefinitionView extends VerticalLayout  {
     	public InFlowType getInFlowType() {
     		return InFlowType.SEQ;
     	}
+    }
+    
+    private static class DummyQASpec extends QAConstraintSpec {
+    	
+    	protected DummyQASpec() {
+    		super(null);
+    	}
+
+		@Override
+		public String getQaConstraintId() {
+			return "None";
+		}
+
+		@Override
+		public String getQaConstraintSpec() {
+			return "";
+		}
+
+		@Override
+		public String getHumanReadableDescription() {
+			return "";
+		}
+
+		@Override
+		public Integer getOrderIndex() {
+			return -1;
+		}
+
+		@Override
+		public String getId() {
+			return "-1";
+		}
+
+		@Override
+		public String getName() {
+			return "";
+		}    	
     }
 }

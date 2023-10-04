@@ -42,14 +42,13 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Route("arl")
-@Push
+@Route(value="arl", layout = AppView.class)
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("ARL Playground")
 @UIScope
 //@SpringComponent
-public class ARLPlaygroundView extends VerticalLayout implements RefreshableComponent  /*implements PageConfigurator*/ {
+public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigurator*/ {
 
     protected AtomicInteger counter = new AtomicInteger(0);
     
@@ -59,91 +58,21 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
     private ListDataProvider<ResultEntry> dataProvider = new ListDataProvider<>(result);
     final private ConstraintTreeGrid evalTree;
     
-    public ARLPlaygroundView(RequestDelegate commandGateway, SecurityService securityService) {
+    public ARLPlaygroundView(RequestDelegate commandGateway) {
     	this.commandGateway = commandGateway;
-        setSizeFull();
+ //       setSizeFull();
         setMargin(false);
-        setPadding(false);
-        evalTree = new ConstraintTreeGrid(commandGateway, this.getElement()); 
-//        HorizontalLayout header = new HorizontalLayout();
-//        header.setClassName("header-theme");
-//        header.setMargin(false);
-//        header.setPadding(true);
-//        header.setSizeFull();
-//        header.setHeight("6%");
-//        HorizontalLayout firstPart = new HorizontalLayout();
-//        firstPart.setClassName("header-theme");
-//        firstPart.setMargin(false);
-//        firstPart.setPadding(true);
-//        firstPart.setSizeFull();
-//        firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("ARL Playground"));
-//
-//        ToggleButton toggle = new ToggleButton("Refresher ");
-//        toggle.setClassName("med");
-//        toggle.addValueChangeListener(evt -> {
-////            if (devMode) {
-////                Notification.show("Development mode enabled! Additional features activated.");
-////            }
-//            content();
-//        });
-//
-//
-//        header.add(firstPart, toggle/*, shutdown*/);
-//        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-
-        AppHeader header = new AppHeader("Constraint Editor - OCL/ARL Playground", securityService, commandGateway.getUIConfig());
-        AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
-//        HorizontalLayout footer = new HorizontalLayout();
-//        footer.setClassName("footer-theme");
-//        if (MainView.anonymMode)        
-//        	footer.add(new Text("(C) 2022 - Anonymized "));
-//        else 
-//        	footer.add(new Text("JKU - Institute for Software Systems Engineering"));
-
-        add(
-                header,
-                main(),
-                footer
-        );
+      //  setPadding(false);
+        evalTree = new ConstraintTreeGrid(commandGateway /*, this.getElement() */); 
+        statePanel();
     }
 
-    private Component main() {
-        HorizontalLayout main = new HorizontalLayout();
-        main.setClassName("layout-style");
-        main.setHeight("91%");
-        main.add( content());
-        return main;
-    }
 
-    VerticalLayout pageContent = new VerticalLayout();
-    
-    private Component content() {
-    	refreshContent();
-    	return pageContent;
-    }
-  
-	@Override
-	public void refreshContent() {		
-        VerticalLayout cur = statePanel();
-        cur.setHeight("100%");
-
-        Div pages = new Div(cur); //, snap, split
-        pages.setHeight("97%");
-        pages.setWidthFull();
-
-        pageContent.removeAll();
-        pageContent.setClassName("layout-style");
-        pageContent.add(/*tabs,*/ pages);
-	}
     
 
     private VerticalLayout statePanel() {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setClassName("big-text");
-        layout.setMargin(false);
-        layout.setHeight("50%");
-        layout.setWidthFull();
-        layout.setFlexGrow(0);
+        VerticalLayout layout = this; // new VerticalLayout();
+
         if (commandGateway != null ) {
         	// Text field to display ARL rule
         	TextArea arlArea = new TextArea();
@@ -176,6 +105,7 @@ public class ARLPlaygroundView extends VerticalLayout implements RefreshableComp
         	Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
         	Grid.Column<ResultEntry> evalColumn = grid.addComponentColumn(rge -> resultEntryToEvalButton(rge)).setHeader("EvalTree").setResizable(true).setSortable(false);        	
         	Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
+        	grid.setHeightByRows(true);
         	grid.setDataProvider(dataProvider);
         	
         	HorizontalLayout fetchPart = new HorizontalLayout();        	

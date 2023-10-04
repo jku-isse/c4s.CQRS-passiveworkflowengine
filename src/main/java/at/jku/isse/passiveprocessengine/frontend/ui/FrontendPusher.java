@@ -52,9 +52,7 @@ public class FrontendPusher implements IFrontendPusher {
                 if (ui != null && view != null) {
                     ui.access(() -> {
                     	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
-                    	view.getGrids().stream()                  
-                            .filter(com.vaadin.flow.component.Component::isVisible)
-                            .forEach(grid -> grid.removeWorkflow(wfiId));
+                    	view.getGrid().removeWorkflow(wfiId);
                     });
                 }
         }
@@ -72,9 +70,7 @@ public class FrontendPusher implements IFrontendPusher {
             if (ui != null && view != null) {
                 ui.access(() -> { 
                 	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
-                	view.getGrids().stream()
-                        .filter(com.vaadin.flow.component.Component::isVisible)
-                        .forEach(grid -> grid.updateTreeGrid(wfis));
+                	view.getGrid().updateTreeGrid(wfis);
                         });
             }
         }
@@ -88,9 +84,7 @@ public class FrontendPusher implements IFrontendPusher {
 
 	@Override
 	public void requestUpdate(UI ui, MainView view) {
-		ui.access(() -> view.getGrids().stream()
-                .filter(com.vaadin.flow.component.Component::isVisible)
-                .forEach(grid -> grid.updateTreeGrid(processes.values())));
+		ui.access(() -> view.getGrid().updateTreeGrid(processes.values()));
 	}
 
 }

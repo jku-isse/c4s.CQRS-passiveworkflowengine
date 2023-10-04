@@ -56,15 +56,14 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Route("exp")
-@Push
+@Route(value="exp", layout = AppView.class)
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Experiment Overview")
 //@ConditionalOnExpression(value = "${enableExperimentMode:false}")
 @UIScope
 //@SpringComponent
-public class ExperimentParticipantView extends VerticalLayout implements RefreshableComponent  /*implements PageConfigurator*/ {
+public class ExperimentParticipantView extends VerticalLayout  {
 
 	protected AtomicInteger counter = new AtomicInteger(0);
 
@@ -76,7 +75,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 
 	public ExperimentParticipantView(RequestDelegate commandGateway, ExperimentSequenceProvider sequenceProvider, SecurityService securityService) {
 		this.commandGateway = commandGateway;
-		setSizeFull();
+	//	setSizeFull();
 		setMargin(false);
 		setPadding(false);
 
@@ -86,59 +85,20 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 			seq = new ExperimentSequence(participantId+" - no sequence configured for this user");
 		}
 		dataProvider = new ListDataProvider<>(seq.getSequence());
-
-		AppHeader header = new AppHeader("Experiment Overview", securityService, commandGateway.getUIConfig());
-		AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
-
-
-		add(
-				header,
-				main(),
-				footer
-				);
-	}
-
-	private Component main() {
-		HorizontalLayout main = new HorizontalLayout();
-		main.setClassName("layout-style");
-		main.setHeight("91%");
-		main.add( content());
-		return main;
-	}
-
-	VerticalLayout pageContent = new VerticalLayout();
-
-	private Component content() {
-		refreshContent();
-		return pageContent;
-	}
-
-	@Override
-	public void refreshContent() {		
-		VerticalLayout cur = statePanel();
-		cur.setHeight("100%");
-
-		Div pages = new Div(cur); //, snap, split
-		pages.setHeight("97%");
-		pages.setWidthFull();
-
-		Image image = new Image("images/tim.png", "Traceability Information Model");		
+		Image image = new Image("images/tim.png", "Traceability Information Model");	
+		add(statePanel(), image);
 		
-		pageContent.removeAll();
-		pageContent.setClassName("layout-style");
-		pageContent.add(/*tabs,*/ pages, image);
 	}
-
 
 	private VerticalLayout statePanel() {
 		VerticalLayout layout = new VerticalLayout();
-		layout.setClassName("big-text");
+//		layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
 		layout.setFlexGrow(0);
 
-		Label pLabel = new Label("Process/Task Sequence for Participant"+seq.getParticipantId());
+		Label pLabel = new Label("Process/Task sequence for participant "+seq.getParticipantId());
 		layout.add(pLabel);
 
 		Grid<TaskInfo> grid = new Grid<>();
@@ -148,7 +108,7 @@ public class ExperimentParticipantView extends VerticalLayout implements Refresh
 		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start Task/Process").setResizable(false).setSortable(false);	
 		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("Finish Task/Process").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
-
+		grid.setHeightByRows(true);
 		layout.add(grid);
 
 		return layout;

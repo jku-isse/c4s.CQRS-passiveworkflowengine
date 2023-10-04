@@ -62,11 +62,11 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	RequestDelegate reqDel;
 	ProcessInstance scope;
 	private RepairVisualizationUtil repairViz;
-	private Element parentToNotify;
+//	private Element parentToNotify;
 	
-	public ConstraintTreeGrid(RequestDelegate reqDel, Element parentToNotify) {	
+	public ConstraintTreeGrid(RequestDelegate reqDel /*, Element parentToNotify */) {	
 		this.reqDel = reqDel;
-		this.parentToNotify = parentToNotify;
+//		this.parentToNotify = parentToNotify;
 		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		repairViz = new RepairVisualizationUtil(reqDel, this);
 		initGrid();
@@ -90,14 +90,15 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		
 		this.setItemDetailsRenderer(createDetailedValueRenderer());
 		
+		//with split view no longer an issue
 		// needed due to bug: https://github.com/vaadin/flow-components/issues/1492
 		// to recalculate scollbar on outer grid when this dynamically changes its size
-		this.addExpandListener(evt -> {
-			this.parentToNotify.executeJs("this.notifyResize()");
-		});
-		this.addCollapseListener(evt -> {
-			this.parentToNotify.executeJs("this.notifyResize()");
-		});
+//		this.addExpandListener(evt -> {
+//			this.parentToNotify.executeJs("this.notifyResize()");
+//		});
+//		this.addCollapseListener(evt -> {
+//			this.parentToNotify.executeJs("this.notifyResize()");
+//		});
 	}
 
 	private Component getExpression(RotationNode ror) {

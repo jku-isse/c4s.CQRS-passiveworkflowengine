@@ -14,6 +14,9 @@
   background-color: lightgreen;
 }
 
+.repairable {
+	background-color: greenyellow;
+}
 .column-center {
     text-align: center;
     text-overflow: clip;

@@ -14,6 +14,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstanceError;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,12 +30,10 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Route("stagesfeedback")
-@Push
+@Route(value="stagesfeedback", layout = AppView.class)
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Stages Transformation Feedback")
-//@ConditionalOnExpression(value = "${stages.enabled:false}")
 @UIScope
 //@SpringComponent
 public class StagesTransformationResultView extends VerticalLayout implements HasUrlParameter<String> {
@@ -48,51 +47,33 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 	private ListDataProvider<ProcessDefinitionError> ddataProvider;
 	private ListDataProvider<ProcessInstanceError> idataProvider;
 
-	public StagesTransformationResultView(RequestDelegate commandGateway, TransformDeployResultPersistence tResultProvider, SecurityService securityService) {
+	public StagesTransformationResultView(RequestDelegate commandGateway, TransformDeployResultPersistence tResultProvider) {
 		this.commandGateway = commandGateway;
-		setSizeFull();
+	//	setSizeFull();
 		setMargin(false);
 		setPadding(false);
-
 		this.tResultProvider = tResultProvider;
-				
-		AppHeader header = new AppHeader("Stages Transformation Feedback", securityService, commandGateway.getUIConfig());
-		AppFooter footer = new AppFooter(commandGateway.getUIConfig()); 
-
-		add(
-				header,
-				main(),
-				footer
-				);
 	}
 
 	@Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String s) {
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String processName) {
         // example link: http://localhost:8080/home/?key=DEMO-9&value=Task
-        Location location = beforeEvent.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
-
-        Map<String, List<String>> parametersMap = queryParameters.getParameters();
-        String id = parametersMap.getOrDefault("id", List.of("")).get(0);        
-        refreshContent(id);
+        
+//		
+//		Location location = beforeEvent.getLocation();
+//        QueryParameters queryParameters = location.getQueryParameters();
+//
+//        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+//        String id = parametersMap.getOrDefault("id", List.of("")).get(0);        
+//        
+        if (processName == null)
+        	setContent("");
+        else 
+        	setContent(processName);
     }
 	
-	private Component main() {
-		HorizontalLayout main = new HorizontalLayout();
-		main.setClassName("layout-style");
-		main.setHeight("91%");
-		main.add( content());
-		return main;
-	}
-
-	VerticalLayout pageContent = new VerticalLayout();
-
-	private Component content() {
-		refreshContent("");
-		return pageContent;
-	}
 		
-	public void refreshContent(String id) {		
+	public void setContent(String id) {		
 		TransformDeployResult result;
 		if (id.equals("")) {
 			result = tResultProvider.getLastResult();
@@ -115,24 +96,25 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		VerticalLayout iList = instancePanel();
 		iList.setHeight("100%");
 		
-		Div pages = new Div(tList, dList, iList); //, snap, split
-		pages.setHeight("97%");
-		pages.setWidthFull();
-
-		pageContent.removeAll();
-		pageContent.setClassName("layout-style");
-		pageContent.add(/*tabs,*/ pages);
+		this.add(tList, dList, iList);
+//		Div pages = new Div(tList, dList, iList); //, snap, split
+//		pages.setHeight("97%");
+//		pages.setWidthFull();
+//
+//		pageContent.removeAll();
+//		pageContent.setClassName("layout-style");
+//		pageContent.add(/*tabs,*/ pages);
 	}
 
 
 	private VerticalLayout transformPanel() {
 				
 		VerticalLayout layout = new VerticalLayout();
-		layout.setClassName("big-text");
+		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		layout.setFlexGrow(0);
+		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Transformation Feedback");
 		layout.add(pLabel);
@@ -143,9 +125,10 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<TransformationError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true);
 		Grid.Column<TransformationError> link = grid.addComponentColumn(ti -> generateAnchor(ti)).setHeader("Scope").setResizable(true).setSortable(true);
 		grid.setDataProvider(tdataProvider);	
-
+		grid.setHeightByRows(true);
+		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+		
 		layout.add(grid);
-
 		return layout;
 	}
 	
@@ -164,11 +147,11 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 	private VerticalLayout deployPanel() {
 		
 		VerticalLayout layout = new VerticalLayout();
-		layout.setClassName("big-text");
+		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		layout.setFlexGrow(0);
+		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Deployment Feedback");
 		layout.add(pLabel);
@@ -179,9 +162,10 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<ProcessDefinitionError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true);
 		Grid.Column<ProcessDefinitionError> link = grid.addComponentColumn(ti -> ComponentUtils.convertToResourceLinkWithBlankTarget(ti.getErrorScope().getInstance())).setHeader("Scope").setResizable(true).setSortable(true);
 		grid.setDataProvider(ddataProvider);	
-
+		grid.setHeightByRows(true);
+		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+		
 		layout.add(grid);
-
 		return layout;
 	}
 
@@ -189,11 +173,11 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 	private VerticalLayout instancePanel() {
 		
 		VerticalLayout layout = new VerticalLayout();
-		layout.setClassName("big-text");
+		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		layout.setFlexGrow(0);
+		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Process Re-Instantiation Feedback");
 		layout.add(pLabel);
@@ -204,9 +188,10 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<ProcessInstanceError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true);
 		Grid.Column<ProcessInstanceError> link = grid.addComponentColumn(ti -> ComponentUtils.convertToResourceLinkWithBlankTarget(ti.getErrorScope().getInstance())).setHeader("Scope").setResizable(true).setSortable(true);
 		grid.setDataProvider(idataProvider);	
-
+		grid.setHeightByRows(true);
+		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+		
 		layout.add(grid);
-
 		return layout;
 	}
 	

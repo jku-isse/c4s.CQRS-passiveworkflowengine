@@ -35,8 +35,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Route("jamaconnector")
-@Push
+//@Route("jamaconnector")
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
 @PageTitle("Jama Connector")

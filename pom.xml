@@ -4,7 +4,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.6.4-SNAPSHOT</version>
+	<version>1.6.5-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -28,7 +28,7 @@
 		<connector.core.version>1.3.0</connector.core.version>
 		<connector.jira.version>1.6.0</connector.jira.version>
 		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>
-		<PPEv3.version>0.5.2-SNAPSHOT</PPEv3.version>
+		<PPEv3.version>0.5.3-SNAPSHOT</PPEv3.version>
 	</properties>
 
 	<profiles>
@@ -189,7 +189,7 @@
 		<dependency>
 			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
 			<artifactId>ProcessDefinitionConverter</artifactId>
-			<version>0.1.4-SNAPSHOT</version>
+			<version>0.1.5-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
@@ -232,7 +232,7 @@
 		<dependency>
 			<groupId>at.jku.isse.stagesexport</groupId>
 			<artifactId>Processtransformer</artifactId>
-			<version>0.0.5-SNAPSHOT</version>
+			<version>0.0.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
