@@ -209,6 +209,14 @@ public class GlobalProgressView extends VerticalLayout {
                 }
         });
         importArtifactButton.addClickShortcut(Key.ENTER).listenOn(layout);
+        artTypeBox.setWidth("500px");
+        artTypeBox.setMinWidth("200px");
+        idTypeBox.setWidth("500px");
+        idTypeBox.setMinWidth("200px");
+        artIdField.setWidth("500px");
+        artIdField.setMinWidth("200px");
+        importArtifactButton.setWidth("500px");
+        importArtifactButton.setMinWidth("200px");
         layout.add(artTypeBox, idTypeBox, artIdField, importArtifactButton);
         return layout;
     

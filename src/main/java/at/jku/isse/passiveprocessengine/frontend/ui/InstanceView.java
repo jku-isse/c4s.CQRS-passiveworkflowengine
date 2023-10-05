@@ -1,7 +1,45 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteConfiguration;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.designspace.core.model.CollectionProperty;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
@@ -13,41 +51,8 @@ import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Page;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.function.SerializableBiConsumer;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-import javax.inject.Inject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -321,10 +326,10 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private static Component singleValueToComponent(Object value) {
 		if (value instanceof Instance) {
 			Instance inst = (Instance)value;
-			return new Paragraph(new Anchor("/instance/show?id="+inst.id(), inst.name()));
+			return new Paragraph(new Anchor("/instance/"+inst.id(), inst.name()));
 		} else if (value instanceof InstanceType) {
 			InstanceType inst = (InstanceType)value;
-			return new Paragraph(new Anchor("/instance/show?id="+inst.id(), inst.name()));
+			return new Paragraph(new Anchor("/instance/"+inst.id(), inst.name()));
 		} else if (value instanceof PropertyType) {
 			PropertyType pt = (PropertyType)value;
 			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.name(), pt.cardinality(), pt.referencedInstanceType()));

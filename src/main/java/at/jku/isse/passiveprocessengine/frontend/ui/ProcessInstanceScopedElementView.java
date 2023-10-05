@@ -1,6 +1,5 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +21,7 @@ import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -65,6 +65,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		 this.conf = f.getUIConfig();
 		 this.authentication = SecurityContextHolder.getContext().getAuthentication();
 		 loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
+		 this.setMargin(false);
 	}
 	
 	private void resetDetailsContent() {
@@ -75,7 +76,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 	protected void fillDetailsView(ProcessInstanceScopedElement el) {
 		if (el != null) {
 			this.removeAll();
-    		this.setVisible(true);    		    		
+    		this.setVisible(true);    	    		
 			if (el instanceof ProcessInstance) {
 				ProcessInstance wfi = (ProcessInstance)el;
 				infoDialog(wfi);          		
@@ -175,7 +176,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         delIcon.getElement().setProperty("title", "Remove this process");
         l.add(delIcon);
         if (!conf.isAnonymized() && !conf.doEnableExperimentMode()) {        
-        	Anchor a = new Anchor("/instance/show?id="+wfi.getInstance().id(), "Internal Details (opens in new tab)");
+        	Anchor a = new Anchor("/instance/"+wfi.getInstance().id(), "Internal Details (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);                
         } 
@@ -245,7 +246,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         if (step.getActualLifecycleState() != null) {            
         	//TODO for now we only show actual state
         	//l.add(new Paragraph(String.format("Lifecycle State: %s (Expected) :: %s (Actual) ", wfi.getExpectedLifecycleState().name() , wfi.getActualLifecycleState().name())));
-            l.add(new Paragraph(type+" State: "+StepLifecycleStateMapper.translateState(step.getActualLifecycleState())));
+            l.add(new Span(type+" State: "+StepLifecycleStateMapper.translateState(step.getActualLifecycleState())));
         }
 		return l;
 	}
@@ -293,6 +294,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     }
     
     private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
+    	
     	for (Conditions cond : Conditions.values()) {
     		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
     			
@@ -455,7 +457,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                     }
                     list.add(nestedList);
                 } else { // artifactList.size() == 0
-                    Paragraph p = new Paragraph("none");
+                    Span p = new Span("none");
                     p.setClassName("red");
                     line.add(p);
                   //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
@@ -471,7 +473,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     }
 
 	private Component getReloadIcon(Instance inst) {
-		if (inst == null || !conf.doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+		if (inst == null || !conf.doGenerateRefetchButtonsPerArtifact()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -508,8 +510,9 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 //    }
 
     private Component infoDialog(ConstraintWrapper rebc) {
-    	VerticalLayout l = this;
-      //  l.setClassName("scrollable");
+    	VerticalLayout l = this;/*new VerticalLayout();    	
+    	l.setMargin(false);
+    	this.add(l);*/
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
@@ -530,10 +533,10 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
         	if (rebc.getCr() != null && this.conf.doUseIntegratedEvalRepairTree()) {
         		try {
-        			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
+        			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);        			
     				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
     				ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
-    				ctg.setHeightByRows(true);
+    				ctg.setHeightByRows(true);    				
     				l.add(ctg); 
         		} catch(Exception e) {
         			e.printStackTrace();

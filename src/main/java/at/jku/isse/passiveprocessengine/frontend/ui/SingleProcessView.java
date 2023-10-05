@@ -1,5 +1,33 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
@@ -9,26 +37,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
-
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-import javax.inject.Inject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 
 @Slf4j

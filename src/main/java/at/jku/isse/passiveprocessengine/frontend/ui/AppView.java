@@ -18,6 +18,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
+
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.GlobalProgressView;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
@@ -39,7 +40,13 @@ public class AppView extends AppLayout{
 	    title.getStyle()
 	      .set("font-size", "var(--lumo-font-size-l)")
 	      .set("margin", "0");
-	    Button logout = new Button("Log out", e -> securityService.logout()); 
+	    Icon logoutIcon = VaadinIcon.SIGN_OUT.create();
+	    logoutIcon.getStyle()
+	      .set("box-sizing", "border-box")
+	      .set("margin-inline-end", "var(--lumo-space-m)")
+	      .set("margin-inline-start", "var(--lumo-space-xs)")
+	      .set("padding", "var(--lumo-space-xs)");
+	    Button logout = new Button("Log out", logoutIcon, e -> securityService.logout()); 
 
 	    HorizontalLayout header = new HorizontalLayout(toggle, title, logout); 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);

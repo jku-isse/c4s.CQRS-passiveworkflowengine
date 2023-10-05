@@ -1,42 +1,25 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -44,12 +27,8 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Location;
@@ -58,24 +37,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
-import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.DefinitionView.DefinitionComparator;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -152,22 +122,24 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         header.setWidth("100%");
                 
         ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel);
-        
+        detailsView.setVisible(false); // initially nothing to show, hence invisible, will be made visible upon selection
         grid = new WorkflowTreeGrid(commandGateway);                
-        grid.initTreeGrid();                        
+        grid.initTreeGrid();        
+        grid.setHeightFull();
         grid.addSelectionListener( o -> {
     		o.getFirstSelectedItem().ifPresentOrElse(el -> { 
     			detailsView.fillDetailsView(el); 
     			}   			
     		, () -> { 
     			detailsView.fillDetailsView(null); });
-    	});
+    	});        
         
         SplitLayout splitLayout = new SplitLayout(grid, detailsView);
         splitLayout.setSplitterPosition(100);
-        splitLayout.setWidthFull();
+        splitLayout.setSizeFull();        
         
         add(header, splitLayout);
+        this.setAlignSelf(Alignment.STRETCH, splitLayout);
     }
 
     private void refresh(WorkflowTreeGrid grid) {

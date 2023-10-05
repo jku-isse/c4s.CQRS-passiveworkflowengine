@@ -1,5 +1,38 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
@@ -10,34 +43,9 @@ import at.jku.isse.passiveprocessengine.definition.StepDefinition;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition.CoreProperties;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
-
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
-import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.function.SerializableBiConsumer;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 @Slf4j
@@ -118,7 +126,7 @@ public class DefinitionView extends VerticalLayout {
         			DecisionNodeDefinition scopeClosingDN = ((DecisionNodeDefinition) o).getScopeClosingDecisionNodeOrNull(); // wont be null as ending dnd will have been filtered out before 
         			return getDndIcon(scopeClosingDN);
         		} else {
-                    return new Paragraph(o.getClass().getSimpleName() +": " + o.getName());
+                    return new Span(o.getClass().getSimpleName() +": " + o.getName());
                 }
         	}).setHeader("Process Definition Structure");
         	
@@ -128,8 +136,8 @@ public class DefinitionView extends VerticalLayout {
         	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         	
         	detailsContent.setMinWidth("100px");
-        	detailsContent.setSpacing(false);
-        	detailsContent.setPadding(false);
+        	//detailsContent.setSpacing(false);
+        	detailsContent.setMargin(false);
         	resetDetailsContent();
         	splitLayout = new SplitLayout(grid, detailsContent);
         	splitLayout.setWidthFull();
@@ -222,7 +230,8 @@ public class DefinitionView extends VerticalLayout {
 	}
 	
 	private Component createValueRenderer(String arl) {
-		Paragraph p = new Paragraph(arl);
+		//Paragraph p = new Paragraph(arl);
+		Span p = new Span(arl);
 		p.getStyle().set("white-space", "pre");
 		return p;
     }
@@ -256,8 +265,9 @@ public class DefinitionView extends VerticalLayout {
     
     private static final SerializableBiConsumer<Span, Map.Entry<String, InstanceType>> type2Component = (span, obj) -> {
     	if (obj.getValue() != null) {
-    		Paragraph p =  new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));		
-    		span.add(p);
+    		span.add(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));
+    		//Paragraph p =  new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));		
+    		//span.add(p);
     	}
     };
     

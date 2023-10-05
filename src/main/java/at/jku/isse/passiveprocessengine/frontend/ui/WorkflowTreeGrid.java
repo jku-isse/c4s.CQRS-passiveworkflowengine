@@ -1,5 +1,34 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.time.DateTimeException;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.collect.Lists;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -9,26 +38,7 @@ import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
-
-import com.google.common.collect.Lists;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.extern.slf4j.Slf4j;
-import java.time.DateTimeException;
-import java.time.Duration;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @Slf4j
 @CssImport(value="./styles/grid-styles.css")
@@ -63,7 +73,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        propertiesFilter.put("", ""); // default filter
         this.conf = f.getUIConfig();
       
-        this.setHeightByRows(true);
+        //this.setHeightByRows(true);
         this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
     
@@ -97,9 +107,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 span.getElement().setProperty("title", rn.toString());
                 return span;
             } else {
-                return new Paragraph(o.getClass().getSimpleName() +": " + o.getName());
+                return new Span(o.getClass().getSimpleName() +": " + o.getName());
             }
-        }).setHeader("Process Instance").setWidth("60%");
+        }).setHeader("Process Instance").setWidth("65%");
 
         // Column "Last Changed"
 
@@ -171,7 +181,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             } else {
                 return new Label("");
             }
-        })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("5%").setFlexGrow(0);
+        })).setClassNameGenerator(x -> "column-center").setHeader("QA").setWidth("10%").setFlexGrow(0);
         
 //        this.setItemDetailsRenderer(new ComponentRenderer<Component, ProcessInstanceScopedElement>(o -> {
 //        	if (o instanceof ProcessInstance) {
@@ -286,17 +296,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         updateTreeGrid();
     }
 
-    public void updateTreeGrid(Collection<ProcessInstance> content) {
-        //this.content = new HashMap<>();
-    	// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
-    	// heuristic, if preDNI or postDNI are != null, then this is a subporcess    	
-        long changeCount = content.stream()
-        	.filter(pi -> pi.getInDNI() == null && pi.getOutDNI() == null)
+    public void updateTreeGrid(Collection<ProcessInstance> content) {  	    	        
+    	this.getSelectionModel().getFirstSelectedItem().ifPresent(el -> focusedElement = el); // remember last selection
+    	List<ProcessInstance> changes = content.stream()
+    			// we should not put subprocesses into main hierarchy as then we will duplicate some entries leading to an exception, 
+    	    	// heuristic, if preDNI or postDNI are != null, then this is a subprocess
+    		.filter(pi -> pi.getInDNI() == null && pi.getOutDNI() == null)
         	.filter(pi -> doHaveAccessRight(pi))
         	.peek(wfi -> this.content.put(wfi.getName(), wfi))
-        	.count();
-        if (changeCount > 0) {
+        	.collect(Collectors.toList());
+        if (changes.size() > 0) {
         	updateTreeGrid();
+        	if (focusedElement == null) // no prior selection
+        		this.getSelectionModel().select(changes.get(0));
         }
     }
     
@@ -373,6 +385,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	});
         	this.select(focusedElement);        	
         }
+        Notification.show("Process list has been updated!");
     }
     
     private static class ConstraintWrapperComparator implements Comparator<ConstraintWrapper> {

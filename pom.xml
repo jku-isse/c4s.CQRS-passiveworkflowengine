@@ -4,7 +4,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.6.5-SNAPSHOT</version>
+	<version>1.6.6-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>

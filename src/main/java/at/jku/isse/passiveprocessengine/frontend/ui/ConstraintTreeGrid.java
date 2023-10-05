@@ -5,15 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
@@ -22,28 +18,19 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.function.SerializableBiConsumer;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.CollectionProperty;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.MapProperty;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.PropertyType;
-import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.evaluator.RotationNode;
 import at.jku.isse.designspace.rule.arl.expressions.AsTypeExpression;
-import at.jku.isse.designspace.rule.arl.expressions.CollectExpression;
 import at.jku.isse.designspace.rule.arl.expressions.ExistsExpression;
 import at.jku.isse.designspace.rule.arl.expressions.Expression;
 import at.jku.isse.designspace.rule.arl.expressions.ForAllExpression;
 import at.jku.isse.designspace.rule.arl.expressions.LiteralExpression;
 import at.jku.isse.designspace.rule.arl.expressions.OperationCallExpression;
-import at.jku.isse.designspace.rule.arl.expressions.RejectExpression;
-import at.jku.isse.designspace.rule.arl.expressions.SelectExpression;
 import at.jku.isse.designspace.rule.arl.expressions.TypeExpression;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -75,7 +62,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	private void initGrid() {
 		this.addComponentHierarchyColumn(ror -> {
 			return getExpression(ror);
-		}).setHeader("Expression").setKey("expression").setResizable(true);		
+		}).setHeader("Expression").setKey("expression").setResizable(true).setFlexGrow(3);
 		this.getColumnByKey("expression").setClassNameGenerator(node -> {
 			if (node.isNodeOnRepairPath()) {
 				if (node.getNode().getRepairs().isEmpty())
@@ -86,7 +73,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 				return null;
 		});
 		
-		this.addColumn(createDefaultValueRenderer()).setHeader("Details").setResizable(true);		
+		this.addColumn(createDefaultValueRenderer()).setHeader("Details").setResizable(true).setFlexGrow(1);		
 		
 		this.setItemDetailsRenderer(createDetailedValueRenderer());
 		
@@ -110,7 +97,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			Paragraph para = new Paragraph(shortConstr);
+			Span para = new Span(shortConstr);
 			para.getStyle().set("white-space", "pre");;
 			return para;
 
@@ -171,17 +158,17 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     private static Component singleValueToComponent(Object value) {
     	if (value instanceof Instance) {
     		Instance inst = (Instance)value;
-    		return new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+    		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
     	} else if (value instanceof InstanceType) {
         		InstanceType inst = (InstanceType)value;
-        		return new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+        		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
         } else
-    	return new Paragraph(Objects.toString(value));
+    	return new Span(Objects.toString(value));
     }
     
     private static Component collectionValueToComponent(Collection value) {
     	if (value == null || value.size() == 0)	
-    		return new Paragraph( "[ ]");
+    		return new Span( "[ ]");
     	else if (value.size() == 1)
     		return singleValueToComponent(value.iterator().next());
     	else {    		
@@ -313,7 +300,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	
 	
 	public Component getReloadIcon(Instance inst) {
-		if (inst == null || !reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+		if (inst == null || !reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");

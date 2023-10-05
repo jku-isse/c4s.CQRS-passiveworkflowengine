@@ -9,9 +9,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
-import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.DecisionNodeInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;

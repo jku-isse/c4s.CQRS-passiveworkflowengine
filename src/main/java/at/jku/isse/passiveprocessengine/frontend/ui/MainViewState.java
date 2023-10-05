@@ -3,6 +3,7 @@ package at.jku.isse.passiveprocessengine.frontend.ui;
 import org.springframework.security.core.Authentication;
 
 import com.vaadin.flow.component.UI;
+
 import lombok.Data;
 
 @Data

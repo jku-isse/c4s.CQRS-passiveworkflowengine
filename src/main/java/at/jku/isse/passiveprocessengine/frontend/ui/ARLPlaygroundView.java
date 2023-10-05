@@ -1,7 +1,31 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -9,36 +33,8 @@ import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
 import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
-import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -83,15 +79,16 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         	layout.add(arlArea);
         	
         	// test field to provide context: instance type
-        	ComboBox<InstanceType> comboBox = new ComboBox<>("Instance Type");
+        	ComboBox<InstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type");
         	List<InstanceType> instTypes = commandGateway.getWorkspace().debugInstanceTypes().stream()
         				.filter(iType -> !iType.isDeleted)
         				.sorted(new InstanceTypeComparator())
         				.collect(Collectors.toList());
-        	comboBox.setItems(instTypes);
-        	comboBox.setItemLabelGenerator(InstanceType::name);
-        	comboBox.setMinWidth("800px");
-        	layout.add(comboBox);
+        	instanceTypeComboBox.setItems(instTypes);
+        	instanceTypeComboBox.setItemLabelGenerator(InstanceType::name);
+        	instanceTypeComboBox.setWidth("800px");
+        	instanceTypeComboBox.setMinWidth("300px");
+        	layout.add(instanceTypeComboBox);
         	
         	
         	TextArea errorResultArea = new TextArea();
@@ -132,7 +129,7 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         	button.addClickListener(clickEvent -> {
         		if (arlArea.getValue().length() < 5)
         			Notification.show("Make sure to enter a non-empty OCL/ARL constraint!");
-        		else if (comboBox.getOptionalValue().isEmpty())
+        		else if (instanceTypeComboBox.getOptionalValue().isEmpty())
         			Notification.show("Make sure to select an Instance Type!");
         		else {     
         			errorResultArea.setVisible(false);
@@ -149,14 +146,14 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
         								commandGateway.getProcessChangeListenerWrapper().batchFetchLazyLoaded();
         							}
         							evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-        									comboBox.getValue(),
+        									instanceTypeComboBox.getValue(),
         									"constraintplaygroundrule_"+counter.getAndIncrement(), 
         									arlArea.getValue(), false);
         						} while (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded());
 
         					} else {
         						evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-        								comboBox.getValue(),
+        								instanceTypeComboBox.getValue(),
         								"constraintplaygroundrule_"+counter.getAndIncrement(), 
         								arlArea.getValue(), false);
         					}
@@ -200,9 +197,9 @@ public class ARLPlaygroundView extends VerticalLayout  /*implements PageConfigur
     
     private Component resultEntryToInstanceLink(ResultEntry rge) {
     	if (InstanceView.isFullyFetched(rge.getInstance())) {
-    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()));
+    		return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()));
     	} else {
-    		return new Paragraph(new Anchor("/instance/show?id="+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
+    		return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
     	}
     }
     

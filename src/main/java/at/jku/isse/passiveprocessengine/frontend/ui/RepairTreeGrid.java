@@ -1,13 +1,5 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
@@ -21,31 +13,16 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.PropertyType;
-import at.jku.isse.designspace.rule.arl.exception.ChangeExecutionException;
-import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
-import at.jku.isse.designspace.rule.arl.repair.AlternativeRepairNode;
-import at.jku.isse.designspace.rule.arl.repair.Operator;
-import at.jku.isse.designspace.rule.arl.repair.Repair;
-import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
-import at.jku.isse.designspace.rule.arl.repair.SingleValueRepairAction;
-import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil.ReloadIconProvider;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 

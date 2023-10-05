@@ -1,58 +1,40 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.User;
-import at.jku.isse.designspace.rule.arl.repair.RepairAction;
-import at.jku.isse.designspace.rule.arl.repair.RepairNode;
-import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppHeader;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.RefreshableComponent;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 @Slf4j

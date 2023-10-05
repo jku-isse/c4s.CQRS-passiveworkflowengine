@@ -1,18 +1,20 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import com.vaadin.flow.component.UI;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
+import com.vaadin.flow.component.UI;
+
+import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Scope("singleton")
