@@ -1,0 +1,330 @@
+{
+  "steps": [
+    {
+      "inDNDid": "0",
+      "outDNDid": "2",
+      "input": {},
+      "output": {},
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [],
+      "specOrderIndex": 1,
+      "_type": "Step",
+      "code": "NoOpStep0"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "4",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 2,
+      "_type": "Step",
+      "code": "sd2"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "5",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 3,
+      "_type": "Step",
+      "code": "sd2a"
+    },
+    {
+      "inDNDid": "4",
+      "outDNDid": "5",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 4,
+      "_type": "Step",
+      "code": "sd2b"
+    },
+    {
+      "inDNDid": "5",
+      "outDNDid": "3",
+      "input": {},
+      "output": {},
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [],
+      "specOrderIndex": 5,
+      "_type": "Step",
+      "code": "NoOpStep1"
+    },
+    {
+      "inDNDid": "2",
+      "outDNDid": "3",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 6,
+      "_type": "Step",
+      "code": "sd1"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "6",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 7,
+      "_type": "Step",
+      "code": "sd3"
+    },
+    {
+      "inDNDid": "3",
+      "outDNDid": "7",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 8,
+      "_type": "Step",
+      "code": "sd4.1"
+    },
+    {
+      "inDNDid": "7",
+      "outDNDid": "6",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 9,
+      "_type": "Step",
+      "code": "sd4.2"
+    },
+    {
+      "inDNDid": "6",
+      "outDNDid": "8",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 10,
+      "_type": "Step",
+      "code": "sd5"
+    },
+    {
+      "inDNDid": "6",
+      "outDNDid": "8",
+      "input": {
+        "issue": "azure_workitem"
+      },
+      "output": {},
+      "ioMapping": {},
+      "conditions": {
+        "PRECONDITION": "self.in_issue-\u003esize() \u003d 1",
+        "POSTCONDITION": "self.in_issue-\u003esize() \u003e 1"
+      },
+      "qaConstraints": [],
+      "specOrderIndex": 11,
+      "_type": "Step",
+      "code": "sd6"
+    },
+    {
+      "inDNDid": "8",
+      "outDNDid": "1",
+      "input": {},
+      "output": {},
+      "ioMapping": {},
+      "conditions": {},
+      "qaConstraints": [],
+      "specOrderIndex": 12,
+      "_type": "Step",
+      "code": "NoOpStep2"
+    }
+  ],
+  "dns": [
+    {
+      "inflowType": "SEQ",
+      "mapping": [],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "0"
+    },
+    {
+      "inflowType": "SEQ",
+      "mapping": [],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "1"
+    },
+    {
+      "inflowType": "SEQ",
+      "mapping": [
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd2",
+          "toParam": "issue"
+        },
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd1",
+          "toParam": "issue"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "2"
+    },
+    {
+      "inflowType": "XOR",
+      "mapping": [
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd3",
+          "toParam": "issue"
+        },
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd4.1",
+          "toParam": "issue"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "3"
+    },
+    {
+      "inflowType": "SEQ",
+      "mapping": [
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd2b",
+          "toParam": "issue"
+        },
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd2a",
+          "toParam": "issue"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "4"
+    },
+    {
+      "inflowType": "XOR",
+      "mapping": [],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "5"
+    },
+    {
+      "inflowType": "OR",
+      "mapping": [
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd5",
+          "toParam": "issue"
+        },
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd6",
+          "toParam": "issue"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "6"
+    },
+    {
+      "inflowType": "SEQ",
+      "mapping": [
+        {
+          "fromStep": "BranchingTest",
+          "fromParam": "issue",
+          "toStep": "sd4.2",
+          "toParam": "issue"
+        }
+      ],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "7"
+    },
+    {
+      "inflowType": "AND",
+      "mapping": [],
+      "depthIndex": -1,
+      "_type": "DecisionNode",
+      "code": "8"
+    }
+  ],
+  "prematureStepConditions": {},
+  "processConfig": {},
+  "input": {
+    "issue": "azure_workitem"
+  },
+  "output": {},
+  "ioMapping": {},
+  "conditions": {},
+  "qaConstraints": [],
+  "specOrderIndex": 0,
+  "_type": "Process",
+  "code": "BranchingTest",
+  "description": "Describe this function..."
+}

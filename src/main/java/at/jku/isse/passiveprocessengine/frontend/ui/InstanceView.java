@@ -50,6 +50,7 @@ import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
+import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
@@ -217,33 +218,14 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				return true;
 
 			boolean matchesProperty= matchesTerm(pe.name, searchTerm);
-			boolean matchesValue = matchesTerm(valueToString(pe.getValue()), searchTerm);
+			boolean matchesValue = matchesTerm(PropertyConversionUtil.valueToString(pe.getValue()), searchTerm);
 
 			return matchesProperty || matchesValue;
 		});    	    	
 		return searchField;
 	}
 
-	private String valueToString(Object value) {
-		if (value == null) return "null";
-		if (value instanceof Instance ) {
-			return ((Instance) value).className();
-		}
-		else if (value instanceof InstanceType) {
-			return ((InstanceType) value).name();
-		} else if (value instanceof Map) {
-			return (String) ((Map) value).entrySet().stream()
-					.map(entry-> ((Map.Entry<String, Object>)entry).getKey()+valueToString(((Map.Entry<String, Object>)entry).getValue()) )
-					.collect(Collectors.joining());
-		} else if (value instanceof Collection) {
-			return (String) ((Collection) value).stream().map(v->valueToString(v)).collect(Collectors.joining());
-		} else if (value instanceof PropertyType) {
-			return ((PropertyType) value).name();
-		}
-		else
-			return value.toString();
 
-	}
 
 	private boolean matchesTerm(String value, String searchTerm) {
 		if (searchTerm != null && !searchTerm.isEmpty() && value != null)

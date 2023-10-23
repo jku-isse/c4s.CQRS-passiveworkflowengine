@@ -208,19 +208,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         } else if (unsatisfied && fulfilled) {
             icon = new Icon(VaadinIcon.WARNING);
             icon.setColor("#E24C00");
-            icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled constraints");
+            icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled QA constraints");
         } else if (unsatisfied) {
             icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
             icon.setColor("red");
-            icon.getElement().setProperty("title", "This contains unsatisfied constraints");
+            icon.getElement().setProperty("title", "This contains unsatisfied QA constraints");
         } else if (fulfilled){
             icon = new Icon(VaadinIcon.CHECK_CIRCLE);
             icon.setColor("green");
-            icon.getElement().setProperty("title", "This contains fulfilled constraints");
+            icon.getElement().setProperty("title", "This contains fulfilled QA constraints");
         } else {
             icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
             icon.setColor("#1565C0");
-            icon.getElement().setProperty("title", "Constraints not evaluated");
+            icon.getElement().setProperty("title", "QA Constraints not evaluated");
         }
         return icon;
     }
@@ -234,8 +234,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		state = step.getActualLifecycleState();
         switch(state) {
         case ACTIVE:
-			icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
-			icon.setColor("red");
+        	icon = new Icon(VaadinIcon.UNLOCK);
+			icon.setColor("green");
 			break;
 		case AVAILABLE:
 			icon = new Icon(VaadinIcon.LOCK);

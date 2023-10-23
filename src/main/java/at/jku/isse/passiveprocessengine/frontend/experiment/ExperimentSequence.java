@@ -2,7 +2,6 @@ package at.jku.isse.passiveprocessengine.frontend.experiment;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import lombok.Data;
 

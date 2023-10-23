@@ -68,7 +68,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private @Getter WorkflowTreeGrid grid;
     private ComboBox<ProcessDefinition> definitionsBox;
     private Details loadProcess;
-    
+    private  SplitLayout splitLayout;
 
    
     @Override
@@ -134,7 +134,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     			detailsView.fillDetailsView(null); });
     	});        
         
-        SplitLayout splitLayout = new SplitLayout(grid, detailsView);
+        splitLayout = new SplitLayout(grid, detailsView);
         splitLayout.setSplitterPosition(100);
         splitLayout.setSizeFull();        
         
@@ -274,7 +274,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         							}
         							commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
         							this.getUI().get().access(() -> { 
-        								Notification.show("Success"); 
+        								Notification.show("Success");
+        								splitLayout.setSplitterPosition(70);
         								loadProcess.setOpened(false);
         							});
         						} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)

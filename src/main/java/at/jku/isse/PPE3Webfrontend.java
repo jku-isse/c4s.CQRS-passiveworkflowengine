@@ -9,6 +9,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+
 import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.service.ServiceRegistry;

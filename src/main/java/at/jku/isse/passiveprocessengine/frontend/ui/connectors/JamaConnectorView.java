@@ -1,37 +1,39 @@
 package at.jku.isse.passiveprocessengine.frontend.ui.connectors;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.spring.annotation.UIScope;
+
 import at.jku.isse.designspace.artifactconnector.core.model.BaseElementType;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.jama.model.JamaBaseElementType;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jama.service.JamaService;
-import at.jku.isse.passiveprocessengine.frontend.ui.MainView;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
-
-import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
-
 import lombok.extern.slf4j.Slf4j;
-import javax.inject.Inject;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -74,18 +76,10 @@ public class JamaConnectorView extends VerticalLayout  /*implements PageConfigur
         firstPart.setPadding(true);
         firstPart.setSizeFull();
         firstPart.add(new Icon(VaadinIcon.CLUSTER), new Label(""), new Text("Jama Connector"));
-
-        ToggleButton toggle = new ToggleButton("Refresher ");
-        toggle.setClassName("med");
-        toggle.addValueChangeListener(evt -> {
-//            if (devMode) {
-//                Notification.show("Development mode enabled! Additional features activated.");
-//            }
-            content();
-        });
+       
 
 
-        header.add(firstPart, toggle/*, shutdown*/);
+        header.add(firstPart/*, shutdown*/);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         HorizontalLayout footer = new AppFooter(conf);
