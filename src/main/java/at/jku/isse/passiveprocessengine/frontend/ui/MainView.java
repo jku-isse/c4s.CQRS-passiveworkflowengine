@@ -135,7 +135,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	});        
         
         splitLayout = new SplitLayout(grid, detailsView);
-        splitLayout.setSplitterPosition(100);
+        splitLayout.setSplitterPosition(60);
         splitLayout.setSizeFull();        
         
         add(header, splitLayout);
@@ -150,6 +150,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     private void reloadProcessDefinitions() {
     	List<ProcessDefinition> defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+    			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
 				.sorted(new DefinitionComparator())
 				.collect(Collectors.toList());
     	definitionsBox.setItems(defs);

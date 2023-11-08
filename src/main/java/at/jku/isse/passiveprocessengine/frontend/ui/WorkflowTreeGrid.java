@@ -87,7 +87,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         this.addComponentHierarchyColumn(o -> {
             if (o instanceof ProcessInstance) {
                 ProcessInstance wfi = (ProcessInstance) o;
-                Span span= new Span(wfi.getName());
+                String name = wfi.getProcess() != null ? wfi.getDefinition().getName() : wfi.getName(); // when subprocess, then just definition name
+                Span span= new Span(name);
                 span.getElement().setProperty("title", wfi.getDefinition().getName() + " (" + wfi.getName() + ")");
                 return span;
             } else if (o instanceof ProcessStep) {
