@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
@@ -59,6 +60,7 @@ public class DefinitionView extends VerticalLayout {
 
     
     protected RequestDelegate commandGateway;
+    private IFrontendPusher pusher;
     
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
@@ -68,8 +70,9 @@ public class DefinitionView extends VerticalLayout {
     
 
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
     	this.commandGateway = commandGateway;
+    	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
     	add(processTreeView());
@@ -84,7 +87,8 @@ public class DefinitionView extends VerticalLayout {
 
         	ComboBox<ProcessDefinition> comboBox = new ComboBox<>("Process Definitions");
         	List<ProcessDefinition> defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
-        				.sorted(new DefinitionComparator())
+        			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
+        			.sorted(new DefinitionComparator())
         				.collect(Collectors.toList());
         	comboBox.setItems(defs);
         	comboBox.setItemLabelGenerator(pdef -> { return pdef.getName() + " (DSid: "+pdef.getInstance().id()+")"; } );
@@ -115,10 +119,11 @@ public class DefinitionView extends VerticalLayout {
         	
         	grid = new TreeGrid<>();
         	grid.setMinWidth("100px");
-        	grid.setHeightByRows(true);
+        	grid.setAllRowsVisible(true);
         	grid.addComponentHierarchyColumn(o -> {
         		if (o instanceof ProcessDefinition || o instanceof StepDefinition) {
-        			Span span = new Span(o.getName());
+        			Icon icon = o instanceof ProcessDefinition ? createIcon(VaadinIcon.ARROW_CIRCLE_RIGHT) : createIcon(VaadinIcon.CLIPBOARD);
+        			Span span = new Span(icon, new Span(o.getName()));
         			return span;        		
         		} else if (o instanceof SequenceSubscopeDecisionNodeDefinition) { 
         			return getDndIcon((SequenceSubscopeDecisionNodeDefinition)o);
@@ -161,6 +166,8 @@ public class DefinitionView extends VerticalLayout {
     		addQATable(detailsContent, step);    			
     		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
     		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		
+    		addDeleteButtonIfTopLevelProcess(detailsContent, step);
+    		
     	} else {    		
     		resetDetailsContent();
     		//grid.setWidthFull();
@@ -224,7 +231,7 @@ public class DefinitionView extends VerticalLayout {
 			}    		
     	}));
     	}
-    	grid.setHeightByRows(true);
+    	grid.setAllRowsVisible(true);
     	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     	l.add(grid);
 	}
@@ -254,9 +261,28 @@ public class DefinitionView extends VerticalLayout {
     			.collect(Collectors.toList())
     			);
     	}
-    	grid.setHeightByRows(true);
+    	grid.setAllRowsVisible(true);
     	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     	l.add(grid);
+    }
+    
+    private void addDeleteButtonIfTopLevelProcess(VerticalLayout l, StepDefinition step) {
+    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().doEnableExperimentMode()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
+    		Icon delIcon = new Icon(VaadinIcon.TRASH);
+            delIcon.setColor("red");
+            delIcon.getStyle().set("cursor", "pointer");
+            delIcon.addClickListener(e -> {            	
+            	log.info("Deleting process definiton: "+step.getName());
+            	Map<String, Map<String, Set<Instance>>> formerInputs = commandGateway.getRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
+            	log.info(String.format("Deleted %s running process instance(s)", formerInputs.size()));
+            	formerInputs.keySet().forEach(id -> pusher.remove(id));
+            	commandGateway.getRegistry().removeProcessDefinition(step.getName());
+            	log.info("Deleted process definition: "+step.getName());
+            	this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
+            });
+            delIcon.getElement().setProperty("title", "Delete this process definition");
+            l.add(delIcon);
+    	}
     }
     
 	private static ComponentRenderer<Span, Map.Entry<String, InstanceType>> createTypeRenderer() {
@@ -325,7 +351,7 @@ public class DefinitionView extends VerticalLayout {
     	List<StepDefinition> steps = pdef.getStepDefinitions().stream()    			
     			.filter(step -> step.getDepthIndex() == indexToMatch)
     			.filter(step -> sdef.getOutSteps().contains(step))
-    			.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    	//		.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
     			.sorted(new StepComparator())
     			.collect(Collectors.toList());    	
    	
@@ -363,7 +389,7 @@ public class DefinitionView extends VerticalLayout {
     			.filter(step -> step.getProcOrderIndex() >= startIndex) // including starter
     			.filter(step -> step.getProcOrderIndex() <= scopeClosingIndex) // and closing scope (which might be the end DND)
     			.filter(step -> !childSteps.contains(step)) // but is also not a regular child step (in case the end is defined by closingDND
-    			.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX)) // and no NoOpStep
+    			//.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX)) // and no NoOpStep
     			.collect(Collectors.toList());
     	
     	List<DecisionNodeDefinition> subscopeDnds = childDNDs.stream()    			
@@ -375,7 +401,7 @@ public class DefinitionView extends VerticalLayout {
     	List<ProcessDefinitionScopedElement> scopeMembers = new LinkedList<>();
     	scopeMembers.addAll(steps);
     	scopeMembers.addAll(subscopeDnds);    	
-    	scopeMembers.stream().sorted(new PDSEComparator());
+    	scopeMembers.sort(new PDSEComparator());
     	
     	SequenceSubscopeDecisionNodeDefinition subDND = new SequenceSubscopeDecisionNodeDefinition(parentDND.getInstance(), scopeMembers);
     	return subDND;
@@ -385,7 +411,7 @@ public class DefinitionView extends VerticalLayout {
     	int indexToMatch = pdef.getDepthIndex() + 1; // only one below current step
     	List<StepDefinition> steps = pdef.getStepDefinitions().stream()    			
     			.filter(step -> step.getDepthIndex() == indexToMatch) 
-    			.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    		//	.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
     			.collect(Collectors.toList());		
     	List<DecisionNodeDefinition> dnds = pdef.getDecisionNodeDefinitions().stream()
     			.filter(dnd -> dnd.getDepthIndex() == indexToMatch)

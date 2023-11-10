@@ -1,7 +1,6 @@
 package at.jku.isse.passiveprocessengine.toolbridges.jiraToJama;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import at.jku.isse.designspace.artifactconnector.core.IService;
 import at.jku.isse.designspace.core.events.ElementCreate;
 import at.jku.isse.designspace.core.events.Operation;
-import at.jku.isse.designspace.core.events.PropertyCreate;
 import at.jku.isse.designspace.core.events.PropertyUpdateSet;
 import at.jku.isse.designspace.core.model.Cardinality;
 import at.jku.isse.designspace.core.model.Instance;

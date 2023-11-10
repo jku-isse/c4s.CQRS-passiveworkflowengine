@@ -1,13 +1,13 @@
 package at.jku.isse.passiveprocessengine.frontend.security;
 
+import org.springframework.stereotype.Component;
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
 import at.jku.isse.passiveprocessengine.frontend.ui.LoginView;
-
-import org.springframework.stereotype.Component;
 
 @Component 
 public class ConfigureUIServiceInitListener implements VaadinServiceInitListener {

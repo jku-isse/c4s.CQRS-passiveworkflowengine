@@ -1,11 +1,9 @@
 package at.jku.isse;
 
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -78,13 +76,6 @@ public class FrontendSpringConfig {
 		} catch(IOException e) {
 			log.error("No ./application.properties found");
 		}
-		
-		
-
-	    
-
-	    
-		
 		return props;
 	}
 

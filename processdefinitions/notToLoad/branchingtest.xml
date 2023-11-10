@@ -1,0 +1,181 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">issue</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="113">
+    <field name="NAME">BranchingTest</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+              </block>
+            </value>
+            <next>
+              <block type="parallelexecution" id="RZPni{WY|ZQcEtZJ=Q.}">
+                <mutation doPart="1"></mutation>
+                <field name="InFlowType">XOR</field>
+                <statement name="DO0">
+                  <block type="step" id="+X2ocmwdGd#BZ9x.k$x.">
+                    <field name="StepId">sd2</field>
+                    <statement name="Input">
+                      <block type="artuse" id="[Pn2p-yRsa1{utBU@YA1">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id=",d}`.JLAQx9^f{zQP%I=">
+                            <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="Twjb-{J8nA8*]iUv!QH]">
+                        <field name="State">PRECONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="*++k)XaY4#CZZDPdpfu)">
+                            <field name="arlRule">self.in_issue-&gt;size() = 1</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="hu5s|}{^$+*k/,y9L|2}">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="constraint" id="Xi:-.y,:ng;jQ7N#a/!#">
+                                <field name="arlRule">self.in_issue-&gt;size() &gt; 1</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <next>
+                      <block type="parallelexecution" id="xIoeyNQdaEY-5xE7ax(p">
+                        <mutation doPart="1"></mutation>
+                        <field name="InFlowType">AND</field>
+                        <statement name="DO0">
+                          <block type="step" id="e`pIyk:)Acr)CN|ezd2*">
+                            <field name="StepId">sd2a</field>
+                            <statement name="Input">
+                              <block type="artuse" id="NJAP)p.?`SR#Y+Lw.MG+">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id=";JzaE9R|}__Q~7OZ%rl5">
+                                    <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id="|Z4l:7nA2M~lH.}h,`BZ">
+                                <field name="State">PRECONDITION</field>
+                                <value name="condition">
+                                  <block type="constraint" id="ph66s76ayTemmdOY+7GA">
+                                    <field name="arlRule">self.in_issue-&gt;size() = 1</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="transition" id="a,-AaJr]00_hYO_Ax]T[">
+                                    <field name="State">POSTCONDITION</field>
+                                    <value name="condition">
+                                      <block type="constraint" id="Zg|9-rgd5e:}Npk4A3m9">
+                                        <field name="arlRule">self.in_issue-&gt;size() &gt; 1</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                          </block>
+                        </statement>
+                        <statement name="DO1">
+                          <block type="step" id="zGS3x1K/Ge4ZNRZ`f*L[">
+                            <field name="StepId">sd2b</field>
+                            <statement name="Input">
+                              <block type="artuse" id="Rj!D|2:6|H|A|ZQIG9nv">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="[$eb`,6tDB`x`{p}bw:}">
+                                    <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id="K/}uaIEtSheEqxr51K0@">
+                                <field name="State">PRECONDITION</field>
+                                <value name="condition">
+                                  <block type="constraint" id="NVLv^hrS2cZO[~;MWuwH">
+                                    <field name="arlRule">self.in_issue-&gt;size() = 1</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="transition" id="AC@vD8oOAc%P.Ck16Pg!">
+                                    <field name="State">POSTCONDITION</field>
+                                    <value name="condition">
+                                      <block type="constraint" id="F=2s@)lmQb3X1@jW;OZv">
+                                        <field name="arlRule">self.in_issue-&gt;size() &gt; 1</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                          </block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="DO1">
+                  <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                    <field name="StepId">sd1</field>
+                    <statement name="Input">
+                      <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                            <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">issue</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="z$,}9ue$8XKI@mk]*2{p">
+                        <field name="State">PRECONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="CQD@ofj8]P}7V7L$2DuS">
+                            <field name="arlRule">self.in_issue-&gt;size() = 1</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="4jr[v]{B+;phcEeJb1c%">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="constraint" id="C5_Ny[+$j?I3n1SgW)?s">
+                                <field name="arlRule">self.in_issue-&gt;size() &gt; 1</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
