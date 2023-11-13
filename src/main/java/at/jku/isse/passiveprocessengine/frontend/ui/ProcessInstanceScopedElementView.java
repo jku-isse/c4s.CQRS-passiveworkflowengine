@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -34,6 +36,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
@@ -52,7 +55,9 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ProcessInstanceScopedElementView extends VerticalLayout{
 
 	private RequestDelegate reqDel; 
@@ -259,7 +264,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	Grid.Column<Map.Entry<String, String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Step").setResizable(true).setSortable(true).setWidth("200px");
     	Grid.Column<Map.Entry<String, String>> valueColumn = grid.addColumn(p -> p.getValue()).setHeader("Premature Trigger Condition").setResizable(true);
     	grid.setItems(premTriggers.entrySet());
-    	grid.setHeightByRows(true);
+    	grid.setAllRowsVisible(true);
     	l.add(grid);
     }
     
@@ -280,7 +285,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     		grid2.setColumnReorderingAllowed(false);
     		Grid.Column<ProcessStep> nameColumn = grid2.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Steps with unfulfilled QA constraints").setResizable(true).setSortable(true).setWidth("400px");
     		grid2.setItems(unsafe);
-    		grid2.setHeightByRows(true);
+    		grid2.setAllRowsVisible(true);
     		l.add(grid2);
     	}
     	if (!prem.isEmpty()) {
@@ -288,7 +293,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     		grid.setColumnReorderingAllowed(false);
     		Grid.Column<ProcessStep> nameColumn2 = grid.addComponentColumn(p -> ComponentUtils.convertToResourceLinkWithBlankTarget(p.getInstance())).setHeader("Preceeding Incomplete Steps").setResizable(true).setSortable(true).setWidth("400px");
     		grid.setItems(prem);
-    		grid.setHeightByRows(true);
+    		grid.setAllRowsVisible(true);
     		l.add(grid);
     	}
     }
@@ -329,7 +334,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
     	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
     	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
-    	        				ctg.setHeightByRows(true);
+    	        				ctg.setAllRowsVisible(true);
     	        				ctg.setWidth("100%");
     	        				l.add(ctg); 
     	        			} else {
@@ -337,7 +342,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         						rtg.initTreeGrid();
         						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
         					//	rtg.expandRecursively(repairTree.getChildren(), 3);
-        						rtg.setHeightByRows(true);
+        						rtg.setAllRowsVisible(true);
         						rtg.setWidth("100%");
         						l.add(rtg);
     	        			}
@@ -360,46 +365,46 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     		return null;
     }
     
-    private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
-        HorizontalLayout hLayout = new HorizontalLayout();
-        hLayout.setClassName("upload-background");
-
-        TextField id = new TextField();
-        id.setPlaceholder("Artifact ID");
-
-        if (reqDel != null) {
-        	Button submit = new Button(title, evt -> {
-        		try {
-        			if (wft instanceof ProcessStep) {
-        				if (isIn) {
-        					reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
-        				} else {
-        					reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
-        				}
-        				Notification.show("Success");
-        			} else if (wft instanceof ProcessInstance) {
-        				if (isIn) {
-        					reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
-        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
-        				} else {
-        					reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
-        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
-        				}
-        				Notification.show("Success");
-        			}
-        		} catch (ProcessException e) {
-        			Notification.show(e.getMessage());
-        		}
-        	});
-
-        	hLayout.add(id, submit);
-        }
-        Details details = new Details(title, hLayout);
-        details.addThemeVariants(DetailsVariant.SMALL);
-        return details;
-    }
+//    private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
+//        HorizontalLayout hLayout = new HorizontalLayout();
+//        hLayout.setClassName("upload-background");
+//
+//        TextField id = new TextField();
+//        id.setPlaceholder("Artifact ID");
+//
+//        if (reqDel != null) {
+//        	Button submit = new Button(title, evt -> {
+//        		try {
+//        			if (wft instanceof ProcessStep) {
+//        				if (isIn) {
+//        					reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
+//        				} else {
+//        					reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
+//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
+//        				}
+//        				Notification.show("Success");
+//        			} else if (wft instanceof ProcessInstance) {
+//        				if (isIn) {
+//        					reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
+//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
+//        				} else {
+//        					reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
+//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
+//        				}
+//        				Notification.show("Success");
+//        			}
+//        		} catch (ProcessException e) {
+//        			Notification.show(e.getMessage());
+//        		}
+//        	});
+//
+//        	hLayout.add(id, submit);
+//        }
+//        Details details = new Details(title, hLayout);
+//        details.addThemeVariants(DetailsVariant.SMALL);
+//        return details;
+//    }
 
     private void infoDialogInputOutput(VerticalLayout l, ProcessStep wft) {
         H5 h5 = new H5("Inputs");
@@ -439,12 +444,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                     Instance a = artifactList.iterator().next();
                     line.add(ComponentUtils.convertToResourceLinkWithBlankTarget(a));
                     line.add(getReloadIcon(a));
-                    // ADDING/DELETING NOT SUPPORTED CURRENTLY
-                   // line.add(deleteInOut(wft, isIn, entry, a));
-                  //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
+                    // first adding another element as input, then removal of this one allowed!! otherwise authorization will fail as no artifact is present to check with.
+//                    if (isIn && !reqDel.getUIConfig().doEnableExperimentMode() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
+//                    	line.add(getDeleteInputArtifactFromProcessButton((ProcessInstance)wft, entry.getKey(), a.name()));
+//                    }
                     list.add(line);
                 } else if (artifactList.size() > 1) {
-                  //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                     UnorderedList nestedList = new UnorderedList();
                     for (Instance a : artifactList) {
@@ -452,7 +457,9 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                         nestedLine.setClassName("line");
                         nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
                         nestedLine.add(getReloadIcon(a));
-                      //  nestedLine.add(deleteInOut(wft, isIn, entry, a));
+                        if (isIn && !reqDel.getUIConfig().doEnableExperimentMode() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
+                        	nestedLine.add(getDeleteInputArtifactFromProcessButton((ProcessInstance)wft, entry.getKey(), a.name()));
+                        }
                         nestedList.add(nestedLine);
                     }
                     list.add(nestedList);
@@ -463,6 +470,9 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                   //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                 }
+                if (isIn && !reqDel.getUIConfig().doEnableExperimentMode() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
+                	list.add(getInputComponent((ProcessInstance)wft, entry.getKey(), entry.getValue()));
+                }
             }
         } else {
             ListItem li = new ListItem("nothing expected");
@@ -470,6 +480,61 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
             list.add(li);
         }
         return list;
+    }
+    
+    private Component getInputComponent(ProcessInstance pInst, String role, InstanceType artT) {
+    	HorizontalLayout inputData = new HorizontalLayout();
+        inputData.setMargin(false);               
+        inputData.setPadding(false);
+        inputData.setAlignItems(Alignment.END);
+        
+        TextField tf = new TextField();
+        tf.setMinWidth("300px");
+        tf.setLabel(role);                
+        tf.setHelperText(artT.name());
+        inputData.add(tf);
+        
+        ComboBox<String> idTypeBox = new ComboBox<>("Identifier Type");
+        List<String> idTypes = reqDel.getArtifactResolver().getIdentifierTypesForInstanceType(artT);
+        idTypeBox.setItems(idTypes);
+        idTypeBox.setValue(idTypes.get(0));
+        idTypeBox.setAllowCustomValue(false);
+        inputData.add(idTypeBox);
+        
+        Icon startIcon = new Icon(VaadinIcon.FILE_ADD);
+        startIcon.getStyle()
+	      .set("box-sizing", "border-box")
+	      .set("margin-inline-end", "var(--lumo-space-m)")
+	      .set("margin-inline-start", "var(--lumo-space-xs)")
+	      .set("padding", "var(--lumo-space-xs)");
+        Button addInputButton = new Button("Add", startIcon, evt -> {
+        	String artId = tf.getValue().trim();
+        	if (artId != null && artId.length() > 0) {
+        		if (!reqDel.doAllowProcessInstantiation(artId)) {
+        			Notification.show("You are not authorized to access the artifact used as process input - unable to add to process.");        			
+        		} else {
+
+        			Notification.show("Adding input might take some time. UI will be updated automatically upon success.");
+        			new Thread(() -> { 
+        				try {
+        					String idType = idTypeBox.getOptionalValue().orElse(artT.name()); 
+        					reqDel.addProcessInput(pInst, role, artId, idType) ;
+        					this.getUI().get().access(() -> { 
+        						Notification.show("Successfully added Artifact");
+        						
+        					});
+        				} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
+        					log.error("Adding Artifact Exception: " + e.getMessage());
+        					e.printStackTrace();
+        					this.getUI().get().access(() ->Notification.show("Adding Artifact failed! \r\n"+e.getMessage()));
+        				}
+        			} ).start();
+        		}
+        	} else { 
+        		Notification.show("Make sure to fill out the artifact identifier!");
+        	}});
+        inputData.add(addInputButton);
+        return inputData;
     }
 
 	private Component getReloadIcon(Instance inst) {
@@ -492,22 +557,17 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         return icon;
 	}
     
-//    private Component deleteInOut(ProcessStep wft, boolean isIn, Map.Entry<String, ArtifactType> entry, IArtifact a) {
-//        Icon icon = new Icon(VaadinIcon.TRASH);
-//        icon.setColor("red");
-//        icon.setSize("15px");
-//        icon.getStyle().set("cursor", "pointer");
-//        icon.getStyle().set("flex-shrink", "0");
-//        // NO REMOVING FROM FRONTEND ANYMORE
-////        icon.addClickListener(e -> {
-////            if (isIn) {
-////                f.apply(new RemoveInputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
-////            } else {
-////                f.apply(new RemoveOutputCmd(wft.getWorkflow() == null ? wft.getId() : wft.getWorkflow().getName(), wft.getId(), a.getArtifactIdentifier(), entry.getKey()).setParentCauseRef(wft.getId()));
-////            }
-////        });
-//        return icon;
-//    }
+    private Component getDeleteInputArtifactFromProcessButton(ProcessInstance wft, String param, String artId) {
+        Icon icon = new Icon(VaadinIcon.TRASH);
+        icon.setColor("red");
+        icon.setSize("15px");
+        icon.getStyle().set("cursor", "pointer");
+        icon.getStyle().set("flex-shrink", "0");
+        icon.addClickListener(e -> { 
+            reqDel.removeInputFromProcess(wft, param, artId);
+        });
+        return icon;
+    }
 
     private Component infoDialog(ConstraintWrapper rebc) {
     	VerticalLayout l = this;/*new VerticalLayout();    	
@@ -536,7 +596,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);        			
     				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
     				ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
-    				ctg.setHeightByRows(true);    				
+    				ctg.setAllRowsVisible(true);    				
     				l.add(ctg); 
         		} catch(Exception e) {
         			e.printStackTrace();
@@ -598,7 +658,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 
 		@Override
 		public boolean compliesTo(RepairAction ra) {
-			//FIXME: lets not suggest any repairs that cannot be navigated to in an external tool. 
+			// lets not suggest any repairs that cannot be navigated to in an external tool. 
 			if (ra.getElement() == null) return false;
 			Instance artifact = (Instance) ra.getElement();
 			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;

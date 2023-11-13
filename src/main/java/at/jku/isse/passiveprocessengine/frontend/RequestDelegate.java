@@ -172,6 +172,16 @@ public class RequestDelegate {
 //		}		
 	}
 	
+	public void addProcessInput(ProcessInstance pInst, String inParam, String artId, String artIdType) throws ProcessException{
+		Instance inst = resolver.get(new ArtifactIdentifier(artId, artIdType));
+		IOResponse resp = pInst.addInput(inParam, inst);
+		if (resp.getError() != null) {
+			throw new ProcessException(resp.getError());
+		} else {
+			ws.concludeTransaction();
+		}
+	}
+	
 	private void addIO(boolean isInput, String procId, String stepId, String param, String artId, String artType) throws ProcessException {
 		if (!isInitialized) initialize();
 		ProcessException pex = new ProcessException("Error adding i/o of step: "+stepId);
@@ -210,6 +220,18 @@ public class RequestDelegate {
 	public void addOutput(String procId, String stepId, String param, String artId, String artType) throws ProcessException {
 		if (!isInitialized) initialize();
 		addIO(false, procId, stepId, param, artId, artType);
+	}
+	
+	public void removeInputFromProcess(ProcessInstance proc, String inParam, String artId) {
+		Set<Instance> inputs = proc.getInput(inParam);
+		inputs.stream()
+			.filter(art -> art.name().equalsIgnoreCase(artId))
+			.findAny()
+			.ifPresent(art -> {
+				proc.removeInput(inParam, art);
+				ws.concludeTransaction();
+			});
+		
 	}
 	
 	public ProcessInstance getProcess(String id) {

@@ -191,12 +191,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             role2IdType.clear();
             param2Field.clear();
             for (Map.Entry<String, InstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
-                HorizontalLayout inputData = new HorizontalLayout();
+            	InstanceType artT = entry.getValue();                
+                String role = entry.getKey();
+            	
+            	HorizontalLayout inputData = new HorizontalLayout();
                 inputData.setMargin(false);               
                 inputData.setPadding(false);
                 
-                InstanceType artT = entry.getValue();                
-                String role = entry.getKey();
                 TextField tf = new TextField();
                 //tf.setWidthFull();
                 tf.setMinWidth("600px");
