@@ -101,7 +101,7 @@ public class DefinitionView extends VerticalLayout {
             		} else if (o instanceof StepDefinition){
             			return Stream.empty();
             		} else if (o instanceof SequenceSubscopeDecisionNodeDefinition) { 
-            			return ((SequenceSubscopeDecisionNodeDefinition)o).getScope().stream();
+            			return ((SequenceSubscopeDecisionNodeDefinition)o).getScope();
             		} else if (o instanceof DecisionNodeDefinition) {
             			return getChildElementsFromDecisionNode((DecisionNodeDefinition)o);
             		} else {
@@ -299,7 +299,7 @@ public class DefinitionView extends VerticalLayout {
     
 
     
-    private Component getDndIcon(DecisionNodeDefinition dnd) {
+    public static Component getDndIcon(DecisionNodeDefinition dnd) {
     	Icon icon;
     	switch(dnd.getInFlowType()) {
 		case AND:
@@ -328,7 +328,7 @@ public class DefinitionView extends VerticalLayout {
     	return typeSpan;
     }
     
-    private Icon createIcon(VaadinIcon vaadinIcon) {
+    public static Icon createIcon(VaadinIcon vaadinIcon) {
         Icon icon = vaadinIcon.create();
         icon.getStyle()
                 .set("padding", "var(--lumo-space-xs")
@@ -378,7 +378,9 @@ public class DefinitionView extends VerticalLayout {
     	children.addAll(dnds);
     	children.addAll(scopes);
     	// now sort them
-    	return children.stream().sorted(new PDSEComparator());    	    				  
+    	return children.stream()
+    			.filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.sorted(new PDSEComparator());    	    				  
     }
     
     private SequenceSubscopeDecisionNodeDefinition createSubscope(DecisionNodeDefinition parentDND, StepDefinition starter, int scopeClosingIndex, List<DecisionNodeDefinition> childDNDs, List<StepDefinition> childSteps) {
@@ -422,7 +424,9 @@ public class DefinitionView extends VerticalLayout {
     	children.addAll(steps);
     	children.addAll(dnds);
     	// now sort them
-    	return children.stream().sorted(new PDSEComparator());
+    	return children.stream()
+    			.filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.sorted(new PDSEComparator());
     }
     
     private static class PDSEComparator implements Comparator<ProcessDefinitionScopedElement> {
@@ -464,8 +468,8 @@ public class DefinitionView extends VerticalLayout {
 			this.scope = scope;			
 		}
 		
-		public List<ProcessDefinitionScopedElement> getScope() {
-			return scope;
+		public Stream<ProcessDefinitionScopedElement> getScope() {
+			return scope.stream().filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX));
 		}
 		
     	@Override
