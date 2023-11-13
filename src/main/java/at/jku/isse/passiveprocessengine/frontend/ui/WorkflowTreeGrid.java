@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -29,12 +30,19 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 
+import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
+import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.StepDefinition;
+import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition.InFlowType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
+import at.jku.isse.passiveprocessengine.instance.DecisionNodeInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
@@ -87,26 +95,35 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         this.addComponentHierarchyColumn(o -> {
             if (o instanceof ProcessInstance) {
                 ProcessInstance wfi = (ProcessInstance) o;
-                Span span= new Span(wfi.getName());
+                String name = wfi.getProcess() != null ? wfi.getDefinition().getName() : wfi.getName(); // when subprocess, then just definition name
+                Icon icon = DefinitionView.createIcon(VaadinIcon.ARROW_CIRCLE_RIGHT) ;
+    			Span span = new Span(icon, new Span(name));
                 span.getElement().setProperty("title", wfi.getDefinition().getName() + " (" + wfi.getName() + ")");
                 return span;
             } else if (o instanceof ProcessStep) {
             	ProcessStep wft = (ProcessStep) o;
-            	Span span = new Span(wft.getDefinition().getName());                    
+            	Icon icon = DefinitionView.createIcon(VaadinIcon.CLIPBOARD) ;
+    			Span span = new Span(icon, new Span(wft.getDefinition().getName()));                    
             	span.getElement().setProperty("title", wft.getDefinition().getName());
             	return span;
             } else if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
                 String title = rebc.getQaSpec().getHumanReadableDescription() != null ? rebc.getQaSpec().getHumanReadableDescription() : rebc.getQaSpec().getName();
-                Span span = new Span(title);
+                Icon icon = DefinitionView.createIcon(VaadinIcon.CLIPBOARD_CHECK) ;
+                Span span = new Span(icon, new Span(title));
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
-            } else if (o instanceof RepairNode) {
-            	RepairNode rn = (RepairNode) o;
-            	Span span = new Span(rn.toString());
-                span.getElement().setProperty("title", rn.toString());
-                return span;
-            } else {
+//            } else if (o instanceof RepairNode) {
+//            	RepairNode rn = (RepairNode) o;
+//            	Span span = new Span(rn.toString());
+//                span.getElement().setProperty("title", rn.toString());
+//                return span;
+            } else if (o instanceof SequenceSubscopeDecisionNodeInstance) { 
+    			return DefinitionView.getDndIcon(((SequenceSubscopeDecisionNodeInstance)o).getDefinition());
+    		} else if (o instanceof DecisionNodeInstance) { 
+    			DecisionNodeDefinition scopeClosingDN = ((DecisionNodeInstance) o).getDefinition().getScopeClosingDecisionNodeOrNull(); // wont be null as ending dnd will have been filtered out before 
+    			return DefinitionView.getDndIcon(scopeClosingDN);
+    		} else {
                 return new Span(o.getClass().getSimpleName() +": " + o.getName());
             }
         }).setHeader("Process Instance").setWidth("65%");
@@ -208,19 +225,19 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         } else if (unsatisfied && fulfilled) {
             icon = new Icon(VaadinIcon.WARNING);
             icon.setColor("#E24C00");
-            icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled constraints");
+            icon.getElement().setProperty("title", "This contains unsatisfied and fulfilled QA constraints");
         } else if (unsatisfied) {
             icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
             icon.setColor("red");
-            icon.getElement().setProperty("title", "This contains unsatisfied constraints");
+            icon.getElement().setProperty("title", "This contains unsatisfied QA constraints");
         } else if (fulfilled){
             icon = new Icon(VaadinIcon.CHECK_CIRCLE);
             icon.setColor("green");
-            icon.getElement().setProperty("title", "This contains fulfilled constraints");
+            icon.getElement().setProperty("title", "This contains fulfilled QA constraints");
         } else {
             icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
             icon.setColor("#1565C0");
-            icon.getElement().setProperty("title", "Constraints not evaluated");
+            icon.getElement().setProperty("title", "QA Constraints not evaluated");
         }
         return icon;
     }
@@ -234,8 +251,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     		state = step.getActualLifecycleState();
         switch(state) {
         case ACTIVE:
-			icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
-			icon.setColor("red");
+        	icon = new Icon(VaadinIcon.UNLOCK);
+			icon.setColor("green");
 			break;
 		case AVAILABLE:
 			icon = new Icon(VaadinIcon.LOCK);
@@ -357,10 +374,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                         ProcessInstance wfi = (ProcessInstance) o;
                         if (wfi.getInstance().id().toString().equals(focusedElementId))
                         	this.focusedElement = wfi;
-                        return wfi.getProcessSteps().stream()
-                              //  .filter(wft -> !(wft.getType() instanceof NoOpTaskDefinition))
-                        		.sorted(new StepComparator())
-                        		.map(wft -> (ProcessInstanceScopedElement) wft);
+                        return getChildElementsFromProcess(wfi);
+//                        return wfi.getProcessSteps().stream()
+//                                .sorted(new StepComparator())
+//                        		.map(wft -> (ProcessInstanceScopedElement) wft);
                     } else if (o instanceof ProcessStep) {
                         ProcessStep wft = (ProcessStep) o;
                         if (wft.getInstance().id().toString().equals(focusedElementId))
@@ -372,7 +389,11 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                         	this.focusedElement = cw;                        
                     	}
                     	return Stream.empty();
-                    } else {
+                    } else if (o instanceof SequenceSubscopeDecisionNodeInstance) { 
+            			return ((SequenceSubscopeDecisionNodeInstance)o).getScope();
+            		} else if (o instanceof DecisionNodeInstance) {
+            			return getChildElementsFromDecisionNode((DecisionNodeInstance)o);
+            		} else {
                         log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                         return Stream.empty();
                     }
@@ -386,6 +407,100 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	this.select(focusedElement);        	
         }
         Notification.show("Process list has been updated!");
+    }
+    
+    
+    private Stream<ProcessInstanceScopedElement> getChildElementsFromDecisionNode(DecisionNodeInstance sdef) {
+    	// get list of decision nodes at that hierarchy level and for each the set of the step children thereafter
+    	int indexToMatch = sdef.getDefinition().getDepthIndex()+1;    	
+    	ProcessInstance pdef = sdef.getProcess();    	
+    	// get the complete subscope from this dnd to the closing scope
+    	DecisionNodeInstance endDNI = sdef.getScopeClosingDecisionNodeOrNull(); 
+    	List<DecisionNodeInstance> dnds = pdef.getDecisionNodeInstances().stream()
+    			.filter(dnd -> dnd.getDefinition().getDepthIndex() == indexToMatch)
+    			.filter(dnd -> dnd.getDefinition().getOutSteps().size() > 1)
+    			.filter(dnd -> dnd.getDefinition().getProcOrderIndex() > sdef.getDefinition().getProcOrderIndex() && dnd.getDefinition().getProcOrderIndex() < endDNI.getDefinition().getProcOrderIndex())
+    			.collect(Collectors.toList()); 	
+    	
+    	List<ProcessStep> steps = pdef.getProcessSteps().stream()    			
+    			.filter(step -> step.getDefinition().getDepthIndex() == indexToMatch)
+    			.filter(step -> sdef.getOutSteps().contains(step))
+    	//		.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.sorted(new StepComparator())
+    			.collect(Collectors.toList());    	
+   	
+    	// if for any step, the subsequent dnd is not the closing scope, then we have a subscope that needs a dummy decision node for the tree visualization    	
+    	List<ProcessStep> subscopeStarters = steps.stream()
+    		.filter(step -> !endDNI.getInSteps().contains(step) )
+    		.collect(Collectors.toList());
+    	steps.removeAll(subscopeStarters); // subscopeStarters are replaced by the pseudo seqeunce decision node
+    	
+    	// each entry is a different subscope starter, we replace each of these steps by a subscope dummy decision node, we maintain the order of the subscope starter steps
+    	// the scope is defined by the specIndex starting from the starter, to the next subscope starter, or the closingDN
+    	List<SequenceSubscopeDecisionNodeInstance> scopes = new LinkedList<>();
+    	while (!subscopeStarters.isEmpty()) {
+    		ProcessStep scopeStarter = subscopeStarters.remove(0);
+    		int scopeClosingIndex = subscopeStarters.isEmpty() ? endDNI.getDefinition().getProcOrderIndex() : subscopeStarters.get(0).getDefinition().getProcOrderIndex()-1;
+//    		assert (scopeClosingIndex > scopeStarter.getProcOrderIndex());
+    		scopes.add(createSubscope(sdef, scopeStarter, scopeClosingIndex, dnds, steps));    		
+    	}    	    
+	
+    	 // and no NoOpStep
+    	
+    	List<ProcessInstanceScopedElement> children = new LinkedList<>();
+    	children.addAll(steps);
+    	children.addAll(dnds);
+    	children.addAll(scopes);
+    	// now sort them
+    	return children.stream()
+    			.filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.sorted(new PDSEComparator());    	    				  
+    }
+    
+    private SequenceSubscopeDecisionNodeInstance createSubscope(DecisionNodeInstance parentDND, ProcessStep starter, int scopeClosingIndex, List<DecisionNodeInstance> childDNDs, List<ProcessStep> childSteps) {
+    	int startIndex = starter.getDefinition().getProcOrderIndex();
+    	int depthIndex = starter.getDefinition().getDepthIndex();
+    	List<ProcessStep> steps = starter.getProcess().getProcessSteps().stream()    			
+    			.filter(step -> step.getDefinition().getDepthIndex() == depthIndex) // only at the same level
+    			.filter(step -> step.getDefinition().getProcOrderIndex() >= startIndex) // including starter
+    			.filter(step -> step.getDefinition().getProcOrderIndex() <= scopeClosingIndex) // and closing scope (which might be the end DND)
+    			.filter(step -> !childSteps.contains(step)) // but is also not a regular child step (in case the end is defined by closingDND
+    			//.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX)) // and no NoOpStep
+    			.collect(Collectors.toList());
+    	
+    	List<DecisionNodeInstance> subscopeDnds = childDNDs.stream()    			
+    			.filter(dnd -> dnd.getOutSteps().size() > 1)
+    			.filter(dnd -> dnd.getDefinition().getProcOrderIndex() >= startIndex && dnd.getDefinition().getProcOrderIndex() <= scopeClosingIndex)
+    			.collect(Collectors.toList()); 
+    	childDNDs.removeAll(subscopeDnds);
+    	
+    	List<ProcessInstanceScopedElement> scopeMembers = new LinkedList<>();
+    	scopeMembers.addAll(steps);
+    	scopeMembers.addAll(subscopeDnds);    	
+    	scopeMembers.sort(new PDSEComparator());
+    	
+    	SequenceSubscopeDecisionNodeInstance subDND = new SequenceSubscopeDecisionNodeInstance(parentDND.getInstance(), parentDND.getDefinition(), scopeMembers);
+    	return subDND;
+    }
+    
+    private Stream<ProcessInstanceScopedElement> getChildElementsFromProcess(ProcessInstance pdef) {
+    	int indexToMatch = pdef.getDefinition().getDepthIndex() + 1; // only one below current step
+    	List<ProcessStep> steps = pdef.getProcessSteps().stream()    			
+    			.filter(step -> step.getDefinition().getDepthIndex() == indexToMatch) 
+    		//	.filter(step -> !step.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.collect(Collectors.toList());		
+    	List<DecisionNodeInstance> dnds = pdef.getDecisionNodeInstances().stream()
+    			.filter(dnd -> dnd.getDefinition().getDepthIndex() == indexToMatch)
+    			.filter(dnd -> dnd.getOutSteps().size() > 1)
+    			.collect(Collectors.toList()); 
+    	// now we need to create an interleaving list of decision nodes and steps
+    	List<ProcessInstanceScopedElement> children = new LinkedList<>();
+    	children.addAll(steps);
+    	children.addAll(dnds);
+    	// now sort them
+    	return children.stream()
+    			.filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX))
+    			.sorted(new PDSEComparator());
     }
     
     private static class ConstraintWrapperComparator implements Comparator<ConstraintWrapper> {
@@ -414,6 +529,42 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	return stack;
     }
     
+    private static class PDSEComparator implements Comparator<ProcessInstanceScopedElement> {
+    	@Override
+    	public int compare(ProcessInstanceScopedElement o1, ProcessInstanceScopedElement o2) {
+    		int result = Integer.compare(o1.getDefinition().getProcOrderIndex(), o2.getDefinition().getProcOrderIndex()); 
+    		if (result == 0) { // can only happen when one is a step and one is a decision node
+    			if (o1 instanceof ProcessStep) // return the step as being ranked higher (i.e., lower proc order
+    				return -1;
+    			else
+    				return +1;   						
+    		} else
+    			return result; 
+    	}
+    }
     
+    private static class SequenceSubscopeDecisionNodeInstance extends DecisionNodeInstance {
+
+    	private List<ProcessInstanceScopedElement> scope;
+    	private DecisionNodeDefinition def;
+    	
+		public SequenceSubscopeDecisionNodeInstance(Instance instance, DecisionNodeDefinition def, List<ProcessInstanceScopedElement> scope) {
+			super(instance);
+			this.scope = scope;			
+			this.def = def;
+		}
+		
+		public DecisionNodeDefinition getDefinition() {
+			return def;
+		}
+		
+		public Stream<ProcessInstanceScopedElement> getScope() {
+			return scope.stream().filter(el -> !el.getName().startsWith(StepDefinition.NOOPSTEP_PREFIX));
+		}
+		
+    	public InFlowType getInFlowType() {
+    		return InFlowType.SEQ;
+    	}
+    }
    
 }

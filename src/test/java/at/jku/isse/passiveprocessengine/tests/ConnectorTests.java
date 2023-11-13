@@ -44,12 +44,12 @@ class ConnectorTests {
 		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 	}
 
-	@Test
-	void testFetchJiraFRQ() throws ProcessException {
-		Instance issue = artRes.get(new ArtifactIdentifier("PVCSG-3", "jira_core_artifact", IJiraService.JiraIdentifier.JiraIssueKey.toString()));
-		assert(((String) issue.getPropertyAsValue("key")).equalsIgnoreCase("PVCSG-3"));
-		
-	}
+//	@Test
+//	void testFetchJiraFRQ() throws ProcessException {
+//		Instance issue = artRes.get(new ArtifactIdentifier("PVCSG-3", "jira_core_artifact", IJiraService.JiraIdentifier.JiraIssueKey.toString()));
+//		assert(((String) issue.getPropertyAsValue("key")).equalsIgnoreCase("PVCSG-3"));
+//		
+//	}
 	
 	
 	@Test

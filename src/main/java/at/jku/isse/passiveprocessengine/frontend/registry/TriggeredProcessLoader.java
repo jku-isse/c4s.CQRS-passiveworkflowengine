@@ -2,23 +2,19 @@ package at.jku.isse.passiveprocessengine.frontend.registry;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.AbstractMap.SimpleEntry;
 
 import javax.xml.bind.JAXBException;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinitionError;

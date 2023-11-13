@@ -21,18 +21,11 @@ import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.designspace.jama.replaying.JamaActivity.ObjectTypes;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstanceChangeProcessor;
-import at.jku.isse.passiveprocessengine.instance.messages.Commands.ConditionChangedCmd;
-import at.jku.isse.passiveprocessengine.instance.messages.Commands.IOMappingConsistencyCmd;
-import at.jku.isse.passiveprocessengine.instance.messages.Commands.OutputChangedCmd;
-import at.jku.isse.passiveprocessengine.instance.messages.Commands.PrematureStepTriggerCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScopedCmd;
-import at.jku.isse.passiveprocessengine.instance.messages.Commands.QAConstraintChangedCmd;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import lombok.extern.slf4j.Slf4j;
 

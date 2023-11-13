@@ -8,11 +8,7 @@ import java.util.Set;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.PropertyType;
@@ -21,8 +17,6 @@ import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.ui.RepairTreeGrid;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 

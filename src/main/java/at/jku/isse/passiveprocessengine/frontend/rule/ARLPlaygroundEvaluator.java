@@ -1,23 +1,15 @@
 package at.jku.isse.passiveprocessengine.frontend.rule;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.vaadin.flow.component.Component;
-
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Tool;
-import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.model.ConsistencyRuleType;
-import at.jku.isse.designspace.rule.model.Rule;
 import at.jku.isse.designspace.rule.service.RuleService;
-import at.jku.isse.passiveprocessengine.frontend.ui.ARLPlaygroundView;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

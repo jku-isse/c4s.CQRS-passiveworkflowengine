@@ -49,7 +49,7 @@
       },
       "conditions": {
         "PRECONDITION": "self.in_mmfSubtask-\u003esize() \u003e 0",
-        "POSTCONDITION": "self.out_mmf-\u003esize() \u003e 0 \nand \nself.out_buc-\u003esize() \u003e 0\nand \nself.in_mmfSubtask.state\u003d\u0027Closed\u0027"
+        "POSTCONDITION": "self.out_mmf-\u003esize() \u003e 0 \nand \nself.out_buc-\u003esize() \u003e 0\nand \nself.in_mmfSubtask-\u003eforAll( subt | subt.state\u003d\u0027Closed\u0027)"
       },
       "qaConstraints": [
         {

@@ -1,9 +1,9 @@
 package at.jku.isse.passiveprocessengine.frontend.security;
 
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 class CustomRequestCache extends HttpSessionRequestCache {
 

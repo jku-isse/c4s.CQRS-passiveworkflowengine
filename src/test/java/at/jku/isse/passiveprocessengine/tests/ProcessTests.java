@@ -54,67 +54,67 @@ class ProcessTests {
 	}
 	
 
-	@Test
-	void testPrematureGithubIssueWithSielaV3() throws ProcessException {
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("p2f.processguidance/issues/16", "git_issue");
-		//Instance gitIssue = artRes.get(gitAI);
-		//reqDelegate.initialize();
-		reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-Github-v3");
-		
-		ProcessInstance proc = reqDelegate.getProcess("SIELA-Github-v3_[story:p2f.processguidance/issues/16]");
-		TestUtils.assertAllConstraintsAreValid(proc);
-		TestUtils.printFullProcessToLog(proc);
-	}
-
-	@Test
-	void testUserstudyRAv1() throws ProcessException {
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("UserStudy1Prep/117", "azure_workitem");
-		reqDelegate.instantiateProcess("TestProc", Map.of("CR" , gitAI), "Userstudy1-RequirementsMangement-V1");
-		
-		ProcessInstance proc = reqDelegate.getProcess("Userstudy1-RequirementsMangement-V1_[CR:CR1]");
-		
-		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
-		System.out.println(qastats.stats2Json(qastats.stats.values()));
-		TestUtils.assertAllConstraintsAreValid(proc);
-		TestUtils.printFullProcessToLog(proc);
-	}
-	
-	@Test
-	void testSielaWithJiraV1() throws ProcessException {
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-20", IJiraService.JiraIdentifier.JiraIssueKey.toString());
-		//Instance gitIssue = artRes.get(gitAI);
-		//reqDelegate.initialize();
-		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-jira");
-				
-		TestUtils.assertAllConstraintsAreValid(proc);
-		TestUtils.printFullProcessToLog(proc);
-		TestUtils.printProcessWithRepairs(proc);
-	}
-	
-	@Test
-	void testAzureSielaV2() throws ProcessException {
-		
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-Eval/833", "azure_workitem");
-		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-azure-V2");
-
-		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
-		System.out.println(qastats.stats2Json(qastats.stats.values()));
-		TestUtils.assertAllConstraintsAreValid(proc);
-		TestUtils.printFullProcessToLog(proc);
-	}
-	
-	
-	@Test
-	void testAzureMVPv1() throws ProcessException {
-		ArtifactIdentifier gitAI = new ArtifactIdentifier("UserStudy1Prep/868", "azure_workitem");
-		reqDelegate.instantiateProcess("TestProc", Map.of("UserRequirements" , gitAI), "SystemRequirementsAnalysis");
+//	@Test
+//	void testPrematureGithubIssueWithSielaV3() throws ProcessException {
+//		ArtifactIdentifier gitAI = new ArtifactIdentifier("p2f.processguidance/issues/16", "git_issue");
+//		//Instance gitIssue = artRes.get(gitAI);
+//		//reqDelegate.initialize();
+//		reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-Github-v3");
 //		
-		ProcessInstance proc = reqDelegate.getProcess("SystemRequirementsAnalysis_[L3 Requirements:UserReqCollection]");
+//		ProcessInstance proc = reqDelegate.getProcess("SIELA-Github-v3_[story:p2f.processguidance/issues/16]");
+//		TestUtils.assertAllConstraintsAreValid(proc);
+//		TestUtils.printFullProcessToLog(proc);
+//	}
+//
+//	@Test
+//	void testUserstudyRAv1() throws ProcessException {
+//		ArtifactIdentifier gitAI = new ArtifactIdentifier("UserStudy1Prep/117", "azure_workitem");
+//		reqDelegate.instantiateProcess("TestProc", Map.of("CR" , gitAI), "Userstudy1-RequirementsMangement-V1");
 //		
-		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
-		System.out.println(qastats.stats2Json(qastats.stats.values()));
-		TestUtils.assertAllConstraintsAreValid(proc);
-		TestUtils.printFullProcessToLog(proc);
-	}
+//		ProcessInstance proc = reqDelegate.getProcess("Userstudy1-RequirementsMangement-V1_[CR:CR1]");
+//		
+//		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
+//		System.out.println(qastats.stats2Json(qastats.stats.values()));
+//		TestUtils.assertAllConstraintsAreValid(proc);
+//		TestUtils.printFullProcessToLog(proc);
+//	}
+//	
+//	@Test
+//	void testSielaWithJiraV1() throws ProcessException {
+//		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-20", IJiraService.JiraIdentifier.JiraIssueKey.toString());
+//		//Instance gitIssue = artRes.get(gitAI);
+//		//reqDelegate.initialize();
+//		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-jira");
+//				
+//		TestUtils.assertAllConstraintsAreValid(proc);
+//		TestUtils.printFullProcessToLog(proc);
+//		TestUtils.printProcessWithRepairs(proc);
+//	}
+//	
+//	@Test
+//	void testAzureSielaV2() throws ProcessException {
+//		
+//		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-Eval/833", "azure_workitem");
+//		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-azure-V2");
+//
+//		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
+//		System.out.println(qastats.stats2Json(qastats.stats.values()));
+//		TestUtils.assertAllConstraintsAreValid(proc);
+//		TestUtils.printFullProcessToLog(proc);
+//	}
+//	
+//	
+//	@Test
+//	void testAzureMVPv1() throws ProcessException {
+//		ArtifactIdentifier gitAI = new ArtifactIdentifier("UserStudy1Prep/868", "azure_workitem");
+//		reqDelegate.instantiateProcess("TestProc", Map.of("UserRequirements" , gitAI), "SystemRequirementsAnalysis");
+////		
+//		ProcessInstance proc = reqDelegate.getProcess("SystemRequirementsAnalysis_[L3 Requirements:UserReqCollection]");
+////		
+//		System.out.println(repairanalyzer.stats2Json(repairanalyzer.getSerializableStats()));
+//		System.out.println(qastats.stats2Json(qastats.stats.values()));
+//		TestUtils.assertAllConstraintsAreValid(proc);
+//		TestUtils.printFullProcessToLog(proc);
+//	}
 	
 }

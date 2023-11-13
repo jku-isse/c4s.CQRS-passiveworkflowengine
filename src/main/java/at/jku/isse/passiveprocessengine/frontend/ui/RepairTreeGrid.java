@@ -52,7 +52,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 	public void initTreeGrid() {
         this.addComponentHierarchyColumn(o -> {
            if (o.getRepairNode() instanceof DummyRepairNode) {
-        	   Span span = new Span("Insufficient Input or Output.");
+        	   Span span = new Span("Insufficient Input.");
         	   return span;
            }else if (o.getRepairNode() instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o.getRepairNode();
@@ -121,7 +121,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 		this.scope = scope;
 		rtf.filterRepairTree(rootNode);
 		repairCount = rootNode.getRepairActions().size();
-		if (repairCount == 0) {
+		if (repairCount == 0 && rootNode.getChildren().stream().noneMatch(rn -> rn instanceof DummyRepairNode)) {
 			rootNode.getChildren().add(new DummyRepairNode(null));
 		} 
 		this.setItems(rootNode.getChildren().stream()
