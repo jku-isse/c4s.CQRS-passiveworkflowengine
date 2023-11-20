@@ -22,6 +22,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -219,9 +221,18 @@ public class DefinitionView extends VerticalLayout {
 		
 		Grid<QAConstraintSpec> grid = new Grid<QAConstraintSpec>();		
     	grid.setColumnReorderingAllowed(false);
-    	Grid.Column<QAConstraintSpec> idColumn = grid.addColumn(p -> p.getQaConstraintId()).setHeader("QA ID").setResizable(true).setWidth("100px").setFlexGrow(0);
-    	Grid.Column<QAConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription())).setHeader("Explanation").setResizable(true);
-    	Grid.Column<QAConstraintSpec> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getQaConstraintSpec())).setHeader("Constraint").setResizable(true);
+    	Grid.Column<QAConstraintSpec> idColumn = grid.addColumn(p -> p.getQaConstraintId())
+    			.setHeader("QA ID")
+    			.setResizable(true)
+    			.setWidth("100px")
+    			.setFlexGrow(0);
+    	Grid.Column<QAConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription()))
+    			.setHeader("Explanation")
+    			.setResizable(true);
+    	Grid.Column<QAConstraintSpec> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getQaConstraintSpec()))
+    			.setHeader("Constraint")
+    			.setResizable(true);
+    	
     	if (step.getQAConstraints().isEmpty()) {    	
     		grid.setItems(List.of(new DummyQASpec()));
     	} else { grid.setItems(step.getQAConstraints().stream().sorted(new Comparator<QAConstraintSpec>() {
@@ -237,10 +248,11 @@ public class DefinitionView extends VerticalLayout {
 	}
 	
 	private Component createValueRenderer(String arl) {
-		//Paragraph p = new Paragraph(arl);
-		Span p = new Span(arl);
+		Paragraph p = new Paragraph(arl);
+		//Span p = new Span(arl);
 		p.getStyle().set("white-space", "pre");
-		return p;
+		p.setTitle(arl);
+		return p;	
     }
         
     private void addParams(VerticalLayout l, Map<String, InstanceType> stepParams, String title) {

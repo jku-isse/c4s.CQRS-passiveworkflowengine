@@ -199,6 +199,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 inputData.setPadding(false);
                 
                 TextField tf = new TextField();
+                tf.setRequiredIndicatorVisible(true);
                 //tf.setWidthFull();
                 tf.setMinWidth("600px");
                 tf.setLabel(role);                

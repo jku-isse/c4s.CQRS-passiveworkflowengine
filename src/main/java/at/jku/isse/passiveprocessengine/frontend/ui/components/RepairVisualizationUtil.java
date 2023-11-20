@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 
 import at.jku.isse.designspace.core.model.Instance;
@@ -72,7 +74,7 @@ public class RepairVisualizationUtil {
 		switch(ra.getOperator()) {
 		case ADD:
 			List<Component> list = new ArrayList<>();			 
-			list.add(new Span(String.format("Add to %s of ", ra.getProperty())));
+			list.add(new Html(String.format("<span>Add to <b>%s</b> of </span>", ra.getProperty())));
 			list.add(target);		
 			list.add(reload);
 			Span pAdd = new Span(restriction);
@@ -84,7 +86,7 @@ public class RepairVisualizationUtil {
 		case MOD_LT:
 		case MOD_NEQ:
 			List<Component> list3 = new ArrayList<>();
-			list3.add(new Span(String.format("Set the %s of ", ra.getProperty())));
+			list3.add(new Html(String.format("<span>Set the <b>%s</b> of </span>", ra.getProperty())));
 			list3.add(target);		
 			list3.add(reload);
 			list3.add(new Span(" to"));
@@ -94,7 +96,7 @@ public class RepairVisualizationUtil {
 			return list3;
 		case REMOVE:
 			List<Component> list2 = new ArrayList<>();			
-			list2.add(new Span(String.format("Remove from %s of ", ra.getProperty())));
+			list2.add(new Html(String.format("<span>Remove from <b>%s</b> of </span>", ra.getProperty())));
 			list2.add(target);
 			list2.add(reload);
 			Span pDel = new Span(restriction);
@@ -118,7 +120,8 @@ public class RepairVisualizationUtil {
 			List<Component> list = new ArrayList<>();
 			list.add(new Span("Add "));
 			change.stream().forEach(comp -> list.add(comp)); 
-			list.add(new Span(String.format(" to %s of ", ra.getProperty())));
+			Html html=new Html(String.format("<span> to <b>%s</b> of </span>", ra.getProperty()));
+			list.add(html);
 			list.add(target);					
 			list.add(reload);
 			return list;
@@ -127,7 +130,8 @@ public class RepairVisualizationUtil {
 		case MOD_LT:
 		case MOD_NEQ:
 			List<Component> list3 = new ArrayList<>();
-			list3.add(new Span(String.format("Change %s of ", ra.getProperty())));
+			//list3.add(new Span(String.format("Change %s of ", ra.getProperty())));
+			list3.add(new Html(String.format("<span>Change <b>%s</b> of </span>", ra.getProperty())));
 			list3.add(target);
 			list3.add(reload);
 			if (isSimpleRepairValue(ra)) {
@@ -142,7 +146,7 @@ public class RepairVisualizationUtil {
 			{
 				list2.add(new Span("Remove "));
 				change.stream().forEach(comp -> list2.add(comp)); 			
-				list2.add(new Span(String.format(" from %s of ", ra.getProperty())));
+				list2.add(new Html(String.format("<span> from <b>%s</b> of </span>", ra.getProperty())));
 				list2.add(target);
 			} else {
 				list2.add(new Span("Delete "));

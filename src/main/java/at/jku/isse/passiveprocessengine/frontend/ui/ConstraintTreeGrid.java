@@ -16,6 +16,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
@@ -97,8 +98,10 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			Span para = new Span(shortConstr.trim());
-			para.getStyle().set("white-space", "pre");;
+			//Span para = new Span(shortConstr.trim());
+			Span para = new Span(rNode.getNode().expression.getLocalARL());
+			para.setTitle(shortConstr.trim());
+			para.getStyle().set("white-space", "pre");
 			return para;
 
 	}
@@ -109,12 +112,14 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     
 	private final SerializableBiConsumer<Span, RotationNode> detailsBiConsumer = (span, rNode) -> {
 		Expression expr = rNode.getNode().expression;
-		if (rNode.isCollectionOrCombinationNode() && !rNode.isCombinationNode() && !(expr instanceof ForAllExpression) && !(expr instanceof ExistsExpression)) {
+		if (rNode.isCollectionOrCombinationNode() 
+				&& !rNode.isCombinationNode() 
+				&& !(expr instanceof ForAllExpression) 
+				&& !(expr instanceof ExistsExpression)) {
 			Object coll = rNode.getNode().resultValue;
 			span.add(collectionValueToComponent((Collection) coll));
 		} 
 		else {
-			
 				Object expl = rNode.getNode().expression.explain(rNode.getNode());					
 				if (expl instanceof Map) {				
 					span.add(InstanceView.mapValueToComponent((Map)expl));
@@ -172,12 +177,16 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     	else if (value.size() == 1)
     		return singleValueToComponent(value.iterator().next());
     	else {    		
-    		UnorderedList list = new UnorderedList();    		
-    		list.setClassName("no-padding");
-    		value.stream().forEach(val -> list.add(singleValueToComponent(val)));
+    		VerticalLayout vLayout = new VerticalLayout();
+    		vLayout.setPadding(false);
+    		vLayout.setMargin(false);
+    		//UnorderedList list = new UnorderedList();    		
+    		//list.setClassName("no-padding");
+    		value.stream().forEach(val -> vLayout.add(singleValueToComponent(val)));
     		//if (value instanceof Set) // we sort the entries in the set for easier readability, for lists, we maintain the list order
     		//	list.
-    		return list;
+    		//vLayout.add(list);
+    		return vLayout;
     	}
     }
 	

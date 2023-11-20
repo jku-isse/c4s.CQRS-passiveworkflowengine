@@ -489,6 +489,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         inputData.setAlignItems(Alignment.END);
         
         TextField tf = new TextField();
+        tf.setRequiredIndicatorVisible(true);
         tf.setMinWidth("300px");
         tf.setLabel(role);                
         tf.setHelperText(artT.name());

@@ -339,7 +339,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		Grid.Column<Map.Entry<String, Object>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Key").setResizable(true).setSortable(true);
 		Grid.Column<Map.Entry<String, Object>> valueColumn = grid.addColumn(createMapValueRenderer()).setHeader("Value").setResizable(true);
 		grid.setItems(value.entrySet());
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		return grid;
 	}
