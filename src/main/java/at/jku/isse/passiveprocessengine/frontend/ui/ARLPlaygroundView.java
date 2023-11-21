@@ -178,7 +178,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 				.sorted(new InstanceTypeComparator())
 				.collect(Collectors.toList());
 		instanceTypeComboBox.setItems(instTypes);
-		instanceTypeComboBox.setItemLabelGenerator(InstanceType::name);
+		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.name(), iType.id().toString(), iType.getQualifiedName()));
 		instanceTypeComboBox.setWidthFull();
 		//instanceTypeComboBox.setMinWidth("100px");
 		layout.add(instanceTypeComboBox);
@@ -407,7 +407,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			dialog.setWidth("80%");
 			dialog.setMaxHeight("80%");    			
 			evalTree.updateGrid(entry.getRootNode(), null);    			
-			evalTree.setHeightByRows(true);
+			evalTree.setAllRowsVisible(true);
 			dialog.add(evalTree);
 			dialog.open();
 		});
@@ -425,9 +425,8 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 				RepairNode repairTree = RuleService.repairTree(entry.getRuleInstance());
 				RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
 				rtg.initTreeGrid();
-				rtg.updateConditionTreeGrid(repairTree, null);
-				//rtg.expandRecursively(repairTree.getChildren(), 3);
-				rtg.setHeightByRows(true);
+				rtg.updateConditionTreeGrid(repairTree, null);				
+				rtg.setAllRowsVisible(true);
 				dialog.add(rtg);
 				dialog.open();
 			});
@@ -442,7 +441,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 
 		@Override
 		public int compare(InstanceType o1, InstanceType o2) {
-			return o1.name().compareTo(o2.name());
+			if (o1.getQualifiedName() == null || o2.getQualifiedName() == null)
+				return o1.name().compareTo(o2.name());
+			else 
+				return o1.getQualifiedName().compareTo(o2.getQualifiedName());
 		}
 
 	}
