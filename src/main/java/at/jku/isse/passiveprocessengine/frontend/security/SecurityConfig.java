@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
 
 @EnableWebSecurity
@@ -54,6 +55,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Configure logout
         .and().logout().logoutSuccessUrl(LOGOUT_SUCCESS_URL);
+    
+    // allow embedding of blockly editor as an iframe locally
+    //http.headers().frameOptions().sameOrigin();
+    http
+    .headers().addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN));
   }
 
     

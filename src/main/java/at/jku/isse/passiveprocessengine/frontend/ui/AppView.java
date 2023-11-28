@@ -68,6 +68,8 @@ public class AppView extends AppLayout{
 	      createTab(VaadinIcon.COMPILE, "Connector Progress", GlobalProgressView.class),
 	      createTab(VaadinIcon.GAMEPAD, "OCL/ARL Playground", ARLPlaygroundView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class),
+	      createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),
+	      // Blockly deploy results
 	      createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class)	
 	    );
 	    if (uiconf.doEnableExperimentMode()) {
