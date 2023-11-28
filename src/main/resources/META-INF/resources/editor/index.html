@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Simple Process Editor - PPE v3</title>
+  <script src="libs/blockly_compressed.js"></script>
+  <script src="libs/blocks_compressed.js"></script>    
+  <script src="libs/msg/js/en.js"></script>
+  <script src="libs/appengine/storage.js"></script>
+  <script src="ppe-blockdef.js"></script>
+  <script src="decisionnode.js"></script>
+  <script src="script.js"></script>
+ <link rel="stylesheet" href="style.css">
+  <!-- <script src="js/FileSaver.js"></script> -->
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+    table {
+      height: 100%;
+      width: 100%;
+    }
+    #blocklyArea {
+      height: 99%;
+      background: #fc9;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body >
+ <div class="d-flex flex-column fill-height">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="navbar-brand">Process Definition Editor - PPE v3</div>
+      <ul class="navbar-nav mr-auto">
+        <!-- Button trigger modal -->
+        <button type="button" class="nav-item btn btn-primary mr-3" data-toggle="modal" data-target="#loadDialog">
+          Load XML
+        </button>
+        <button id="saveBtn" class="nav-item btn btn-primary mr-3">
+          Save as XML
+        </button>
+        <button id="saveBtnJson" class="nav-item btn btn-primary mr-3">
+          Save as JSON
+        </button>
+         <button id="deployBtn" class="nav-item btn btn-primary mr-3">
+          Deploy to:
+        </button>
+        <input type="url" id="deployendpoint" name="deployendpoint" value="http://localhost:7171">
+        
+
+      </ul>
+    </nav>
+    <div id="blocklyArea" class="flex-grow-1">
+      <div id="blocklyDiv"></div>
+    </div>
+  </div>
+
+<xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+  <category name="Process Elements" colour="#a5745b">
+    <block type="artifact">
+      <field name="Type">IJiraArtifact</field>
+    </block>
+    <block type="step">
+      <field name="StepId">StepId</field>
+    </block>
+    <block type="artuse">
+      <field name="roletext">Param</field>
+    </block>
+    <block type="transition">
+     </block>
+    <block type="datamapping">
+     </block>
+      <block type="qacheck">
+     </block>
+	<block type="constraint"></block>
+    <block type="parallelexecution">
+          <field name="InFlowType">AND</field>
+    </block>
+  </category>
+  <category name="Functions" colour="#995ba5" custom="PROCEDURE"></category>
+  <category name="Variables" colour="#a55b80" custom="VARIABLE"></category>
+  
+  <category name="Text" colour="#5ba58c">
+    <block type="text">
+      <field name="TEXT"></field>
+    </block>
+</xml>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+
+    <div class="modal fade" id="loadDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Load Process Definition xml</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="input-group mb-3">
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="fileInput" accept="text/xml">
+                <label class="custom-file-label" for="fileInput">Choose file</label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="loadBtn" disabled>Load</button>
+        </div>
+
+        <script>
+          var files = [];
+
+          $('#fileInput').on('change', function () {
+            files = this.files || [];
+            console.log('selected files', files);
+
+            //get the file name
+            const fileName = files[0].name;
+            //replace the "Choose a file" label
+            $(this).next('.custom-file-label').html(fileName);
+            $('#loadBtn').prop('disabled', false);
+          })
+
+          $('#loadBtn').on('click', function () {
+            const file = files[0];
+            console.log('loading file', file);
+            file.text().then(txt => {
+              load(txt);
+              $('#loadDialog').modal('hide');
+            });
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    initBlockly();
+    enableAutoBackup();
+
+
+    $('#saveBtn').on('click', function (evt) {
+      Blockly.prompt(
+        'Download current workspace as',
+        'processdefinition.xml',
+        name => {
+          let xml = Blockly.Xml.workspaceToDom(workspace);
+          let dom = Blockly.Xml.domToPrettyText(xml);
+          if (name) downloadFile(dom, name,'application/xml');
+        }
+      );
+    });
+    
+    $('#saveBtnJson').on('click', function (evt) {
+        
+    	Blockly.prompt(
+          'Download current workspace as',
+          'processdefinition.json',
+          name => {
+            let dom = Blockly.Xml.workspaceToDom(workspace);
+            let xml = Blockly.Xml.domToPrettyText(dom);
+            
+            if (name) { 
+            	let json = transformXMLtoJson(xml);
+            	downloadFile(json, name,'application/json');
+            }
+          }
+        );
+      });
+    
+    $('#deployBtn').on('click', function (evt) {
+            let dom = Blockly.Xml.workspaceToDom(workspace);
+            let xml = Blockly.Xml.domToPrettyText(dom);
+            let url = $("#deployendpoint").val();
+            let resp = deployToDS(xml, url);
+            Blockly.alert(resp);
+      });
+  </script>
+    
+</body>
+</html>

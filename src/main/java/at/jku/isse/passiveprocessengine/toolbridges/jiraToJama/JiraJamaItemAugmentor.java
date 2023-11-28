@@ -24,11 +24,13 @@ import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.jira.service.IJiraService.JiraIdentifier;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @DependsOn({"controleventengine"})
 @ConditionalOnExpression(value = "${jama.enabled:false} and ${jira.enabled:false}") 
-public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider {
+public class JiraJamaItemAugmentor implements ServiceProvider {
 
 	@Autowired
 	IJamaService jamaService;
@@ -57,18 +59,30 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider
 		
 	public void initialize() {
 		this.ws = WorkspaceService.PUBLIC_WORKSPACE;
-		ws.workspaceListeners.add(this);
+	//	ws.workspaceListeners.add(this);
 		// after a reboot, the types with augmentation might already exist,
 		// upon new boot, then wont exist. 
-		InstanceType jamaBaseType = ws.debugInstanceTypeFindByName("jama_item");
-		if (jamaBaseType == null) return;
-
+		jamaBaseType = ws.debugInstanceTypeFindByName("jama_item");
+		if (jamaBaseType == null) {			
+			return;
+		} else {
+			log.info("JiraJamaBridge: found Jama base class");
+		}
+		
 		InstanceType parentType = ws.debugInstanceTypeFindByName("jira_core_artifact");
 		if (parentType != null && !parentType.subTypes().isEmpty()) {
-			InstanceType jiraConcreteType = parentType.subTypes().iterator().next();
+			log.info("JiraJamaBridge: found Jira base class");			
+			jiraBaseType = parentType.subTypes().iterator().next();
 			// check if has property
-			if (jiraConcreteType.hasProperty(ReservedNames.PROPERTY_DEFINITION_PREFIX+JIRA2JAMALINKPROPERTYNAME)) {		
+			if (jiraBaseType.getPropertyType(JIRA2JAMALINKPROPERTYNAME) != null) {		
 				isSchemaUpdated = true;
+				log.info("JiraJamaBridge: base classes already augmented");				
+			} else {
+				log.info("JiraJamaBridge: base classes need augmentation");								
+				// create cross link property
+				WorkspaceService.createOpposablePropertyType(ws, jiraBaseType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE, jamaBaseType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE);		
+				log.info("Jira2Jama Bridge: augmented Jira and Jama base classes ");
+				isSchemaUpdated = true;				
 			}
 		}
 	}
@@ -85,7 +99,7 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider
 
 	@Override
 	public int getPriority() {
-		return 90;
+		return 200;
 	}
 
 	@Override
@@ -93,93 +107,57 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider
 		return true;
 	}
 
-	@Override
-	public void handleUpdated(Collection<Operation> arg0) {
-	
-		arg0.stream().forEach(op -> {
-			if (op instanceof ElementCreate && !isSchemaUpdated) {
-				handleElementCreate((ElementCreate) op);
-			} else if (op instanceof PropertyUpdateSet && isSchemaUpdated) {
-				handlePropertyUpdateSet((PropertyUpdateSet) op);
-			}
-		});				
-	}
-
-	private void handleElementCreate(ElementCreate op) {
-		// we need to update the schema with additional property or type JamaItem, 
-		// everything hardcoded for now
-  	    // also this is done only at the beginning when hopefully no jira instance yet exist (should be save to assume a this code is called only upon property creation)		
-		if (op.instanceTypeId().value()==2l) {
-			InstanceType instType = (InstanceType)ws.findElement(op.elementId());
-			// simpler approach
-			if (instType.name().equalsIgnoreCase("jama_item")) {
-				jamaBaseType = instType;
-			} else if(instType.name().equalsIgnoreCase("jira_core_artifact")) {
-				jiraBaseType = instType;
-			} 
-			if (jiraBaseType != null && jamaBaseType != null) {
-				if (!jiraBaseType.hasProperty(ReservedNames.PROPERTY_DEFINITION_PREFIX+JIRA2JAMALINKPROPERTYNAME)) {				
-					// create cross link property
-					WorkspaceService.createOpposablePropertyType(ws, jiraBaseType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE, jamaBaseType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE);		
-					Workspace.logger.info("Jira2Jama Bridge: augmented Jira and Jama Subclasses ");
-					ws.concludeTransaction();
-				} 
-				// and set flag to no longer check for property creations
-				isSchemaUpdated = true;
-				return;
-			}
-				
-			
-//			// look for property created events, within an instance type that has JiraBase as the parent
-//			if (isSubclassOfJira(instType)) {
-//				// obtain jama schema																				
-//				InstanceType jamaBaseType = ws.debugInstanceTypeFindByName("jama_item");
-//				if (jamaBaseType == null) {
-//					Workspace.logger.info("Jira2Jama Bridge: could not augment Jira Subclass "+instType.name()+" because unable to resolve jama base type: jama_item yet");
-//				} else {
-//					// check if has cross link property, if not
-//					if (!instType.hasProperty(ReservedNames.PROPERTY_DEFINITION_PREFIX+JIRA2JAMALINKPROPERTYNAME)) {				
-//						// create cross link property
-//						WorkspaceService.createOpposablePropertyType(ws, instType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE, jamaBaseType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE);		
-//						Workspace.logger.info("Jira2Jama Bridge: augmented Jira Subclass "+instType.name());
-//						ws.concludeTransaction();
-//					} 
-//					// and set flag to no longer check for property creations
-//					isSchemaUpdated = true;
-//					return;
-//				}
-//			} else if (isSubclassOfJama(instType)) { // we also try inverse if only jira exists but not jama yet
-//				// obtain jama schema																				
-//				InstanceType jiraBaseType = ws.debugInstanceTypeFindByName("jira_core_artifact");
-//				if (jiraBaseType == null) {
-//					Workspace.logger.info("Jira2Jama Bridge: could not augment Jama Subclass "+instType.name()+" because unable to resolve jira base type: jira_core_artifact yet");
-//				} else {
-//					// check if has cross link property, if not
-//					if (!instType.hasProperty(ReservedNames.PROPERTY_DEFINITION_PREFIX+JAMA2JIRALINKPROPERTYNAME)) {				
-//						// create cross link property
-//						WorkspaceService.createOpposablePropertyType(ws, instType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE, jiraBaseType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE);		
-//						Workspace.logger.info("Jira2Jama Bridge: augmented Jama Subclass "+instType.name());
-//						ws.concludeTransaction();
-//					} 
-//					// and set flag to no longer check for property creations
-//					isSchemaUpdated = true;
-//					return;
-//				}
+//	@Override
+//	public void handleUpdated(Collection<Operation> arg0) {
+//		arg0.stream().forEach(op -> {
+////			if (op instanceof ElementCreate && !isSchemaUpdated) {
+////				handleElementCreate((ElementCreate) op);
+////			} else 
+//			if (op instanceof PropertyUpdateSet && isSchemaUpdated) {
+//				handlePropertyUpdateSet((PropertyUpdateSet) op);
 //			}
-		}	
-	}	
+//		});				
+//	}
+
+//	private void handleElementCreate(ElementCreate op) {
+//		// we need to update the schema with additional property of type JamaItem, 
+//		// everything hardcoded for now
+//  	    // also this is done only at the beginning when hopefully no jira instance yet exist (should be save to assume a this code is called only upon property creation)		
+//		if (op.instanceTypeId().value()==2l) {
+//			InstanceType instType = (InstanceType)ws.findElement(op.elementId());
+//			// simpler approach
+//			if (instType.name().equalsIgnoreCase("jama_item")) {
+//				log.info("Jira2Jama Bridge: found Jama base class");
+//				jamaBaseType = instType;
+//			} else if(instType.name().equalsIgnoreCase("jira_core_artifact")) {
+//				jiraBaseType = instType;
+//				log.info("Jira2Jama Bridge: found Jira base classes ");
+//			} 
+//			if (jiraBaseType != null && jamaBaseType != null) {
+//				if (jiraBaseType.getPropertyType(JIRA2JAMALINKPROPERTYNAME)!=null) {				
+//					// create cross link property
+//					WorkspaceService.createOpposablePropertyType(ws, jiraBaseType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE, jamaBaseType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE);		
+//					log.info("Jira2Jama Bridge: augmented Jira and Jama base classes ");
+//					ws.concludeTransaction();
+//				} 
+//				// and set flag to no longer check for property creations
+//				isSchemaUpdated = true;
+//				return;
+//			}
+//		}	
+//	}	
 	
-	private boolean isSubclassOfJira(InstanceType instType) {
-		return instType.getAllSuperTypes().stream()
-		.map(superT -> superT.name())
-		.anyMatch(superName -> superName.equalsIgnoreCase("jira_core_artifact"));
-	}
-	
-	private boolean isSubclassOfJama(InstanceType instType) {
-		return instType.getAllSuperTypes().stream()
-		.map(superT -> superT.name())
-		.anyMatch(superName -> superName.equalsIgnoreCase("jama_item"));
-	}	
+//	private boolean isSubclassOfJira(InstanceType instType) {
+//		return instType.getAllSuperTypes().stream()
+//		.map(superT -> superT.name())
+//		.anyMatch(superName -> superName.equalsIgnoreCase("jira_core_artifact"));
+//	}
+//	
+//	private boolean isSubclassOfJama(InstanceType instType) {
+//		return instType.getAllSuperTypes().stream()
+//		.map(superT -> superT.name())
+//		.anyMatch(superName -> superName.equalsIgnoreCase("jama_item"));
+//	}	
 	
 	private void handlePropertyUpdateSet(PropertyUpdateSet op) { // we only set from the jira side
 		if (op.name().equalsIgnoreCase(JIRA2JAMAIDPROPERTYNAME)) {
@@ -207,10 +185,10 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider
 			try {
 				jiraItem.getProperty(JIRA2JAMALINKPROPERTYNAME).set(jamaInstOpt.get());
 			} catch (IllegalArgumentException ie) {
-                Workspace.logger.debug("Jira2Jama Bridge: " + jamaKey + " could not be assigned to crosslink "+ie.getMessage());
+				log.warn("Jira2Jama Bridge: " + jamaKey + " could not be assigned to crosslink "+ie.getMessage());
             }
 			} else {
-				Workspace.logger.debug("Jira2Jama Bridge: " + jamaKey + " could not be resolved to a jama item");
+				log.warn("Jira2Jama Bridge: " + jamaKey + " could not be resolved to a jama item");
 			}
 		}
 	}
@@ -228,21 +206,27 @@ public class JiraJamaItemAugmentor implements WorkspaceListener, ServiceProvider
 					try {
 						jamaItem.getProperty(JAMA2JIRALINKPROPERTYNAME).set(jiraInstOpt.get());
 					} catch (IllegalArgumentException ie) {
-						Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be assigned to crosslink "+ie.getMessage());
+						log.warn("Jira2Jama Bridge: " + jiraKey + " could not be assigned to crosslink "+ie.getMessage());
 					}
 				} else {
-					Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be resolved to a jira item");
+					log.warn("Jira2Jama Bridge: " + jiraKey + " could not be resolved to a jira item");
 				} 
 			} catch (Exception e) {
-				Workspace.logger.debug("Jira2Jama Bridge: " + jiraKey + " could not be resolved with error "+e.getMessage());
+				log.warn("Jira2Jama Bridge: " + jiraKey + " could not be resolved with error "+e.getMessage());
 			}
 		}
 	}
 
 	@Override
 	public void handleServiceRequest(Workspace workspace, Collection<Operation> operations) {
-		// TODO Auto-generated method stub
-		
+		operations.stream().forEach(op -> {
+//			if (op instanceof ElementCreate && !isSchemaUpdated) {
+//				handleElementCreate((ElementCreate) op);
+//			} else 
+			if (op instanceof PropertyUpdateSet && isSchemaUpdated) {
+				handlePropertyUpdateSet((PropertyUpdateSet) op);
+			}
+		});	
 	}
 
 

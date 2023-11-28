@@ -35,4 +35,8 @@ public class UIConfig extends Properties {
     public String getVersion() {
         return version;
     }
+
+	public boolean doEnableARLBotSupport() {
+		return Boolean.valueOf(this.getProperty("openai.enabled", "false"));
+	}
 }
