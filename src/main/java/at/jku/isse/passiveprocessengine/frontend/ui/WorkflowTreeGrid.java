@@ -131,7 +131,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         // Column "Last Changed"
 
         this.addColumn(o -> {
-        	if (conf.doEnableExperimentMode()) {
+        	if (conf.isExperimentModeEnabled()) {
         		if (o instanceof ProcessInstance) {
         			ProcessInstance pi = (ProcessInstance) o;
         			try {

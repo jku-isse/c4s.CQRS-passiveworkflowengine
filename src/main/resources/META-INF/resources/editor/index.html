@@ -188,9 +188,9 @@
           name => {
             let dom = Blockly.Xml.workspaceToDom(workspace);
             let xml = Blockly.Xml.domToPrettyText(dom);
-            
+            let url = $("#deployendpoint").val();
             if (name) { 
-            	let json = transformXMLtoJson(xml);
+            	let json = transformXMLtoJson(xml, url);
             	downloadFile(json, name,'application/json');
             }
           }
@@ -202,7 +202,29 @@
             let xml = Blockly.Xml.domToPrettyText(dom);
             let url = $("#deployendpoint").val();
             let resp = deployToDS(xml, url);
-            Blockly.alert(resp);
+            if (resp.procDef) {					
+			 	if(resp.definitionErrors.length == 0 && resp.instanceErrors.length == 0){
+					var win = window.open(url+'/definitions/?processName='+resp.procDef.code, '_blank');
+					if (win) {
+    					//Browser has allowed it to be opened
+    					win.focus();
+					} else {
+    				//Browser has blocked it
+    					alert('Please allow popups for this website to enable forwarding to deployment status page');
+    				}
+				} else { 
+					var win = window.open(url+'/deployfeedback/?processName='+resp.procDef.code, '_blank');
+					if (win) {
+    				//Browser has allowed it to be opened
+    					win.focus();
+					} else {
+    				//Browser has blocked it
+    					alert('Please allow popups for this website to enable forwarding to deployment status page');
+    				}
+    			}
+			} else {
+            	Blockly.alert(resp);
+            }
       });
   </script>
     

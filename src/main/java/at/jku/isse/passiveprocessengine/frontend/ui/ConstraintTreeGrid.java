@@ -309,7 +309,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	
 	
 	public Component getReloadIcon(Instance inst) {
-		if (inst == null || !reqDel.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Span("");
+		if (inst == null || !reqDel.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");

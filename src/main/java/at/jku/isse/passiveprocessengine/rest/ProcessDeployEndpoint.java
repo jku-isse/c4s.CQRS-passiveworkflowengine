@@ -1,9 +1,7 @@
 package at.jku.isse.passiveprocessengine.rest;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.xml.bind.JAXBException;
@@ -27,6 +25,7 @@ import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry.ProcessDeployResult;
+import at.jku.isse.passiveprocessengine.frontend.registry.DeployResultPersistence;
 import c4s.processdefinition.blockly2java.Transformer;
 import c4s.processdefinition.blockly2java.Xml2Java;
 import https.developers_google_com.blockly.xml.Xml;
@@ -47,13 +46,17 @@ public class ProcessDeployEndpoint {
 	@Autowired
 	ProcessRegistry procReg;
 	
-	private static Map<String, ProcessDeployResult> results = new HashMap<>();
+	@Autowired 
+	DeployResultPersistence results;
+	
+	//private static Map<String, ProcessDeployResult> results = new HashMap<>();
 	
 	@GetMapping(value="deployResult/{id}", produces="application/json")
 	public ResponseEntity<String> getLatestDeployResult(@PathVariable("id") String id) {
-		if (results.containsKey(id)) {
+		ProcessDeployResult result = results.getResult(id);
+		if (results!=null) {
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(gson.toJson(results.get(id)));
+					.body(gson.toJson(result));
 		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{}");
 		}
@@ -63,17 +66,9 @@ public class ProcessDeployEndpoint {
 	public ResponseEntity<String> deployProcessJson(@RequestBody String json) { 
 		try {
 			DTOs.Process procD = serializer.fromJson(json);
-
 			if (procD != null) {
-//				Optional<ProcessDefinition> prevPD = procReg.getProcessDefinition(procD.getCode(), true);
-//				prevPD.ifPresent(pd -> {
-//					log.debug("Removing previous process definition: "+procD.getCode());
-//					procReg.removeProcessDefinition(pd.getName());
-//				});
 				ProcessDeployResult result = procReg.createOrReplaceProcessDefinition(procD, true);			
-				results.put(procD.getCode(), result);
-				//SimpleEntry<ProcessDefinition,List<ProcessDefinitionError>> pd = procReg.storeProcessDefinitionIfNotExists(procD, true);
-				//	if (pd.getValue().isEmpty())
+				results.setLastResult(result);				
 				if (result.getDefinitionErrors().isEmpty())
 					return ResponseEntity.status(HttpStatus.OK)
 						.body(gson.toJson(result));

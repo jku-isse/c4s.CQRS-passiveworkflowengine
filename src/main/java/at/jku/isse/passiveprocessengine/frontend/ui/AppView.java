@@ -67,12 +67,18 @@ public class AppView extends AppLayout{
 	      createTab(VaadinIcon.RECORDS, "Process Definitions", DefinitionView.class),	      
 	      createTab(VaadinIcon.COMPILE, "Connector Progress", GlobalProgressView.class),
 	      createTab(VaadinIcon.GAMEPAD, "OCL/ARL Playground", ARLPlaygroundView.class),
-	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class),
-	      createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),
-	      // Blockly deploy results
-	      createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class)	
+	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class)	      
 	    );
-	    if (uiconf.doEnableExperimentMode()) {
+	    if (!uiconf.isStagesEnabled()) {
+	    	tabs.add(
+	    			createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),	    	
+	    			createTab(VaadinIcon.EDIT, "Process Deployment Result", DeployResultView.class)
+		    );		      
+	    } else {
+		     tabs.add(createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class));
+	    }
+	    
+	    if (uiconf.isExperimentModeEnabled()) {
 	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );
 	    }
 	    tabs.setOrientation(Tabs.Orientation.VERTICAL);

@@ -259,7 +259,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 //	}
 
 	private Component getReloadIcon(Instance inst) {
-		if (inst == null && commandGateway.getUIConfig().doGenerateRefetchButtonsPerArtifact()) return new Paragraph("");
+		if (inst == null && commandGateway.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
 		Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
 		icon.getElement().setProperty("title", "Force Refetching of Artifact");

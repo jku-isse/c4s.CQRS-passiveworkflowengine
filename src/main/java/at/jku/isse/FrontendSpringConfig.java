@@ -38,32 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FrontendSpringConfig {
 
-
-//	private UpdateMemory updateMemory;
-
-
-//	private UpdateManager updateManager;
-
-//	@Bean
-//	@DependsOn({"controlEventEngine"})
-//	public UpdateMemory initUpdateMemory() {
-//		this.updateMemory = new UpdateMemory();
-//		return this.updateMemory;
-//	}
-
-//	@Bean
-//	@DependsOn({"controlEventEngine"})
-//	public UpdateManager initUpdateManager() {
-//		this.updateManager = new UpdateManager();
-//		updateManager.init();
-//		return this.updateManager;
-//	}
-
-	//------------------------------------------------------------------------------------------------------------------
-	//-------------------------------------------PROJECT COMPONENTS-----------------------------------------------------
-	//------------------------------------------------------------------------------------------------------------------
-
-	
 	@Bean UIConfig getUIConfig(ApplicationContext context) {
 		
 		
@@ -85,19 +59,16 @@ public class FrontendSpringConfig {
 	}
 	
 	@Bean 
-//	@DependsOn({"controlEventEngine"})
 	ProcessRegistry getProcessRegistry() {
 		return new ProcessRegistry();
 	}
 
 	@Bean
-//	@DependsOn({"controlEventEngine"})
 	public TriggeredProcessLoader getProcessLoader(ProcessRegistry registry) {
 		return new TriggeredProcessLoader(registry);
 	}
 
 	@Bean
-//	@DependsOn({"controlEventEngine"})
 	public ArtifactResolver getArtifactResolver(IAzureService azure, IGitService github, DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);

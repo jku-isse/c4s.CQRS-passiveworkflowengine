@@ -180,12 +180,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         });
         delIcon.getElement().setProperty("title", "Remove this process");
         l.add(delIcon);
-        if (!conf.isAnonymized() && !conf.doEnableExperimentMode()) {        
+        if (!conf.isAnonymized() && !conf.isExperimentModeEnabled()) {        
         	Anchor a = new Anchor("/instance/"+wfi.getInstance().id(), "Internal Details (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);                
         } 
-        if(!conf.doEnableExperimentMode()) {
+        if(!conf.isExperimentModeEnabled()) {
         	Anchor a = new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);
@@ -330,7 +330,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
     					try {    									    	        			        						    		
     						RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    						if (this.conf.doUseIntegratedEvalRepairTree()) {
+    						if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
     	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
     	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
     	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
@@ -457,7 +457,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                         nestedLine.setClassName("line");
                         nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
                         nestedLine.add(getReloadIcon(a));
-                        if (isIn && !reqDel.getUIConfig().doEnableExperimentMode() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
+                        if (isIn && !reqDel.getUIConfig().isExperimentModeEnabled() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
                         	nestedLine.add(getDeleteInputArtifactFromProcessButton((ProcessInstance)wft, entry.getKey(), a.name()));
                         }
                         nestedList.add(nestedLine);
@@ -470,7 +470,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                   //  line.add(addInOut("Add", wft, isIn, entry.getKey(), entry.getValue().name()));
                     list.add(line);
                 }
-                if (isIn && !reqDel.getUIConfig().doEnableExperimentMode() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
+                if (isIn && !reqDel.getUIConfig().isExperimentModeEnabled() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
                 	list.add(getInputComponent((ProcessInstance)wft, entry.getKey(), entry.getValue()));
                 }
             }
@@ -539,7 +539,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     }
 
 	private Component getReloadIcon(Instance inst) {
-		if (inst == null || !conf.doGenerateRefetchButtonsPerArtifact()) return new Span("");
+		if (inst == null || !conf.isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -592,7 +592,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         
         if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
-        	if (rebc.getCr() != null && this.conf.doUseIntegratedEvalRepairTree()) {
+        	if (rebc.getCr() != null && this.conf.isIntegratedEvalRepairTreeEnabled()) {
         		try {
         			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);        			
     				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
@@ -610,7 +610,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         		}
         	}
         	else 	
-        		if (rebc.getEvalResult() == false  && rebc.getCr() != null && ! this.conf.doUseIntegratedEvalRepairTree()) {
+        		if (rebc.getEvalResult() == false  && rebc.getCr() != null && ! this.conf.isIntegratedEvalRepairTreeEnabled()) {
         			try {
         				RepairNode repairTree = RuleService.repairTree(rebc.getCr());        			
 

@@ -105,19 +105,17 @@ function transformXMLtoJson(xml, url) {
 	var errorResp = req.errorResp;
 	if (errorResp)
 		console.log(errorResp);
-	return response;
+	return JSON.parse(response);
 }
 
-function deployToDS(xml) {
+function deployToDS(xml, url) {
 	var req = new XMLHttpRequest();
-	req.open('POST','http://localhost:7171/deploySnapshotFromXML', false);
+	req.open('POST',url+'/deploySnapshotFromXML', false);
+	//req.open('POST','http://localhost:7171/deploySnapshotFromXML', false);
 	//req.open('POST','http://140.78.115.5:7171/deploySnapshotFromXML', false);
 	req.setRequestHeader('Content-Type', 'application/xml');
 	req.send(xml);
 	var response = req.response;
 	console.log(response);
-	var errorResp = req.errorResp;
-	if (errorResp)
-		console.log(errorResp);
-	return response;
+	return JSON.parse(response);
 }

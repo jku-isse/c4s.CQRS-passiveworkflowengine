@@ -31,7 +31,6 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.jama.model.JamaBaseElementType;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.designspace.jama.service.JamaService;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.AppFooter;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,11 +81,11 @@ public class JamaConnectorView extends VerticalLayout  /*implements PageConfigur
         header.add(firstPart/*, shutdown*/);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        HorizontalLayout footer = new AppFooter(conf);
+
         add(
                 header,
-                main(),
-                footer
+                main()
+
         );
     }
 

@@ -32,6 +32,9 @@ import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -58,7 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 @PageTitle("Process Definitions")
 @UIScope
 //@SpringComponent
-public class DefinitionView extends VerticalLayout {
+public class DefinitionView extends VerticalLayout implements HasUrlParameter<String> {
 
     
     protected RequestDelegate commandGateway;
@@ -70,7 +73,10 @@ public class DefinitionView extends VerticalLayout {
     private VerticalLayout detailsContent = new VerticalLayout();
     private SplitLayout splitLayout = null;
     
-
+    private String selectedProcess = "";
+    private ProcessDefinition selectedP = null;
+    private List<ProcessDefinition> defs = Collections.emptyList();
+    private ComboBox<ProcessDefinition> comboBox;
     
     public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
     	this.commandGateway = commandGateway;
@@ -81,18 +87,36 @@ public class DefinitionView extends VerticalLayout {
     }
     
 
+    @Override
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String processName) {       
+        if (processName == null)
+        	selectedProcess = "";
+        else {
+        	selectedProcess=processName;
+        	if(comboBox != null && !defs.isEmpty()) {
+        		defs.stream().filter(Objects::nonNull)
+        			.filter(pdef -> pdef.getName().equals(selectedProcess))
+        			.findAny().ifPresent(pdef -> comboBox.setValue(pdef));            		
+        	}        	
+        }
+    }
+    
     private VerticalLayout processTreeView() {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setWidthFull();
         if (commandGateway != null ) {
-
-        	ComboBox<ProcessDefinition> comboBox = new ComboBox<>("Process Definitions");
-        	List<ProcessDefinition> defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
-        			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
+        	comboBox = new ComboBox<>("Process Definitions");        	
+        	defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+        			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown
+        			.peek(pdef -> {
+        				if (pdef.getName().equals(selectedProcess)) {
+        					selectedP = pdef;
+        				}
+        			})
         			.sorted(new DefinitionComparator())
         				.collect(Collectors.toList());
-        	comboBox.setItems(defs);
+        	comboBox.setItems(defs);        	
         	comboBox.setItemLabelGenerator(pdef -> { return pdef.getName() + " (DSid: "+pdef.getInstance().id()+")"; } );
         	comboBox.addValueChangeListener( e -> {
         		pdefs.clear();
@@ -116,7 +140,9 @@ public class DefinitionView extends VerticalLayout {
         		   		        		        	
         		splitLayout.setSplitterPosition(70);
         	});
-        	comboBox.setMinWidth("600px");
+        	comboBox.setMinWidth("600px");        	
+        	if (selectedP != null)
+        		comboBox.setValue(selectedP);        	
         	layout.add(comboBox);        	      	
         	
         	grid = new TreeGrid<>();
@@ -151,7 +177,7 @@ public class DefinitionView extends VerticalLayout {
         	layout.add(splitLayout);        	
         }
         return layout;
-    }
+    }  
     
     private void resetDetailsContent() {
     	detailsContent.removeAll();
@@ -279,7 +305,7 @@ public class DefinitionView extends VerticalLayout {
     }
     
     private void addDeleteButtonIfTopLevelProcess(VerticalLayout l, StepDefinition step) {
-    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().doEnableExperimentMode()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
+    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
     		Icon delIcon = new Icon(VaadinIcon.TRASH);
             delIcon.setColor("red");
             delIcon.getStyle().set("cursor", "pointer");

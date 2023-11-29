@@ -112,7 +112,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		Component arl = getARLEditorComponent();
 		Component bot = getBotSupportComponent();
 		SplitLayout splitLayout = new SplitLayout(arl, bot);
-		if (commandGateway.getUIConfig().doEnableARLBotSupport()) {
+		if (commandGateway.getUIConfig().isARLBotSupportEnabled()) {
 			splitLayout.setSplitterPosition(70);	
 		} else {
 			splitLayout.setSplitterPosition(100);

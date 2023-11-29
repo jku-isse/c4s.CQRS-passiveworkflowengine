@@ -81,7 +81,7 @@ public class JiraJamaItemAugmentor implements ServiceProvider {
 				log.info("JiraJamaBridge: base classes need augmentation");								
 				// create cross link property
 				WorkspaceService.createOpposablePropertyType(ws, jiraBaseType, JIRA2JAMALINKPROPERTYNAME, Cardinality.SINGLE, jamaBaseType, JAMA2JIRALINKPROPERTYNAME, Cardinality.SINGLE);		
-				log.info("Jira2Jama Bridge: augmented Jira and Jama base classes ");
+				log.info("Jira2JamaBridge: augmented Jira and Jama base classes ");
 				isSchemaUpdated = true;				
 			}
 		}
