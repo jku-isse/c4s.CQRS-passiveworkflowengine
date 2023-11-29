@@ -13,6 +13,7 @@ public class UIConfig extends Properties {
 		integratedEvalRepairTree_enabled("integratedEvalRepairTree.enabled"),
 		experimentMode_enabled("experimentMode.enabled"),
 		openai_enabled("openai.enabled"),
+		blocklyeditor_enabled("blocklyeditor.enabled"),
 		stages_enabled("stages.enabled");
 		
 		private final String label;
@@ -61,6 +62,10 @@ public class UIConfig extends Properties {
 	
 	public boolean isStagesEnabled() {
 		return Boolean.valueOf(this.getProperty(Keys.stages_enabled.toString(), "false"));
+	}
+	
+	public boolean isBlocklyEditorEnabled() {
+		return Boolean.valueOf(this.getProperty(Keys.blocklyeditor_enabled.toString(), "true"));
 	}
 	
 	public String getVersion() {

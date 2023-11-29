@@ -194,7 +194,7 @@ public class GlobalProgressView extends VerticalLayout {
                 	}
                 } catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
                     log.error("Artifact Fetching Exception: " + e.getMessage());
-                    e.printStackTrace();
+                   // e.printStackTrace();
                     Notification.show("Fetching failed! \r\n"+e.getMessage());
                 }
         });

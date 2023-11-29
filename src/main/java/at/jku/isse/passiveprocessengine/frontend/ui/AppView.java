@@ -69,12 +69,13 @@ public class AppView extends AppLayout{
 	      createTab(VaadinIcon.GAMEPAD, "Rule Playground", ARLPlaygroundView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class)	      
 	    );
-	    if (!uiconf.isStagesEnabled()) {
+	    if (uiconf.isBlocklyEditorEnabled()) {
 	    	tabs.add(
 	    			createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),	    	
 	    			createTab(VaadinIcon.AUTOMATION, "Process Deployment Result", DeployResultView.class)
 		    );		      
-	    } else {
+	    } 
+	    if(uiconf.isStagesEnabled()) {
 		     tabs.add(createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class));
 	    }
 	    
