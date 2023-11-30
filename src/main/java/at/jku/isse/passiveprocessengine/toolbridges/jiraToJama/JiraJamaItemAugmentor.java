@@ -69,7 +69,7 @@ public class JiraJamaItemAugmentor implements ServiceProvider {
 			log.info("JiraJamaBridge: found Jama base class");
 		}
 		
-		InstanceType parentType = ws.debugInstanceTypeFindByName("jira_core_artifact");
+		InstanceType parentType = ws.debugInstanceTypeFindByName("jira_artifact");
 		if (parentType != null && !parentType.subTypes().isEmpty()) {
 			log.info("JiraJamaBridge: found Jira base class");			
 			jiraBaseType = parentType.subTypes().iterator().next();
@@ -129,7 +129,7 @@ public class JiraJamaItemAugmentor implements ServiceProvider {
 //			if (instType.name().equalsIgnoreCase("jama_item")) {
 //				log.info("Jira2Jama Bridge: found Jama base class");
 //				jamaBaseType = instType;
-//			} else if(instType.name().equalsIgnoreCase("jira_core_artifact")) {
+//			} else if(instType.name().equalsIgnoreCase("jira_artifact")) {
 //				jiraBaseType = instType;
 //				log.info("Jira2Jama Bridge: found Jira base classes ");
 //			} 

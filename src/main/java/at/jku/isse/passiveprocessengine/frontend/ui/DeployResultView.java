@@ -1,6 +1,8 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -12,8 +14,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
@@ -49,8 +53,12 @@ public class DeployResultView extends VerticalLayout implements HasUrlParameter<
 	}
 
 	@Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String processName) {       
-        if (processName == null)
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String param) {       
+		Location location = beforeEvent.getLocation();
+		QueryParameters queryParameters = location.getQueryParameters();
+    	Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        String processName = parametersMap.getOrDefault("processName", List.of("")).get(0);
+		if (processName == null)
         	setContent("");
         else 
         	setContent(processName);

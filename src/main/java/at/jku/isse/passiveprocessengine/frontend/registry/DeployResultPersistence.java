@@ -19,7 +19,7 @@ public class DeployResultPersistence {
 		if (lastResult != null) {
 			this.lastResult = lastResult;
 			if (lastResult.getProcDef() != null) {
-				this.results.put(lastResult.getProcDef().getId(), lastResult);
+				this.results.put(lastResult.getProcDef().getName(), lastResult);
 			}
 		}
 	}

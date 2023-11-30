@@ -34,8 +34,10 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
@@ -73,7 +75,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private VerticalLayout detailsContent = new VerticalLayout();
     private SplitLayout splitLayout = null;
     
-    private String selectedProcess = "";
+    //private String selectedProcess = "";
     private ProcessDefinition selectedP = null;
     private List<ProcessDefinition> defs = Collections.emptyList();
     private ComboBox<ProcessDefinition> comboBox;
@@ -83,28 +85,28 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
-    	add(processTreeView());
+    	//add(processTreeView());
     }
     
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String processName) {       
-        if (processName == null)
-        	selectedProcess = "";
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String param) {       
+    	Location location = beforeEvent.getLocation();
+		QueryParameters queryParameters = location.getQueryParameters();
+    	Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        String processName = parametersMap.getOrDefault("processName", List.of("")).get(0);
+    	if (processName == null)
+        	this.add(processTreeView(""));
         else {
-        	selectedProcess=processName;
-        	if(comboBox != null && !defs.isEmpty()) {
-        		defs.stream().filter(Objects::nonNull)
-        			.filter(pdef -> pdef.getName().equals(selectedProcess))
-        			.findAny().ifPresent(pdef -> comboBox.setValue(pdef));            		
-        	}        	
+        	this.add(processTreeView(processName));        	        
         }
     }
     
-    private VerticalLayout processTreeView() {
+    private VerticalLayout processTreeView(String selectedProcess) {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(false);
         layout.setWidthFull();
+        
         if (commandGateway != null ) {
         	comboBox = new ComboBox<>("Process Definitions");        	
         	defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
@@ -140,9 +142,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         		   		        		        	
         		splitLayout.setSplitterPosition(70);
         	});
-        	comboBox.setMinWidth("600px");        	
-        	if (selectedP != null)
-        		comboBox.setValue(selectedP);        	
+        	comboBox.setMinWidth("600px");        	        	       
         	layout.add(comboBox);        	      	
         	
         	grid = new TreeGrid<>();
@@ -174,7 +174,9 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         	resetDetailsContent();
         	splitLayout = new SplitLayout(grid, detailsContent);
         	splitLayout.setWidthFull();
-        	layout.add(splitLayout);        	
+        	layout.add(splitLayout);    
+        	if (selectedP != null)
+        		comboBox.setValue(selectedP); 
         }
         return layout;
     }  
