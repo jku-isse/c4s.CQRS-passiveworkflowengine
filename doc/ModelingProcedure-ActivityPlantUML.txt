@@ -1,0 +1,113 @@
+@startuml
+
+skin rose
+
+title Creating a simple sequential Process with QA Constraints from scratch
+
+
+start
+
+: Startup Framework;
+note right
+  Ensure Connectors obtained schema so you can
+  fetch artifacts for inspection how the information in the tool
+  is available in the artifacts properties in the framework
+end note
+
+: Drag in a Process Element;
+: Give it a meaningful name;
+: Provide a description via the comment symbol (?)
+  (Optional);
+
+note right
+ i.e., first block in the Functions category
+end note
+
+repeat: Define process input
+  : Declare a new 'variable' 
+    and assign it to an 'Artifact Type';
+  note right
+    typically a process-centric artifact 
+    such as work package, epic, change request
+    but also other artifacts are possible
+  end note
+  : Declare the input by using a 'Param' element 
+    and assign it to the variable declared above;
+repeat while (Are all process inputs defined?) is (No) not (Yes)
+
+repeat: Define process steps
+  note right
+    at least one step needs to be defined
+  end note
+  : Drag in a step block;
+  : Give it a unique name
+    (within the scope of the process);
+  : Provide a description via the comment symbol (?)
+    (Optional);
+  : Copy at least one of the process input Param's 
+    and place as the step's input;
+  #lightblue: Define step details
+    (see separate activity diagram);
+repeat while (Are all process steps defined?) is (No) not (Yes)
+
+
+stop
+
+
+start
+fork
+    repeat: Define step output (optional)
+      : Declare a new 'variable' 
+        and assign it to an 'Artifact Type';
+      note right
+        If the step only changes input artifacts 
+        then there is no need to specify any step output
+      end note
+      : Declare the output by using a 'Param' element 
+        and assign it to the variable declared above;
+      : Declare the 'Datamapping' using OCL/ARL code 
+        how the output can be navigated from the input
+        Use the output variable name as the 'MappingId' ;
+      note right
+        The mapping navigates from the steps input, i.e., 'self.in_VARNAME',
+        by selecting any of it (every input is a list) '->any()->asType(<root/types/jira/jira_core/artifact>)'
+        then navigating e.g., to all child artifacts '.children'
+        then selecting only a subset thereof, e.g., '->select(child | child.type = 'Bug')'
+      end note
+    repeat while (Are all step outputs defined?) is (No) not (Yes)
+  fork again
+    repeat: Define step transitions
+      note right
+        At least a 'Completed' (i.e., postconditon) condition must be provided, 
+        'Enabled' (i.e., precondition), 'Activated', 
+        and 'Canceled' (i.e., when step can be skipped) are Optional
+      end note
+      : Drag in a 'Transition' block;
+      : Select its type;
+      note right
+        Only one transition of each type may be defined!
+      end note
+       : Drag in an 'ARL code' block 
+        (not a text block!);
+      : Provide the constraint as OCL/ARL code 
+        starting from the steps input or output;
+      note right
+        The 'Enabled' constraint must only use the steps input
+      end note
+    repeat while (Are all required transitions defined?) is (No) not (Yes)
+  fork again
+    repeat: Define step QA constraints (optional)
+      : Drag in a 'QA Check' block;
+      : Give it a process unique short identifier;
+      : Provide a human readable description what the constraint checks;
+      : Drag in an 'ARL code' block 
+        (not a text block!);
+      : Provide the OCL/ARL constraint as text 
+      starting from the steps input or output (where applicable);
+    repeat while (Are all desired QA constraints defined?) is (No) not (Yes)
+  end fork
+  
+stop
+
+
+@enduml

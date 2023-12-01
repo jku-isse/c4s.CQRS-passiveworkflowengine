@@ -1,0 +1,65 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="B*9`Yh=osaY(]0vg-NV{">epic</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="^Y+P$KFy4|%W|5`:{.[;" x="138" y="-37">
+    <field name="NAME">testnavi</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="k~3;^4}E?`D9B%J:Asz^">
+        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+        <value name="VALUE">
+          <block type="artifact" id="34?rJ7u+7{w1Z}ElpwBv">
+            <field name="Type">jama_item</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="I(Nj@5+jW?qY$%(@_Wtp">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X%@YgzM.TmdNXKKSlktL">
+                <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=",T`eihwFDhllKyYR`GwD">
+                <field name="StepId">epicStep2</field>
+                <statement name="Input">
+                  <block type="artuse" id="E{-`,KidP+Th;{Oo1gc)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="LGGU2~,{t%jMHC/TRjVW">
+                        <field name="VAR" id="B*9`Yh=osaY(]0vg-NV{">epic</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="t:P!kMUZ-edY8eS;31Vq">
+                    <field name="State">POSTCONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="|=.Wl1,bZp^p{,yZB3^y">
+                        <field name="arlRule">self.in_epic-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="+3%,^NsyT#2SAk]0TgL=">
+                    <field name="qacheckId">EpicStoriesClosed</field>
+                    <field name="description">Ensure that there are some Epic stories and that all epic stories are in status 'Closed'</field>
+                    <value name="constraint">
+                      <block type="constraint" id="]b8XnM7QmV[rG:5xJLx|">
+                        <field name="arlRule">self.in_epic-&gt;forAll(epic : &lt;root/types/jama/EPIC&gt; &#10;| epic.jiraIssue.epicChildren-&gt;size() &gt; 0 &#10;and &#10;epic.jiraIssue.epicChildren&#10; -&gt;forAll(child | child.status='Closed')&#10;)</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

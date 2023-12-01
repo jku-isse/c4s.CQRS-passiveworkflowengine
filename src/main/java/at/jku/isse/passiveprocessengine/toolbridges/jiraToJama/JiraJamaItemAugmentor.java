@@ -12,6 +12,7 @@ import at.jku.isse.designspace.core.events.ElementCreate;
 import at.jku.isse.designspace.core.events.Operation;
 import at.jku.isse.designspace.core.events.PropertyUpdateSet;
 import at.jku.isse.designspace.core.model.Cardinality;
+import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.ReservedNames;
@@ -22,6 +23,7 @@ import at.jku.isse.designspace.core.service.ServiceRegistry;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
+import at.jku.isse.designspace.jira.model.JiraBaseElementType;
 import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.jira.service.IJiraService.JiraIdentifier;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +61,13 @@ public class JiraJamaItemAugmentor implements ServiceProvider {
 		
 	public void initialize() {
 		this.ws = WorkspaceService.PUBLIC_WORKSPACE;
+		Workspace.serviceProviders.add(this);
 	//	ws.workspaceListeners.add(this);
 		// after a reboot, the types with augmentation might already exist,
 		// upon new boot, then wont exist. 
+		Folder jiraTypeFolder = JiraBaseElementType.typeFolder;
+		
+		
 		jamaBaseType = ws.debugInstanceTypeFindByName("jama_item");
 		if (jamaBaseType == null) {			
 			return;
@@ -70,9 +76,9 @@ public class JiraJamaItemAugmentor implements ServiceProvider {
 		}
 		
 		InstanceType parentType = ws.debugInstanceTypeFindByName("jira_artifact");
-		if (parentType != null && !parentType.subTypes().isEmpty()) {
+		if (parentType != null) {
 			log.info("JiraJamaBridge: found Jira base class");			
-			jiraBaseType = parentType.subTypes().iterator().next();
+			jiraBaseType = parentType; //parentType.subTypes().iterator().next();
 			// check if has property
 			if (jiraBaseType.getPropertyType(JIRA2JAMALINKPROPERTYNAME) != null) {		
 				isSchemaUpdated = true;
