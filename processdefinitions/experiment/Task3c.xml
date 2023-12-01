@@ -128,10 +128,10 @@
                 <statement name="QA">
                   <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
                     <field name="qacheckId">BugAndTestCasesTraceabilityToReq</field>
-                    <field name="description">Ensure that all Test Cases that are testing Bugs have a predecessor link to the Change Request and also are linked to the Bug's affected set of Requirements.</field>
+                    <field name="description">Ensure that all Test Cases (that are testing at least one Bug which is linked via predecessor from the Change Request) are linked to the Bug's affected set of Requirements.</field>
                     <value name="constraint">
                       <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
-                        <field name="arlRule">self.out_TCs&#10;-&gt;select(tc | tc.testsItems&#10;    -&gt;exists(item | item.workItemType='Bug'&#10;             and &#10;        item.predecessorItems&#10;        -&gt;intersection(self.in_CRs).size() &gt; 0           &#10;))&#10;-&gt;forAll(tc2 : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;           tc2.testsItems&#10;    -&gt;select(item2 | item2.workItemType='Bug')&#10;           -&gt;asList()-&gt;first()&#10;          -&gt;asType(&#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;     .affectsItems&#10;    -&gt;select(item3 | &#10;                item3.workItemType='Requirement')&#10;    -&gt;intersection(tc2.testsItems &#10;         -&gt;select(item4 | &#10;                item4.workItemType='Requirement')&#10;       )-&gt;size() &gt; 0&#10;)</field>
+                        <field name="arlRule">self.out_TCs&#10;-&gt;select(tc | tc.testsItems&#10;    -&gt;exists(item | item.workItemType='Bug'&#10;             and &#10;        item.predecessorItems&#10;        -&gt;intersection(self.in_CRs).size() &gt; 0           &#10;))&#10;-&gt;forAll(tc2  | &#10;           tc2.testsItems&#10;    -&gt;select(item2 | item2.workItemType='Bug')&#10;           -&gt;asList()-&gt;first()&#10;          -&gt;asType(&#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;     .affectsItems&#10;    -&gt;select(item3 | &#10;                item3.workItemType='Requirement')&#10;    -&gt;intersection(tc2.testsItems &#10;         -&gt;select(item4 | &#10;                item4.workItemType='Requirement')&#10;       )-&gt;size() &gt; 0&#10;)</field>
                       </block>
                     </value>
                   </block>
