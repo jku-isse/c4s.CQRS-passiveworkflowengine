@@ -396,6 +396,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 				Map<PropertySchemaDTO, Boolean> result = configFactory.augmentConfig(Set.of(dto), configType);
 				if (result.get(dto) == true) {
 					Notification.show("Successfully added property "+name);
+					configType.workspace.concludeTransaction();
 					Set<PropertyType> pTypes = configType.getPropertyTypes(false, true);
 					dataProvider.getItems().clear();
 					dataProvider.getItems().addAll(pTypes);
