@@ -2,7 +2,7 @@ Blockly.Blocks['artifact'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("Artifact Type")
-        .appendField(new Blockly.FieldDropdown([["Jira","jira_artifact"], ["Jama","jama_item"], ["Azure","azure_workitem"], ["GitHub Issue","git_issue"], ["Process Definition","ProcessDefinition"], ["ACME-RA Issue", "acme_issue"], ["ACME-RA Engineer", "acme_engineer"]]), "Type");
+        .appendField(new Blockly.FieldDropdown([["Jira","jira_artifact"], ["Jama","jama_item"], ["Azure","azure_workitem"], ["GitHub Issue","git_issue"], ["Process Definition","ProcessDefinition"],["ProcessConfiguration","process_config_base"], ["ACME-RA Issue", "acme_issue"], ["ACME-RA Engineer", "acme_engineer"]]), "Type");
     this.setOutput(true, null);
     this.setColour(45);
  this.setTooltip("Defines what type of artifact is involved");

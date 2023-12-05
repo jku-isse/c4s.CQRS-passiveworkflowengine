@@ -242,7 +242,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
 		grid.setDataProvider(dataProvider);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		return grid;
 	}
 

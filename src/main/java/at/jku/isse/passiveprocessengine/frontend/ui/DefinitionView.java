@@ -13,11 +13,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.security.access.method.P;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
@@ -27,9 +32,12 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.BeforeEvent;
@@ -41,9 +49,15 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
+import at.jku.isse.designspace.core.model.Cardinality;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.Property;
+import at.jku.isse.designspace.core.model.PropertyType;
+import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory.PropertySchemaDTO;
 import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.QAConstraintSpec;
@@ -68,6 +82,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     
     protected RequestDelegate commandGateway;
     private IFrontendPusher pusher;
+    private ProcessConfigBaseElementFactory configFactory;
     
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
@@ -80,8 +95,9 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private List<ProcessDefinition> defs = Collections.emptyList();
     private ComboBox<ProcessDefinition> comboBox;
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, ProcessConfigBaseElementFactory configFactory) {    	
     	this.commandGateway = commandGateway;
+    	this.configFactory = configFactory;
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
@@ -197,14 +213,14 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
     		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		
     		addDeleteButtonIfTopLevelProcess(detailsContent, step);
-    		
+    		addConfigViewIfTopLevelProcess(detailsContent, step);
     	} else {    		
     		resetDetailsContent();
     		//grid.setWidthFull();
     		//splitLayout.setSplitterPosition(70);    		    		
     	}
     }        
-    
+
 	private void addInfoHeader(VerticalLayout l,StepDefinition step) {		
         H5 header= new H5(step.getName());
         header.setClassName("info-header");
@@ -324,6 +340,91 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
             l.add(delIcon);
     	}
     }
+    
+	private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, StepDefinition step) {
+		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
+			// see if a config is foreseen
+			step.getExpectedInput().entrySet().stream()
+			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
+			.findAny().ifPresent(configEntry -> {
+				InstanceType procConfig = configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
+				
+				Set<PropertyType> pTypes = procConfig.getPropertyTypes(false, true);
+				ListDataProvider<PropertyType> dataProvider = new ListDataProvider<>(pTypes);
+				detailsContent2.add(propertyTypesAsList(dataProvider));
+				
+				Details addPropDetails = new Details("Add new Property", propertyAddControls(dataProvider, procConfig));
+				addPropDetails.setOpened(false);
+				addPropDetails.addThemeVariants(DetailsVariant.FILLED);
+				detailsContent2.add(addPropDetails);
+			});					
+		}
+	}
+	
+	private Component propertyAddControls(ListDataProvider<PropertyType> dataProvider, InstanceType configType) {				
+		TextField nameField = new TextField();		
+		nameField.setLabel("Property Name");
+		nameField.setPattern("^[a-zA-Z0-9_]+$");
+		/*
+		 * ^ : start of string
+			[ : beginning of character group
+			a-z : any lowercase letter
+			A-Z : any uppercase letter
+			0-9 : any digit
+			_ : underscore
+			] : end of character group
+		 	+ : one or more of the given characters
+			$ : end of string
+		 * */
+		nameField.setPreventInvalidInput(true);
+		ComboBox<InstanceType> types = new ComboBox<>("Property Type");
+		types.setItems(Workspace.STRING, Workspace.BOOLEAN, Workspace.DATE, Workspace.INTEGER, Workspace.REAL);
+		types.setValue(Workspace.BOOLEAN);
+		ComboBox<Cardinality> cardinalities = new ComboBox<>("Cardinality");
+		cardinalities.setItems(Cardinality.values());
+		cardinalities.setValue(Cardinality.SINGLE);
+		Icon addIcon = new Icon(VaadinIcon.PLUS);
+        addIcon.getStyle()
+	      .set("box-sizing", "border-box")
+	      .set("margin-inline-end", "var(--lumo-space-m)")
+	      .set("margin-inline-start", "var(--lumo-space-xs)")
+	      .set("padding", "var(--lumo-space-xs)");
+		Button createButton = new Button("Create Property", addIcon, evt -> {
+			if (!nameField.isInvalid()) {
+				String name = nameField.getValue().trim();				
+				PropertySchemaDTO dto = new PropertySchemaDTO(name, types.getValue().name(), cardinalities.getValue().toString());
+				Map<PropertySchemaDTO, Boolean> result = configFactory.augmentConfig(Set.of(dto), configType);
+				if (result.get(dto) == true) {
+					Notification.show("Successfully added property "+name);
+					Set<PropertyType> pTypes = configType.getPropertyTypes(false, true);
+					dataProvider.getItems().clear();
+					dataProvider.getItems().addAll(pTypes);
+					dataProvider.refreshAll();
+				} else {
+					Notification.show("Unable to add property "+name);
+				}
+			} else {
+				Notification.show("Please choose a valid property name");
+			}
+		});
+		
+		VerticalLayout l = new VerticalLayout();
+		l.setPadding(false);
+		l.add(nameField, types, cardinalities, createButton);
+		return l;
+	}
+	
+	private Component propertyTypesAsList(ListDataProvider<PropertyType> dataProvider) {		
+		Grid<PropertyType> grid = new Grid<PropertyType>();
+		grid.setColumnReorderingAllowed(false);
+		Grid.Column<PropertyType> nameColumn = grid.addColumn(p -> p.name()).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
+		Grid.Column<PropertyType> typeColumn = grid.addColumn(p -> p.nativeType()).setHeader("Type").setResizable(true);
+		Grid.Column<PropertyType> cardinalityColumn = grid.addColumn(p -> p.cardinality().toString() ).setHeader("Cardinality").setResizable(true);
+		grid.setDataProvider(dataProvider);
+		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+		grid.setAllRowsVisible(true);
+		return grid;
+	}
     
 	private static ComponentRenderer<Span, Map.Entry<String, InstanceType>> createTypeRenderer() {
     	return new ComponentRenderer<>(Span::new, type2Component);
