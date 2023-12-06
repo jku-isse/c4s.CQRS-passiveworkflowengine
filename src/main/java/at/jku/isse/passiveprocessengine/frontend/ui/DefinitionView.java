@@ -346,14 +346,14 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 			// see if a config is foreseen
 			step.getExpectedInput().entrySet().stream()
 			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
-			.findAny().ifPresent(configEntry -> {
-				InstanceType procConfig = configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
+			.forEach(configEntry -> {
+				InstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
 				
 				Set<PropertyType> pTypes = procConfig.getPropertyTypes(false, true);
 				ListDataProvider<PropertyType> dataProvider = new ListDataProvider<>(pTypes);
 				detailsContent2.add(propertyTypesAsList(dataProvider));
 				
-				Details addPropDetails = new Details("Add new Property", propertyAddControls(dataProvider, procConfig));
+				Details addPropDetails = new Details("Add new "+configEntry.getKey()+" Property", propertyAddControls(dataProvider, procConfig));
 				addPropDetails.setOpened(false);
 				addPropDetails.addThemeVariants(DetailsVariant.FILLED);
 				detailsContent2.add(addPropDetails);

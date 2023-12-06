@@ -80,8 +80,8 @@ public class RequestDelegate {
 	
 	@Autowired RestrictionProxyRepository restrictionACL;
 	
-	
-//	private ProcessConfigBaseElementFactory configFactory;
+	@Autowired
+	private ProcessConfigBaseElementFactory configFactory;
 	
 	ProcessChangeListenerWrapper picp;
 	
@@ -259,7 +259,7 @@ public class RequestDelegate {
 		//configFactory = new ProcessConfigBaseElementFactory(ws, "processConfigTypes");
 		
 		resolver.inject(ws);
-		procReg.inject(ws);
+		procReg.inject(ws, configFactory);
 		if (repAnalyzer != null)
 			repAnalyzer.inject(ws);
 		ArlRuleEvaluator arl = new ArlRuleEvaluator();

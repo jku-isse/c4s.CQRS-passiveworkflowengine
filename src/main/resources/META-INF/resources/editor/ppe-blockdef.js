@@ -38,6 +38,36 @@ Blockly.Blocks['step'] = {
   }
 };
 
+Blockly.Blocks['config'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Config"), "ConfigId");
+    this.appendStatementInput("Properties")
+        .setCheck("configproperty")
+        .appendField("Properties");        
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, "function");
+    this.setNextStatement(true, null);
+    this.setColour(130);
+ this.setTooltip("Process Configuration Properties");
+ this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['configproperty'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Property Name"), "propertyName")
+        .appendField(new Blockly.FieldDropdown([["Boolean","BOOLEAN"], ["String","STRING"], ["Integer","INTEGER"], ["Double","REAL"], ["Date","DATE"]]), "propertyType")
+        .appendField(new Blockly.FieldDropdown([["Single","SINGLE"], ["List (not supported yet)","LIST"], ["Set (not supported yet)","SET"], ["Map (not supported yet)","MAP"]]), "cardinality")
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(130);
+    this.setInputsInline(false);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
 
 
 Blockly.Blocks['artuse'] = {

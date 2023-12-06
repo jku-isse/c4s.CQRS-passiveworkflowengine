@@ -1,7 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <variables>
     <variable id="n~zSfOoBX_-ZfBjz?5GK">story</variable>
-    <variable id="vHC;L.`-UdQ]v:t@e_=O">config</variable>
   </variables>
   <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="363" y="-187">
     <mutation>
@@ -10,83 +9,93 @@
     <field name="NAME">processconfigtest</field>
     <comment pinned="false" h="80" w="160">Describe this function...</comment>
     <statement name="STACK">
-      <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
-        <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
-        <value name="VALUE">
-          <block type="artifact" id="mO0+(2h`8akDGGU?*%)q">
-            <field name="Type">jira_artifact</field>
+      <block type="config" id="$!B,s;[~8ISMQI[nH0nV">
+        <field name="ConfigId">Config</field>
+        <statement name="Properties">
+          <block type="configproperty" id="auOJ7@b4g`TqohC]HAE$">
+            <field name="propertyName">isTestingEnabled</field>
+            <field name="propertyType">BOOLEAN</field>
+            <field name="cardinality">SINGLE</field>
+            <next>
+              <block type="configproperty" id="LhvL4*]lPF9-!%yJ*cA1">
+                <field name="propertyName">strProp</field>
+                <field name="propertyType">STRING</field>
+                <field name="cardinality">SINGLE</field>
+                <next>
+                  <block type="configproperty" id="oVF1xcp[5bs]-07;eD^6">
+                    <field name="propertyName">intProp</field>
+                    <field name="propertyType">INTEGER</field>
+                    <field name="cardinality">SINGLE</field>
+                    <next>
+                      <block type="configproperty" id="-GBQDG/OHwY]BW}VP;9E">
+                        <field name="propertyName">doubleProp</field>
+                        <field name="propertyType">REAL</field>
+                        <field name="cardinality">SINGLE</field>
+                        <next>
+                          <block type="configproperty" id="Q^Z0$!({JY=|3Y5[FoH1">
+                            <field name="propertyName">dateProp</field>
+                            <field name="propertyType">DATE</field>
+                            <field name="cardinality">SINGLE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
           </block>
-        </value>
+        </statement>
         <next>
-          <block type="artuse" id="/xUvoJ^K0zrMV5BD$zp[">
-            <field name="roletext">Param</field>
-            <value name="NAME">
-              <block type="variables_get" id="je|v[uiypg.$qiog[E,[">
-                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+          <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
+            <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+            <value name="VALUE">
+              <block type="artifact" id="mO0+(2h`8akDGGU?*%)q">
+                <field name="Type">jira_artifact</field>
               </block>
             </value>
             <next>
-              <block type="variables_set" id="q!4y^q-ZZ|@Y+]#o{p7b">
-                <field name="VAR" id="vHC;L.`-UdQ]v:t@e_=O">config</field>
-                <value name="VALUE">
-                  <block type="artifact" id="*dhh!M;!S1(ZuVrL(|FP">
-                    <field name="Type">process_config_base</field>
+              <block type="artuse" id="/xUvoJ^K0zrMV5BD$zp[">
+                <field name="roletext">Param</field>
+                <value name="NAME">
+                  <block type="variables_get" id="je|v[uiypg.$qiog[E,[">
+                    <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
                   </block>
                 </value>
                 <next>
-                  <block type="artuse" id=",D?2pGQv%TvAg[|D%;+:">
-                    <field name="roletext">Param</field>
-                    <value name="NAME">
-                      <block type="variables_get" id="!c3Ot_[efLP.JrXcU=)g">
-                        <field name="VAR" id="vHC;L.`-UdQ]v:t@e_=O">config</field>
+                  <block type="step" id="7KCYzg}K]7rv+OHU.fLU">
+                    <field name="StepId">PrepareProcess</field>
+                    <statement name="Input">
+                      <block type="artuse" id="^7-l43E^VIT6D*,^_WvY">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="*vEZ)Xcg3g0_i#yIFa4|">
+                            <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+                          </block>
+                        </value>
                       </block>
-                    </value>
-                    <next>
-                      <block type="step" id="7KCYzg}K]7rv+OHU.fLU">
-                        <field name="StepId">PrepareProcess</field>
-                        <statement name="Input">
-                          <block type="artuse" id="^7-l43E^VIT6D*,^_WvY">
-                            <field name="roletext">Param</field>
-                            <value name="NAME">
-                              <block type="variables_get" id="*vEZ)Xcg3g0_i#yIFa4|">
-                                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
-                              </block>
-                            </value>
-                            <next>
-                              <block type="artuse" id="9Z8]3XI8R5JQk)-@CZ(V">
-                                <field name="roletext">Param</field>
-                                <value name="NAME">
-                                  <block type="variables_get" id="F!NTY+K^;u^*oQL7#M9%">
-                                    <field name="VAR" id="vHC;L.`-UdQ]v:t@e_=O">config</field>
-                                  </block>
-                                </value>
-                              </block>
-                            </next>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="okx*m#~GhODX$G=[awu)">
+                        <field name="State">POSTCONDITION</field>
+                        <value name="condition">
+                          <block type="constraint" id="1/2-}61~HIEb~Si;IFEe">
+                            <field name="arlRule">self.in_story-&gt;size() &gt; 0 </field>
                           </block>
-                        </statement>
-                        <statement name="Transitions">
-                          <block type="transition" id="okx*m#~GhODX$G=[awu)">
-                            <field name="State">POSTCONDITION</field>
-                            <value name="condition">
-                              <block type="constraint" id="1/2-}61~HIEb~Si;IFEe">
-                                <field name="arlRule">self.in_story-&gt;size() &gt; 0 &#10;and &#10;self.in_config-&gt;size() &gt; 0 </field>
-                              </block>
-                            </value>
-                          </block>
-                        </statement>
-                        <statement name="QA">
-                          <block type="qacheck" id="4h3:uMFI,LI{94)Smnor">
-                            <field name="qacheckId">TestConfigAccess</field>
-                            <field name="description">Just tests that we can access the config parameter</field>
-                            <value name="constraint">
-                              <block type="constraint" id="]_zo!BJxv}-8-}-DA)lE">
-                                <field name="arlRule">self.in_config-&gt;forAll(conf : &lt;root/types/processConfig/config_processconfigtest&gt; | conf.isTestingEnabled = true)</field>
-                              </block>
-                            </value>
-                          </block>
-                        </statement>
+                        </value>
                       </block>
-                    </next>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="4h3:uMFI,LI{94)Smnor">
+                        <field name="qacheckId">TestConfigAccess</field>
+                        <field name="description">Just tests that we can access the config parameter</field>
+                        <value name="constraint">
+                          <block type="constraint" id="]_zo!BJxv}-8-}-DA)lE">
+                            <field name="arlRule">self.process.in_Config-&gt;forAll(conf  | conf.isTestingEnabled = true)</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
                   </block>
                 </next>
               </block>

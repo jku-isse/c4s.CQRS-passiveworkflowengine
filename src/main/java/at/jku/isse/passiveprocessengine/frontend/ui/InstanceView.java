@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -60,12 +61,14 @@ import at.jku.isse.designspace.core.model.MapProperty;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
+import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import ch.qos.logback.core.Layout;
 import lombok.extern.slf4j.Slf4j;
 
@@ -147,6 +150,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				hl.add(elName);
 				
 				Component grid = null;
+				Dialog dialog = new Dialog();				 				
 				if (el instanceof Instance) {        		
 					Instance inst = (Instance) el;
 					if (!inst.getInstanceType().isKindOf(configFactory.getBaseType())) { // only allow editing of process config instances
@@ -159,9 +163,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 					else if (inst.hasProperty("fullyFetched")) {
 						hl.add(getReloadIcon(inst));
 					}
-					grid = instanceAsList(inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()));
+					grid = instanceAsList(inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, inst.workspace);
 				} else if (el instanceof InstanceType) {
-					grid = instanceAsList(((InstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()));
+					grid = instanceAsList(((InstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, el.workspace);
 				}		
 				if (el.isDeleted) { 
 					elName.getStyle().set("background-color", "#ffbf00");
@@ -169,7 +173,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				}
 				layout.add(hl);
 				layout.add(createSearchField());
-				layout.add(grid);				
+				layout.add(grid);	
+				layout.add(dialog);
 			}
 		}
 		return layout;
@@ -264,7 +269,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		else return false;
 	}
 
-	private Component instanceAsList(List<Property> content, Dialog dialog) {
+	private Component instanceAsList(List<Property> content, Dialog dialog, Workspace ws) {
 		//List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))	
 		dataProvider = new ListDataProvider<>(content);
 		Grid<Property> grid = new Grid<Property>();
@@ -275,11 +280,11 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		grid.setAllRowsVisible(true);
 		if (this.editmode.equals(EDITMODE.write) && dialog!= null) {
-			dialog.getElement().setAttribute("aria-label", "Create new employee");
+			dialog.getElement().setAttribute("aria-label", "Update Process Configuration Property");
 			grid.addItemClickListener(item -> {
 				Property prop = item.getItem();
 				if (prop.propertyType().cardinality().equals(Cardinality.SINGLE) && prop.propertyType().isPrimitive()) {
-					VerticalLayout dialogLayout = createEditDialogLayout(dialog, prop);
+					VerticalLayout dialogLayout = createEditDialogLayout(dialog, prop, ws);
 					dialog.removeAll();
 					dialog.add(dialogLayout);
 					dialog.open();
@@ -293,7 +298,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	
 	private static String KEY = "key";
 	
-	private VerticalLayout createEditDialogLayout(Dialog dialog, Property property) {
+	private VerticalLayout createEditDialogLayout(Dialog dialog, Property property, Workspace ws) {
 		H2 headline = new H2("Update Property");
         headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
                 .set("font-size", "1.5em").set("font-weight", "bold");
@@ -310,7 +315,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	ComboBox<Boolean> boolBox = new ComboBox<>();
         	boolBox.setItems(Boolean.TRUE, Boolean.FALSE);
         	input = boolBox;
-        	//TODO: set old value
+        	Optional<Boolean> currentValue = Optional.ofNullable((Boolean)property.getValue());
+        	currentValue.ifPresentOrElse(curValue -> boolBox.setValue(curValue), () -> boolBox.setValue(true));        	
         	boolBox.addValueChangeListener(change -> {
         		newValue.put(KEY, change.getValue());
         	});
@@ -319,7 +325,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	singleFormatI18n.setDateFormat("yyyy-MM-dd");
         	DatePicker datePicker = new DatePicker("Date");
         	datePicker.setI18n(singleFormatI18n);
-        	//TODO: set old value
+        	Optional<Date> currentValue = Optional.ofNullable((Date)property.getValue());
+        	currentValue.ifPresent(curValue -> datePicker.setValue(curValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));        	
         	input = datePicker;
         	datePicker.addValueChangeListener(change -> {
         		ZoneId defaultZoneId = ZoneId.systemDefault();
@@ -329,26 +336,40 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         } else if (type.equals(Workspace.INTEGER)) {
         	NumberField numberField = new NumberField();
         	input = numberField;
-        	//TODO: load old value
+        	Optional<Integer> currentValue = Optional.ofNullable((Integer)property.getValue());
+        	currentValue.ifPresent(curValue -> numberField.setValue(curValue.doubleValue()));
         	numberField.addValueChangeListener(change -> {
         		newValue.put(KEY, change.getValue().intValue());
         	});
         } else if (type.equals(Workspace.REAL)) {
         	NumberField numberField2 = new NumberField();
         	input = numberField2;
-        	//TODO: load old value
+        	Optional<Double> currentValue = Optional.ofNullable((Double)property.getValue());
+        	currentValue.ifPresent(curValue -> numberField2.setValue(curValue));
         	numberField2.addValueChangeListener(change -> {
         		newValue.put(KEY, change.getValue());
         	});
         } else {
-        	// unsupported complex type
+        	String msg = String.format("Edit Dialog encountered unsupported type %s for property %s", type.name(), property.name);
+        	log.warn(msg);
+        	dialog.close();
+        	Notification.show(String.format("Edit Dialog encountered unsupported type %s for property %s", type.name(), property.name));
         }
        
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         Button saveButton = new Button("Save", e -> { 
-        	// TODO check if value is there
-        	// conclude transaction in the background/tread
-        	dialog.close(); 
+        	if (newValue.containsKey(KEY)) {
+        		Object newObj = newValue.get(KEY);
+        		property.setValue(newObj);        		
+            	// conclude transaction in the background/tread
+        		new Thread(() -> { 
+        			ws.concludeTransaction();
+				} ).start();        		        		
+        		dialog.close();
+        	} else {
+        		Notification.show("No input found, please provide a new value before saving");
+        	}
+        	 
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton,
