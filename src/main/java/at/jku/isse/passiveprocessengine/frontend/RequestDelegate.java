@@ -28,6 +28,7 @@ import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -79,11 +80,10 @@ public class RequestDelegate {
 	
 	@Autowired RestrictionProxyRepository restrictionACL;
 	
+	@Autowired
+	private ProcessConfigBaseElementFactory configFactory;
 	
 	ProcessChangeListenerWrapper picp;
-	
-	
-	//Map<String, ProcessInstance> pInstances = new HashMap<>();
 	
 	boolean isInitialized = false;
 	
@@ -114,6 +114,10 @@ public class RequestDelegate {
 	public UsageMonitor getMonitor() {
 		return monitor;
 	}
+	
+//	public ProcessConfigBaseElementFactory getProcessConfigTypeFactory() {		
+//		return configFactory;
+//	}
 	
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
 		if (!isInitialized) initialize();
@@ -251,8 +255,11 @@ public class RequestDelegate {
 		//Tool tool = new Tool("PPEv3", "v1.0");
 		//ws = WorkspaceService.createWorkspace("PPEv3", WorkspaceService.PUBLIC_WORKSPACE, WorkspaceService.ANY_USER, tool, true, false);
 		ws = WorkspaceService.PUBLIC_WORKSPACE;
+		
+		//configFactory = new ProcessConfigBaseElementFactory(ws, "processConfigTypes");
+		
 		resolver.inject(ws);
-		procReg.inject(ws);
+		procReg.inject(ws, configFactory);
 		if (repAnalyzer != null)
 			repAnalyzer.inject(ws);
 		ArlRuleEvaluator arl = new ArlRuleEvaluator();
@@ -267,6 +274,9 @@ public class RequestDelegate {
 		//if (repAnalyzer != null)
 		//	wsls.registerListener(repAnalyzer);
 		wsls.registerListener(picp);
+		
+		 
+		
 		isInitialized = true;
 	}
 	

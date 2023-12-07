@@ -1,0 +1,147 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="n~zSfOoBX_-ZfBjz?5GK">story</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="363" y="-187">
+    <mutation>
+      <arg name="story" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
+    </mutation>
+    <field name="NAME">processconfigtest</field>
+    <comment pinned="false" h="80" w="160">Describe this function...</comment>
+    <statement name="STACK">
+      <block type="config" id="$!B,s;[~8ISMQI[nH0nV">
+        <field name="ConfigId">Config</field>
+        <statement name="Properties">
+          <block type="configproperty" id="auOJ7@b4g`TqohC]HAE$">
+            <field name="propertyName">isTestingEnabled</field>
+            <field name="propertyType">BOOLEAN</field>
+            <field name="cardinality">SINGLE</field>
+            <next>
+              <block type="configproperty" id="LhvL4*]lPF9-!%yJ*cA1">
+                <field name="propertyName">strProp</field>
+                <field name="propertyType">STRING</field>
+                <field name="cardinality">SINGLE</field>
+                <next>
+                  <block type="configproperty" id="oVF1xcp[5bs]-07;eD^6">
+                    <field name="propertyName">intProp</field>
+                    <field name="propertyType">INTEGER</field>
+                    <field name="cardinality">SINGLE</field>
+                    <next>
+                      <block type="configproperty" id="-GBQDG/OHwY]BW}VP;9E">
+                        <field name="propertyName">doubleProp</field>
+                        <field name="propertyType">REAL</field>
+                        <field name="cardinality">SINGLE</field>
+                        <next>
+                          <block type="configproperty" id="Q^Z0$!({JY=|3Y5[FoH1">
+                            <field name="propertyName">dateProp</field>
+                            <field name="propertyType">DATE</field>
+                            <field name="cardinality">SINGLE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <next>
+          <block type="variables_set" id="i$Yq3q+M]PA`.C)W3q8(">
+            <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+            <value name="VALUE">
+              <block type="artifact" id="mO0+(2h`8akDGGU?*%)q">
+                <field name="Type">jira_artifact</field>
+              </block>
+            </value>
+            <next>
+              <block type="artuse" id="/xUvoJ^K0zrMV5BD$zp[">
+                <field name="roletext">Param</field>
+                <value name="NAME">
+                  <block type="variables_get" id="je|v[uiypg.$qiog[E,[">
+                    <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="parallelexecution" id="{/jG7r8tBm%t~}J}qadz">
+                    <field name="InFlowType">XOR</field>
+                    <statement name="DO0">
+                      <block type="step" id="7KCYzg}K]7rv+OHU.fLU">
+                        <field name="StepId">NoTesting</field>
+                        <statement name="Input">
+                          <block type="artuse" id="^7-l43E^VIT6D*,^_WvY">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="*vEZ)Xcg3g0_i#yIFa4|">
+                                <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <statement name="Transitions">
+                          <block type="transition" id="okx*m#~GhODX$G=[awu)">
+                            <field name="State">POSTCONDITION</field>
+                            <value name="condition">
+                              <block type="constraint" id="1/2-}61~HIEb~Si;IFEe">
+                                <field name="arlRule">self.in_story-&gt;size() &gt; 0 </field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="transition" id="q7Nxi=@);(vDRX1B[GCV">
+                                <field name="State">CANCELATION</field>
+                                <value name="condition">
+                                  <block type="constraint" id="]_zo!BJxv}-8-}-DA)lE">
+                                    <field name="arlRule">self.process.in_Config-&gt;forAll(conf  | conf.isTestingEnabled = true)</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="step" id="iY/f))`UtUhSpifGp2,Q">
+                            <field name="StepId">Testing</field>
+                            <statement name="Input">
+                              <block type="artuse" id="?];m:e`yc*/V9wI.G)fM">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="4^2xP[Mf;#HKS~ZF$@IC">
+                                    <field name="VAR" id="n~zSfOoBX_-ZfBjz?5GK">story</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id="-Jn-8?*SZ+gw##|5](|O">
+                                <field name="State">POSTCONDITION</field>
+                                <value name="condition">
+                                  <block type="constraint" id="dzw,W$wh,7nfA@u=d~Ly">
+                                    <field name="arlRule">self.in_story-&gt;size() &gt; 0 </field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="transition" id="x(P5$*F?/5u{iNgLay:S">
+                                    <field name="State">CANCELATION</field>
+                                    <value name="condition">
+                                      <block type="constraint" id="~vBdL9CQ@GteRp6o4lZJ">
+                                        <field name="arlRule">self.process.in_Config-&gt;forAll(conf  | conf.isTestingEnabled &lt;&gt; true)</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
