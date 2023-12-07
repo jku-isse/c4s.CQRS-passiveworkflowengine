@@ -2,7 +2,7 @@ Blockly.Blocks['artifact'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("Artifact Type")
-        .appendField(new Blockly.FieldDropdown([["Jira","jira_artifact"], ["Jama","jama_item"], ["Azure","azure_workitem"], ["GitHub Issue","git_issue"], ["Process Definition","ProcessDefinition"], ["ACME-RA Issue", "acme_issue"], ["ACME-RA Engineer", "acme_engineer"]]), "Type");
+        .appendField(new Blockly.FieldDropdown([["Jira","jira_artifact"], ["Jama","jama_item"], ["Azure","azure_workitem"], ["GitHub Issue","git_issue"], ["Process Definition","ProcessDefinition"],["ProcessConfiguration","process_config_base"], ["ACME-RA Issue", "acme_issue"], ["ACME-RA Engineer", "acme_engineer"]]), "Type");
     this.setOutput(true, null);
     this.setColour(45);
  this.setTooltip("Defines what type of artifact is involved");
@@ -38,6 +38,36 @@ Blockly.Blocks['step'] = {
   }
 };
 
+Blockly.Blocks['config'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Config"), "ConfigId");
+    this.appendStatementInput("Properties")
+        .setCheck("configproperty")
+        .appendField("Properties");        
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, "function");
+    this.setNextStatement(true, null);
+    this.setColour(130);
+ this.setTooltip("Process Configuration Properties");
+ this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['configproperty'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Property Name"), "propertyName")
+        .appendField(new Blockly.FieldDropdown([["Boolean","BOOLEAN"], ["String","STRING"], ["Integer","INTEGER"], ["Double","REAL"], ["Date","DATE"]]), "propertyType")
+        .appendField(new Blockly.FieldDropdown([["Single","SINGLE"], ["List (not supported yet)","LIST"], ["Set (not supported yet)","SET"], ["Map (not supported yet)","MAP"]]), "cardinality")
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(130);
+    this.setInputsInline(false);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
 
 
 Blockly.Blocks['artuse'] = {

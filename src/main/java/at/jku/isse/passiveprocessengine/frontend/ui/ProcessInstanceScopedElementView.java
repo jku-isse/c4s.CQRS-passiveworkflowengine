@@ -30,12 +30,15 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
@@ -45,6 +48,9 @@ import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
@@ -64,10 +70,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 	private UIConfig conf;
 	 private Authentication authentication;
 	 private String loggedInUserNameOrNull = null;
+	 private ProcessConfigBaseElementFactory configFactory;
 	
-	public ProcessInstanceScopedElementView(RequestDelegate f) {
+	public ProcessInstanceScopedElementView(RequestDelegate f, ProcessConfigBaseElementFactory configFactory) {
 		 this.reqDel = f;
 		 this.conf = f.getUIConfig();
+		 this.configFactory = configFactory;
 		 this.authentication = SecurityContextHolder.getContext().getAuthentication();
 		 loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
 		 this.setMargin(false);
@@ -178,6 +186,8 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
             	reqDel.deleteProcessInstance(wfi.getName());
             	//updateTreeGrid();
         });
+        addConfigViewIfTopLevelProcess(l, wfi);
+        
         delIcon.getElement().setProperty("title", "Remove this process");
         l.add(delIcon);
         if (!conf.isAnonymized() && !conf.isExperimentModeEnabled()) {        
@@ -211,18 +221,6 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         augmentWithPrematureUnsafeMode(wft, l);
         infoDialogInputOutput(l,  wft);
         
-//        Dialog dialog = new Dialog();
-//        dialog.setMaxHeight("80%");
-//        dialog.setWidth("80%");
-//
-//        Icon icon = getStepIcon(wft);
-//        icon.getStyle().set("cursor", "pointer");
-//        icon.addClickListener(e -> { 
-//        	reqDel.getMonitor().stepViewed(wft, loggedInUserNameOrNull);
-//        	dialog.open();	
-//        });
-//        dialog.add(l);
-//        return icon;
         return l;
     }
 
@@ -364,47 +362,6 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	} else
     		return null;
     }
-    
-//    private Component addInOut(String title, ProcessStep wft, boolean isIn, String role, String type) {
-//        HorizontalLayout hLayout = new HorizontalLayout();
-//        hLayout.setClassName("upload-background");
-//
-//        TextField id = new TextField();
-//        id.setPlaceholder("Artifact ID");
-//
-//        if (reqDel != null) {
-//        	Button submit = new Button(title, evt -> {
-//        		try {
-//        			if (wft instanceof ProcessStep) {
-//        				if (isIn) {
-//        					reqDel.addInput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process step submitted");
-//        				} else {
-//        					reqDel.addOutput(wft.getProcess().getName(), wft.getId(), id.getValue(), role, type);
-//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process step submitted");
-//        				}
-//        				Notification.show("Success");
-//        			} else if (wft instanceof ProcessInstance) {
-//        				if (isIn) {
-//        					reqDel.addInput(wft.getId(), null, id.getValue(), role, type);
-//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as input to process submitted");
-//        				} else {
-//        					reqDel.addOutput(wft.getId(), null, id.getValue(), role, type);
-//        					Notification.show(title + "-Request of artifact " + id.getValue() + " as output to process submitted");
-//        				}
-//        				Notification.show("Success");
-//        			}
-//        		} catch (ProcessException e) {
-//        			Notification.show(e.getMessage());
-//        		}
-//        	});
-//
-//        	hLayout.add(id, submit);
-//        }
-//        Details details = new Details(title, hLayout);
-//        details.addThemeVariants(DetailsVariant.SMALL);
-//        return details;
-//    }
 
     private void infoDialogInputOutput(VerticalLayout l, ProcessStep wft) {
         H5 h5 = new H5("Inputs");
@@ -454,6 +411,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                     UnorderedList nestedList = new UnorderedList();
                     for (Instance a : artifactList) {
                         HorizontalLayout nestedLine = new HorizontalLayout();
+                        nestedLine.setAlignItems(Alignment.START);
                         nestedLine.setClassName("line");
                         nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
                         nestedLine.add(getReloadIcon(a));
@@ -486,7 +444,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	HorizontalLayout inputData = new HorizontalLayout();
         inputData.setMargin(false);               
         inputData.setPadding(false);
-        inputData.setAlignItems(Alignment.END);
+        inputData.setAlignItems(Alignment.START);
         
         TextField tf = new TextField();
         tf.setRequiredIndicatorVisible(true);
@@ -534,6 +492,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         	} else { 
         		Notification.show("Make sure to fill out the artifact identifier!");
         	}});
+        addInputButton.getElement().getStyle().set("margin-top","37px");
         inputData.add(addInputButton);
         return inputData;
     }
@@ -570,6 +529,24 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         return icon;
     }
 
+    private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, ProcessInstance step) {		
+		if (step.getProcess() == null && !conf.isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
+			// see if a config is foreseen
+			step.getDefinition().getExpectedInput().entrySet().stream()
+			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
+			.forEach(configEntry -> {
+				//InstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
+				step.getInput(configEntry.getKey()).stream().forEach(config -> {
+				
+				detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
+				Anchor a = new Anchor("/instance/"+config.id(), "View and Edit in Artifact/Instance Inspector (DSId: "+config.id()+")");
+	        	a.setTarget("_blank");
+	        	detailsContent2.add(a);  
+				});
+			});					
+		}
+	}
+    
     private Component infoDialog(ConstraintWrapper rebc) {
     	VerticalLayout l = this;/*new VerticalLayout();    	
     	l.setMargin(false);

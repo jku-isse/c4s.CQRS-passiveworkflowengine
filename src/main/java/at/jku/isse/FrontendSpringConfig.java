@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import at.jku.isse.designspace.azure.service.IAzureService;
+import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
@@ -19,6 +21,7 @@ import at.jku.isse.designspace.rule.arl.repair.order.SortOnRepairPercentage;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
+import at.jku.isse.passiveprocessengine.frontend.artifacts.ProcessConfigProvider;
 import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
@@ -67,15 +70,20 @@ public class FrontendSpringConfig {
 	public TriggeredProcessLoader getProcessLoader(ProcessRegistry registry) {
 		return new TriggeredProcessLoader(registry);
 	}
+		
+	@Bean Workspace getWorkspace() {
+		return WorkspaceService.PUBLIC_WORKSPACE;
+	}
 
 	@Bean
-	public ArtifactResolver getArtifactResolver(IAzureService azure, IGitService github, DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(IAzureService azure, IGitService github, DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessConfigProvider procconf, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
 		ar.register(github);
 		ar.register(demo);
 		ar.register(jira);
 		ar.register(jama);
+		ar.register(procconf);
 		return ar;
 	}
     

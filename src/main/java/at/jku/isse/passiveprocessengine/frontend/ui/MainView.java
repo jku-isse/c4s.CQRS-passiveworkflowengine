@@ -40,8 +40,10 @@ import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
+import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.User;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.DefinitionView.DefinitionComparator;
@@ -63,6 +65,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	
     @Autowired
     private RequestDelegate commandGateway;
+    private ProcessConfigBaseElementFactory configFactory;
     @Autowired
     private IFrontendPusher pusher;
     private @Getter WorkflowTreeGrid grid;
@@ -101,9 +104,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
 
-    public MainView(RequestDelegate reqDel, IFrontendPusher pusher) {
+    public MainView(RequestDelegate reqDel, IFrontendPusher pusher, ProcessConfigBaseElementFactory configFactory) {
     	 this.commandGateway = reqDel;
     	 this.pusher = pusher;
+    	 this.configFactory = configFactory;
     	setSizeFull();
         setMargin(false);
         
@@ -121,7 +125,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         header.expand(loadProcess); 
         header.setWidth("100%");
                 
-        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel);
+        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel, configFactory);
         detailsView.setVisible(false); // initially nothing to show, hence invisible, will be made visible upon selection
         grid = new WorkflowTreeGrid(commandGateway);                
         grid.initTreeGrid();        
@@ -194,7 +198,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             	InstanceType artT = entry.getValue();                
                 String role = entry.getKey();
             	
-            	HorizontalLayout inputData = new HorizontalLayout();
+            	HorizontalLayout inputData = new HorizontalLayout();            	
                 inputData.setMargin(false);               
                 inputData.setPadding(false);
                 
@@ -214,6 +218,23 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 idTypeBox.setValue(idTypes.get(0));
                 idTypeBox.setAllowCustomValue(false);
                 inputData.add(idTypeBox);
+                
+                if (artT.isKindOf(configFactory.getBaseType())) {
+                	// this is a configuration artifact, lets make it possible to create a config on the fly, if the users wishes so
+                	Icon createIcon = new Icon(VaadinIcon.PLUS);
+                    createIcon.getStyle()
+            	      .set("box-sizing", "border-box")
+            	      .set("margin-inline-end", "var(--lumo-space-m)")
+            	      .set("margin-inline-start", "var(--lumo-space-xs)")
+            	      .set("padding", "var(--lumo-space-xs)");
+                	Button createConfigButton = new Button("New Config", createIcon, evt -> {
+                		Instance config = configFactory.createConfigInstance(role, artT);
+                		tf.setValue(config.id().toString());
+                	});     
+                	createConfigButton.getElement().getStyle().set("margin-top","37px");
+                	inputData.add(createConfigButton);
+                }
+                
                 source.add(inputData);
             }
             if (wfdContainer.getExpectedInput().size() == 0) {
