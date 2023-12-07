@@ -299,7 +299,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private static String KEY = "key";
 	
 	private VerticalLayout createEditDialogLayout(Dialog dialog, Property property, Workspace ws) {
-		H2 headline = new H2("Update Property");
+		H2 headline = new H2("Update Property: "+property.name);
         headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
                 .set("font-size", "1.5em").set("font-weight", "bold");
         InstanceType type =  property.propertyType().referencedInstanceType();
@@ -307,6 +307,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         Component input = null;
         if (type.equals(Workspace.STRING)) {
         	TextField stringField = new TextField(Objects.toString(property.getValue()));
+        	stringField.setLabel("Enter new 'String' value: ");
         	input = stringField;
         	stringField.addValueChangeListener(change -> {
         		newValue.put(KEY, change.getValue());
@@ -314,9 +315,12 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         } else if (type.equals(Workspace.BOOLEAN)) {
         	ComboBox<Boolean> boolBox = new ComboBox<>();
         	boolBox.setItems(Boolean.TRUE, Boolean.FALSE);
+        	boolBox.setLabel("Choose new 'Boolean' value: ");
         	input = boolBox;
         	Optional<Boolean> currentValue = Optional.ofNullable((Boolean)property.getValue());
-        	currentValue.ifPresentOrElse(curValue -> boolBox.setValue(curValue), () -> boolBox.setValue(true));        	
+        	currentValue.ifPresentOrElse(curValue -> boolBox.setValue(curValue), () -> { 
+        		boolBox.setValue(true); 
+        		newValue.put(KEY, true); });       // otherwise we need to set it to false and then true again when no value is present and we want to choose true 	
         	boolBox.addValueChangeListener(change -> {
         		newValue.put(KEY, change.getValue());
         	});
@@ -324,6 +328,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         	DatePicker.DatePickerI18n singleFormatI18n = new DatePicker.DatePickerI18n();
         	singleFormatI18n.setDateFormat("yyyy-MM-dd");
         	DatePicker datePicker = new DatePicker("Date");
+        	datePicker.setLabel("Enter new 'Date' value: ");
         	datePicker.setI18n(singleFormatI18n);
         	Optional<Date> currentValue = Optional.ofNullable((Date)property.getValue());
         	currentValue.ifPresent(curValue -> datePicker.setValue(curValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));        	
@@ -334,7 +339,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         		newValue.put(KEY,  date);
         	});
         } else if (type.equals(Workspace.INTEGER)) {
-        	NumberField numberField = new NumberField();
+        	NumberField numberField = new NumberField();     
+        	numberField.setMinWidth("150px");
+        	numberField.setLabel("Enter new 'Integer' number: ");
         	input = numberField;
         	Optional<Integer> currentValue = Optional.ofNullable((Integer)property.getValue());
         	currentValue.ifPresent(curValue -> numberField.setValue(curValue.doubleValue()));
@@ -342,7 +349,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         		newValue.put(KEY, change.getValue().intValue());
         	});
         } else if (type.equals(Workspace.REAL)) {
-        	NumberField numberField2 = new NumberField();
+        	NumberField numberField2 = new NumberField();       
+        	numberField2.setMinWidth("150px");
+        	numberField2.setLabel("Enter new 'Double' number");
         	input = numberField2;
         	Optional<Double> currentValue = Optional.ofNullable((Double)property.getValue());
         	currentValue.ifPresent(curValue -> numberField2.setValue(curValue));
@@ -360,10 +369,13 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
         Button saveButton = new Button("Save", e -> { 
         	if (newValue.containsKey(KEY)) {
         		Object newObj = newValue.get(KEY);
-        		property.setValue(newObj);        		
+        		property.set(newObj);        		
             	// conclude transaction in the background/tread
         		new Thread(() -> { 
         			ws.concludeTransaction();
+        			this.getUI().get().access(() -> { 
+        				dataProvider.refreshAll();
+        			});
 				} ).start();        		        		
         		dialog.close();
         	} else {

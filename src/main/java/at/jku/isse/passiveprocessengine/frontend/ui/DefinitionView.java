@@ -211,9 +211,9 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     		addConditionsTable(detailsContent, step);
     		addQATable(detailsContent, step);    			
     		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
-    		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		
-    		addDeleteButtonIfTopLevelProcess(detailsContent, step);
+    		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		    		
     		addConfigViewIfTopLevelProcess(detailsContent, step);
+    		addDeleteButtonIfTopLevelProcess(detailsContent, step);
     	} else {    		
     		resetDetailsContent();
     		//grid.setWidthFull();
@@ -256,7 +256,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 					}})
     			.collect(Collectors.toList()); 
     	grid.setItems(entries);
-    	grid.setHeightByRows(true);    
+    	grid.setAllRowsVisible(true);    
     	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     	l.add(grid);
 	}
@@ -326,8 +326,13 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
     		Icon delIcon = new Icon(VaadinIcon.TRASH);
             delIcon.setColor("red");
-            delIcon.getStyle().set("cursor", "pointer");
-            delIcon.addClickListener(e -> {            	
+            delIcon.getStyle()
+            .set("box-sizing", "border-box")
+            .set("margin-inline-end", "var(--lumo-space-m)")
+            .set("margin-inline-start", "var(--lumo-space-xs)")
+            .set("padding", "var(--lumo-space-xs)");
+
+            Button deleteBtn = new Button("Delete Process Definition and process instances thereof", delIcon, e -> {            	
             	log.info("Deleting process definiton: "+step.getName());
             	Map<String, Map<String, Set<Instance>>> formerInputs = commandGateway.getRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
             	log.info(String.format("Deleted %s running process instance(s)", formerInputs.size()));
@@ -336,12 +341,12 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
             	log.info("Deleted process definition: "+step.getName());
             	this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
             });
-            delIcon.getElement().setProperty("title", "Delete this process definition");
-            l.add(delIcon);
+            //delIcon.getElement().setProperty("title", "Delete this process definition");
+            l.add(deleteBtn);
     	}
     }
     
-	private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, StepDefinition step) {
+	private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, StepDefinition step) {		
 		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
 			// see if a config is foreseen
 			step.getExpectedInput().entrySet().stream()
@@ -351,9 +356,10 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 				
 				Set<PropertyType> pTypes = procConfig.getPropertyTypes(false, true);
 				ListDataProvider<PropertyType> dataProvider = new ListDataProvider<>(pTypes);
+				detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
 				detailsContent2.add(propertyTypesAsList(dataProvider));
 				
-				Details addPropDetails = new Details("Add new "+configEntry.getKey()+" Property", propertyAddControls(dataProvider, procConfig));
+				Details addPropDetails = new Details("Add new '"+configEntry.getKey()+"' Property", propertyAddControls(dataProvider, procConfig));
 				addPropDetails.setOpened(false);
 				addPropDetails.addThemeVariants(DetailsVariant.FILLED);
 				detailsContent2.add(addPropDetails);
@@ -423,7 +429,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		Grid.Column<PropertyType> cardinalityColumn = grid.addColumn(p -> p.cardinality().toString() ).setHeader("Cardinality").setResizable(true);
 		grid.setDataProvider(dataProvider);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-		grid.setAllRowsVisible(true);
+		grid.setAllRowsVisible(true);		
 		return grid;
 	}
     

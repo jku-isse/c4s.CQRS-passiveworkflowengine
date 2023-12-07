@@ -34,21 +34,21 @@ public class ProcessConfigProvider implements IArtifactProvider {
 		try {
 			
 			long longId = Long.parseLong(id);
-			if (longId < 0) {
-				// create the object
-				try {
-					Instance inst = configFactory.createConfigInstance(UUID.randomUUID().toString(), identifierType);
-					return new ServiceResponse(0, "ProcessConfigProvider", "Created", inst.id().toString());
-				} catch(ProcessException e) {
-					return new ServiceResponse(1, "ProcessConfigProvider", e.getMessage(), id);
-				}
-			} else {
+//			if (longId < 0) {
+//				// create the object
+//				try {
+//					Instance inst = configFactory.createConfigInstance(UUID.randomUUID().toString(), identifierType);
+//					return new ServiceResponse(0, "ProcessConfigProvider", "Created", inst.id().toString());
+//				} catch(ProcessException e) {
+//					return new ServiceResponse(1, "ProcessConfigProvider", e.getMessage(), id);
+//				}
+//			} else {
 				Element el = ws.findElement(Id.of(longId));
 				if (el != null) {
 					return new ServiceResponse(0, "ProcessConfigProvider", "Found", id);
 				} else 
 					return new ServiceResponse(3, "ProcessConfigProvider", "Not found", id);
-			}
+			//}
 		} catch(Exception e) {
 			return new ServiceResponse(1, "ProcessConfigProvider", "Invalid identifier type", id);
 		}
@@ -83,7 +83,7 @@ public class ProcessConfigProvider implements IArtifactProvider {
 	public Map<InstanceType, List<String>> getSupportedIdentifier() {		
 		// dynamically compiles list of configuration types
 		//List<String> subtypes = configFactory.getBaseType().getAllSubTypes().stream().map(type -> type.name()).collect(Collectors.toList());		
-		return Map.of(configFactory.getBaseType(), List.of(configFactory.getBaseType().name()));				
+		return Map.of(configFactory.getBaseType(), List.of("Designspace ID"));				
 	}
 	
 }
