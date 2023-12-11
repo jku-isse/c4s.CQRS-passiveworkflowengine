@@ -60,6 +60,9 @@ Blockly.Blocks['configproperty'] = {
         .appendField(new Blockly.FieldTextInput("Property Name"), "propertyName")
         .appendField(new Blockly.FieldDropdown([["Boolean","BOOLEAN"], ["String","STRING"], ["Integer","INTEGER"], ["Double","REAL"], ["Date","DATE"]]), "propertyType")
         .appendField(new Blockly.FieldDropdown([["Single","SINGLE"], ["List (not supported yet)","LIST"], ["Set (not supported yet)","SET"], ["Map (not supported yet)","MAP"]]), "cardinality")
+        .appendField(' IsRepairable:')
+        .appendField(new Blockly.FieldCheckbox(true), 'isRepairable');
+
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(130);
