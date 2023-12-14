@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
@@ -49,6 +51,7 @@ import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.definition.ConstraintSpec;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -296,62 +299,101 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	}
     }
     
+
+    
     private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
     	
-    	for (Conditions cond : Conditions.values()) {
-    		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
-    			
-    			HorizontalLayout line = new HorizontalLayout();
-    			String strCond = cond.toString().substring(0,1)+cond.toString().substring(1).toLowerCase();
-    			H5 h5cond = new H5(strCond+": ");
-    			h5cond.setTitle(arl);
-    			line.add(h5cond);
-    			// now fetch rule instance and check if fulfilled, if not, show repair tree:
-    			Icon icon;
-    			Optional<ConsistencyRule> crOpt = pStep.getConditionStatus(cond);
-    			if (crOpt.isPresent()) {
-    				if (crOpt.get().isConsistent()) {
-    					icon = new Icon(VaadinIcon.CHECK_CIRCLE);
-    					icon.setColor("green");
-    				} else {
-    					icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
-    					icon.setColor("red");
-    				}
-    			} else {
-    				icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
-    				icon.setColor("grey");
-    			}
-    			line.add(new H5(icon));	
-    			l.add(line);
-    			
-    			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
-    				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-    					try {    									    	        			        						    		
-    						RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    						if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
-    	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
-    	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
-    	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
-    	        				ctg.setAllRowsVisible(true);
-    	        				ctg.setWidth("100%");
-    	        				l.add(ctg); 
-    	        			} else {
-    	        				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        						rtg.initTreeGrid();
-        						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
-        					//	rtg.expandRecursively(repairTree.getChildren(), 3);
-        						rtg.setAllRowsVisible(true);
-        						rtg.setWidth("100%");
-        						l.add(rtg);
-    	        			}
-    					} catch (RepairException e) {
-    						l.add(new Paragraph(e.getMessage()));
-    					}
-    				} 
-    			}
-    			
-    		});
+    	if (!pStep.getDefinition().getPreconditions().isEmpty()) {
+    		H5 h5cond = new H5("Preconditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.preconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw));
     	}
+    	if (!pStep.getDefinition().getPostconditions().isEmpty()) {
+    		H5 h5cond = new H5("Postconditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.postconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw));
+    	}
+    	if (!pStep.getDefinition().getCancelconditions().isEmpty()) {
+    		H5 h5cond = new H5("Cancel Conditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.cancelconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw));
+    	}
+    	if (!pStep.getDefinition().getActivationconditions().isEmpty()) {
+    		H5 h5cond = new H5("Activation Conditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.activationconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw));
+    	}
+    }
+    
+    private void addConstraintLine(VerticalLayout l, ProcessStep pStep, ConstraintWrapper cw) {
+		
+    	HorizontalLayout line = new HorizontalLayout();
+    	line.add(createValueRenderer(cw.getSpec().getConstraintSpec(), cw.getSpec().getHumanReadableDescription()));
+    	line.add(createFulfillmentIcon(cw));
+		line.add(createOverrideButtonRenderer(cw));
+    	l.add(line);
+	    if (reqDel.doShowRepairs(getTopMostProcess(pStep)) &&
+	    		cw != null && cw.getCr() != null && !cw.getCr().isConsistent()) {
+	    	l.add(createRepairRenderer(cw, pStep));
+    	}    	    	
+	}
+    
+    private Component createRepairRenderer(ConstraintWrapper cw, ProcessStep pStep) {
+
+    	try {    									    	        			        						    		
+    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
+    		if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
+    			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
+    			EvaluationNode node = RuleService.evaluationTree(cw.getCr());
+    			ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
+    			ctg.setAllRowsVisible(true);
+    			ctg.setWidth("100%");
+    			return ctg; 
+    		} else {
+    			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    			rtg.initTreeGrid();
+    			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+    			//	rtg.expandRecursively(repairTree.getChildren(), 3);
+    			rtg.setAllRowsVisible(true);
+    			rtg.setWidth("100%");
+    			return rtg;
+    		}
+    	} catch (RepairException e) {
+    		return new Paragraph(e.getMessage());
+    	}
+    }
+
+    private Icon createFulfillmentIcon(ConstraintWrapper cw) {
+    	Icon icon;
+		Optional<ConsistencyRule> crOpt = Optional.ofNullable(cw.getCr());
+		if (crOpt.isPresent()) {
+			if (crOpt.get().isConsistent()) {
+				icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+				icon.setColor("green");
+			} else {
+				icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
+				icon.setColor("red");
+			}
+		} else {
+			icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+			icon.setColor("grey");
+		}
+		return icon;
+    }
+    
+	private Component createValueRenderer(String arl, String description) {
+		Paragraph p = new Paragraph(description);
+		p.setTitle(arl);
+		//Span p = new Span(arl);
+		p.getStyle().set("white-space", "pre");
+		p.setTitle(arl);
+		return p;	
+    }
+    
+    private Component createOverrideButtonRenderer(ConstraintWrapper cw) {
+    	Button overrideBtn = new Button("Override");
+    	overrideBtn.setEnabled(false);
+    	return overrideBtn;
     }
     
     public static ProcessInstance getTopMostProcess(ProcessStep step) {
@@ -554,14 +596,14 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(rebc.getQaSpec().getName());
+        H3 h3 = new H3(rebc.getSpec().getName());
         h3.setClassName("info-header");
         l.add(h3);
         
         HorizontalLayout line = new HorizontalLayout();
         
-        H4 descr = new H4(rebc.getQaSpec().getHumanReadableDescription());
-        descr.setTitle(rebc.getQaSpec().getQaConstraintSpec());
+        H4 descr = new H4(rebc.getSpec().getHumanReadableDescription());
+        descr.setTitle(rebc.getSpec().getConstraintSpec());
         line.add(descr);
         Icon icon1= WorkflowTreeGrid.getQAIcon(rebc);
         line.add(new H4(icon1));

@@ -109,7 +109,7 @@ public class ProcessStepStatusEndpoint {
 				if (proc != null) {
 					Optional<ConstraintWrapper> cwOpt = proc.getProcessSteps().stream()
 						.flatMap(step -> step.getQAstatus().stream()) // just go through all constraint wrappers one by one
-						.filter(cw1 -> cw1.getQaSpec().getName().equalsIgnoreCase(documentStr))
+						.filter(cw1 -> cw1.getSpec().getName().equalsIgnoreCase(documentStr))
 						.findAny();
 					if (cwOpt.isEmpty()) {
 						log.info(String.format("Constraint %s not found for process %s", documentStr, processId));
