@@ -47,6 +47,7 @@ import at.jku.isse.designspace.rule.arl.exception.RepairException;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
+import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
@@ -684,10 +685,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
 			else
 			return ra.getProperty() != null 
-					&& !ra.getProperty().equalsIgnoreCase("workItemType") // FIXME: just for testing purposes
+					//&& !ra.getProperty().equalsIgnoreCase("workItemType") // now done via metaproperties
 					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
 					&& !ra.getProperty().startsWith("in_")
-					&& !ra.getProperty().equalsIgnoreCase("name"); // typically used to describe key or id outside of designspace
+					&& !ra.getProperty().equalsIgnoreCase("name")
+					&& !ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
+					; // typically used to describe key or id outside of designspace
 		
 		}
 		

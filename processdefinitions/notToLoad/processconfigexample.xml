@@ -2,7 +2,7 @@
   <variables>
     <variable id="n~zSfOoBX_-ZfBjz?5GK">story</variable>
   </variables>
-  <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="363" y="-187">
+  <block type="procedures_defnoreturn" id="Ihn6+CCS7W9=hv{^Q:d+" x="238" y="63">
     <mutation>
       <arg name="story" varid="n~zSfOoBX_-ZfBjz?5GK"></arg>
     </mutation>
@@ -16,26 +16,31 @@
             <field name="propertyName">isTestingEnabled</field>
             <field name="propertyType">BOOLEAN</field>
             <field name="cardinality">SINGLE</field>
+            <field name="isRepairable">FALSE</field>
             <next>
               <block type="configproperty" id="LhvL4*]lPF9-!%yJ*cA1">
                 <field name="propertyName">strProp</field>
                 <field name="propertyType">STRING</field>
                 <field name="cardinality">SINGLE</field>
+                <field name="isRepairable">FALSE</field>
                 <next>
                   <block type="configproperty" id="oVF1xcp[5bs]-07;eD^6">
                     <field name="propertyName">intProp</field>
                     <field name="propertyType">INTEGER</field>
                     <field name="cardinality">SINGLE</field>
+                    <field name="isRepairable">TRUE</field>
                     <next>
                       <block type="configproperty" id="-GBQDG/OHwY]BW}VP;9E">
                         <field name="propertyName">doubleProp</field>
                         <field name="propertyType">REAL</field>
                         <field name="cardinality">SINGLE</field>
+                        <field name="isRepairable">FALSE</field>
                         <next>
                           <block type="configproperty" id="Q^Z0$!({JY=|3Y5[FoH1">
                             <field name="propertyName">dateProp</field>
                             <field name="propertyType">DATE</field>
                             <field name="cardinality">SINGLE</field>
+                            <field name="isRepairable">TRUE</field>
                           </block>
                         </next>
                       </block>
@@ -129,6 +134,17 @@
                                     </value>
                                   </block>
                                 </next>
+                              </block>
+                            </statement>
+                            <statement name="QA">
+                              <block type="qacheck" id="%9EgWsAo+a=F8`N:Fjw$">
+                                <field name="qacheckId">RepairableTest</field>
+                                <field name="description">TestConstraintWhetherConfigIsRepairable</field>
+                                <value name="constraint">
+                                  <block type="constraint" id="Pc|t5{~+.OQ)S5JI-MGh">
+                                    <field name="arlRule">self.process.in_Config-&gt;forAll(conf  | conf.isTestingEnabled &lt;&gt; true) or self.in_story-&gt;size() &gt; 1</field>
+                                  </block>
+                                </value>
                               </block>
                             </statement>
                           </block>
