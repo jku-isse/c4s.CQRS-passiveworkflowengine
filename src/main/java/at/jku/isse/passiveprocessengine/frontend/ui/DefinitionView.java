@@ -84,9 +84,6 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private IFrontendPusher pusher;
     private ProcessConfigBaseElementFactory configFactory;
 
-    private static Icon trueIcon;
-    private static Icon falseIcon;
-    
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
     
@@ -104,27 +101,28 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
-    	initIcons();
-    	//add(processTreeView());
     }
     
-
-    private static void initIcons() {
-    	falseIcon = new Icon(VaadinIcon.CLOSE);
+    private Icon getFalseIcon() {
+    	Icon falseIcon = new Icon(VaadinIcon.CLOSE);
         falseIcon.setColor("red");
         falseIcon.getStyle()
         .set("box-sizing", "border-box")
         .set("margin-inline-end", "var(--lumo-space-m)")
         .set("margin-inline-start", "var(--lumo-space-xs)")
         .set("padding", "var(--lumo-space-xs)");
+        return falseIcon;
+    }
         
-        trueIcon = new Icon(VaadinIcon.CHECK);
+    private Icon getTrueIcon() {
+       Icon trueIcon = new Icon(VaadinIcon.CHECK);
         trueIcon.setColor("green");
         trueIcon.getStyle()
         .set("box-sizing", "border-box")
         .set("margin-inline-end", "var(--lumo-space-m)")
         .set("margin-inline-start", "var(--lumo-space-xs)")
         .set("padding", "var(--lumo-space-xs)");
+        return trueIcon;
 	}
 
 
@@ -233,7 +231,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     		addInfoHeader(detailsContent, step);
     		addConstraintTable(detailsContent, "PreCondition", step.getPreconditions());
     		addConstraintTable(detailsContent, "PostCondition", step.getPostconditions());
-    		addConstraintTable(detailsContent, "CancelCndition", step.getCancelconditions());
+    		addConstraintTable(detailsContent, "CancelCondition", step.getCancelconditions());
     		addConstraintTable(detailsContent, "ActivationCondition", step.getActivationconditions());
     		addConstraintTable(detailsContent, "QA", step.getQAConstraints());    			
     		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
@@ -294,7 +292,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	Grid.Column<ConstraintSpec> idColumn = grid.addColumn(p -> p.getConstraintId())
     			.setHeader(prefix+" ID")
     			.setResizable(true)
-    			.setWidth("100px")
+    			.setWidth("150px")
     			.setFlexGrow(0);
     	Grid.Column<ConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription()))
     			.setHeader("Description")
@@ -304,7 +302,8 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     			.setResizable(true);
     	Grid.Column<ConstraintSpec> overrideColumn = grid.addComponentColumn(p -> createTrueFalseIconRenderer(p.isOverridable()))
     			.setHeader("Overridable?")
-    			.setWidth("50px")
+    			.setWidth("100px")
+    			.setFlexGrow(0)
     			.setResizable(false);
     	
     	if (constraints.isEmpty()) {    	
@@ -321,12 +320,11 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	l.add(grid);
 	}
 	
-	protected static Icon createTrueFalseIconRenderer(boolean value) {
-		if (trueIcon == null) initIcons();
+	protected Icon createTrueFalseIconRenderer(boolean value) {		
 		if (value) 
-			return trueIcon; 
+			return getTrueIcon(); 
 		else 
-			return falseIcon;
+			return getFalseIcon();
 	}
 	
 	protected static Component createValueRenderer(String arl) {
@@ -698,6 +696,18 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		@Override
 		public String getName() {
 			return "";
+		}
+
+		@Override
+		public boolean isOverridable() {
+			return false;
+		}
+
+		@Override
+		public void deleteCascading(ProcessConfigBaseElementFactory configFactory) {
+			;
 		}    	
+		
+		
     }
 }

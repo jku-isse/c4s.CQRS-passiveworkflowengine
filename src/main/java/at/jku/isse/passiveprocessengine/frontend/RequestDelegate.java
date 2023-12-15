@@ -119,6 +119,14 @@ public class RequestDelegate {
 //		return configFactory;
 //	}
 	
+	public IFrontendPusher getFrontendPusher() {
+		return frontend;
+	}
+	
+	public EventDistributor getEventDistributor() {
+		return eventDistributor;
+	}
+	
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{
 		if (!isInitialized) initialize();
 		
