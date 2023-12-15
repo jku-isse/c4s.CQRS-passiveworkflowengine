@@ -79,17 +79,17 @@ class ProcessTests {
 //		TestUtils.printFullProcessToLog(proc);
 //	}
 //	
-//	@Test
-//	void testSielaWithJiraV1() throws ProcessException {
-//		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-20", IJiraService.JiraIdentifier.JiraIssueKey.toString());
-//		//Instance gitIssue = artRes.get(gitAI);
-//		//reqDelegate.initialize();
-//		ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-jira");
+	@Test
+	void testSielaWithJiraV1() throws ProcessException {
+		ArtifactIdentifier gitAI = new ArtifactIdentifier("SIELA-20", IJiraService.JiraIdentifier.JiraIssueKey.toString());
+		//Instance gitIssue = artRes.get(gitAI);
+		//reqDelegate.initialize();
+		//ProcessInstance proc = reqDelegate.instantiateProcess("TestProc", Map.of("story" , gitAI), "SIELA-jira");
 //				
 //		TestUtils.assertAllConstraintsAreValid(proc);
 //		TestUtils.printFullProcessToLog(proc);
 //		TestUtils.printProcessWithRepairs(proc);
-//	}
+	}
 //	
 //	@Test
 //	void testAzureSielaV2() throws ProcessException {

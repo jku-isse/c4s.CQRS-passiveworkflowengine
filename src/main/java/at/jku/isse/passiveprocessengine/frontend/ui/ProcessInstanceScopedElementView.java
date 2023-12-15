@@ -1,7 +1,13 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,11 +18,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
@@ -31,6 +42,8 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -38,8 +51,10 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.User;
+import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
@@ -50,6 +65,7 @@ import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.definition.ConstraintSpec;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -62,6 +78,8 @@ import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+import at.jku.isse.passiveprocessengine.instance.messages.Events.ConstraintOverrideEvent;
+import at.jku.isse.passiveprocessengine.instance.messages.Events.ProcessChangedEvent;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -297,63 +315,203 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	}
     }
     
+
+    
     private void augmentWithConditions(ProcessStep pStep, VerticalLayout l) {
-    	
-    	for (Conditions cond : Conditions.values()) {
-    		pStep.getDefinition().getCondition(cond).ifPresent(arl -> {
-    			
-    			HorizontalLayout line = new HorizontalLayout();
-    			String strCond = cond.toString().substring(0,1)+cond.toString().substring(1).toLowerCase();
-    			H5 h5cond = new H5(strCond+": ");
-    			h5cond.setTitle(arl);
-    			line.add(h5cond);
-    			// now fetch rule instance and check if fulfilled, if not, show repair tree:
-    			Icon icon;
-    			Optional<ConsistencyRule> crOpt = pStep.getConditionStatus(cond);
-    			if (crOpt.isPresent()) {
-    				if (crOpt.get().isConsistent()) {
-    					icon = new Icon(VaadinIcon.CHECK_CIRCLE);
-    					icon.setColor("green");
-    				} else {
-    					icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
-    					icon.setColor("red");
-    				}
-    			} else {
-    				icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
-    				icon.setColor("grey");
-    			}
-    			line.add(new H5(icon));	
-    			l.add(line);
-    			
-    			if (reqDel.doShowRepairs(getTopMostProcess(pStep)) ) {
-    				if (crOpt.isPresent() && !crOpt.get().isConsistent()) {
-    					try {    									    	        			        						    		
-    						RepairNode repairTree = RuleService.repairTree(crOpt.get());
-    						if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
-    	        				ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
-    	        				EvaluationNode node = RuleService.evaluationTree(crOpt.get());
-    	        				ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
-    	        				ctg.setAllRowsVisible(true);
-    	        				ctg.setWidth("100%");
-    	        				l.add(ctg); 
-    	        			} else {
-    	        				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        						rtg.initTreeGrid();
-        						rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
-        					//	rtg.expandRecursively(repairTree.getChildren(), 3);
-        						rtg.setAllRowsVisible(true);
-        						rtg.setWidth("100%");
-        						l.add(rtg);
-    	        			}
-    					} catch (RepairException e) {
-    						l.add(new Paragraph(e.getMessage()));
-    					}
-    				} 
-    			}
-    			
-    		});
+    	Dialog dialog = new Dialog();	
+    	l.add(dialog);
+    	if (!pStep.getDefinition().getPreconditions().isEmpty()) {
+    		H5 h5cond = new H5("Preconditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.preconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    	}
+    	if (!pStep.getDefinition().getPostconditions().isEmpty()) {
+    		H5 h5cond = new H5("Postconditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.postconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    	}
+    	if (!pStep.getDefinition().getCancelconditions().isEmpty()) {
+    		H5 h5cond = new H5("Cancel Conditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.cancelconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    	}
+    	if (!pStep.getDefinition().getActivationconditions().isEmpty()) {
+    		H5 h5cond = new H5("Activation Conditions");
+			l.add(h5cond);
+    		pStep.getConstraints(ProcessStep.CoreProperties.activationconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
     	}
     }
+    
+    private void addConstraintLine(VerticalLayout l, ProcessStep pStep, ConstraintWrapper cw, Dialog dialog) {
+		
+    	HorizontalLayout line = new HorizontalLayout();
+    	line.add(createValueRenderer(cw));
+    	line.add(createFulfillmentIcon(cw));
+		if (cw.getSpec().isOverridable()) {
+			line.add(createOverrideButtonRenderer(cw, dialog));
+		}
+    	l.add(line);
+	    if (reqDel.doShowRepairs(getTopMostProcess(pStep)) &&
+	    		cw != null && cw.getCr() != null && !cw.getCr().isConsistent()) {
+	    	l.add(createRepairRenderer(cw, pStep));
+    	}    	    	
+	}
+    
+    private Component createRepairRenderer(ConstraintWrapper cw, ProcessStep pStep) {
+
+    	try {    									    	        			        						    		
+    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
+    		if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
+    			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
+    			EvaluationNode node = RuleService.evaluationTree(cw.getCr());
+    			ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
+    			ctg.setAllRowsVisible(true);
+    			ctg.setWidth("100%");
+    			return ctg; 
+    		} else {
+    			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    			rtg.initTreeGrid();
+    			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+    			//	rtg.expandRecursively(repairTree.getChildren(), 3);
+    			rtg.setAllRowsVisible(true);
+    			rtg.setWidth("100%");
+    			return rtg;
+    		}
+    	} catch (RepairException e) {
+    		return new Paragraph(e.getMessage());
+    	}
+    }
+
+    private Icon createFulfillmentIcon(ConstraintWrapper cw) {
+    	Icon icon;
+		Optional<ConsistencyRule> crOpt = Optional.ofNullable(cw.getCr());
+		if (crOpt.isPresent()) {
+			if (cw.getEvalResult()) {
+				icon = new Icon(VaadinIcon.CHECK_CIRCLE);
+				icon.setColor("green");
+			} else {
+				icon = new Icon(VaadinIcon.CLOSE_CIRCLE);
+				icon.setColor("red");
+			}
+		} else {
+			icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
+			icon.setColor("grey");
+		}
+		return icon;
+    }
+    
+	private Component createValueRenderer(ConstraintWrapper cw) {
+		String idAndDesc = cw.getSpec().getName()+": "+cw.getSpec().getHumanReadableDescription();		 
+		Paragraph p = new Paragraph(idAndDesc);
+		p.setTitle(cw.getSpec().getConstraintSpec());
+		//Span p = new Span(arl);
+		p.getStyle().set("white-space", "pre");		
+		return p;	
+    }
+    
+    private Component createOverrideButtonRenderer(ConstraintWrapper cw, Dialog dialog) {
+    	if (cw.getIsOverriden()) {
+    		if (cw.isOverrideDiffFromConstraintResult()) {    		
+    			Button undoBtn = new Button("Remove Override", click -> {
+        			new Thread(() -> {         				
+        				cw.removeOverride();
+        				// reeval process
+        				ProcessStep owningStep = cw.getParentStep();        				
+        				List<ProcessChangedEvent> events = new LinkedList<>(); 
+        				events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, "Override removed", true));
+        				events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
+        				notifyOverrideAndUpdate(events, cw.getProcess());      	
+        				cw.getInstance().workspace.concludeTransaction();
+        				this.getUI().get().access(() -> {         					
+        						Notification.show("Successfully removed result override");        						
+        				});    				
+        			} ).start();
+    			});    	
+    			undoBtn.getElement().setProperty("title", cw.getOverrideReasonOrNull());
+    			return undoBtn;
+    		} else {
+    			Button undoBtn = new Button("Remove no longer necessary Override", click -> {
+    				cw.removeOverride();
+    				List<ProcessChangedEvent> events = List.of(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, "Constraint now matches override value", true));
+    				notifyOverrideAndUpdate(events, cw.getProcess());         				
+    				this.getUI().get().access(() -> {     					
+    					Notification.show("Successfully removed result override");  					    					
+    				});  
+    			});    			
+    			undoBtn.getElement().setProperty("title", cw.getOverrideReasonOrNull());
+    			return undoBtn;
+    		}	
+    	}
+    	else {
+    		Button overrideBtn = new Button("Override", click -> {
+// show a dialog to obtain override reason
+    			dialog.getElement().setAttribute("aria-label", "Reason for Override ");
+    			VerticalLayout dialogLayout = createOverrideDialogLayout(dialog, cw);
+    			dialog.removeAll();
+				dialog.add(dialogLayout);
+				dialog.open();    			    			
+    		});
+    		return overrideBtn;
+    	}
+    }
+    
+    private void notifyOverrideAndUpdate(List<ProcessChangedEvent> events, ProcessInstance proc) {
+    	reqDel.getEventDistributor().handleEvents(events);
+    	reqDel.getFrontendPusher().update(proc);    	
+    }
+    
+	private VerticalLayout createOverrideDialogLayout(Dialog dialog, ConstraintWrapper cw ) {
+		H2 headline = new H2("Override Reason ");
+        headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
+                .set("font-size", "1.5em").set("font-weight", "bold");
+        
+        	TextField stringField = new TextField();     
+        	stringField.setPlaceholder("Describe reason for override here ...");
+        	stringField.setLabel("Override Reason: ");        	        
+       
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button saveButton = new Button("Override", e -> { 
+        	String reason = stringField.getValue();
+        	if (reason.length() > 0) {        		            	
+        		new Thread(() -> { 
+    				// set the override value and then trigger reevaluation of process
+    				String errorResult = cw.setOverrideWithReason(reason);
+    				if (errorResult.length() == 0) {
+    					ProcessStep owningStep = cw.getParentStep();        				
+    					List<ProcessChangedEvent> events = new LinkedList<>(); 
+        				events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, reason, false));
+        				events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
+    					notifyOverrideAndUpdate(events, cw.getProcess()); 
+    					cw.getInstance().workspace.concludeTransaction();
+    				}
+    				this.getUI().get().access(() -> { 
+    					if (errorResult.length() == 0) {
+    						Notification.show("Successfully overriden result and reevaluated effect on process");
+    					} else {
+    						Notification.show("Error overriding: "+errorResult);
+    					}    						
+    				});    				
+    			} ).start();
+        		
+        		dialog.close();
+        	} else {
+        		Notification.show("Please provide a reason for overriding.");
+        	}
+        	 
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton,
+                saveButton);
+        buttonLayout
+                .setJustifyContentMode(JustifyContentMode.END);
+
+        VerticalLayout dialogLayout = new VerticalLayout(headline, stringField, buttonLayout);
+        dialogLayout.setPadding(false);
+        dialogLayout.setAlignItems(Alignment.STRETCH);
+        dialogLayout.getStyle().set("width", "300px").set("max-width", "100%");
+
+        return dialogLayout;
+	}
     
     public static ProcessInstance getTopMostProcess(ProcessStep step) {
     	if (step.getProcess() != null)
@@ -555,17 +713,21 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(rebc.getQaSpec().getName());
+        H3 h3 = new H3(rebc.getSpec().getName());
         h3.setClassName("info-header");
         l.add(h3);
         
         HorizontalLayout line = new HorizontalLayout();
         
-        H4 descr = new H4(rebc.getQaSpec().getHumanReadableDescription());
-        descr.setTitle(rebc.getQaSpec().getQaConstraintSpec());
+        H4 descr = new H4(rebc.getSpec().getHumanReadableDescription());
+        descr.setTitle(rebc.getSpec().getConstraintSpec());
         line.add(descr);
         Icon icon1= WorkflowTreeGrid.getQAIcon(rebc);
         line.add(new H4(icon1));
+        Dialog dialog = new Dialog();	
+    	line.add(dialog);
+    	line.add(createOverrideButtonRenderer(rebc, dialog));
+        
         l.add(line);
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         

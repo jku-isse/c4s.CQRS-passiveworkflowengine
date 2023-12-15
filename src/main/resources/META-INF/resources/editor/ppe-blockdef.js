@@ -59,7 +59,7 @@ Blockly.Blocks['configproperty'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldTextInput("Property Name"), "propertyName")
         .appendField(new Blockly.FieldDropdown([["Boolean","BOOLEAN"], ["String","STRING"], ["Integer","INTEGER"], ["Double","REAL"], ["Date","DATE"]]), "propertyType")
-        .appendField(new Blockly.FieldDropdown([["Single","SINGLE"], ["List (not supported yet)","LIST"], ["Set (not supported yet)","SET"], ["Map (not supported yet)","MAP"]]), "cardinality")
+        .appendField(new Blockly.FieldDropdown([["Single","SINGLE"], ["List (not supported yet)","LIST"], ["Set (not supported yet)","SET"], ["Map (not supported yet)","MAP"]]), "cardinality")   
         .appendField(' IsRepairable:')
         .appendField(new Blockly.FieldCheckbox(true), 'isRepairable');
 
@@ -92,10 +92,13 @@ Blockly.Blocks['artuse'] = {
 
 Blockly.Blocks['transition'] = {
   init: function() {
-    this.appendValueInput("condition")
-        .setCheck(null)
+    this.appendValueInput("condition")        
         .appendField(new Blockly.FieldDropdown([["Enabled","PRECONDITION"], ["Activated","ACTIVATION"], ["Completed","POSTCONDITION"], ["Canceled","CANCELATION"]]), "State")
-        .appendField("Upon/If");
+        .appendField("Upon/If")
+        .setCheck(null);
+    this.appendDummyInput()
+        .appendField(' IsOverridable:')
+        .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(230);
@@ -129,7 +132,10 @@ Blockly.Blocks['qacheck'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldTextInput("Description"), "description");
  	this.appendValueInput("constraint")
-        .setCheck(null)
+        .setCheck(null);
+    this.appendDummyInput()
+    	.appendField(' IsOverridable:')
+        .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
         
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
