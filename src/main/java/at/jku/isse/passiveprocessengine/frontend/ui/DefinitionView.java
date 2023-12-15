@@ -60,7 +60,7 @@ import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElement
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory.PropertySchemaDTO;
 import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.QAConstraintSpec;
+import at.jku.isse.passiveprocessengine.definition.ConstraintSpec;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition;
 import at.jku.isse.passiveprocessengine.definition.StepDefinition.CoreProperties;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -83,7 +83,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     protected RequestDelegate commandGateway;
     private IFrontendPusher pusher;
     private ProcessConfigBaseElementFactory configFactory;
-    
+
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
     
@@ -101,11 +101,32 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
-    	//add(processTreeView());
     }
     
+    private Icon getFalseIcon() {
+    	Icon falseIcon = new Icon(VaadinIcon.CLOSE);
+        falseIcon.setColor("red");
+        falseIcon.getStyle()
+        .set("box-sizing", "border-box")
+        .set("margin-inline-end", "var(--lumo-space-m)")
+        .set("margin-inline-start", "var(--lumo-space-xs)")
+        .set("padding", "var(--lumo-space-xs)");
+        return falseIcon;
+    }
+        
+    private Icon getTrueIcon() {
+       Icon trueIcon = new Icon(VaadinIcon.CHECK);
+        trueIcon.setColor("green");
+        trueIcon.getStyle()
+        .set("box-sizing", "border-box")
+        .set("margin-inline-end", "var(--lumo-space-m)")
+        .set("margin-inline-start", "var(--lumo-space-xs)")
+        .set("padding", "var(--lumo-space-xs)");
+        return trueIcon;
+	}
 
-    @Override
+
+	@Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String param) {       
     	Location location = beforeEvent.getLocation();
 		QueryParameters queryParameters = location.getQueryParameters();
@@ -208,8 +229,11 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     		detailsContent.setVisible(true);    		
     		StepDefinition step = (StepDefinition)el;
     		addInfoHeader(detailsContent, step);
-    		addConditionsTable(detailsContent, step);
-    		addQATable(detailsContent, step);    			
+    		addConstraintTable(detailsContent, "PreCondition", step.getPreconditions());
+    		addConstraintTable(detailsContent, "PostCondition", step.getPostconditions());
+    		addConstraintTable(detailsContent, "CancelCondition", step.getCancelconditions());
+    		addConstraintTable(detailsContent, "ActivationCondition", step.getActivationconditions());
+    		addConstraintTable(detailsContent, "QA", step.getQAConstraints());    			
     		addParams(detailsContent, step.getExpectedInput(), "Input Parameters");
     		addParams(detailsContent, step.getExpectedOutput(), "Output Parameters");    		    		
     		addConfigViewIfTopLevelProcess(detailsContent, step);
@@ -239,49 +263,54 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         }		
 	}
 	
-	private void addConditionsTable(VerticalLayout l, StepDefinition step) {
-		
-		Grid<AbstractMap.SimpleEntry<Conditions,String>> grid = new Grid<AbstractMap.SimpleEntry<Conditions,String>>();
-		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-    	grid.setColumnReorderingAllowed(false);
-    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Constraint Type").setResizable(true).setWidth("150px").setFlexGrow(0);
-    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getValue())).setHeader("Constraint").setResizable(true);
-    	Map<String, Object> prop = (Map<String, Object>) step.getInstance().getProperty(CoreProperties.conditions.toString()).getValue();
-    	List<AbstractMap.SimpleEntry<Conditions,String>> entries = prop.entrySet().stream()
-    			.map(entry -> new AbstractMap.SimpleEntry<Conditions,String>(Conditions.valueOf(entry.getKey()), Objects.toString(entry.getValue())) )
-    			.sorted(new Comparator<AbstractMap.SimpleEntry<Conditions, String>>(){
-    				@Override
-    				public int compare(AbstractMap.SimpleEntry<Conditions,String> o1, AbstractMap.SimpleEntry<Conditions,String> o2) {
-    					return Integer.compare(o1.getKey().ordinal(), o2.getKey().ordinal());
-					}})
-    			.collect(Collectors.toList()); 
-    	grid.setItems(entries);
-    	grid.setAllRowsVisible(true);    
-    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-    	l.add(grid);
-	}
+//	private void addConditionsTable(VerticalLayout l, StepDefinition step) {
+//		
+//		Grid<AbstractMap.SimpleEntry<Conditions,String>> grid = new Grid<AbstractMap.SimpleEntry<Conditions,String>>();
+//		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+//    	grid.setColumnReorderingAllowed(false);
+//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Constraint Type").setResizable(true).setWidth("150px").setFlexGrow(0);
+//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getValue())).setHeader("Constraint").setResizable(true);
+//    	Map<String, Object> prop = (Map<String, Object>) step.getInstance().getProperty(CoreProperties.conditions.toString()).getValue();
+//    	List<AbstractMap.SimpleEntry<Conditions,String>> entries = prop.entrySet().stream()
+//    			.map(entry -> new AbstractMap.SimpleEntry<Conditions,String>(Conditions.valueOf(entry.getKey()), Objects.toString(entry.getValue())) )
+//    			.sorted(new Comparator<AbstractMap.SimpleEntry<Conditions, String>>(){
+//    				@Override
+//    				public int compare(AbstractMap.SimpleEntry<Conditions,String> o1, AbstractMap.SimpleEntry<Conditions,String> o2) {
+//    					return Integer.compare(o1.getKey().ordinal(), o2.getKey().ordinal());
+//					}})
+//    			.collect(Collectors.toList()); 
+//    	grid.setItems(entries);
+//    	grid.setAllRowsVisible(true);    
+//    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+//    	l.add(grid);
+//	}
     
-	private void addQATable(VerticalLayout l, StepDefinition step) {
+	private void addConstraintTable(VerticalLayout l, String prefix, Set<ConstraintSpec> constraints) {
 		
-		Grid<QAConstraintSpec> grid = new Grid<QAConstraintSpec>();		
+		Grid<ConstraintSpec> grid = new Grid<ConstraintSpec>();		
     	grid.setColumnReorderingAllowed(false);
-    	Grid.Column<QAConstraintSpec> idColumn = grid.addColumn(p -> p.getQaConstraintId())
-    			.setHeader("QA ID")
+    	Grid.Column<ConstraintSpec> idColumn = grid.addColumn(p -> p.getConstraintId())
+    			.setHeader(prefix+" ID")
     			.setResizable(true)
-    			.setWidth("100px")
+    			.setWidth("150px")
     			.setFlexGrow(0);
-    	Grid.Column<QAConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription()))
-    			.setHeader("Explanation")
+    	Grid.Column<ConstraintSpec> nameColumn = grid.addComponentColumn(p -> createValueRenderer(p.getHumanReadableDescription()))
+    			.setHeader("Description")
     			.setResizable(true);
-    	Grid.Column<QAConstraintSpec> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getQaConstraintSpec()))
+    	Grid.Column<ConstraintSpec> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getConstraintSpec()))
     			.setHeader("Constraint")
     			.setResizable(true);
+    	Grid.Column<ConstraintSpec> overrideColumn = grid.addComponentColumn(p -> createTrueFalseIconRenderer(p.isOverridable()))
+    			.setHeader("Overridable?")
+    			.setWidth("100px")
+    			.setFlexGrow(0)
+    			.setResizable(false);
     	
-    	if (step.getQAConstraints().isEmpty()) {    	
-    		grid.setItems(List.of(new DummyQASpec()));
-    	} else { grid.setItems(step.getQAConstraints().stream().sorted(new Comparator<QAConstraintSpec>() {
+    	if (constraints.isEmpty()) {    	
+    		grid.setItems(List.of(new DummySpec()));
+    	} else { grid.setItems(constraints.stream().sorted(new Comparator<ConstraintSpec>() {
 			@Override
-			public int compare(QAConstraintSpec o1, QAConstraintSpec o2) {
+			public int compare(ConstraintSpec o1, ConstraintSpec o2) {
 				return Integer.compare(o1.getOrderIndex(), o2.getOrderIndex());
 			}    		
     	}));
@@ -291,7 +320,14 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	l.add(grid);
 	}
 	
-	private Component createValueRenderer(String arl) {
+	protected Icon createTrueFalseIconRenderer(boolean value) {		
+		if (value) 
+			return getTrueIcon(); 
+		else 
+			return getFalseIcon();
+	}
+	
+	protected static Component createValueRenderer(String arl) {
 		Paragraph p = new Paragraph(arl);
 		//Span p = new Span(arl);
 		p.getStyle().set("white-space", "pre");
@@ -626,19 +662,19 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	}
     }
     
-    private static class DummyQASpec extends QAConstraintSpec {
+    private static class DummySpec extends ConstraintSpec {
     	
-    	protected DummyQASpec() {
+    	protected DummySpec() {
     		super(null);
     	}
 
 		@Override
-		public String getQaConstraintId() {
+		public String getConstraintId() {
 			return "None";
 		}
 
 		@Override
-		public String getQaConstraintSpec() {
+		public String getConstraintSpec() {
 			return "";
 		}
 
@@ -660,6 +696,18 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		@Override
 		public String getName() {
 			return "";
+		}
+
+		@Override
+		public boolean isOverridable() {
+			return false;
+		}
+
+		@Override
+		public void deleteCascading(ProcessConfigBaseElementFactory configFactory) {
+			;
 		}    	
+		
+		
     }
 }

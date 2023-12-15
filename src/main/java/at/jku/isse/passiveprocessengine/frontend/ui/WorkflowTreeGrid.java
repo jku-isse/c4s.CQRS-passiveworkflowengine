@@ -108,7 +108,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
             	return span;
             } else if (o instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o;
-                String title = rebc.getQaSpec().getHumanReadableDescription() != null ? rebc.getQaSpec().getHumanReadableDescription() : rebc.getQaSpec().getName();
+                String title = rebc.getSpec().getHumanReadableDescription() != null ? rebc.getSpec().getHumanReadableDescription() : rebc.getSpec().getName();
                 Icon icon = DefinitionView.createIcon(VaadinIcon.CLIPBOARD_CHECK) ;
                 Span span = new Span(icon, new Span(title));
                 span.getElement().setProperty("title", rebc.getName());
@@ -177,9 +177,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	if (o instanceof ProcessInstance) {
         		ProcessInstance wfi = (ProcessInstance)o;
         		boolean unsatisfied = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> !wft.areQAconstraintsFulfilled());
+                        .anyMatch(wft -> !wft.areConstraintsFulfilled(ProcessStep.CoreProperties.qaState.toString()));
                 boolean fulfilled = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> wft.areQAconstraintsFulfilled());
+                        .anyMatch(wft -> wft.areConstraintsFulfilled(ProcessStep.CoreProperties.qaState.toString()));
                Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
                icon.setColor("grey");
                return icon;                              
@@ -506,7 +506,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private static class ConstraintWrapperComparator implements Comparator<ConstraintWrapper> {
 		@Override
 		public int compare(ConstraintWrapper o1, ConstraintWrapper o2) {
-			return o1.getQaSpec().getOrderIndex().compareTo(o2.getQaSpec().getOrderIndex());
+			return o1.getSpec().getOrderIndex().compareTo(o2.getSpec().getOrderIndex());
 		}
     }
     

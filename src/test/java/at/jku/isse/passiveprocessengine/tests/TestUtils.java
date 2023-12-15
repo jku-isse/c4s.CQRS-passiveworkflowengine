@@ -93,11 +93,11 @@ public class TestUtils {
 	
  	public static void printProcessWithRepairs(ProcessInstance wfi) {
  		wfi.getProcessSteps().stream()
-        .filter(wft -> !wft.areQAconstraintsFulfilled())
+        .filter(wft -> !wft.areConstraintsFulfilled(ProcessStep.CoreProperties.qaState.toString()))
         .peek(wft -> System.out.println(String.format("Step: %s ", wft.getName())))
         .flatMap(wft -> wft.getQAstatus().stream().filter(cwrapper -> cwrapper.getEvalResult() == false) )
-        .peek(cwrapper -> System.out.println(String.format("Constraint: %s ", cwrapper.getQaSpec().getHumanReadableDescription())))
-        .peek(cwrapper -> System.out.println(String.format("ARL: %s ", cwrapper.getQaSpec().getQaConstraintSpec())))
+        .peek(cwrapper -> System.out.println(String.format("Constraint: %s ", cwrapper.getSpec().getHumanReadableDescription())))
+        .peek(cwrapper -> System.out.println(String.format("ARL: %s ", cwrapper.getSpec().getConstraintSpec())))
         .map(cwrapper -> RuleService.repairTree(cwrapper.getCr()))
         .forEach(rnode -> { StringBuffer sb = new StringBuffer();
         	compileRestrictedRepairTree(rnode, 0, sb);

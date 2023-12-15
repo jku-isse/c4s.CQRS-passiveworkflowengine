@@ -56,7 +56,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
         	   return span;
            }else if (o.getRepairNode() instanceof ConstraintWrapper) {
                 ConstraintWrapper rebc = (ConstraintWrapper) o.getRepairNode();
-                Span span = new Span(rebc.getQaSpec().getHumanReadableDescription());
+                Span span = new Span(rebc.getSpec().getHumanReadableDescription());
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
             } else if (o.getRepairNode() instanceof RepairNode) {
