@@ -32,6 +32,7 @@ import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
 import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
+import at.jku.isse.passiveprocessengine.monitoring.RepairFeatureToggle;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,7 +96,8 @@ public class FrontendSpringConfig {
     @Bean
     public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
     	RepairNodeScorer scorer= new SortOnRepairPercentage();
-    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor); // workspace will/must be injected in RequestDelegate    	
+    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
+    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
     }
 
 	
