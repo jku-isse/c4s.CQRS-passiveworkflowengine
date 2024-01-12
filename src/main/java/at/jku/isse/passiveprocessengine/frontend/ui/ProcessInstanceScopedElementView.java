@@ -809,7 +809,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
 					&& !ra.getProperty().startsWith("in_")
 					&& !ra.getProperty().equalsIgnoreCase("name")
-					&& !ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
+					&& ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
 					; // typically used to describe key or id outside of designspace
 		
 		}
