@@ -18,6 +18,7 @@ import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
 import at.jku.isse.designspace.rule.arl.repair.order.SortOnRepairPercentage;
+import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
@@ -72,6 +73,14 @@ public class FrontendSpringConfig {
 		
 	@Bean Workspace getWorkspace() {
 		return WorkspaceService.PUBLIC_WORKSPACE;
+	}
+	
+	@Bean ProcessConfigBaseElementFactory getProcessConfigBaseElementFactory() {
+		return new ProcessConfigBaseElementFactory(WorkspaceService.PUBLIC_WORKSPACE);
+	}
+	
+	@Bean ProcessConfigProvider getProcessConfigProvider(ProcessConfigBaseElementFactory configFactory) {
+		return new ProcessConfigProvider(configFactory, WorkspaceService.PUBLIC_WORKSPACE);
 	}
 
 	@Bean

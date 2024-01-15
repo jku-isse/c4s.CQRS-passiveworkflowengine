@@ -18,7 +18,6 @@ import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 
-@Component
 public class ProcessConfigProvider implements IArtifactProvider {
 
 	private ProcessConfigBaseElementFactory configFactory;
