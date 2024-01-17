@@ -347,7 +347,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	HorizontalLayout line = new HorizontalLayout();
     	line.add(createValueRenderer(cw));
     	line.add(createFulfillmentIcon(cw));
-		if (cw.getSpec().isOverridable()) {
+		if (cw.getSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
 			line.add(createOverrideButtonRenderer(cw, dialog));
 		}
     	l.add(line);
@@ -726,8 +726,9 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         line.add(new H4(icon1));
         Dialog dialog = new Dialog();	
     	line.add(dialog);
-    	line.add(createOverrideButtonRenderer(rebc, dialog));
-        
+    	if (rebc.getSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
+    		line.add(createOverrideButtonRenderer(rebc, dialog));
+    	}
         l.add(line);
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
         if (rebc != null) {
