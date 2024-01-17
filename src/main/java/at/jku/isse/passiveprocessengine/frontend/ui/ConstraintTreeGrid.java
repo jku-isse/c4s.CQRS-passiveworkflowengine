@@ -1,10 +1,13 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
@@ -34,6 +37,7 @@ import at.jku.isse.designspace.rule.arl.expressions.LiteralExpression;
 import at.jku.isse.designspace.rule.arl.expressions.OperationCallExpression;
 import at.jku.isse.designspace.rule.arl.expressions.TypeExpression;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
+import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil;
@@ -51,6 +55,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	ProcessInstance scope;
 	private RepairVisualizationUtil repairViz;
 	private boolean doShowRepairs;
+	private Set<RepairAction> visibleRepairs = null;
 //	private Element parentToNotify;
 	
 	public ConstraintTreeGrid(RequestDelegate reqDel, boolean doShowRepairs /*, Element parentToNotify */) {	
@@ -60,7 +65,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		repairViz = new RepairVisualizationUtil(reqDel, this);
 		initGrid();
-	}
+	}		
 	
 	private void initGrid() {
 		this.addComponentHierarchyColumn(ror -> {
@@ -68,7 +73,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		}).setHeader("Expression").setKey("expression").setResizable(true).setFlexGrow(3);
 		this.getColumnByKey("expression").setClassNameGenerator(node -> {
 			if (node.isNodeOnRepairPath()) {
-				if (node.getNode().getRepairs().isEmpty())
+				if (getVisibleRepairs(node).isEmpty())
 					return "warn";
 				else 
 					return "repairable";
@@ -89,6 +94,42 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 //		this.addCollapseListener(evt -> {
 //			this.parentToNotify.executeJs("this.notifyResize()");
 //		});
+	}
+	
+	public void updateGridWithRepairsLimitedTo(EvaluationNode node, ProcessInstance scope, Set<RepairAction> visibleRepairs) {
+		this.visibleRepairs = visibleRepairs;
+		updateGrid(node, scope);
+	}
+	
+	public void updateGrid(EvaluationNode node, ProcessInstance scope) {	
+		this.scope = scope;
+		RotationNode root = new RotationNode(node, RotationNode.ROOTROTATION);
+		RotationNode newRoot = root.rotateLeftSideClockwise(RotationNode.ROOTROTATION);
+		// lets move the original root repair (i.e. removing the context instance) to the new root.
+		newRoot.getNode().getRepairs().addAll(root.getNode().getRepairs());
+		root.getNode().getRepairs().clear();
+		newRoot.isNodeOnRepairPath(); // ensure that any variable expressions rotated towards the root are correctly reflecting their repairpath participation
+		
+		List<RotationNode> topNodes = new LinkedList<>(); 
+		collectFlattenedNodes(topNodes, newRoot);			
+		this.setItems( topNodes.stream()
+				.filter(rNode -> doShowNode(rNode))
+				.map(rNode -> rNode) , rNode -> {
+			return getSemiflatChildElements(rNode);
+		});
+		this.getDataProvider().refreshAll();  
+	}
+	
+	private List<AbstractRepairAction> getVisibleRepairs(RotationNode node) {
+		if (node.getNode().getRepairs().isEmpty()) {
+			return Collections.emptyList();
+		} else if  (visibleRepairs == null) {
+			return node.getNode().getRepairs();
+		} else {
+			List<AbstractRepairAction> visRepairs = new ArrayList<>(node.getNode().getRepairs());
+			visRepairs.retainAll(visibleRepairs);
+			return visRepairs;
+		}
 	}
 
 	private Component getExpression(RotationNode ror) {
@@ -140,11 +181,13 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     
 	private void augmentWithRepairComponent(EvaluationNode node, Span span) {
 		for (AbstractRepairAction rn : node.getRepairs()) {
-			HorizontalLayout hl = new HorizontalLayout();
-			repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
-			hl.getElement().setProperty("title", rn.toString());
-			hl.setClassName("repair");
-			span.add(hl);
+			if (visibleRepairs == null || visibleRepairs.contains(rn)) {
+				HorizontalLayout hl = new HorizontalLayout();
+				repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
+				hl.getElement().setProperty("title", rn.toString());
+				hl.setClassName("repair");
+				span.add(hl);
+			}
 		}
 	}
     
@@ -193,25 +236,6 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     		return vLayout;
     	}
     }
-	
-	public void updateGrid(EvaluationNode node, ProcessInstance scope) {	
-		this.scope = scope;
-		RotationNode root = new RotationNode(node, RotationNode.ROOTROTATION);
-		RotationNode newRoot = root.rotateLeftSideClockwise(RotationNode.ROOTROTATION);
-		// lets move the original root repair (i.e. removing the context instance) to the new root.
-		newRoot.getNode().getRepairs().addAll(root.getNode().getRepairs());
-		root.getNode().getRepairs().clear();
-		newRoot.isNodeOnRepairPath(); // ensure that any variable expressions rotated towards the root are correctly reflecting their repairpath participation
-		
-		List<RotationNode> topNodes = new LinkedList<>(); 
-		collectFlattenedNodes(topNodes, newRoot);			
-		this.setItems( topNodes.stream()
-				.filter(rNode -> doShowNode(rNode))
-				.map(rNode -> rNode) , rNode -> {
-			return getSemiflatChildElements(rNode);
-		});
-		this.getDataProvider().refreshAll();  
-	}
 		
 	private Stream<RotationNode> getSemiflatChildElements(RotationNode rn) {
 		// we indent when the parent item is a quantifier, or an combinator (AND, OR, XOR)

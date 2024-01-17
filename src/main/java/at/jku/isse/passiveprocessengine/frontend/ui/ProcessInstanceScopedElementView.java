@@ -776,10 +776,16 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         }  
     }
     
-    private ConstraintTreeGrid getConstraintTreeGrid(ConstraintWrapper rebc, boolean doShowRepairs ) {
-    	ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, doShowRepairs /*, this.getElement()*/);        			
+    private ConstraintTreeGrid getConstraintTreeGrid(ConstraintWrapper rebc, boolean doShowRepairs ) {    	    	
+    	ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, doShowRepairs);        			
 		EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
-		ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
+		if (rebc.getCr().isConsistent()) {
+			ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));	
+		} else {
+			RepairNode repairTree = RuleService.repairTree(rebc.getCr()); 
+	    	rtf.filterRepairTree(repairTree);
+	    	ctg.updateGridWithRepairsLimitedTo(node, getTopMostProcess(rebc.getProcess()), repairTree.getRepairActions());
+		}				        			
 		ctg.setAllRowsVisible(true);  
 		return ctg;
     }
