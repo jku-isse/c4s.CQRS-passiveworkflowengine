@@ -57,6 +57,7 @@ import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.exception.RepairException;
+import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -785,7 +786,13 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		} else {
 			RepairNode repairTree = RuleService.repairTree(rebc.getCr()); 
 	    	rtf.filterRepairTree(repairTree);
-	    	ctg.updateGridWithRepairsLimitedTo(node, getTopMostProcess(rebc.getProcess()), repairTree.getRepairActions());
+	    	node.clearRepairPathInclChildren();
+	    	Set<RepairAction> visibleRepairs = repairTree.getRepairActions();
+	    	visibleRepairs.stream()
+	    		.filter(AbstractRepairAction.class::isInstance)
+	    		.map(AbstractRepairAction.class::cast)
+	    		.forEach(repair -> repair.addRepairToEvaluationNode());
+	    	ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));
 		}				        			
 		ctg.setAllRowsVisible(true);  
 		return ctg;

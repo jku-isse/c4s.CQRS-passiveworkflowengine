@@ -55,7 +55,6 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	ProcessInstance scope;
 	private RepairVisualizationUtil repairViz;
 	private boolean doShowRepairs;
-	private Set<RepairAction> visibleRepairs = null;
 //	private Element parentToNotify;
 	
 	public ConstraintTreeGrid(RequestDelegate reqDel, boolean doShowRepairs /*, Element parentToNotify */) {	
@@ -96,11 +95,6 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 //		});
 	}
 	
-	public void updateGridWithRepairsLimitedTo(EvaluationNode node, ProcessInstance scope, Set<RepairAction> visibleRepairs) {
-		this.visibleRepairs = visibleRepairs;
-		updateGrid(node, scope);
-	}
-	
 	public void updateGrid(EvaluationNode node, ProcessInstance scope) {	
 		this.scope = scope;
 		RotationNode root = new RotationNode(node, RotationNode.ROOTROTATION);
@@ -123,13 +117,9 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	private List<AbstractRepairAction> getVisibleRepairs(RotationNode node) {
 		if (node.getNode().getRepairs().isEmpty()) {
 			return Collections.emptyList();
-		} else if  (visibleRepairs == null) {
-			return node.getNode().getRepairs();
 		} else {
-			List<AbstractRepairAction> visRepairs = new ArrayList<>(node.getNode().getRepairs());
-			visRepairs.retainAll(visibleRepairs);
-			return visRepairs;
-		}
+			return node.getNode().getRepairs();
+		} 
 	}
 
 	private Component getExpression(RotationNode ror) {
@@ -141,8 +131,8 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			//Span para = new Span(shortConstr.trim());
-			Span para = new Span(rNode.getNode().expression.getLocalARL());
+			Span para = new Span(shortConstr.trim());
+			//Span para = new Span(rNode.getNode().expression.getLocalARL());
 			para.setTitle(shortConstr.trim());
 			para.getStyle().set("white-space", "pre");
 			return para;
@@ -181,13 +171,11 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
     
 	private void augmentWithRepairComponent(EvaluationNode node, Span span) {
 		for (AbstractRepairAction rn : node.getRepairs()) {
-			if (visibleRepairs == null || visibleRepairs.contains(rn)) {
-				HorizontalLayout hl = new HorizontalLayout();
-				repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
-				hl.getElement().setProperty("title", rn.toString());
-				hl.setClassName("repair");
-				span.add(hl);
-			}
+			HorizontalLayout hl = new HorizontalLayout();
+			repairViz.nodeToDescription(rn, scope).stream().forEach(comp -> hl.add(comp));
+			hl.getElement().setProperty("title", rn.toString());
+			hl.setClassName("repair");
+			span.add(hl);
 		}
 	}
     
