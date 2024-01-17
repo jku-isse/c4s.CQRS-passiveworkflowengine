@@ -50,10 +50,12 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	RequestDelegate reqDel;
 	ProcessInstance scope;
 	private RepairVisualizationUtil repairViz;
+	private boolean doShowRepairs;
 //	private Element parentToNotify;
 	
-	public ConstraintTreeGrid(RequestDelegate reqDel /*, Element parentToNotify */) {	
+	public ConstraintTreeGrid(RequestDelegate reqDel, boolean doShowRepairs /*, Element parentToNotify */) {	
 		this.reqDel = reqDel;
+		this.doShowRepairs = doShowRepairs;
 //		this.parentToNotify = parentToNotify;
 		this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		repairViz = new RepairVisualizationUtil(reqDel, this);
@@ -131,7 +133,9 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 						span.add(singleValueToComponent(expl));
 				}	
 		}
-		augmentWithRepairComponent(rNode.getNode(), span);
+		if (doShowRepairs) {
+			augmentWithRepairComponent(rNode.getNode(), span);
+		}
 	}; 
     
 	private void augmentWithRepairComponent(EvaluationNode node, Span span) {

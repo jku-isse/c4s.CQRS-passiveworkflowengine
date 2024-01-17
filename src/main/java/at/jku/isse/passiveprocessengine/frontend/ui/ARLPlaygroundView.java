@@ -97,7 +97,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		//       setSizeFull();
 		setMargin(false);
 		//  setPadding(false);
-		evalTree = new ConstraintTreeGrid(commandGateway /*, this.getElement() */); 
+		evalTree = new ConstraintTreeGrid(commandGateway, true /*, this.getElement() */); 
 		statePanel();
 		user = securityService.getAuthenticatedUser() != null ? securityService.getAuthenticatedUser().getUsername() : "user";
 	}

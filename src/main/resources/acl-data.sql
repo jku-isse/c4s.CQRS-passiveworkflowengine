@@ -4,6 +4,7 @@ INSERT INTO acl_class (id, class) VALUES
  
 INSERT INTO acl_sid (id, principal, sid) VALUES 
 (1, 1, 'P1'),
+(980, 1, 'norepair'),
 (990, 1, 'repaironly'),
 (999, 1, 'dev'),
 (1000, 0, 'ROLE_EDITOR');
@@ -21,7 +22,9 @@ INSERT INTO acl_object_identity (id, object_id_class, object_id_identity, parent
 (9999, 1, 9999, NULL, 1000, 0);
  
 INSERT INTO acl_entry (id, acl_object_identity, ace_order, sid,           mask, granting, audit_success, audit_failure) VALUES 
-(9996, 9999, 1, 990,     1, 1, 1, 1),
+(9995, 9999, 1, 980,     1, 1, 1, 1),
+(9996, 9999, 2, 990,     1, 1, 1, 1),
 (9997, 9997, 1, 990,     1, 1, 1, 1),
 (9998, 9998, 1, 999,     1, 1, 1, 1),
-(9999, 9999, 2, 999,     1, 1, 1, 1);
+(9999, 9999, 3, 999,     1, 1, 1, 1)
+;

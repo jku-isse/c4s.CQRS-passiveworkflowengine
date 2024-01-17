@@ -351,36 +351,36 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 			line.add(createOverrideButtonRenderer(cw, dialog));
 		}
     	l.add(line);
-	    if (reqDel.doShowRepairs(getTopMostProcess(pStep)) &&
-	    		cw != null && cw.getCr() != null && !cw.getCr().isConsistent()) {
-	    	l.add(createRepairRenderer(cw, pStep));
-    	}    	    	
+	        	    	
+    	Component repairDisplay = getRepairDisplayComponent(cw, getTopMostProcess(pStep));
+    	if (repairDisplay != null)
+    		l.add(repairDisplay);    	    	    
 	}
     
-    private Component createRepairRenderer(ConstraintWrapper cw, ProcessStep pStep) {
-
-    	try {    									    	        			        						    		
-    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
-    		if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
-    			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
-    			EvaluationNode node = RuleService.evaluationTree(cw.getCr());
-    			ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
-    			ctg.setAllRowsVisible(true);
-    			ctg.setWidth("100%");
-    			return ctg; 
-    		} else {
-    			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-    			rtg.initTreeGrid();
-    			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
-    			//	rtg.expandRecursively(repairTree.getChildren(), 3);
-    			rtg.setAllRowsVisible(true);
-    			rtg.setWidth("100%");
-    			return rtg;
-    		}
-    	} catch (RepairException e) {
-    		return new Paragraph(e.getMessage());
-    	}
-    }
+//    private Component createRepairRenderer(ConstraintWrapper cw, ProcessStep pStep) {
+//
+//    	try {    									    	        			        						    		
+//    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
+//    		if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
+//    			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);
+//    			EvaluationNode node = RuleService.evaluationTree(cw.getCr());
+//    			ctg.updateGrid(node, getTopMostProcess(getTopMostProcess(pStep)));        			
+//    			ctg.setAllRowsVisible(true);
+//    			ctg.setWidth("100%");
+//    			return ctg; 
+//    		} else {
+//    			RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+//    			rtg.initTreeGrid();
+//    			rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(pStep));    					    					
+//    			//	rtg.expandRecursively(repairTree.getChildren(), 3);
+//    			rtg.setAllRowsVisible(true);
+//    			rtg.setWidth("100%");
+//    			return rtg;
+//    		}
+//    	} catch (RepairException e) {
+//    		return new Paragraph(e.getMessage());
+//    	}
+//    }
 
     private Icon createFulfillmentIcon(ConstraintWrapper cw) {
     	Icon icon;
@@ -730,66 +730,69 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         
         l.add(line);
         //l.add(new H4(rebc.getQaSpec().getQaConstraintSpec()));
-        
-        if ( reqDel.doShowRepairs(getTopMostProcess(rebc.getProcess()))) {
-        	if (rebc.getCr() != null && this.conf.isIntegratedEvalRepairTreeEnabled()) {
-        		try {
-        			ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel /*, this.getElement()*/);        			
-    				EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
-    				ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
-    				ctg.setAllRowsVisible(true);    				
-    				l.add(ctg); 
-        		} catch(Exception e) {
-        			e.printStackTrace();
-        			TextArea resultArea = new TextArea();
-        			resultArea.setWidthFull();
-        			resultArea.setMinHeight("100px");
-        			resultArea.setLabel("Error evaluating Repairtree");
-        			resultArea.setValue(e.toString());
-        			l.add(resultArea);
-        		}
-        	}
-        	else 	
-        		if (rebc.getEvalResult() == false  && rebc.getCr() != null && ! this.conf.isIntegratedEvalRepairTreeEnabled()) {
-        			try {
-        				RepairNode repairTree = RuleService.repairTree(rebc.getCr());        			
-
-        				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
-        				rtg.initTreeGrid();
-        				rtg.updateConditionTreeGrid(repairTree, getTopMostProcess(rebc.getProcess()));                			
-        				//rtg.expandRecursively(repairTree.getChildren(), 3);                			
-        				l.add(rtg); 
-
-        			} catch(Exception e) {
-        				e.printStackTrace();
-        				TextArea resultArea = new TextArea();
-        				resultArea.setWidthFull();
-        				resultArea.setMinHeight("100px");
-        				resultArea.setLabel("Error evaluating Repairtree");
-        				resultArea.setValue(e.toString());
-        				l.add(resultArea);
-        			}
-        		}
+        if (rebc != null) {
+        	Component repairComp = getRepairDisplayComponent(rebc, getTopMostProcess(rebc.getProcess()));
+        	if (repairComp != null)
+        		l.add(repairComp);
         }
-        
-//        Dialog dialog = new Dialog();
-//        dialog.setWidth("80%");
-//        dialog.setMaxHeight("80%");
-//
-//        Icon icon= getQAIcon(rebc);
-//        icon.getStyle().set("cursor", "pointer");
-//        icon.addClickListener(e -> { 
-//        	reqDel.getMonitor().constraintedViewed(rebc, loggedInUserNameOrNull);
-//        	dialog.open();	
-//        });
-//        icon.getElement().setProperty("title", "Show details");
-//        
-//        dialog.add(l);
-//        return icon;
         return l;
     }
+    
+    private Component getRepairDisplayComponent(ConstraintWrapper rebc, ProcessInstance scope) {
+        boolean doShowRepairs = reqDel.doShowRepairs(scope);                               
+        // show the eval tree (if enabled), including repairs if so enabled        
+        if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
+        	try {        			  				
+				return getConstraintTreeGrid(rebc, doShowRepairs); 
+    		} catch(Exception e) {
+    			e.printStackTrace();        			
+    			return getRepairTreeErrorArea(e);
+    		}        	
+        } else {
+        	// show the repair list if enabled, and there is an inconsistency (something to repair
+        	if (doShowRepairs && rebc.getCr() != null && !rebc.getCr().isConsistent()) {
+        		try {
+    				RepairNode repairTree = RuleService.repairTree(rebc.getCr());        			
+    				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    				rtg.initTreeGrid();
+    				rtg.updateConditionTreeGrid(repairTree, scope);                			
+    				//rtg.expandRecursively(repairTree.getChildren(), 3);                			
+    				return rtg; 
+    			} catch(Exception e) {
+    				e.printStackTrace();        				
+    				return getRepairTreeErrorArea(e);
+    			}
+        	} else // if this is an experiment, just show the evaluation tree instead of a repair if there is an inconsistency 
+        		if (this.conf.isExperimentModeEnabled() && rebc.getCr() != null && !rebc.getCr().isConsistent()) {
+        			try {        			  				
+        				return getConstraintTreeGrid(rebc, doShowRepairs); 
+            		} catch(Exception e) {
+            			e.printStackTrace();        			
+            			return getRepairTreeErrorArea(e);
+            		}
+        		} else {
+        			return null;
+        		}
+        }  
+    }
+    
+    private ConstraintTreeGrid getConstraintTreeGrid(ConstraintWrapper rebc, boolean doShowRepairs ) {
+    	ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, doShowRepairs /*, this.getElement()*/);        			
+		EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
+		ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));        			
+		ctg.setAllRowsVisible(true);  
+		return ctg;
+    }
 
-       
+    private TextArea getRepairTreeErrorArea(Exception e) {
+    	TextArea resultArea = new TextArea();
+		resultArea.setWidthFull();
+		resultArea.setMinHeight("100px");
+		resultArea.setLabel("Error evaluating Repairtree");
+		resultArea.setValue(e.toString());
+		return resultArea;
+    }
+    
     
 
     
