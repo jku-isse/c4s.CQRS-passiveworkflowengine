@@ -17,21 +17,21 @@ Blockly.Blocks['step'] = {
     this.appendStatementInput("Input")
         .setCheck("artuse")
         .appendField("Input");
-    this.appendStatementInput("Transitions")
+    this.appendStatementInput("Conditions")
         .setCheck("transition")
         .appendField("Transitions");
-    this.appendStatementInput("Datamappings")
-        .setCheck("datamapping")
-        .appendField("Datamappings");    
+    // this.appendStatementInput("Datamappings")
+    //    .setCheck("datamapping")
+    //    .appendField("Datamappings");     
     this.appendStatementInput("Output")
-        .setCheck("artuse")
+        .setCheck(['artuse','artwithdatamapping','var'])
         .appendField("Output");
     this.appendStatementInput("QA")
         .setCheck("qacheck")
         .appendField("QA");    
     this.setInputsInline(false);
-    this.setPreviousStatement(true, "decisionnode");
-    this.setNextStatement(true, "decisionnode");
+    this.setPreviousStatement(true, ["decisionnode","step","function"]);
+    this.setNextStatement(true, ["decisionnode","step","function"]);
     this.setColour(230);
  this.setTooltip("Steps");
  this.setHelpUrl("");
@@ -158,7 +158,7 @@ Blockly.Blocks['qacheck'] = {
         .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
         
     this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setNextStatement(true, 'qacheck');
     this.setColour(65);
  this.setTooltip("Add constraint identifier and human readable description");
  this.setHelpUrl("");
