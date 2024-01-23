@@ -100,6 +100,291 @@
       {
         "processId": "_TaskWarmup",
         "inputParam": "CRs",
+        "inputId": "T1/5315",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5315"
+      },
+      {
+        "processId": "Task1c",
+        "inputParam": "CRs",
+        "inputId": "T1/5149",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5149"
+      },
+      {
+        "processId": "Task1b",
+        "inputParam": "CRs",
+        "inputId": "T1/5129",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5129"
+      },
+      {
+        "processId": "Task1a",
+        "inputParam": "CRs",
+        "inputId": "T1/5103",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5103"
+      },
+      {
+        "processId": "Task2c",
+        "inputParam": "CRs",
+        "inputId": "T1/5219",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5219"
+      },
+      {
+        "processId": "Task2b",
+        "inputParam": "CRs",
+        "inputId": "T1/5199",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5199"
+      },
+      {
+        "processId": "Task2a",
+        "inputParam": "CRs",
+        "inputId": "T1/5173",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5173"
+      },
+      {
+        "processId": "Task3c",
+        "inputParam": "CRs",
+        "inputId": "T1/5289",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5289"
+      },
+      {
+        "processId": "Task3b",
+        "inputParam": "CRs",
+        "inputId": "T1/5269",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5269"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T1/5243",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5243"
+      }
+    ]
+  },
+  "P3": {
+    "participantId": "P3",
+    "sequence": [
+      {
+        "processId": "_TaskWarmup",
+        "inputParam": "CRs",
+        "inputId": "T1/5315",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5315"
+      },
+      {
+        "processId": "Task1a",
+        "inputParam": "CRs",
+        "inputId": "T1/5103",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5103"
+      },
+      {
+        "processId": "Task1b",
+        "inputParam": "CRs",
+        "inputId": "T1/5129",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5129"
+      },
+      {
+        "processId": "Task1c",
+        "inputParam": "CRs",
+        "inputId": "T1/5149",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5149"
+      },
+      {
+        "processId": "Task2a",
+        "inputParam": "CRs",
+        "inputId": "T1/5173",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5173"
+      },
+      {
+        "processId": "Task2b",
+        "inputParam": "CRs",
+        "inputId": "T1/5199",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5199"
+      },
+      {
+        "processId": "Task2c",
+        "inputParam": "CRs",
+        "inputId": "T1/5219",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5219"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T1/5243",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5243"
+      },
+      {
+        "processId": "Task3b",
+        "inputParam": "CRs",
+        "inputId": "T1/5269",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5269"
+      },
+      {
+        "processId": "Task3c",
+        "inputParam": "CRs",
+        "inputId": "T1/5289",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5289"
+      }
+    ]
+  },
+  "P4": {
+    "participantId": "P4",
+    "sequence": [
+      {
+        "processId": "_TaskWarmup",
+        "inputParam": "CRs",
+        "inputId": "T1/5315",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5315"
+      },
+      {
+        "processId": "Task1a",
+        "inputParam": "CRs",
+        "inputId": "T1/5103",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5103"
+      },
+      {
+        "processId": "Task1c",
+        "inputParam": "CRs",
+        "inputId": "T1/5149",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5149"
+      },
+      {
+        "processId": "Task1b",
+        "inputParam": "CRs",
+        "inputId": "T1/5129",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5129"
+      },
+      {
+        "processId": "Task2a",
+        "inputParam": "CRs",
+        "inputId": "T1/5173",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5173"
+      },
+      {
+        "processId": "Task2c",
+        "inputParam": "CRs",
+        "inputId": "T1/5219",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5219"
+      },
+      {
+        "processId": "Task2b",
+        "inputParam": "CRs",
+        "inputId": "T1/5199",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5199"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T1/5243",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5243"
+      },
+      {
+        "processId": "Task3c",
+        "inputParam": "CRs",
+        "inputId": "T1/5289",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5289"
+      },
+      {
+        "processId": "Task3b",
+        "inputParam": "CRs",
+        "inputId": "T1/5269",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5269"
+      }
+    ]
+  },
+  "P5": {
+    "participantId": "P5",
+    "sequence": [
+      {
+        "processId": "_TaskWarmup",
+        "inputParam": "CRs",
         "inputId": "T2/5673",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
@@ -112,17 +397,8 @@
         "inputId": "T2/5507",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5507"
-      },
-      {
-        "processId": "Task1b",
-        "inputParam": "CRs",
-        "inputId": "T2/5487",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5487"
       },
       {
         "processId": "Task1a",
@@ -130,8 +406,17 @@
         "inputId": "T2/5461",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5461"
+      },
+      {
+        "processId": "Task1b",
+        "inputParam": "CRs",
+        "inputId": "T2/5487",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5487"
       },
       {
         "processId": "Task2c",
@@ -139,17 +424,8 @@
         "inputId": "T2/5577",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5577"
-      },
-      {
-        "processId": "Task2b",
-        "inputParam": "CRs",
-        "inputId": "T2/5557",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5557"
       },
       {
         "processId": "Task2a",
@@ -157,8 +433,17 @@
         "inputId": "T2/5531",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5531"
+      },
+      {
+        "processId": "Task2b",
+        "inputParam": "CRs",
+        "inputId": "T2/5557",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5557"
       },
       {
         "processId": "Task3c",
@@ -166,17 +451,8 @@
         "inputId": "T2/5647",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5647"
-      },
-      {
-        "processId": "Task3b",
-        "inputParam": "CRs",
-        "inputId": "T2/5627",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5627"
       },
       {
         "processId": "Task3a",
@@ -184,13 +460,22 @@
         "inputId": "T2/5601",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5601"
+      },
+      {
+        "processId": "Task3b",
+        "inputParam": "CRs",
+        "inputId": "T2/5627",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5627"
       }
     ]
   },
-  "P3": {
-    "participantId": "P3",
+  "P6": {
+    "participantId": "P6",
     "sequence": [
       {
         "processId": "_TaskWarmup",
@@ -202,21 +487,12 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5893"
       },
       {
-        "processId": "Task1a",
-        "inputParam": "CRs",
-        "inputId": "T3/5681",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5681"
-      },
-      {
         "processId": "Task1b",
         "inputParam": "CRs",
         "inputId": "T3/5707",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5707"
       },
       {
@@ -225,17 +501,17 @@
         "inputId": "T3/5727",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5727"
       },
       {
-        "processId": "Task2a",
+        "processId": "Task1a",
         "inputParam": "CRs",
-        "inputId": "T3/5751",
+        "inputId": "T3/5681",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5751"
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5681"
       },
       {
         "processId": "Task2b",
@@ -243,7 +519,7 @@
         "inputId": "T3/5777",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5777"
       },
       {
@@ -252,17 +528,17 @@
         "inputId": "T3/5797",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5797"
       },
       {
-        "processId": "Task3a",
+        "processId": "Task2a",
         "inputParam": "CRs",
-        "inputId": "T3/5821",
+        "inputId": "T3/5751",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5821"
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5751"
       },
       {
         "processId": "Task3b",
@@ -270,7 +546,7 @@
         "inputId": "T3/5847",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
+        "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5847"
       },
       {
@@ -279,13 +555,22 @@
         "inputId": "T3/5867",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5867"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T3/5821",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs with restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5821"
       }
     ]
   },
-  "P4": {
-    "participantId": "P4",
+  "P7": {
+    "participantId": "P7",
     "sequence": [
       {
         "processId": "_TaskWarmup",
@@ -295,15 +580,6 @@
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6113"
-      },
-      {
-        "processId": "Task1a",
-        "inputParam": "CRs",
-        "inputId": "T4/5901",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5901"
       },
       {
         "processId": "Task1c",
@@ -320,17 +596,17 @@
         "inputId": "T4/5927",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5927"
       },
       {
-        "processId": "Task2a",
+        "processId": "Task1a",
         "inputParam": "CRs",
-        "inputId": "T4/5971",
+        "inputId": "T4/5901",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5971"
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5901"
       },
       {
         "processId": "Task2c",
@@ -347,17 +623,17 @@
         "inputId": "T4/5997",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5997"
       },
       {
-        "processId": "Task3a",
+        "processId": "Task2a",
         "inputParam": "CRs",
-        "inputId": "T4/6041",
+        "inputId": "T4/5971",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6041"
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/5971"
       },
       {
         "processId": "Task3c",
@@ -374,13 +650,22 @@
         "inputId": "T4/6067",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "No repair support",
+        "repairSupport": "Repairs without restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6067"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T4/6041",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "No repair support",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6041"
       }
     ]
   },
-  "P5": {
-    "participantId": "P5",
+  "P8": {
+    "participantId": "P8",
     "sequence": [
       {
         "processId": "_TaskWarmup",
@@ -392,6 +677,15 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6333"
       },
       {
+        "processId": "Task1a",
+        "inputParam": "CRs",
+        "inputId": "T5/6121",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6121"
+      },
+      {
         "processId": "Task1c",
         "inputParam": "CRs",
         "inputId": "T5/6167",
@@ -401,22 +695,22 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6167"
       },
       {
-        "processId": "Task1a",
-        "inputParam": "CRs",
-        "inputId": "T5/6121",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6121"
-      },
-      {
         "processId": "Task1b",
         "inputParam": "CRs",
         "inputId": "T5/6147",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6147"
+      },
+      {
+        "processId": "Task2a",
+        "inputParam": "CRs",
+        "inputId": "T5/6191",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6191"
       },
       {
         "processId": "Task2c",
@@ -428,22 +722,22 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6237"
       },
       {
-        "processId": "Task2a",
-        "inputParam": "CRs",
-        "inputId": "T5/6191",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6191"
-      },
-      {
         "processId": "Task2b",
         "inputParam": "CRs",
         "inputId": "T5/6217",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6217"
+      },
+      {
+        "processId": "Task3a",
+        "inputParam": "CRs",
+        "inputId": "T5/6261",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6261"
       },
       {
         "processId": "Task3c",
@@ -455,27 +749,18 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6307"
       },
       {
-        "processId": "Task3a",
-        "inputParam": "CRs",
-        "inputId": "T5/6261",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6261"
-      },
-      {
         "processId": "Task3b",
         "inputParam": "CRs",
         "inputId": "T5/6287",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6287"
       }
     ]
   },
-  "P6": {
-    "participantId": "P6",
+  "P9": {
+    "participantId": "P9",
     "sequence": [
       {
         "processId": "_TaskWarmup",
@@ -496,15 +781,6 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6367"
       },
       {
-        "processId": "Task1c",
-        "inputParam": "CRs",
-        "inputId": "T6/6387",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6387"
-      },
-      {
         "processId": "Task1a",
         "inputParam": "CRs",
         "inputId": "T6/6341",
@@ -512,6 +788,15 @@
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6341"
+      },
+      {
+        "processId": "Task1c",
+        "inputParam": "CRs",
+        "inputId": "T6/6387",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6387"
       },
       {
         "processId": "Task2b",
@@ -523,15 +808,6 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6437"
       },
       {
-        "processId": "Task2c",
-        "inputParam": "CRs",
-        "inputId": "T6/6457",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6457"
-      },
-      {
         "processId": "Task2a",
         "inputParam": "CRs",
         "inputId": "T6/6411",
@@ -539,6 +815,15 @@
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6411"
+      },
+      {
+        "processId": "Task2c",
+        "inputParam": "CRs",
+        "inputId": "T6/6457",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6457"
       },
       {
         "processId": "Task3b",
@@ -550,15 +835,6 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6507"
       },
       {
-        "processId": "Task3c",
-        "inputParam": "CRs",
-        "inputId": "T6/6527",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6527"
-      },
-      {
         "processId": "Task3a",
         "inputParam": "CRs",
         "inputId": "T6/6481",
@@ -566,11 +842,20 @@
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6481"
+      },
+      {
+        "processId": "Task3c",
+        "inputParam": "CRs",
+        "inputId": "T6/6527",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6527"
       }
     ]
   },
-  "P7": {
-    "participantId": "P7",
+  "P10": {
+    "participantId": "P10",
     "sequence": [
       {
         "processId": "_TaskWarmup",
@@ -587,8 +872,17 @@
         "inputId": "T7/6587",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6587"
+      },
+      {
+        "processId": "Task1c",
+        "inputParam": "CRs",
+        "inputId": "T7/6607",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6607"
       },
       {
         "processId": "Task1a",
@@ -600,22 +894,22 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6561"
       },
       {
-        "processId": "Task1c",
-        "inputParam": "CRs",
-        "inputId": "T7/6607",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6607"
-      },
-      {
         "processId": "Task2b",
         "inputParam": "CRs",
         "inputId": "T7/6657",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6657"
+      },
+      {
+        "processId": "Task2c",
+        "inputParam": "CRs",
+        "inputId": "T7/6677",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6677"
       },
       {
         "processId": "Task2a",
@@ -627,22 +921,22 @@
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6631"
       },
       {
-        "processId": "Task2c",
-        "inputParam": "CRs",
-        "inputId": "T7/6677",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6677"
-      },
-      {
         "processId": "Task3b",
         "inputParam": "CRs",
         "inputId": "T7/6727",
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
-        "repairSupport": "Repairs without restriction details",
+        "repairSupport": "Repairs with restriction details",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6727"
+      },
+      {
+        "processId": "Task3c",
+        "inputParam": "CRs",
+        "inputId": "T7/6747",
+        "artifactType": "azure_workitem",
+        "idType": "azure_workitem",
+        "repairSupport": "Repairs without restriction details",
+        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6747"
       },
       {
         "processId": "Task3a",
@@ -652,15 +946,6 @@
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6701"
-      },
-      {
-        "processId": "Task3c",
-        "inputParam": "CRs",
-        "inputId": "T7/6747",
-        "artifactType": "azure_workitem",
-        "idType": "azure_workitem",
-        "repairSupport": "Repairs with restriction details",
-        "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/6747"
       }
     ]
   }

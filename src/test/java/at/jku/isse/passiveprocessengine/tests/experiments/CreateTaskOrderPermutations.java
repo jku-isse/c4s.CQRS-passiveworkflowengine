@@ -33,13 +33,17 @@ class CreateTaskOrderPermutations {
 	void createACLDataTableContent() {
 
 		// for participants 1 to 30
-		List<String> participantIds = IntStream.range(1, 8)
+		List<String> participantIds = IntStream.range(1, 11)
                 .mapToObj(x -> "P"+x)
                 .collect(Collectors.toList()); 
 		
 		// for x participants above, 9 process inputs each
 		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
 		List<String> processInputIds = List.of(
+			//TODO: regenerate tasks
+				"T1/5103", "T1/5129", "T1/5149", "T1/5173", "T1/5199", "T1/5219", "T1/5243", "T1/5269", "T1/5289",
+				"T1/5103", "T1/5129", "T1/5149", "T1/5173", "T1/5199", "T1/5219", "T1/5243", "T1/5269", "T1/5289",
+				"T1/5103", "T1/5129", "T1/5149", "T1/5173", "T1/5199", "T1/5219", "T1/5243", "T1/5269", "T1/5289",
 				"T1/5103", "T1/5129", "T1/5149", "T1/5173", "T1/5199", "T1/5219", "T1/5243", "T1/5269", "T1/5289",
 				"T2/5461", "T2/5487", "T2/5507", "T2/5531", "T2/5557", "T2/5577", "T2/5601", "T2/5627", "T2/5647",  
 				"T3/5681", "T3/5707", "T3/5727", "T3/5751", "T3/5777", "T3/5797", "T3/5821", "T3/5847", "T3/5867", 
@@ -47,13 +51,10 @@ class CreateTaskOrderPermutations {
 				"T5/6121", "T5/6147", "T5/6167", "T5/6191", "T5/6217", "T5/6237", "T5/6261", "T5/6287", "T5/6307",  
 				"T6/6341", "T6/6367", "T6/6387", "T6/6411", "T6/6437", "T6/6457", "T6/6481", "T6/6507", "T6/6527",
 				"T7/6561", "T7/6587", "T7/6607", "T7/6631", "T7/6657", "T7/6677", "T7/6701", "T7/6727", "T7/6747");
-
-		List<String> warmupInputs =List.of("T1/5315", "T2/5673","T3/5893", "T4/6113","T5/6333", "T6/6553", "T7/6773");
+		//TODO: regenerate warmup tasks
+		List<String> warmupInputs =List.of("T1/5315", "T1/5315","T1/5315","T1/5315","T2/5673","T3/5893", "T4/6113","T5/6333", "T6/6553", "T7/6773");			
 		
-
-		
-		
-		// and 9 processes types, representing the taskss		
+		// and 9 processes types, representing the tasks		
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
 		
 		
@@ -63,29 +64,29 @@ class CreateTaskOrderPermutations {
 	}
 
 	
-	@Test
-	void createTestACLDataTableContent() {
-
-		// for participants 1 to 30
-		List<String> participantIds = IntStream.range(1, 2)
-                .mapToObj(x -> "P"+x)
-                .collect(Collectors.toList()); 
-		
-		// for x participants above, 9 process inputs each
-		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
-		List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
-				"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
-				"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
-
-		// and 9 processes types, representing the taskss		
-		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
-		String warmupTask = "_WarmupTest";
-		List<String> warmupInputs = List.of("UserStudy1Prep/8800");
-		
-
-		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds, warmupInputs, warmupTask));
-		
-	}
+//	@Test
+//	void createTestACLDataTableContent() {
+//
+//		// for participants 1 to 30
+//		List<String> participantIds = IntStream.range(1, 2)
+//                .mapToObj(x -> "P"+x)
+//                .collect(Collectors.toList()); 
+//		
+//		// for x participants above, 9 process inputs each
+//		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
+//		List<String> processInputIds = List.of("UserStudy1Prep/882", "UserStudy1Prep/883", "UserStudy1Prep/884", 
+//				"UserStudy1Prep/885", "UserStudy1Prep/886", "UserStudy1Prep/887", 
+//				"UserStudy1Prep/868", "UserStudy1Prep/888", "UserStudy1Prep/889");
+//
+//		// and 9 processes types, representing the taskss		
+//		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task1c","Task2a", "Task2b", "Task2c","Task3a", "Task3b", "Task3c");
+//		String warmupTask = "_WarmupTest";
+//		List<String> warmupInputs = List.of("UserStudy1Prep/8800");
+//		
+//
+//		System.out.println(createTableContent(processInputIds, processTypeIds, participantIds, warmupInputs, warmupTask));
+//		
+//	}
 
 	public static String createTableContent(List<String> processInputIds, List<String> processTypeIds, List<String> participantIds, List<String> warmupInputs, String warmupTask) {
 		// we need for every participant and task we need one dedicated input.
@@ -133,6 +134,11 @@ class CreateTaskOrderPermutations {
 		perm.add(List.of(1,0,2,1,0,2,1,0,2));
 		perm.add(List.of(2,1,0,2,1,0,2,1,0));
 		perm.add(List.of(2,0,1,2,0,1,2,0,1));
+		
+		perm.add(List.of(0,1,2,0,1,2,0,1,2));
+		perm.add(List.of(1,2,0,1,2,0,1,2,0));
+		perm.add(List.of(2,0,1,2,0,1,2,0,1));
+		perm.add(List.of(0,2,1,0,2,1,0,2,1));
 	}
 
 	public static void initTestPermuations() {
@@ -155,6 +161,10 @@ class CreateTaskOrderPermutations {
 		permTask.add(List.of(0,2,1,3,5,4,6,8,7));
 		permTask.add(List.of(1,2,0,4,5,3,7,8,6));
 
+		permTask.add(List.of(2,0,1,5,3,4,8,6,7));
+		permTask.add(List.of(2,1,0,5,4,3,8,7,6));
+		permTask.add(List.of(0,2,1,3,5,4,6,8,7));
+		permTask.add(List.of(1,0,2,4,3,5,7,6,8));
 	}
 	
 	/* 
@@ -472,17 +482,17 @@ class CreateTaskOrderPermutations {
 	private static int calcTaskGroup(int counter) {
 		return Math.floorDiv(counter, 3)+1;		
 	}
-	
-	@Test
-	void testFloor() {
-		System.out.println(Math.floorDiv(0, 3));
-		System.out.println(Math.floorDiv(1, 3));
-		System.out.println(Math.floorDiv(2, 3));
-		System.out.println(Math.floorDiv(3, 3));
-		System.out.println(Math.floorDiv(4, 3));
-		System.out.println(Math.floorDiv(5, 3));
-		System.out.println(Math.floorDiv(6, 3));
-		System.out.println(Math.floorDiv(7, 3));
-		System.out.println(Math.floorDiv(8, 3));
-	}
+//	
+//	@Test
+//	void testFloor() {
+//		System.out.println(Math.floorDiv(0, 3));
+//		System.out.println(Math.floorDiv(1, 3));
+//		System.out.println(Math.floorDiv(2, 3));
+//		System.out.println(Math.floorDiv(3, 3));
+//		System.out.println(Math.floorDiv(4, 3));
+//		System.out.println(Math.floorDiv(5, 3));
+//		System.out.println(Math.floorDiv(6, 3));
+//		System.out.println(Math.floorDiv(7, 3));
+//		System.out.println(Math.floorDiv(8, 3));
+//	}
 }
