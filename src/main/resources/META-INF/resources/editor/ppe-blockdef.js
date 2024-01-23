@@ -15,23 +15,23 @@ Blockly.Blocks['step'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldTextInput("StepId"), "StepId");
     this.appendStatementInput("Input")
-        .setCheck(["ARTUSE"])
+        .setCheck("artuse")
         .appendField("Input");
-    this.appendStatementInput("Conditions")
-        .setCheck("transition")
-        .appendField("Transitions");
+    this.appendStatementInput("Transitions")
+        .setCheck(["transition","condition"])
+        .appendField("Conditions");
     // this.appendStatementInput("Datamappings")
     //    .setCheck("datamapping")
     //    .appendField("Datamappings");     
     this.appendStatementInput("Output")
-        .setCheck(['ARTUSE','artwithdatamapping','var'])
+        .setCheck(['artuse','artwithdatamapping'])
         .appendField("Output");
     this.appendStatementInput("QA")
         .setCheck("qacheck")
         .appendField("QA");    
     this.setInputsInline(false);
-    this.setPreviousStatement(true, ["decisionnode","step","function"]);
-    this.setNextStatement(true, ["decisionnode","step","function"]);
+    this.setPreviousStatement(true, ["decisionnode","step","config"]);
+    this.setNextStatement(true, ["decisionnode","step"]);
     this.setColour(230);
  this.setTooltip("Steps");
  this.setHelpUrl("");
@@ -46,8 +46,8 @@ Blockly.Blocks['config'] = {
         .setCheck("configproperty")
         .appendField("Properties");        
     this.setInputsInline(false);
-    this.setPreviousStatement(true, "function");
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, ["config","function"]);
+    this.setNextStatement(true, ["step", "config"]);
     this.setColour(130);
  this.setTooltip("Process Configuration Properties");
  this.setHelpUrl("");
@@ -63,8 +63,8 @@ Blockly.Blocks['configproperty'] = {
         .appendField(' IsRepairable:')
         .appendField(new Blockly.FieldCheckbox(true), 'isRepairable');
 
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, "configproperty");
+    this.setNextStatement(true, "configproperty");
     this.setColour(130);
     this.setInputsInline(false);
  this.setTooltip("");
@@ -80,10 +80,10 @@ Blockly.Blocks['artuse'] = {
         .appendField(new Blockly.FieldLabelSerializable("Param"), "roletext");
         //.appendField(new Blockly.FieldTextInput("defaultParam"), "NAME");
     this.setInputsInline(false);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, 'artuse');
+    this.setNextStatement(true, 'artuse');
     this.setColour(30);
-    this.setOutput(false, "ARTUSE");
+  //  this.setOutput(true, ["ARTUSE"]);
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -100,8 +100,27 @@ Blockly.Blocks['transition'] = {
     this.appendDummyInput()
         .appendField(' IsOverridable:')
         .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, 'transition');
+    this.setNextStatement(true, 'transition');
+    this.setColour(230);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['condition'] = {
+  init: function() {
+    this.appendDummyInput()        
+        .appendField(new Blockly.FieldDropdown([["Enabled","PRECONDITION"], ["Activated","ACTIVATION"], ["Completed","POSTCONDITION"], ["Canceled","CANCELATION"]]), "State")
+        .appendField("Upon/If:");
+    this.appendDummyInput()
+     	.appendField(new Blockly.FieldMultilineInput('provide OCL/ARL condition here                  .'),
+            "condition");
+    this.appendDummyInput()
+        .appendField(' IsOverridable:')
+        .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');
+    this.setPreviousStatement(true, 'condition');
+    this.setNextStatement(true, 'condition');
     this.setColour(230);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -115,8 +134,8 @@ Blockly.Blocks['datamapping'] = {
         .appendField(new Blockly.FieldMultilineInput('provide mapping as ARL here'),
             'mappingSpec');
 
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, 'datamapping');
+    this.setNextStatement(true, 'datamapping');
     this.setColour(65);
     this.setInputsInline(false);
  this.setTooltip("");
@@ -133,11 +152,11 @@ Blockly.Blocks['artwithdatamapping'] = {
         .appendField(new Blockly.FieldLabelSerializable("Param"), "roletext");
         //.appendField(new Blockly.FieldTextInput("defaultParam"), "NAME");
     this.appendDummyInput()
-     	.appendField(new Blockly.FieldMultilineInput('provide mapping as ARL here'),
+     	.appendField(new Blockly.FieldMultilineInput('provide OCL/ARL navigation from input to output here'),
             'mappingSpec');
     this.setInputsInline(false);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, 'artwithdatamapping');
+    this.setNextStatement(true, 'artwithdatamapping');
     this.setColour(30);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -158,7 +177,7 @@ Blockly.Blocks['qacheck'] = {
     	.appendField(' IsOverridable:')
         .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
         
-    this.setPreviousStatement(true, null);
+    this.setPreviousStatement(true, 'qacheck');
     this.setNextStatement(true, 'qacheck');
     this.setColour(65);
  this.setTooltip("Add constraint identifier and human readable description");
@@ -181,8 +200,8 @@ Blockly.Blocks['qacheckcomplete'] = {
     	.appendField(' IsOverridable:')
         .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
         
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, 'qacheckcomplete');
+    this.setNextStatement(true, 'qacheckcomplete');
     this.setColour(65);
  this.setTooltip("Add constraint identifier and human readable description");
  this.setHelpUrl("");
