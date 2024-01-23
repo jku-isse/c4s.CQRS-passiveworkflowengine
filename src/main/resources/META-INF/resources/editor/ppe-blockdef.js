@@ -123,6 +123,26 @@ Blockly.Blocks['datamapping'] = {
   }
 };
 
+Blockly.Blocks['artwithdatamapping'] = {
+  init: function() {
+    this.appendDummyInput()
+		.appendField("Input-to-Output Datamapping");
+    this.appendValueInput("NAME")
+        .setCheck(null)
+        .appendField(new Blockly.FieldLabelSerializable("Param"), "roletext");
+        //.appendField(new Blockly.FieldTextInput("defaultParam"), "NAME");
+    this.appendDummyInput()
+     	.appendField(new Blockly.FieldMultilineInput('provide mapping as ARL here'),
+            'mappingSpec');
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(30);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+
 Blockly.Blocks['qacheck'] = {
   init: function() {
 	this.appendDummyInput()
@@ -133,6 +153,29 @@ Blockly.Blocks['qacheck'] = {
         .appendField(new Blockly.FieldTextInput("Description"), "description");
  	this.appendValueInput("constraint")
         .setCheck(null);
+    this.appendDummyInput()
+    	.appendField(' IsOverridable:')
+        .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
+        
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(65);
+ this.setTooltip("Add constraint identifier and human readable description");
+ this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['qacheckcomplete'] = {
+  init: function() {
+	this.appendDummyInput()
+		.appendField("QA Check:");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Constraint Id here"), "qacheckId");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("Human readable description here"), "description");
+ 	this.appendDummyInput()                        
+ 		.appendField(new Blockly.FieldMultilineInput('provide constraint as OCL/ARL here               .'),
+            'constraint');
     this.appendDummyInput()
     	.appendField(' IsOverridable:')
         .appendField(new Blockly.FieldCheckbox(false), 'isOverridable');    
