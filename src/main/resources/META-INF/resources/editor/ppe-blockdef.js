@@ -3,8 +3,8 @@ Blockly.Blocks['artifact'] = {
     this.appendDummyInput()
         .appendField("Artifact Type")
         .appendField(new Blockly.FieldDropdown([["Jira","jira_artifact"], ["Jama","jama_item"], ["Azure","azure_workitem"], ["GitHub Issue","git_issue"], ["Process Definition","ProcessDefinition"],["ProcessConfiguration","process_config_base"], ["ACME-RA Issue", "acme_issue"], ["ACME-RA Engineer", "acme_engineer"]]), "Type");
-    this.setOutput(true, null);
-    this.setColour(45);
+    this.setOutput(true, "ARTTYPE");
+    this.setColour(45);    
  this.setTooltip("Defines what type of artifact is involved");
  this.setHelpUrl("");
   }
@@ -15,7 +15,7 @@ Blockly.Blocks['step'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldTextInput("StepId"), "StepId");
     this.appendStatementInput("Input")
-        .setCheck("artuse")
+        .setCheck(["ARTUSE"])
         .appendField("Input");
     this.appendStatementInput("Conditions")
         .setCheck("transition")
@@ -24,7 +24,7 @@ Blockly.Blocks['step'] = {
     //    .setCheck("datamapping")
     //    .appendField("Datamappings");     
     this.appendStatementInput("Output")
-        .setCheck(['artuse','artwithdatamapping','var'])
+        .setCheck(['ARTUSE','artwithdatamapping','var'])
         .appendField("Output");
     this.appendStatementInput("QA")
         .setCheck("qacheck")
@@ -76,13 +76,14 @@ Blockly.Blocks['configproperty'] = {
 Blockly.Blocks['artuse'] = {
   init: function() {
     this.appendValueInput("NAME")
-        .setCheck(null)
+        .setCheck("ARTTYPE")
         .appendField(new Blockly.FieldLabelSerializable("Param"), "roletext");
         //.appendField(new Blockly.FieldTextInput("defaultParam"), "NAME");
     this.setInputsInline(false);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(30);
+    this.setOutput(false, "ARTUSE");
  this.setTooltip("");
  this.setHelpUrl("");
   }
