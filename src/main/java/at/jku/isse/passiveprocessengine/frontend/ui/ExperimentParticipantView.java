@@ -90,7 +90,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start Task/Process").setResizable(false).setSortable(false);	
 		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("Finish Task/Process").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		layout.add(grid);
 
 		return layout;
