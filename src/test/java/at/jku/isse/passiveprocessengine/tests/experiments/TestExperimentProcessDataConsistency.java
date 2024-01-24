@@ -69,6 +69,8 @@ class TestExperimentProcessDataConsistency {
 	
 	private enum PROCESSTYPEIDS {_TaskWarmup, Task1a, Task1b, Task1c, Task2a, Task2b, Task2c, Task3a, Task3b, Task3c};
 	
+	private enum OUTPUTS { REQs, TCs, Bugs };
+	
 	private Map<String,String> credentials = SecurityConfig.getExperimentUserCredentials();
 	
 	List<String> participantIds = List.of("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10");
@@ -108,7 +110,8 @@ class TestExperimentProcessDataConsistency {
 	@Test
 	void checkIfExperimentDataIsConsistent() throws ProcessException {
 		// for each user
-		for (String participantId : participantIds) {
+		List<String> allResults = participantIds.stream()
+				.map(participantId -> {
 			ExperimentSequence expSeq = expSeqProvider.getSequenceForParticipant(participantId);
 			List<Boolean> result = expSeq.getSequence().stream().map(info -> {
 				try {
@@ -121,15 +124,16 @@ class TestExperimentProcessDataConsistency {
 			.filter(Objects::nonNull)
 			.map(pi -> {
 				return checkDataConsistency(pi);
-			
 			})
 			.collect(Collectors.toList());
 			if (result.stream().allMatch(singleRes -> singleRes==true)) {
-				System.out.println("All processes ok for participant: "+participantId);
+				return "All processes ok for participant: "+participantId;
 			} else {
-				System.out.println("Processes with error for participant: "+participantId+ " "+result.toString());
+				return "Processes with error for participant: "+participantId+ " "+result.toString();
 			}
-		}
+		})
+		.collect(Collectors.toList());
+		System.out.println(allResults);		
 	}
 	
 	private boolean instantiateAndClose(TaskInfo entry, String participantId) throws ProcessException {
@@ -179,26 +183,46 @@ class TestExperimentProcessDataConsistency {
 			System.out.println(String.format("QA Check in step %s is not violated", onlyStep.getName()));
 			hasError = true;
 		}
-		switch(procId) {
+		switch(procId) {			// REQs TCs Bugs
 		case _TaskWarmup:
+			if (!checkOutputs(onlyStep, 4, 0, 0));
+			hasError = true;
 			break;
 		case Task1a:
+			if (!checkOutputs(onlyStep, 5, 0, 5));
+			hasError = true;
 			break;
 		case Task1b:
+			if (!checkOutputs(onlyStep, 3, 0, 0));
+			hasError = true;
 			break;
 		case Task1c:
+			if (!checkOutputs(onlyStep, 7, 13, 2));
+			hasError = true;
 			break;
 		case Task2a:
+			if (!checkOutputs(onlyStep, 5, 0, 5));
+			hasError = true;
 			break;
 		case Task2b:
+			if (!checkOutputs(onlyStep, 4, 0, 0));
+			hasError = true;
 			break;
 		case Task2c:
+			if (!checkOutputs(onlyStep, 7, 14, 2));
+			hasError = true;
 			break;
 		case Task3a:
+			if (!checkOutputs(onlyStep, 5, 0, 5));
+			hasError = true;
 			break;
 		case Task3b:
+			if (!checkOutputs(onlyStep, 4, 0, 0));
+			hasError = true;
 			break;
 		case Task3c:
+			if (!checkOutputs(onlyStep, 7, 14, 4));
+			hasError = true;
 			break;
 		default:
 			System.out.println("Unknown ProcessType encountered: "+procId);
@@ -207,5 +231,13 @@ class TestExperimentProcessDataConsistency {
 		return hasError;
 	}
 
-	
+	private boolean checkOutputs(ProcessStep step, int reqSize, int tcSize, int bugSize) {
+		boolean success = step.getOutput(OUTPUTS.TCs.toString()).size()==tcSize 
+				&& step.getOutput(OUTPUTS.REQs.toString()).size()==reqSize 
+				&& step.getOutput(OUTPUTS.Bugs.toString()).size()==bugSize;
+		if (!success) {
+			System.out.println(String.format("Process step %s has differing output size",step.getName()));
+		}
+		return success;
+	}
 }
