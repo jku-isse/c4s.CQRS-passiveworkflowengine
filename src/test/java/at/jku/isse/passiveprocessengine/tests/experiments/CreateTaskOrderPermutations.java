@@ -161,7 +161,11 @@ class CreateTaskOrderPermutations {
 		AtomicInteger counter = new AtomicInteger(1);
 		return participantIds.stream()
 				.map(id -> String.format("(%s, 1, '%s')", counter.getAndIncrement(), id))
-				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n(990, 1, 'repaironly'),\r\n(999, 1, 'dev'),\r\n(1000, 0, 'ROLE_EDITOR');"));
+				.collect(Collectors.joining(",\r\n", PARTICIPANTSHEADER, ",\r\n"
+						+ "(980, 1, 'norepair'),\r\n"
+						+ "(990, 1, 'repaironly'),\r\n"
+						+ "(999, 1, 'dev'),\r\n"
+						+ "(1000, 0, 'ROLE_EDITOR');"));
 	}
 	
 	/* 
@@ -356,6 +360,7 @@ class CreateTaskOrderPermutations {
 				.collect(Collectors.joining(",\r\n"))	
 				);
 		content.append(",\r\n"
+				+ "(9995, 9999, 1, 980,     1, 1, 1, 1),\r\n" // all processes, no repairs for user: norepair
 				+ "(9996, 9999, 1, 990,     1, 1, 1, 1),\r\n" // only repairs for user :repaironly
 				+ "(9997, 9997, 1, 990,     1, 1, 1, 1),\r\n" // all processes for user: repaironly
 				+ "(9998, 9998, 1, 999,     1, 1, 1, 1),\r\n" //restrictions and repairs for user: dev
