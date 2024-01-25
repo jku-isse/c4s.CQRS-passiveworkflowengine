@@ -1,6 +1,8 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
@@ -125,13 +127,20 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 		if (repairCount == 0 && rootNode.getChildren().stream().noneMatch(rn -> rn instanceof DummyRepairNode)) {
 			rootNode.getChildren().add(new DummyRepairNode(null));
 		} 
-		this.setItems(rootNode.getChildren().stream()
+		//alphabetical Sort
+		Comparator<RepairNode> comp = Comparator.comparing(RepairNode::toString,
+				(sc1, sc2) -> sc2.compareTo(sc1));
+		List<RepairNode> childCollection = rootNode.getChildren().stream().map(x -> (RepairNode) x).sorted(comp)
+				.collect(Collectors.toList());//till here
+		this.setItems(childCollection.stream()
                 .map(x->new WrappedRepairNode(x)),
         o -> {
         	if (o instanceof WrappedRepairNode) { 
             	WrappedRepairNode rn = (WrappedRepairNode) o;
-            	return rn.getRepairNode().getChildren().stream()
-            			.sorted(Comparator.comparing(childRN -> childRN.getScore()))
+            	//not sure if it is required here. 
+            	List<RepairNode> cc = rn.getRepairNode().getChildren().stream().map(x -> (RepairNode) x).sorted(comp)
+        				.collect(Collectors.toList());
+            	return cc.stream()
             			.map(x -> new WrappedRepairNode(x));
             } else {
                 log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());

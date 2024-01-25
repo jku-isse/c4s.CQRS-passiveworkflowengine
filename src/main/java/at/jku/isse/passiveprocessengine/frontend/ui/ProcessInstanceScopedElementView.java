@@ -754,7 +754,11 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         	// show the repair list if enabled, and there is an inconsistency (something to repair
         	if (doShowRepairs && rebc.getCr() != null && !rebc.getCr().isConsistent()) {
         		try {
-    				RepairNode repairTree = RuleService.repairTree(rebc.getCr());        			
+    				RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+    				/*RepairNodeScorer scorer=new alphaBeticalSort();
+    				RepairTreeSorter rts=new RepairTreeSorter(null, scorer);
+    				rts.updateTreeOnScores(repairTree,rebc.getCr().getProperty("name").getValue().toString());
+    				rts.sortTree(repairTree, 1);*/
     				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
     				rtg.initTreeGrid();
     				rtg.updateConditionTreeGrid(repairTree, scope);                			

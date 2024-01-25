@@ -15,6 +15,7 @@ import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
+import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
 import at.jku.isse.designspace.rule.arl.repair.order.SortOnRepairPercentage;
@@ -102,7 +103,7 @@ public class FrontendSpringConfig {
 	
     @Bean
     public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
-    	RepairNodeScorer scorer= new SortOnRepairPercentage();
+    	RepairNodeScorer scorer= new NoSort();
     	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
     	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
     }
