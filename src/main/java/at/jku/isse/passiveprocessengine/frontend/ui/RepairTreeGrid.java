@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
@@ -129,7 +130,9 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
         o -> {
         	if (o instanceof WrappedRepairNode) { 
             	WrappedRepairNode rn = (WrappedRepairNode) o;
-            	return rn.getRepairNode().getChildren().stream().map(x -> new WrappedRepairNode(x));
+            	return rn.getRepairNode().getChildren().stream()
+            			.sorted(Comparator.comparing(childRN -> childRN.getScore()))
+            			.map(x -> new WrappedRepairNode(x));
             } else {
                 log.error("TreeGridPanel got unexpected artifact: " + o.getClass().getSimpleName());
                 return Stream.empty();
