@@ -361,10 +361,10 @@ class CreateTaskOrderPermutations {
 				);
 		content.append(",\r\n"
 				+ "(9995, 9999, 1, 980,     1, 1, 1, 1),\r\n" // all processes, no repairs for user: norepair
-				+ "(9996, 9999, 1, 990,     1, 1, 1, 1),\r\n" // only repairs for user :repaironly
+				+ "(9996, 9999, 2, 990,     1, 1, 1, 1),\r\n" // only repairs for user :repaironly
 				+ "(9997, 9997, 1, 990,     1, 1, 1, 1),\r\n" // all processes for user: repaironly
 				+ "(9998, 9998, 1, 999,     1, 1, 1, 1),\r\n" //restrictions and repairs for user: dev
-				+ "(9999, 9999, 2, 999,     1, 1, 1, 1);");    // all process for user : dev
+				+ "(9999, 9999, 3, 999,     1, 1, 1, 1);");    // all process for user : dev
 		return content.toString();
 	}
 	
