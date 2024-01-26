@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="rA5Srg,=6DFA]n?Z+8q#">
                     <field name="qacheckId">Priority1ReqBugsState</field>
-                    <field name="description">Ensure that either all Bugs for priority '1' Requirements are 'Closed' or otherwise that the Requirement is traced from one of the Change Request's 'active' child Issues.</field>
+                    <field name="description">Ensure that either all Bugs for priority '1' 'affects' Requirements are 'Closed' or otherwise that the Requirement is traced (as 'predecessor') from one of the Change Request's 'active' child Issues.</field>
                     <value name="constraint">
                       <block type="constraint" id="61,1Yz2_o6iIx2(k|F_-">
                         <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.priority=1)&#10;-&gt;forAll(prioreq | &#10;    ( prioreq.affectedbyItems&#10;        -&gt;select( item | &#10;                  item.workItemType = 'Bug'  )&#10;        -&gt;forAll( bug | bug.state = 'Closed')&#10;    )&#10;   or&#10;    (  prioreq.successorItems&#10;        -&gt;exists(item3 |&#10;              item3.workItemType = 'Issue' &#10;              and &#10;              item3.state='Active' &#10;              and &#10;              item3.parentItems            &#10;              -&gt;intersection(self.in_CRs)&#10;                    .size() &gt; 0&#10;            )&#10;    )&#10;)</field>

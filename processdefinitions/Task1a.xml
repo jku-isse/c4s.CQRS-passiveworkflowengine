@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="c@{G]5_;a=PxS.H-}Vtg">
                     <field name="qacheckId">BugsToREQ</field>
-                    <field name="description">Ensure that all bugs trace to at least one requirement that is not in status 'Released'..</field>
+                    <field name="description">Ensure that all bugs trace (via 'affects') to at least one requirement that is not in status 'Released'..</field>
                     <value name="constraint">
                       <block type="constraint" id="h}u$vR/hc}Z:oVk/EsZ0">
                         <field name="arlRule">self.out_Bugs-&gt;forAll(bug | bug.affectsItems&#10;-&gt;exists(item | item.workItemType = 'Requirement'&#10;              and item.state &lt;&gt; 'Released')&#10;)</field>

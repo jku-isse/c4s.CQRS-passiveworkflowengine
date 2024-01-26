@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="W1fbY4q$(rWfRrae@0K2">
                     <field name="qacheckId">REQtoTC</field>
-                    <field name="description">Ensure that each Requirement traces to at least one Test Case in state 'Released'.</field>
+                    <field name="description">Ensure that each Requirement traces (via 'tested by') to at least one Test Case in state 'Released'.</field>
                     <value name="constraint">
                       <block type="constraint" id="fv4uP?X:2{U0B5]32/XN">
                         <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;   req.testedbyItems-&gt;size() &gt; 0 &#10;   and&#10;   req.testedbyItems&#10; -&gt;forAll(tc |  tc.workItemType = 'Test Case' &#10;               and tc.state = 'Released')&#10;)</field>
