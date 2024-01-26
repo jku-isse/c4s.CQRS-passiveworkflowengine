@@ -131,8 +131,8 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			Span para = new Span(shortConstr.trim());
-			//Span para = new Span(rNode.getNode().expression.getLocalARL());
+			//Span para = new Span(shortConstr.trim());
+			Span para = new Span(rNode.getNode().expression.getLocalARL());
 			para.setTitle(shortConstr.trim());
 			para.getStyle().set("white-space", "pre");
 			return para;

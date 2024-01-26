@@ -34,11 +34,12 @@ public class ComponentUtils {
 	public static String generateDisplayNameForInstance(Instance inst) {
 		if (inst.hasProperty("title") && inst.hasProperty("workItemType")) { // FIXME assume we have a azure item
 			String title = (String) inst.getPropertyAsValueOrElse("title", () -> "Unknown");
+			String id = (String) inst.getPropertyAsValue("id");
 			//String type = inst.getPropertyAsInstance("workItemType") != null ? inst.getPropertyAsInstance("workItemType").name() : "UnknownType";
 			String type = (String) inst.getPropertyAsValue("workItemType"); 
-			return type+":"+title;
+			return "["+type+"]"+id+":"+title;
 		} else if (inst.hasProperty("linkType") && inst.hasProperty("linkTo")) { //azure link type
-			String type = inst.getPropertyAsInstance("linkType").name();
+			String type = inst.getPropertyAsInstance("linkType").name();			
 			String title = generateDisplayNameForInstance(inst.getPropertyAsInstance("linkTo"));
 			return type+":"+title;
 		} if (inst.hasProperty("title") && inst.hasProperty("key") && inst.hasProperty("labels")) { // FIXME assume we have a github issue
