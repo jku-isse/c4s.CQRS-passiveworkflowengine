@@ -101,7 +101,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="L}^*UEpl;#R@HC{iu,$I">
                     <field name="qacheckId">ClosedReqToBugState</field>
-                    <field name="description">Ensure that all requirements in state 'reviewed' have at least one bug in state closed.</field>
+                    <field name="description">Ensure that all requirements in state 'reviewed' trace (via 'affected by') to at least one bug in state closed.</field>
                     <value name="constraint">
                       <block type="constraint" id="#)RJt^YCegSzrki_!p1t">
                         <field name="arlRule">self.out_REQs&#10;-&gt; select(req | req.state='Reviewed')&#10;-&gt; forAll(req2:  &lt;root/types/azure/azure_workitem&gt;| req2.affectedbyItems&#10;-&gt;select(bug: &lt;root/types/azure/azure_workitem&gt;  | bug.workItemType='Bug')&#10;-&gt;exists(bug2:&lt;root/types/azure/azure_workitem&gt;|bug2.state='Closed')&#10;)</field>
