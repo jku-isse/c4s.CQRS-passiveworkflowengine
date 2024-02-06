@@ -129,15 +129,14 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 		} 
 		//alphabetical Sort
 		Comparator<RepairNode> comp = Comparator.comparing(RepairNode::toString,
-				(sc1, sc2) -> sc2.compareTo(sc1));
+				(sc1, sc2) -> sc2.compareTo(sc1)).reversed();
 		List<RepairNode> childCollection = rootNode.getChildren().stream().map(x -> (RepairNode) x).sorted(comp)
 				.collect(Collectors.toList());//till here
 		this.setItems(childCollection.stream()
                 .map(x->new WrappedRepairNode(x)),
         o -> {
         	if (o instanceof WrappedRepairNode) { 
-            	WrappedRepairNode rn = (WrappedRepairNode) o;
-            	//not sure if it is required here. 
+            	WrappedRepairNode rn = (WrappedRepairNode) o; 
             	List<RepairNode> cc = rn.getRepairNode().getChildren().stream().map(x -> (RepairNode) x).sorted(comp)
         				.collect(Collectors.toList());
             	return cc.stream()

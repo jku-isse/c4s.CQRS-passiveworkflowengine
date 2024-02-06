@@ -49,6 +49,7 @@ public class RepairVisualizationUtil {
 					String restriction = rootNode.printNodeTree(false,2);
 //					String restriction1=rootNode.toTreeString(10);
 					restriction=restriction.replaceAll("(?m)^[ \t]*\r?\n", "");
+					restriction=restriction.replaceAll("~", " ");
 //					System.out.println(restriction);
 //					System.out.println(restriction1);
 					return generateRestrictedRepair(ra, restriction);
