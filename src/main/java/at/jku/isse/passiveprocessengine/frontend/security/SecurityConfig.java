@@ -44,6 +44,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // Allow all Vaadin internal requests.
         .requestMatchers(SecurityUtils::isFrameworkInternalRequest).permitAll()
 
+        // Allow specific paths without authentication.
+		.antMatchers("/", "/home", "/oauth_login").permitAll()
+		
         // Allow all requests by logged-in users.
         .anyRequest().authenticated()
 
@@ -52,6 +55,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .loginPage(LOGIN_URL).permitAll()
         .loginProcessingUrl(LOGIN_PROCESSING_URL)
         .failureUrl(LOGIN_FAILURE_URL)
+        
+        // Configure OAuth2 login.
+		.and().oauth2Login().loginPage("/oauth_login").userInfoEndpoint()
+        .userService(customOAuth2UserService()) // Set custom OAuth2UserService
+		.and().defaultSuccessUrl("/home").failureUrl(LOGIN_FAILURE_URL)
 
         // Configure logout
         .and().logout().logoutSuccessUrl(LOGOUT_SUCCESS_URL);
@@ -62,7 +70,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     .headers().addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN));
   }
 
-    
+  @Bean
+  public CustomOAuth2UserService customOAuth2UserService() {
+	  return new CustomOAuth2UserService();
+  }
   
   @Bean
   @Override

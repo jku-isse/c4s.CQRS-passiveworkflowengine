@@ -13,19 +13,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
+import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.ReservedNames;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
+import at.jku.isse.designspace.jira.model.JiraSchemaConverter.JIRA_TYPE;
+import at.jku.isse.designspace.jira.restclient.connector.JiraRestClient;
+import at.jku.isse.designspace.jira.service.JiraService;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
@@ -79,6 +89,8 @@ public class RequestDelegate {
 	@Autowired ProcessProxyRepository processACL;
 	
 	@Autowired RestrictionProxyRepository restrictionACL;
+	
+	@Autowired JiraService jiraService;
 	
 	@Autowired
 	private ProcessConfigBaseElementFactory configFactory;
@@ -356,6 +368,29 @@ public class RequestDelegate {
 															|| proxy.getName().equalsIgnoreCase("*"));
 	}
 
+    /**
+     *  Method that checks if current logged in OAuth user is allowed to instantiate process, if no OAuth user doAllowProcessInstantiation() is called
+     */
+	public boolean doAllowProcessInstantiationAuth(ArtifactIdentifier procInputId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if ( authentication.getPrincipal().getClass().equals(DefaultOAuth2User.class)) {	//OAuth authentication
+			DefaultOAuth2User user = (DefaultOAuth2User) authentication.getPrincipal();
+			String userEmail = user.getAttribute("email");
+			Set<String> authorizedUsers;
+			
+			try {
+				authorizedUsers = (Set<String>) resolver.get(procInputId).getAuthorizedUsers().getValue();
+				String userId = jiraService.getJiraTicketService().getUserIdByEmail(userEmail);
+				return authorizedUsers.contains(userId) || authorizedUsers.contains("*");	
+			} catch (ProcessException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		// Otherwise static user. Call basic doAllowProcessInstantiation that relies on the ACL
+		return doAllowProcessInstantiation(procInputId.getId());
+	}
+	
 	public String isAllowedAsNextProc(String procDefId, String userId) {
 		if (processACL.findAll().stream().anyMatch(entry -> entry.getName().equalsIgnoreCase("*")))
 			return procDefId;

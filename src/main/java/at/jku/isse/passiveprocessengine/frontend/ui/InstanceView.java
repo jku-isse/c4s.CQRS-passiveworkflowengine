@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.net.URI;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Comparator;
@@ -10,8 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -63,6 +70,8 @@ import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.core.model.SingleProperty;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.jira.restclient.connector.JiraRestClient;
+import at.jku.isse.designspace.jira.service.JiraService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
@@ -81,6 +90,7 @@ import lombok.extern.slf4j.Slf4j;
 @UIScope
 //@SpringComponent
 public class InstanceView extends VerticalLayout implements HasUrlParameter<String> {
+	@Autowired JiraService jiraService;
 
 	private RequestDelegate commandGateway;
 	private ProcessConfigBaseElementFactory configFactory;
@@ -142,9 +152,21 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				layout.add(new Hr());
 				HorizontalLayout hl = new HorizontalLayout();
 				Element el = commandGateway.getWorkspace().findElement(id);
+				Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 				if (el == null) { 
 					layout.add(new Paragraph("Element with id "+id+" does not exists."));
 					return layout;				
+				}
+				// If Oauth user is logged in. Check if they have access to the artifact
+				if (authentication.getPrincipal().getClass().equals(DefaultOAuth2User.class)) {
+					DefaultOAuth2User user = (DefaultOAuth2User) authentication.getPrincipal();
+					String userEmail = user.getAttribute("email");
+					String userId = jiraService.getJiraTicketService().getUserIdByEmail(userEmail);
+
+					if (!el.isAccessibleFor(userId)) {
+						layout.add(new Paragraph("You are not authorized to access the artifact."));
+						return layout;
+					}
 				}
 				Paragraph elName = new Paragraph("Artifact/Instance (DSid="+id+"): "+el.name());
 				hl.add(elName);

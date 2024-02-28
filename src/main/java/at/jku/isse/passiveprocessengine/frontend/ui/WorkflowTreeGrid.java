@@ -30,6 +30,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 
+import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
@@ -331,8 +332,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     
     private boolean doHaveAccessRight(ProcessInstance wfi)  { 
   		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
-  		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
-  		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+  		Instance artId =  wfi.getInput(inParam).iterator().next();
+  		boolean authorized = reqDel.doAllowProcessInstantiationAuth(reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(artId));
   		return authorized;
  	 };
     
