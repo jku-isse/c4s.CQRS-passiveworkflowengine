@@ -26,7 +26,7 @@ import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityConfig;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
@@ -59,7 +59,7 @@ class TestExperimentProcessDataConsistency {
 	UsageMonitor usageMonitor;
 	
 	@Autowired
-	ExperimentSequenceProvider expSeqProvider;
+	ProcessAccessControlProvider expSeqProvider;
 	
 	@Autowired
 	SecurityService securityService;
@@ -137,8 +137,8 @@ class TestExperimentProcessDataConsistency {
 	}
 	
 	private boolean instantiateAndClose(TaskInfo entry, String participantId) throws ProcessException {
-		String nextAllowedProc = reqDelegate.isAllowedAsNextProc(entry.getProcessId(), participantId);
-		boolean allowInstantiation = reqDelegate.doAllowProcessInstantiation(entry.getInputId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId());
+		String nextAllowedProc = reqDelegate.getACL().isAllowedAsNextProc(entry.getProcessId(), participantId);
+		boolean allowInstantiation = reqDelegate.getACL().doAllowProcessInstantiation(entry.getInputId(), participantId) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId());
 		if (!allowInstantiation) {
 			System.out.println(String.format("User %s not allowed to init process %s ", participantId, entry.getProcessId()));
 			return false;

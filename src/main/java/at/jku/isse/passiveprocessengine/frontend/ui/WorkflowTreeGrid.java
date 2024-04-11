@@ -18,6 +18,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.google.common.collect.Lists;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -332,7 +335,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     private boolean doHaveAccessRight(ProcessInstance wfi)  { 
   		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
   		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
-  		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+  		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String authenticatedUserId = auth != null ? auth.getName() : null;
+  		boolean authorized = reqDel.getACL().doAllowProcessInstantiation(artId, authenticatedUserId);
   		return authorized;
  	 };
     

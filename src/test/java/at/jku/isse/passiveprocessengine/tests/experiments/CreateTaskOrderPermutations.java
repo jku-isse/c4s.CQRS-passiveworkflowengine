@@ -3,6 +3,7 @@ package at.jku.isse.passiveprocessengine.tests.experiments;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,14 @@ import com.google.gson.GsonBuilder;
 
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
-import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 
 class CreateTaskOrderPermutations {
 
 	
+	private static final String REPAIRONLY = "repaironly";
+	private static final String NOREPAIR = "norepair";
+	private static final String DEV = "dev";
 	public static final String TASK_WARMUP = "_TaskWarmup";
 	private static final String AZURE_URL_PREFIX = "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/";
 	private static final String AZURE_ARTIFACTTYPE = "azure_workitem";
@@ -114,7 +118,7 @@ class CreateTaskOrderPermutations {
 		sb.append(createAclEntryTable(processTypeIds, processInputIds, participantIds, warmupInputs, warmupTask));
 		
 		Map<String,ExperimentSequence> participantData = createParticipantTaskOrderData(participantIds, processInputIds, processTypeIds, warmupInputs);
-		storeExperimentSequenceToJsonFile(ExperimentSequenceProvider.FILENAME, participantData);
+		storeExperimentSequenceToJsonFile(ProcessAccessControlProvider.FILENAME, participantData);
 		return sb.toString();
 	}
 	
@@ -407,13 +411,14 @@ class CreateTaskOrderPermutations {
 	}
 	
 	private static Map<String,ExperimentSequence> createParticipantTaskOrderData(List<String> participantIds, List<String> processInputIds, List<String> processTypeIds, List<String> processWarmupIds) {
-		Map<String,ExperimentSequence> sequences = new HashMap<>();
+		//TODO: add default entries for dev repaironly and norepair				
+		Map<String,ExperimentSequence> sequences = new LinkedHashMap<>();
 		AtomicInteger taskPermPointer = new AtomicInteger(1);
 		AtomicInteger repairPermCounterSheet = new AtomicInteger(0);
 		participantIds.stream().forEach(pId -> {
 			ExperimentSequence seq = new ExperimentSequence(pId);
 			String warmupId = processWarmupIds.remove(0);
-			seq.getSequence().add(new TaskInfo(TASK_WARMUP,  AZURE_INPUTPARAM, warmupId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(2), inputId2Url(warmupId)));
+			seq.getSequence().add(new TaskInfo(TASK_WARMUP,  AZURE_INPUTPARAM, warmupId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(2), ProcessAccessControlProvider.SupportConfig.RESTRICTION.toString(), inputId2Url(warmupId)));
 			Map<String, String> mapping = createTask2InputMap(processInputIds, processTypeIds);
 
 			List<Integer> taskPermutation = taskPerm.get(taskPermPointer.getAndIncrement()%taskPerm.size());
@@ -422,7 +427,20 @@ class CreateTaskOrderPermutations {
 				seq.getSequence().add(permToTaskLine(i, taskPermutation, repairPermutation, mapping, processTypeIds));
 			}
 			sequences.put(pId, seq);
-		});
+		});				
+		
+		ExperimentSequence seqDev = new ExperimentSequence(DEV);
+		sequences.put(DEV, seqDev);
+		seqDev.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.RESTRICTION.toString(), null));
+		
+		ExperimentSequence seqNoRepair = new ExperimentSequence(NOREPAIR);
+		sequences.put(NOREPAIR, seqNoRepair);
+		seqNoRepair.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.NONE.toString(), null));
+		
+		ExperimentSequence seqNoRestrictions = new ExperimentSequence(REPAIRONLY);
+		sequences.put(REPAIRONLY, seqNoRestrictions);
+		seqNoRestrictions.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.REPAIR.toString(), null));
+		
 		return sequences;
 	}
 	
@@ -447,7 +465,7 @@ class CreateTaskOrderPermutations {
 		String pType = processTypeIds.get(processIndex);
 		int repairPerm = repairPermutation.get(processIndex);
 		String inputId = mapping.get(pType);
-		return new TaskInfo(pType,  AZURE_INPUTPARAM, inputId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(repairPerm), inputId2Url(inputId));
+		return new TaskInfo(pType,  AZURE_INPUTPARAM, inputId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(repairPerm), ProcessAccessControlProvider.SupportConfig.values()[repairPerm].toString(),  inputId2Url(inputId));
 	}
 	
 	private static Map<String, String> createTask2InputMap(List<String> processInputIds, List<String> processTypeIds) {

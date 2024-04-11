@@ -629,7 +629,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         Button addInputButton = new Button("Add", startIcon, evt -> {
         	String artId = tf.getValue().trim();
         	if (artId != null && artId.length() > 0) {
-        		if (!reqDel.doAllowProcessInstantiation(artId)) {
+        		if (!reqDel.getACL().doAllowProcessInstantiation(artId, loggedInUserNameOrNull)) {
         			Notification.show("You are not authorized to access the artifact used as process input - unable to add to process.");        			
         		} else {
 
@@ -741,7 +741,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     }
     
     private Component getRepairDisplayComponent(ConstraintWrapper rebc, ProcessInstance scope) {
-        boolean doShowRepairs = reqDel.doShowRepairs(scope);                               
+        boolean doShowRepairs = reqDel.getACL().doShowRepairs(scope, loggedInUserNameOrNull);                               
         // show the eval tree (if enabled), including repairs if so enabled        
         if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
         	try {        			  				

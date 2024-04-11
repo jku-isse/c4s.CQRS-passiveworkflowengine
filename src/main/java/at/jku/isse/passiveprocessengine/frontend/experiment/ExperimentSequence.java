@@ -20,7 +20,12 @@ public class ExperimentSequence {
 		final String artifactType;
 		final String idType;
 		final String repairSupport;
+		final String repairSupportTypeId;
 		final String inputUrl;
+	
+		protected boolean hasMatchingProcessAndSupport(String processId, String supportId) {
+			return processId.equalsIgnoreCase(this.processId) && supportId.equals(this.repairSupportTypeId);
+		}
 	}
 	
 }

@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.Label;
@@ -27,10 +30,13 @@ public class RepairVisualizationUtil {
 
 	private RequestDelegate reqDel;
 	private ReloadIconProvider iconProvider;
+	private String authenticatedUserId;
 	
 	public RepairVisualizationUtil(RequestDelegate reqDel, ReloadIconProvider iconProvider) {
 		this.reqDel = reqDel;
 		this.iconProvider = iconProvider;
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		authenticatedUserId = auth != null ? auth.getName() : null;
 	}
 	
 	
@@ -44,7 +50,7 @@ public class RepairVisualizationUtil {
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
-			if (rootNode != null && reqDel.doShowRestrictions(scope)) {
+			if (rootNode != null && reqDel.getACL().doShowRestrictions(scope, authenticatedUserId)) {
 				try {
 					String restriction = rootNode.printNodeTree(false,2);
 //					String restriction1=rootNode.toTreeString(10);

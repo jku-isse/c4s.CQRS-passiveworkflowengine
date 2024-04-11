@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -22,8 +20,6 @@ import org.springframework.stereotype.Component;
 import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.ReservedNames;
-import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
@@ -32,9 +28,7 @@ import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElement
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.security.persistence.ProcessProxyRepository;
-import at.jku.isse.passiveprocessengine.frontend.security.persistence.RestrictionProxy;
-import at.jku.isse.passiveprocessengine.frontend.security.persistence.RestrictionProxyRepository;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
@@ -76,9 +70,7 @@ public class RequestDelegate {
 	
 	@Autowired UsageMonitor monitor;
 	
-	@Autowired ProcessProxyRepository processACL;
-	
-	@Autowired RestrictionProxyRepository restrictionACL;
+	@Autowired ProcessAccessControlProvider aclProvider;
 	
 	@Autowired
 	private ProcessConfigBaseElementFactory configFactory;
@@ -328,84 +320,11 @@ public class RequestDelegate {
 		}
 	}
 	
-	public boolean doShowRestrictions(ProcessInstance proc) {
-		if (proc == null)
-			return true;
-		else {
-			//if (doShowRepairs(proc)) // shortcut, as we only show repairtree when repairs are enabled, we dont need to check here again	
-				return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.RESTRICTION_SELECTOR)
-																		|| proxy.getName().equalsIgnoreCase("*"));
-			//else
-			//	return false;
-		}
+	public ProcessAccessControlProvider getACL() {
+		return aclProvider;
 	}
 	
-	public boolean doShowRepairs(ProcessInstance proc) {
-		if (proc == null)
-			return true;
-		else
-			return restrictionACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(proc.getDefinition().getName()+RestrictionProxy.REPAIR_SELECTOR)
-																	|| proxy.getName().equalsIgnoreCase("*") 
-																	|| proxy.getName().equalsIgnoreCase("+"));				
-	}
-	
-	public boolean doAllowProcessInstantiation(String procInputId) {
-		List<String> accessTo = processACL.findAll().stream().map(pp -> pp.getName()).collect(Collectors.toList());
-		
-		return processACL.findAll().stream().anyMatch(proxy -> proxy.getName().equalsIgnoreCase(procInputId) 
-															|| proxy.getName().equalsIgnoreCase("*"));
-	}
 
-	public String isAllowedAsNextProc(String procDefId, String userId) {
-		if (processACL.findAll().stream().anyMatch(entry -> entry.getName().equalsIgnoreCase("*")))
-			return procDefId;
+	
 
-		Optional<List<String>> orderOpt = processACL.findAll().stream()
-				.filter(entry -> entry.getName().contains("::"))
-				.map(entry -> entry.tokenize())
-				.findAny();
-		if (orderOpt.isEmpty() || userId == null) return null;		
-		
-		List<String> order = orderOpt.get();
-		// check if that procDef has already been instantiated before, if so, then deny and search next 
-		Optional<Instance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, userId);
-		if (procInst.isPresent())
-			return "Process already (previously) instantiated, cannot instantiate again";
-		
-		int pos = order.indexOf(procDefId);		
-		// or if this is first one	
-		if (pos == 0) return procDefId; // all ok, good to go
-		if (pos > 0) {
-			String prevProcDef = order.get(pos-1);
-			Optional<Instance> prevInst = findAnyProcessInstanceByDefinitionAndOwner(prevProcDef, userId);
-			// if not yet instantiated, check if prior one has been closed
-			if (prevInst.isPresent()) {
-				Instance prevP = prevInst.get();
-				if (prevP.isDeleted)
-					return procDefId; // all good to go
-				else
-					return "Previous process "+prevProcDef+" is not completed (and deleted) yet";
-			} else {
-				return "Previous process "+prevProcDef+" is not instantiated yet";
-			}				 
-		}
-		return "You are not allowed to instantiate this process";
-	}
-	
-	public Optional<Instance> findAnyProcessInstanceByDefinitionAndOwner(String processDefinition, String owner) {
-		//InstanceType procType =	ProcessInstance.getOrCreateDesignSpaceInstanceType(ws, procReg.getProcessDefinition(processDefinition, true).get());
-		// instances() does not return deleted instances!!
-		return procReg.getExistingAndPriorInstances().stream()
-			.filter(proc -> proc.getDefinition().getName().equals(processDefinition))
-			.map(proc -> proc.getInstance())				
-			.filter(instance -> isOwner(owner, instance))
-			.findAny();		
-	}
-	
-	private boolean isOwner(String userName, Instance instance) {
-		return instance.getPropertyAsSet(ReservedNames.OWNERSHIP_PROPERTY).get().stream()
-			.map(strId -> Long.parseLong((String)strId))
-			.map(id -> User.users.get((Long)id))
-			.anyMatch(user -> ((User)user).name().equals(userName));
-	}
 }

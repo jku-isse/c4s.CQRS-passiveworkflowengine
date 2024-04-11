@@ -9,6 +9,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7697"
       },
       {
@@ -18,6 +19,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7511"
       },
       {
@@ -27,6 +29,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7485"
       },
       {
@@ -36,6 +39,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7531"
       },
       {
@@ -45,6 +49,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7581"
       },
       {
@@ -54,6 +59,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7555"
       },
       {
@@ -63,6 +69,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7601"
       },
       {
@@ -72,6 +79,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7651"
       },
       {
@@ -81,6 +89,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7625"
       },
       {
@@ -90,6 +99,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7671"
       }
     ]
@@ -104,6 +114,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7917"
       },
       {
@@ -113,6 +124,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7751"
       },
       {
@@ -122,6 +134,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7731"
       },
       {
@@ -131,6 +144,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7705"
       },
       {
@@ -140,6 +154,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7821"
       },
       {
@@ -149,6 +164,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7801"
       },
       {
@@ -158,6 +174,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7775"
       },
       {
@@ -167,6 +184,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7891"
       },
       {
@@ -176,6 +194,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7871"
       },
       {
@@ -185,6 +204,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7845"
       }
     ]
@@ -199,6 +219,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8137"
       },
       {
@@ -208,6 +229,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7925"
       },
       {
@@ -217,6 +239,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7951"
       },
       {
@@ -226,6 +249,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7971"
       },
       {
@@ -235,6 +259,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/7995"
       },
       {
@@ -244,6 +269,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8021"
       },
       {
@@ -253,6 +279,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8041"
       },
       {
@@ -262,6 +289,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8065"
       },
       {
@@ -271,6 +299,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8091"
       },
       {
@@ -280,6 +309,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/8111"
       }
     ]
@@ -294,6 +324,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9677"
       },
       {
@@ -303,6 +334,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9465"
       },
       {
@@ -312,6 +344,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9511"
       },
       {
@@ -321,6 +354,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9491"
       },
       {
@@ -330,6 +364,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9535"
       },
       {
@@ -339,6 +374,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9581"
       },
       {
@@ -348,6 +384,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9561"
       },
       {
@@ -357,6 +394,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9605"
       },
       {
@@ -366,6 +404,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9651"
       },
       {
@@ -375,6 +414,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9631"
       }
     ]
@@ -389,6 +429,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9897"
       },
       {
@@ -398,6 +439,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9711"
       },
       {
@@ -407,6 +449,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9731"
       },
       {
@@ -416,6 +459,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9685"
       },
       {
@@ -425,6 +469,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9781"
       },
       {
@@ -434,6 +479,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9801"
       },
       {
@@ -443,6 +489,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9755"
       },
       {
@@ -452,6 +499,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9851"
       },
       {
@@ -461,6 +509,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9871"
       },
       {
@@ -470,6 +519,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9825"
       }
     ]
@@ -484,6 +534,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10117"
       },
       {
@@ -493,6 +544,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9951"
       },
       {
@@ -502,6 +554,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9905"
       },
       {
@@ -511,6 +564,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9931"
       },
       {
@@ -520,6 +574,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10021"
       },
       {
@@ -529,6 +584,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/9975"
       },
       {
@@ -538,6 +594,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10001"
       },
       {
@@ -547,6 +604,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10091"
       },
       {
@@ -556,6 +614,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10045"
       },
       {
@@ -565,6 +624,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10071"
       }
     ]
@@ -579,6 +639,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10337"
       },
       {
@@ -588,6 +649,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10151"
       },
       {
@@ -597,6 +659,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10125"
       },
       {
@@ -606,6 +669,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10171"
       },
       {
@@ -615,6 +679,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10221"
       },
       {
@@ -624,6 +689,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10195"
       },
       {
@@ -633,6 +699,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10241"
       },
       {
@@ -642,6 +709,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10291"
       },
       {
@@ -651,6 +719,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10265"
       },
       {
@@ -660,6 +729,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10311"
       }
     ]
@@ -674,6 +744,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10557"
       },
       {
@@ -683,6 +754,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10391"
       },
       {
@@ -692,6 +764,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10371"
       },
       {
@@ -701,6 +774,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10345"
       },
       {
@@ -710,6 +784,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10461"
       },
       {
@@ -719,6 +794,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10441"
       },
       {
@@ -728,6 +804,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10415"
       },
       {
@@ -737,6 +814,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10531"
       },
       {
@@ -746,6 +824,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10511"
       },
       {
@@ -755,6 +834,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10485"
       }
     ]
@@ -769,6 +849,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10777"
       },
       {
@@ -778,6 +859,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10565"
       },
       {
@@ -787,6 +869,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10591"
       },
       {
@@ -796,6 +879,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10611"
       },
       {
@@ -805,6 +889,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10635"
       },
       {
@@ -814,6 +899,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10661"
       },
       {
@@ -823,6 +909,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10681"
       },
       {
@@ -832,6 +919,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10705"
       },
       {
@@ -841,6 +929,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10731"
       },
       {
@@ -850,6 +939,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10751"
       }
     ]
@@ -864,6 +954,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10997"
       },
       {
@@ -873,6 +964,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10785"
       },
       {
@@ -882,6 +974,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10831"
       },
       {
@@ -891,6 +984,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10811"
       },
       {
@@ -900,6 +994,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10855"
       },
       {
@@ -909,6 +1004,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10901"
       },
       {
@@ -918,6 +1014,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10881"
       },
       {
@@ -927,6 +1024,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs without restriction details",
+        "repairSupportTypeId": "REPAIR",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10925"
       },
       {
@@ -936,6 +1034,7 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "Repairs with restriction details",
+        "repairSupportTypeId": "RESTRICTION",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10971"
       },
       {
@@ -945,7 +1044,35 @@
         "artifactType": "azure_workitem",
         "idType": "azure_workitem",
         "repairSupport": "No repair support",
+        "repairSupportTypeId": "NONE",
         "inputUrl": "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/10951"
+      }
+    ]
+  },
+  "dev": {
+    "participantId": "dev",
+    "sequence": [
+      {
+        "processId": "*",
+        "repairSupportTypeId": "RESTRICTION"
+      }
+    ]
+  },
+  "norepair": {
+    "participantId": "norepair",
+    "sequence": [
+      {
+        "processId": "*",
+        "repairSupportTypeId": "NONE"
+      }
+    ]
+  },
+  "repaironly": {
+    "participantId": "repaironly",
+    "sequence": [
+      {
+        "processId": "*",
+        "repairSupportTypeId": "REPAIR"
       }
     ]
   }

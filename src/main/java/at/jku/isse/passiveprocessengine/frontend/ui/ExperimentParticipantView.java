@@ -31,7 +31,7 @@ import at.jku.isse.passiveprocessengine.WrapperCache;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
-import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +50,12 @@ public class ExperimentParticipantView extends VerticalLayout  {
 	protected AtomicInteger counter = new AtomicInteger(0);
 
 	protected RequestDelegate commandGateway;
-	protected ExperimentSequenceProvider sequenceProvider;
+	protected ProcessAccessControlProvider sequenceProvider;
 	protected ExperimentSequence seq;
 	protected String participantId;
 	private ListDataProvider<ExperimentSequence.TaskInfo> dataProvider;
 
-	public ExperimentParticipantView(RequestDelegate commandGateway, ExperimentSequenceProvider sequenceProvider, SecurityService securityService) {
+	public ExperimentParticipantView(RequestDelegate commandGateway, ProcessAccessControlProvider sequenceProvider, SecurityService securityService) {
 		this.commandGateway = commandGateway;
 	//	setSizeFull();
 		setMargin(false);
@@ -106,8 +106,8 @@ public class ExperimentParticipantView extends VerticalLayout  {
 	private Component taskInfoToEvalButton(TaskInfo entry) {
 
 		Button button = null;
-		String nextAllowedProc = commandGateway.isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
-		if (commandGateway.doAllowProcessInstantiation(entry.getInputId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
+		String nextAllowedProc = commandGateway.getACL().isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
+		if (commandGateway.getACL().doAllowProcessInstantiation(entry.getInputId(), seq.getParticipantId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
 			button = new Button("Start", evt -> {
 				String id = entry.getInputId()+entry.getProcessId();
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -141,7 +141,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 
 	private Component taskInfoToCompletionButton(TaskInfo entry) {
 		Button delButton = null;
-		Optional<Instance> optInst = commandGateway.findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		Optional<Instance> optInst = commandGateway.getACL().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
 		if (optInst.isPresent()) {
 			Instance procInst = optInst.get();
 			if (!procInst.isDeleted) {
