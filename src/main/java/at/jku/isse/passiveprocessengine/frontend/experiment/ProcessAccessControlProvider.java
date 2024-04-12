@@ -103,13 +103,13 @@ public class ProcessAccessControlProvider {
 	
 	public String isAllowedAsNextProc(String procDefId, String authenticatedUserId) {
 		if (procDefId == null || data.isEmpty() || authenticatedUserId == null)
-			return null;
+			return "";
 		
 		List<String> order = data.getOrDefault(authenticatedUserId, NULLSEQ).getSequence().stream()
 				.map(seq -> seq.getProcessId())
 				.collect(Collectors.toList());
 		if (order.stream().allMatch(id -> id.equals("*"))) // any order allowed
-			return null;
+			return "";
 		
 		// check if that procDef has already been instantiated before, if so, then deny and search next 
 		Optional<Instance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, authenticatedUserId);
