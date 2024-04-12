@@ -1,6 +1,5 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.PropertyDescriptor;
 import com.vaadin.flow.component.PropertyDescriptors;

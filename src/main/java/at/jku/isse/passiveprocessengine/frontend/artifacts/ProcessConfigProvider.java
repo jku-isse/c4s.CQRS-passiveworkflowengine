@@ -3,20 +3,15 @@ package at.jku.isse.passiveprocessengine.frontend.artifacts;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
 
 import at.jku.isse.designspace.artifactconnector.core.IArtifactProvider;
 import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
-import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
 
 public class ProcessConfigProvider implements IArtifactProvider {
 

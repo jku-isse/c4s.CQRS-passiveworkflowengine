@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 
 import at.jku.isse.designspace.core.model.Instance;

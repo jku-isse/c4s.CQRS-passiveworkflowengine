@@ -4,7 +4,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>1.7.2-SNAPSHOT</version>
+	<version>1.8.0-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -12,26 +12,27 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.5</version>
+		<version>3.2.4</version>
 	</parent>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<java.version>11</java.version>
+		<java.version>20</java.version>
 		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
 		<!-- <vaadin.version>14.4.9</vaadin.version> -->
 		<vaadin.version>14.10.1</vaadin.version>
 		<lombok.version>1.18.30</lombok.version>
 		<connector.azure.version>2.4.0</connector.azure.version>
-		<connector.git.version>1.2.2</connector.git.version>
-		<connector.core.version>1.3.0</connector.core.version>
-		<connector.jira.version>1.7.0</connector.jira.version>
-		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>
-		<PPEv3.version>0.6.1-SNAPSHOT</PPEv3.version>
+		<connector.git.version>1.3.0</connector.git.version>
+		<connector.core.version>1.4.0</connector.core.version>
+		<connector.jira.version>1.8.0</connector.jira.version>
+		<connector.jama.version>1.2.0-SNAPSHOT</connector.jama.version>
+		<PPEv3.version>0.6.2-SNAPSHOT</PPEv3.version>
 		<PPEv3.stagestransformer.version>0.0.7-SNAPSHOT</PPEv3.stagestransformer.version>
 		<PPEv3.blocklytransformer.version>0.1.7-SNAPSHOT</PPEv3.blocklytransformer.version>
+		<spring-security.version>5.3.4.RELEASE</spring-security.version>
 	</properties>
 
 	<profiles>
@@ -114,38 +115,63 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- SECURITY RELATED first authentication-->
+<!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
 		<dependency>
+    		<groupId>jakarta.servlet</groupId>
+    		<artifactId>jakarta.servlet-api</artifactId>
+    		<version>6.1.0-M2</version>
+    		<scope>provided</scope>
+		</dependency>
+
+
+		<!-- SECURITY RELATED -->
+<!--		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		<!-- and authorization -->
-		<dependency>
+-->
+<!--		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-acl</artifactId>
-		</dependency>
-		<dependency>
+		</dependency>-->
+		<!--<dependency>
 			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>
-		</dependency>
+			<artifactId>spring-security-config</artifactId>			
+		</dependency>-->
+		<dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-web</artifactId>
+        <version>${spring-security.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-core</artifactId>
+        <version>${spring-security.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-config</artifactId>
+        <version>${spring-security.version}</version>
+    </dependency>
+		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
-		<dependency>
+<!--		<dependency>
 			<groupId>net.sf.ehcache</groupId>
 			<artifactId>ehcache-core</artifactId>
 			<version>2.6.11</version>
-		</dependency>
+		</dependency>-->
 		<!-- Storing the ACL info -->
 		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-        </dependency>
+        </dependency>-->
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
 		<!-- 		<dependency>
 			<groupId>ch.qos.logback</groupId>

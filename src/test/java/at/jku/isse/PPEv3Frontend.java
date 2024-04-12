@@ -1,30 +1,22 @@
 package at.jku.isse;
 
-import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
-import at.jku.isse.designspace.core.events.Event;
-import at.jku.isse.designspace.core.model.*;
-import at.jku.isse.designspace.core.service.ServiceRegistry;
-import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.endpoints.grpc.service.GrpcUtils;
-import org.springframework.boot.Banner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.ApplicationListener;
-import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.PreDestroy;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
+
+import org.springframework.boot.Banner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationListener;
+import org.springframework.core.env.Environment;
+
+import at.jku.isse.designspace.core.events.Event;
+import at.jku.isse.designspace.core.model.User;
+import at.jku.isse.designspace.core.service.ServiceRegistry;
+import at.jku.isse.designspace.core.service.WorkspaceService;
 
 //@RestController
 //@SpringBootApplication
@@ -39,12 +31,7 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
     
 
     public static void main(String[] args) {
-        if (args.length>0) {
-            if (args[0].equals("-capture"))
-                GrpcUtils.captureFileName=args[1];
-            else if (args[0].equals("-replay"))
-                GrpcUtils.replayFileName=args[1];
-        }
+        
 
         SpringApplication application = new SpringApplication(PPEv3Frontend.class);
         application.setBanner(new CustomBanner());
@@ -100,10 +87,6 @@ public class PPEv3Frontend extends SpringBootServletInitializer implements Appli
     }
   
     
-    @PreDestroy
-    public void onExit() {
-        GrpcUtils.closeCapture();
-    }
 
     private static class CustomBanner implements Banner {
         private final String ANSI_BLUE = "\u001B[34m";

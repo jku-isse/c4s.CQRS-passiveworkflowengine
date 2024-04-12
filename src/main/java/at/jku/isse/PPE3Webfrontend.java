@@ -1,7 +1,5 @@
 package at.jku.isse;
 
-import javax.annotation.PreDestroy;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
@@ -14,7 +12,6 @@ import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.User;
 import at.jku.isse.designspace.core.service.ServiceRegistry;
 import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.endpoints.grpc.service.GrpcUtils;
 
 //@SpringBootApplication(exclude = DesignSpace.class)
 //@EnableAutoConfiguration
@@ -55,10 +52,7 @@ public class PPE3Webfrontend extends SpringBootServletInitializer implements App
         WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
     }
 
-    @PreDestroy
-    public void onExit() {
-        GrpcUtils.closeCapture();
-    }
+
 	
 //    public static class DesignSpaceTypeFilter implements TypeFilter {
 //
