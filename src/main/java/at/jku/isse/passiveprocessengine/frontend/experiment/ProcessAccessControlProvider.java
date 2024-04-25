@@ -70,7 +70,7 @@ public class ProcessAccessControlProvider {
 		else {
 			return data.getOrDefault(authenticatedUserId, NULLSEQ).getSequence().stream()						
 				.anyMatch(seq -> seq.hasMatchingProcessAndSupport(proc.getDefinition().getName(), SupportConfig.RESTRICTION.toString())  
-								 || Objects.equals("*", seq.getRepairSupportTypeId()) 
+								 || Objects.equals(SupportConfig.RESTRICTION.toString(), seq.getRepairSupportTypeId()) 
 						);			
 		}
 	}
@@ -84,8 +84,8 @@ public class ProcessAccessControlProvider {
 			return data.getOrDefault(authenticatedUserId, NULLSEQ).getSequence().stream()						
 				.anyMatch(seq -> seq.hasMatchingProcessAndSupport(proc.getDefinition().getName(), SupportConfig.REPAIR.toString())  
 								 || seq.hasMatchingProcessAndSupport(proc.getDefinition().getName(), SupportConfig.RESTRICTION.toString()) 
-								 || Objects.equals("*", seq.getRepairSupportTypeId()) 
-								 || Objects.equals("+", seq.getRepairSupportTypeId())
+								 || Objects.equals(SupportConfig.RESTRICTION.toString(), seq.getRepairSupportTypeId()) 
+								 || Objects.equals(SupportConfig.REPAIR.toString(), seq.getRepairSupportTypeId())
 						);			
 		}				
 	}
@@ -103,13 +103,13 @@ public class ProcessAccessControlProvider {
 	
 	public String isAllowedAsNextProc(String procDefId, String authenticatedUserId) {
 		if (procDefId == null || data.isEmpty() || authenticatedUserId == null)
-			return "";
+			return procDefId;
 		
 		List<String> order = data.getOrDefault(authenticatedUserId, NULLSEQ).getSequence().stream()
 				.map(seq -> seq.getProcessId())
 				.collect(Collectors.toList());
 		if (order.stream().allMatch(id -> id.equals("*"))) // any order allowed
-			return "";
+			return procDefId;
 		
 		// check if that procDef has already been instantiated before, if so, then deny and search next 
 		Optional<Instance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, authenticatedUserId);
