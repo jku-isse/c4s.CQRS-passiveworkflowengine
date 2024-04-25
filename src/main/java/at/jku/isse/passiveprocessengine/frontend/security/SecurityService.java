@@ -9,8 +9,9 @@ import org.springframework.stereotype.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
 
-import net.sourceforge.plantuml.utils.Log;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class SecurityService {
 
@@ -28,7 +29,7 @@ public class SecurityService {
 
     public void logout() {
         UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
-        Log.info("Logging out user: "+getAuthenticatedUser());
+        log.info("Logging out user: "+getAuthenticatedUser());
         SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
         logoutHandler.logout(
                 VaadinServletRequest.getCurrent().getHttpServletRequest(), null,

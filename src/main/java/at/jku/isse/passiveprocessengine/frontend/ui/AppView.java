@@ -74,10 +74,7 @@ public class AppView extends AppLayout{
 	    			createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),	    	
 	    			createTab(VaadinIcon.AUTOMATION, "Process Deployment Result", DeployResultView.class)
 		    );		      
-	    } 
-	    if(uiconf.isStagesEnabled()) {
-		     tabs.add(createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class));
-	    }
+	    } 	    
 	    
 	    if (uiconf.isExperimentModeEnabled()) {
 	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );

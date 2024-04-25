@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.vaadin.flow.server.HandlerHelper.RequestType;
 import com.vaadin.flow.shared.ApplicationConstants;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 public final class SecurityUtils {
 
