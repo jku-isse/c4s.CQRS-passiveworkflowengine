@@ -103,7 +103,7 @@ public class FrontendSpringConfig {
     @Bean
     public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
     	RepairNodeScorer scorer= new NoSort();
-    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false, false);
+    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
     	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
     }
 
