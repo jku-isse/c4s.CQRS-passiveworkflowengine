@@ -12,7 +12,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import at.jku.isse.designspace.azure.service.IAzureService;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.git.service.IGitService;
+//import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
@@ -84,10 +84,11 @@ public class FrontendSpringConfig {
 	}
 
 	@Bean
-	public ArtifactResolver getArtifactResolver(IAzureService azure, IGitService github, DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessConfigProvider procconf, ProcessRegistry procReg ) {
+	public ArtifactResolver getArtifactResolver(IAzureService azure,
+			/* IGitService github, */ DemoServiceWrapper demo, IJiraService jira, IJamaService jama, ProcessConfigProvider procconf, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
-		ar.register(github);
+		/* ar.register(github); */
 		ar.register(demo);
 		ar.register(jira);
 		ar.register(jama);
