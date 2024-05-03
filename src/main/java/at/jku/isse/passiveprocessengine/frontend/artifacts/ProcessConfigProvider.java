@@ -5,13 +5,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import at.jku.isse.designspace.artifactconnector.core.IArtifactProvider;
-import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
+import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Id;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 
 public class ProcessConfigProvider implements IArtifactProvider {
 

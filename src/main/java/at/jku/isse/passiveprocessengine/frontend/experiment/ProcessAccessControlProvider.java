@@ -18,11 +18,9 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.ReservedNames;
-import at.jku.isse.designspace.core.model.User;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -112,7 +110,7 @@ public class ProcessAccessControlProvider {
 			return procDefId;
 		
 		// check if that procDef has already been instantiated before, if so, then deny and search next 
-		Optional<Instance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, authenticatedUserId);
+		Optional<PPEInstance> procInst = findAnyProcessInstanceByDefinitionAndOwner(procDefId, authenticatedUserId);
 		if (procInst.isPresent())
 			return "Process already (previously) instantiated, cannot instantiate again";
 		
@@ -121,11 +119,11 @@ public class ProcessAccessControlProvider {
 		if (pos == 0) return procDefId; // all ok, good to go
 		if (pos > 0) {
 			String prevProcDef = order.get(pos-1);
-			Optional<Instance> prevInst = findAnyProcessInstanceByDefinitionAndOwner(prevProcDef, authenticatedUserId);
+			Optional<PPEInstance> prevInst = findAnyProcessInstanceByDefinitionAndOwner(prevProcDef, authenticatedUserId);
 			// if not yet instantiated, check if prior one has been closed
 			if (prevInst.isPresent()) {
-				Instance prevP = prevInst.get();
-				if (prevP.isDeleted)
+				PPEInstance prevP = prevInst.get();
+				if (prevP.isMarkedAsDeleted())
 					return procDefId; // all good to go
 				else
 					return "Previous process "+prevProcDef+" is not completed (and deleted) yet";
@@ -136,7 +134,7 @@ public class ProcessAccessControlProvider {
 		return "You are not allowed to instantiate this process";
 	}
 	
-	public Optional<Instance> findAnyProcessInstanceByDefinitionAndOwner(String processDefinition, String owner) {
+	public Optional<PPEInstance> findAnyProcessInstanceByDefinitionAndOwner(String processDefinition, String owner) {
 		//InstanceType procType =	ProcessInstance.getOrCreateDesignSpaceInstanceType(ws, procReg.getProcessDefinition(processDefinition, true).get());
 		// instances() does not return deleted instances!!
 		return processReg.getExistingAndPriorInstances().stream()
@@ -146,7 +144,7 @@ public class ProcessAccessControlProvider {
 			.findAny();		
 	}
 	
-	private boolean isOwner(String userName, Instance instance) {
+	private boolean isOwner(String userName, PPEInstance instance) {
 		return instance.getPropertyAsSet(ReservedNames.OWNERSHIP_PROPERTY).get().stream()
 			.map(strId -> Long.parseLong((String)strId))
 			.map(id -> User.users.get((Long)id))

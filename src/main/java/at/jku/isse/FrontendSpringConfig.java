@@ -10,15 +10,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import at.jku.isse.designspace.azure.service.IAzureService;
-import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.designspace.core.service.WorkspaceService;
 //import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.DemoServiceWrapper;
@@ -32,8 +29,6 @@ import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
-import at.jku.isse.passiveprocessengine.monitoring.RepairFeatureToggle;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,17 +66,6 @@ public class FrontendSpringConfig {
 		return new TriggeredProcessLoader(registry);
 	}
 		
-	@Bean Workspace getWorkspace() {
-		return WorkspaceService.PUBLIC_WORKSPACE;
-	}
-	
-	@Bean ProcessConfigBaseElementFactory getProcessConfigBaseElementFactory() {
-		return new ProcessConfigBaseElementFactory(WorkspaceService.PUBLIC_WORKSPACE);
-	}
-	
-	@Bean ProcessConfigProvider getProcessConfigProvider(ProcessConfigBaseElementFactory configFactory) {
-		return new ProcessConfigProvider(configFactory, WorkspaceService.PUBLIC_WORKSPACE);
-	}
 
 	@Bean
 	public ArtifactResolver getArtifactResolver(IAzureService azure,

@@ -26,6 +26,7 @@ import at.jku.isse.designspace.core.service.WorkspaceService;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -323,6 +324,11 @@ public class RequestDelegate {
 	
 	public ProcessAccessControlProvider getACL() {
 		return aclProvider;
+	}
+
+	public ProcessContext getProcessContext() {
+		// TODO Auto-generated method stub
+		return null.;
 	}
 	
 

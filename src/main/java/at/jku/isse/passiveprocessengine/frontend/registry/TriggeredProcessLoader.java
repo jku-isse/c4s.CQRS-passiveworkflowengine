@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +15,11 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinitionError;
 import at.jku.isse.passiveprocessengine.definition.serialization.DTOs;
 import at.jku.isse.passiveprocessengine.definition.serialization.FilesystemProcessDefinitionLoader;
 import at.jku.isse.passiveprocessengine.definition.serialization.JsonDefinitionSerializer;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry.ProcessDeployResult;
 import c4s.processdefinition.blockly2java.Transformer;
 import c4s.processdefinition.blockly2java.Xml2Java;
 import https.developers_google_com.blockly.xml.Xml;
@@ -76,9 +74,9 @@ public class TriggeredProcessLoader extends FilesystemProcessDefinitionLoader{
 						try {
 							if (!registry.getProcessDefinition(procD.getCode(), true).isPresent()) {
 								// we wont override correct existing json based definition
-								SimpleEntry<ProcessDefinition, List<ProcessDefinitionError>>  result = registry.storeProcessDefinition(procD, false);
-								if (result != null && !result.getValue().isEmpty()) {
-									log.warn("Error loading process definition from file system: "+result.getKey().getName()+"\r\n"+result.getValue());
+								ProcessDeployResult result = registry.createProcessDefinitionIfNotExisting(procD);
+								if (result != null && !result.getDefinitionErrors().isEmpty()) {
+									log.warn("Error loading process definition from file system: "+procD.getCode()+"\r\n"+result.getDefinitionErrors().toString());
 								} else if (result == null) {
 									log.info("Loading of process definition "+procD.getCode()+" defered to when workspace is available");
 								}

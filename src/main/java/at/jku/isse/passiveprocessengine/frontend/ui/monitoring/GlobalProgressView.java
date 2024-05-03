@@ -29,10 +29,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.AppView;
@@ -130,7 +130,7 @@ public class GlobalProgressView extends VerticalLayout {
     	Grid.Column<ProgressEntry> activityColumn = grid.addColumn(p -> p.getActivity()).setHeader("Activity").setResizable(true);    	
     	Grid.Column<ProgressEntry> statusColumn = grid.addColumn(p -> p.getStatus()).setHeader("Status").setResizable(true);
     	Grid.Column<ProgressEntry> commentColumn = grid.addColumn(p -> p.getStatusComment()).setHeader("Comment").setResizable(true);    	    	    
-    	grid.setHeightByRows(true);
+    	grid.setAllRowsVisible(true);
     	return grid;
     }
     
@@ -144,21 +144,21 @@ public class GlobalProgressView extends VerticalLayout {
     private Component fetchArtifact(ArtifactResolver artRes) {
     	VerticalLayout layout = new VerticalLayout();        
         TextField artIdField = new TextField();
-    	ComboBox<InstanceType> artTypeBox = new ComboBox<>("Instance Type");
-    	Set<InstanceType> instTypes = commandGateway.getArtifactResolver().getAvailableInstanceTypes();
+    	ComboBox<PPEInstanceType> artTypeBox = new ComboBox<>("Instance Type");
+    	Set<PPEInstanceType> instTypes = commandGateway.getArtifactResolver().getAvailableInstanceTypes();
     	//List<String> instTypes = List.of("git_issue", "azure_workitem", "jira_core_artifact", "jama_item");
     	artTypeBox.setItems(instTypes);
-    	artTypeBox.setItemLabelGenerator(new ItemLabelGenerator<InstanceType>() {
+    	artTypeBox.setItemLabelGenerator(new ItemLabelGenerator<PPEInstanceType>() {
 			@Override
-			public String apply(InstanceType item) {
-				return item.name();
+			public String apply(PPEInstanceType item) {
+				return item.getName();
 			}});
     	ComboBox<String> idTypeBox = new ComboBox<>("Identifier Type");    	  
     	
 		
     	
     	artTypeBox.addValueChangeListener(e-> {
-    		InstanceType artT = artTypeBox.getOptionalValue().get();
+    		PPEInstanceType artT = artTypeBox.getOptionalValue().get();
     		List<String> idTypes = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(artT);
     		idTypeBox.setItems(idTypes);
     		idTypeBox.setValue(idTypes.get(0));
@@ -180,15 +180,15 @@ public class GlobalProgressView extends VerticalLayout {
                 		Notification.show("Make sure to provide an identifier!");
                 	else {
                 		String idValue = artIdField.getValue().trim();
-                		String artType = artTypeBox.getOptionalValue().get().name();
+                		String artType = artTypeBox.getOptionalValue().get().getName();
                 		String idType = idTypeBox.getOptionalValue().get();
                 		
                 		ArtifactIdentifier ai = new ArtifactIdentifier(idValue, artType, idType);
                 		boolean forceRefetch = true;
-                		Instance inst = artRes.get(ai, forceRefetch);
+                		PPEInstance inst = artRes.get(ai, forceRefetch);
                 		if (inst != null) {
                 			// redirect to new page:
-                			UI.getCurrent().getPage().open("instance/"+inst.id(), "_blank");
+                			UI.getCurrent().getPage().open("instance/"+inst.getId(), "_blank");
                 		//	UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));
                 		}
                 	}

@@ -14,14 +14,13 @@ import java.util.stream.Collectors;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
-import at.jku.isse.designspace.artifactconnector.core.IArtifactProvider;
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.artifactconnector.core.endpoints.grpc.service.ServiceResponse;
-import at.jku.isse.designspace.core.model.Element;
-import at.jku.isse.designspace.core.model.Id;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse;
+import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse.ErrorResponse;
+import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse.SuccessResponse;
+import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,87 +29,90 @@ public class ArtifactResolver {
 
 	private Set<IArtifactProvider> connectors = new HashSet<>();
 
-	private Workspace ws;
-	private Map<InstanceType, List<String>> identifierTypes = new HashMap<>();
+	private Map<PPEInstanceType, List<String>> identifierTypes = new HashMap<>();
 	
 	public ArtifactResolver() {
 		
 	}
 	
-	public List<String> getIdentifierTypesForInstanceType(InstanceType type) {
+	public List<String> getIdentifierTypesForInstanceType(PPEInstanceType type) {
 		List<String> types = identifierTypes.getOrDefault(type, Collections.emptyList()); 
 		if (types.isEmpty()) {
-			if (type.superTypes().isEmpty())
+			if (type.getParentType()== null)
 				return types; // an empty list;
 			else { // else check if we can resolve first super type
-					return getIdentifierTypesForInstanceType(type.superTypes().iterator().next());
+					return getIdentifierTypesForInstanceType(type.getParentType());
 				}
 		} else 
 		return types; 
 	}
 	
-	public Set<InstanceType> getAvailableInstanceTypes() {
+	public Set<PPEInstanceType> getAvailableInstanceTypes() {
 		return identifierTypes.keySet();
 	}
 	
-	public Set<Instance> get(Set<String> artIds, String idType) {
-		Optional<IArtifactProvider> optConn = connectors.stream()
-				.filter(conn1 -> conn1.getSupportedIdentifier()
-										.values()
-										.stream()
-										.flatMap(ids -> ids.stream())
-										.anyMatch(str ->  str.equalsIgnoreCase(idType)))
-				.findAny();
-		if (optConn.isPresent()) {
-			ServiceResponse[] resps = optConn.get().getServiceResponse(artIds, idType);
-			return Arrays.asList(resps).stream()
-			.filter(resp -> resp.getKind() == ServiceResponse.SUCCESS)
-			.map(resp -> {															
-				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));				
-				return (Instance)el;				
-			})
-			.filter(Objects::nonNull)
-			.collect(Collectors.toSet());
-		} else {
-			String msg = String.format("No service registered that provides artifacts of type %s", idType);
-			log.error(msg);
-			return Collections.emptySet();
-		}
-	}
+//	public Set<PPEInstance> get(Set<String> artIds, String idType) {
+//		Optional<IArtifactProvider> optConn = connectors.stream()
+//				.filter(conn1 -> conn1.getSupportedIdentifiers()
+//										.values()
+//										.stream()
+//										.flatMap(ids -> ids.stream())
+//										.anyMatch(str ->  str.equalsIgnoreCase(idType)))
+//				.findAny();
+//		if (optConn.isPresent()) {
+//			ServiceResponse[] resps = optConn.get().getServiceResponse(artIds, idType);
+//			return Arrays.asList(resps).stream()
+//			.filter(resp -> resp.getKind() == ServiceResponse.SUCCESS)
+//			.map(resp -> {															
+//				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));				
+//				return (Instance)el;				
+//			})
+//			.filter(Objects::nonNull)
+//			.collect(Collectors.toSet());
+//		} else {
+//			String msg = String.format("No service registered that provides artifacts of type %s", idType);
+//			log.error(msg);
+//			return Collections.emptySet();
+//		}
+//	}
 	
-	public Instance get(ArtifactIdentifier artId) throws ProcessException {
+	public PPEInstance get(ArtifactIdentifier artId) throws ProcessException {
 		return get(artId, false);
 	}
 	
-	public Instance get(ArtifactIdentifier artId, boolean forceFetch) throws ProcessException {
+	
+	public PPEInstance get(ArtifactIdentifier artId, boolean forceFetch) throws ProcessException {
 		Optional<IArtifactProvider> optConn = connectors.stream()
-			.filter(conn1 -> conn1.getSupportedIdentifier()
+			.filter(conn1 -> conn1.getSupportedIdentifiers()
 									.values()
 									.stream()
 									.flatMap(ids -> ids.stream())
 									.anyMatch(str ->  str.equalsIgnoreCase(artId.getIdType())))
 			.findAny();
 		if (optConn.isPresent()) {
-			ServiceResponse resp = optConn.get().getServiceResponse(artId.getId(), artId.getIdType(), forceFetch);
-			if (resp.getKind() == ServiceResponse.SUCCESS) {
-				//ws.update();
-				Element el = ws.findElement(Id.of(Long.parseLong(resp.getInstanceId())));
-				if (el == null) {
-					String msg = String.format("Able to resolve artifact %s %s but unable to find element by id %s in process engine workspace", artId.getId(), artId.getType(), resp.getInstanceId());
+			FetchResponse resp = optConn.get().forceFetchArtifact(Set.of(artId)).stream().findAny().orElse(null);
+			if (resp != null) {
+				
+			
+			if (resp instanceof SuccessResponse) {
+				PPEInstance inst =  ((SuccessResponse) resp).getInstance();
+				if (inst == null) {
+					String msg = String.format("SuccessResponse but null Instance for artifact %s %s ", artId.getId(), artId.getType());
 					log.error(msg);
 					throw new ProcessException(msg);
-				} else if (el instanceof Instance) {
-					return (Instance)el;
 				} else {
-					String msg = String.format("Able to resolve artifact %s %s but not of 'instance' type", artId.getId(), artId.getType());
-					log.error(msg);
-					throw new ProcessException(msg);
+					return inst;
 				}
 			} else {
-				throw new ProcessException(resp.getMsg());
+				throw new ProcessException( ((ErrorResponse) resp).getErrormsg() );
+			}}
+			else {
+				String msg = String.format("Toolconnector failed to provide response for artifact %s %s ", artId.getId(), artId.getType());
+				log.error(msg);
+				throw new ProcessException(msg);
 			}
 		} else {
-			String msg = String.format("No service registered that provides artifacts of type %s", artId.getType());
+			String msg = String.format("No tool connector registered that provides artifacts of type %s", artId.getType());
 			log.error(msg);
 	        throw new ProcessException(msg);
 		}
@@ -124,11 +126,8 @@ public class ArtifactResolver {
 
 	@EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
-		connectors.stream().forEach(connector -> identifierTypes.putAll(connector.getSupportedIdentifier()));
+		connectors.stream().forEach(connector -> identifierTypes.putAll(connector.getSupportedIdentifiers()));
 	}
 	
-	public void inject(Workspace ws) {
-		this.ws = ws;
-	}
 
 }
