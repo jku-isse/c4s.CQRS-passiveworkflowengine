@@ -3,7 +3,7 @@ package at.jku.isse.passiveprocessengine.frontend.botsupport;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,7 +54,7 @@ public interface OCLBot {
     	final Instant time;
     	final String role;
     	@NonNull final String userPrompt;
-    	final InstanceType contextType;
+    	final PPEInstanceType contextType;
 		String schema;
 		final String existingRule;
 	}

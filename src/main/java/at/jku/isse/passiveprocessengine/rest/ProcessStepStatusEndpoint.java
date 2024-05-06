@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import at.jku.isse.designspace.core.model.Id;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.passiveprocessengine.WrapperCache;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessStep;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ConstraintResultWrapper;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,12 +29,12 @@ public class ProcessStepStatusEndpoint {
 	RequestDelegate service;
 		
 	@GetMapping( value="/ceps/details", produces="application/json")
-	public ResponseEntity<String> getProcessLogs(@QueryParam("processId") Long processId, @QueryParam("stepType") String stepType) {		
+	public ResponseEntity<String> getProcessLogs(@QueryParam("processId") String processId, @QueryParam("stepType") String stepType) {		
 		if (service == null) {
 			log.info("No RequestDelegate available");
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
 					.body("{\"error\": \"No RequestDelegate available\"}");
-		} else if (processId == null || processId <= 0) {
+		} else if (processId == null) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"error\": \"processId parameter missing or invalid\"}");
 		} else if (stepType == null || stepType.length() <= 0) {
@@ -44,12 +42,12 @@ public class ProcessStepStatusEndpoint {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"error\": \"stepDefinitionId parameter missing or invalid\"}");
 		} else {			
-			Instance procInst = service.getWorkspace().findElement(Id.of(processId));
-			if (procInst == null)
+			Optional<PPEInstance> procInst = service.getProcessContext().getInstanceRepository().findInstanceyById(processId);
+			if (procInst.isEmpty())
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body("{\"error\": \"No process instance found with provided id\"}");
 			try {
-				ProcessInstance proc = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+				ProcessInstance proc = service.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst.get());
 				if (proc != null) {
 					Optional<ProcessStep> optStep = proc.getProcessSteps().stream().filter(step -> step.getDefinition().getName().equalsIgnoreCase(stepType)).findAny();
 					if (optStep.isEmpty()) {
@@ -99,17 +97,17 @@ public class ProcessStepStatusEndpoint {
 				processId = Long.parseLong(procId);
 				// now lets override document
 				String documentStr = document.substring(sepPos+2);
-				Instance procInst = service.getWorkspace().findElement(Id.of(processId));
-				if (procInst == null) {
+				Optional<PPEInstance> procInst = service.getProcessContext().getInstanceRepository().findInstanceyById(procId);
+				if (procInst.isEmpty()) {
 					log.info(String.format("Process with id %s not found", processId));
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
 							.body("{\"error\": \"No process instance found with provided id\"}");
 				}			
-				ProcessInstance proc = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+				ProcessInstance proc = service.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst.get());
 				if (proc != null) {
-					Optional<ConstraintWrapper> cwOpt = proc.getProcessSteps().stream()
+					Optional<ConstraintResultWrapper> cwOpt = proc.getProcessSteps().stream()
 						.flatMap(step -> step.getQAstatus().stream()) // just go through all constraint wrappers one by one
-						.filter(cw1 -> cw1.getSpec().getName().equalsIgnoreCase(documentStr))
+						.filter(cw1 -> cw1.getConstraintSpec().getName().equalsIgnoreCase(documentStr))
 						.findAny();
 					if (cwOpt.isEmpty()) {
 						log.info(String.format("Constraint %s not found for process %s", documentStr, processId));
@@ -117,15 +115,15 @@ public class ProcessStepStatusEndpoint {
 								.body("{\"error\": \"No constraint found for the provided document name\"}");
 					} 					
 					else {
-						ConstraintWrapper cw = cwOpt.get();
+						ConstraintResultWrapper cw = cwOpt.get();
 						String status = "";
-						if (cw.getCr()==null) {
+						if (cw.getRuleResult()==null) {
 							status = "draft";//"NOT_YET_EVALUATED";															
 						} else {
 							status = cw.getEvalResult() ? "released" : "not existent" ;//"FULFILLED" : "UNFULFILLED";
 						}			
 						
-						String link = getConstraintURI(proc.getInstance().id().toString(), cw.getInstance().id().toString()) ;
+						String link = getConstraintURI(proc.getInstance().getId().toString(), cw.getInstance().getId().toString()) ;
 						
 						log.debug(String.format("Process %s constraint %s returned as '%s'", processId, document, status));
 						return ResponseEntity.status(HttpStatus.OK)
@@ -156,32 +154,6 @@ public class ProcessStepStatusEndpoint {
 		sb.append("/home/?id="+procId+"&focus="+cwId);
 		return sb.toString();
 	}
-	
-//	@GetMapping( value="/ceps/status", produces="application/json")
-//	public ResponseEntity<String> getProcessStatus(@QueryParam("processId") Long processId) { 
-//		if (service == null) {
-//			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-//					.body("{\"error\": \"No RequestDelegate available\"}");
-//		} else if (processId == null || processId <= 0) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//					.body("{\"error\": \"processId parameter missing or invalid\"}");
-//		} else {			
-//			Instance procInst = service.getWorkspace().findElement(Id.of(processId));
-//			if (procInst == null)
-//				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//						.body("{\"error\": \"No process instance found with provided id\"}");
-//			try {
-//				ProcessInstance proc = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
-//				if (proc != null)
-//					return ResponseEntity.status(HttpStatus.OK)
-//						.body("{\"status\" : \"ok\" }");							
-//			} catch(Exception e) {
-//				// ignore
-//			}
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//					.body("{\"error\": \"Provided Id does not identifiy a process instance\"}");
-//		}
-//	}
 	
 	@GetMapping( value="/ceps/connectionstatus", produces="application/json")
 	public ResponseEntity<String> getConnectionStatus() { 

@@ -15,17 +15,17 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.arl.repair.SequenceRepairNode;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil.ReloadIconProvider;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ConstraintResultWrapper;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,9 +57,9 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
            if (o.getRepairNode() instanceof DummyRepairNode) {
         	   Span span = new Span("Insufficient Input.");
         	   return span;
-           }else if (o.getRepairNode() instanceof ConstraintWrapper) {
-                ConstraintWrapper rebc = (ConstraintWrapper) o.getRepairNode();
-                Span span = new Span(rebc.getSpec().getHumanReadableDescription());
+           }else if (o.getRepairNode() instanceof ConstraintResultWrapper) {
+                ConstraintResultWrapper rebc = (ConstraintResultWrapper) o.getRepairNode();
+                Span span = new Span(rebc.getConstraintSpec().getHumanReadableDescription());
                 span.getElement().setProperty("title", rebc.getName());
                 return span;
             } else if (o.getRepairNode() instanceof RepairNode) {
@@ -78,7 +78,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
     }
 	
 	
-	public Component getReloadIcon(Instance inst) {
+	public Component getReloadIcon(PPEInstance inst) {
 		if (inst == null || !reqDel.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
@@ -87,11 +87,11 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
         	ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
         	new Thread(() -> { 
         		try {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
         			reqDel.getArtifactResolver().get(ai, true);
-        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
         		} catch (ProcessException e1) {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
         		}}
         			).start();
         });

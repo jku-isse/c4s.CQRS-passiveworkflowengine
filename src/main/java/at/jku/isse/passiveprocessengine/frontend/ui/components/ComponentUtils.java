@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.vaadin.flow.component.html.Anchor;
 
+import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 
@@ -36,7 +37,7 @@ public class ComponentUtils {
 	public static String generateDisplayNameForInstance(PPEInstance inst) {
 		if (inst.getInstanceType().hasPropertyType("title") && inst.getInstanceType().hasPropertyType("workItemType")) { // FIXME assume we have a azure item
 			String title = inst.getTypedProperty("title", String.class, "Unknown");
-			String id = inst.getTypedProperty("id", String.class);
+			String id = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
 			//String type = inst.getPropertyAsInstance("workItemType") != null ? inst.getPropertyAsInstance("workItemType").name() : "UnknownType";
 			String type = (String) inst.getTypedProperty("workItemType", String.class); 
 			return "["+type+"]"+id+":"+title;

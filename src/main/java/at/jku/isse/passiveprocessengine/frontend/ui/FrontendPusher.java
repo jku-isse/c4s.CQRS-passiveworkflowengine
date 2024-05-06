@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.vaadin.flow.component.UI;
 
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

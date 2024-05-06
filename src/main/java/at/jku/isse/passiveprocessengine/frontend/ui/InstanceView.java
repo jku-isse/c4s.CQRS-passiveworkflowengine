@@ -47,19 +47,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Cardinality;
-import at.jku.isse.designspace.core.model.CollectionProperty;
-import at.jku.isse.designspace.core.model.Element;
-import at.jku.isse.designspace.core.model.Id;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.MapProperty;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.PropertyType;
-import at.jku.isse.designspace.core.model.SingleProperty;
-import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
@@ -79,8 +71,9 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private RequestDelegate commandGateway;
 	private ProcessConfigBaseElementFactory configFactory;
 
-	private Id id = null;
-	private ListDataProvider<Property> dataProvider = null;
+	private String id = null;
+	private PPEInstance instance;
+	private ListDataProvider<PPEPropertyType> dataProvider = null;
 	private EDITMODE editmode = EDITMODE.readonly;
 
 	private enum EDITMODE { readonly, write };
@@ -102,12 +95,13 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 			id = null;
 		}
 		if (strid != null) {
-			try {
-				long lId = Long.parseLong(strid);
-				id = Id.of(lId);			
-			} catch(Exception e) {
-				log.warn("Parameter id cannot be parsed to long");
-			}
+//			try {
+//				long lId = Long.parseLong(strid);
+//				id = Id.of(lId);	
+				id = strid;
+//			} catch(Exception e) {
+//				log.warn("Parameter id cannot be parsed to long");
+//			}
 		}
 		statePanel();
 
@@ -145,8 +139,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				
 				Component grid = null;
 				Dialog dialog = new Dialog();				 				
-				if (el instanceof Instance) {        		
-					Instance inst = (Instance) el;
+				if (el instanceof PPEInstance) {        		
+					PPEInstance inst = (PPEInstance) el;
 					if (!inst.getInstanceType().isKindOf(configFactory.getBaseType())) { // only allow editing of process config instances
 						editmode = EDITMODE.readonly;
 					} else {
@@ -154,12 +148,12 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 					}
 					if (!isFullyFetched(inst))
 						hl.add(addButtonToFullyFetchLazyLoadedInstance(inst));
-					else if (inst.hasProperty("fullyFetched")) {
+					else if (inst.getInstanceType().hasPropertyType("fullyFetched")) {
 						hl.add(getReloadIcon(inst));
 					}
 					grid = instanceAsList(inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, inst.workspace);
-				} else if (el instanceof InstanceType) {
-					grid = instanceAsList(((InstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, el.workspace);
+				} else if (el instanceof PPEInstanceType) {
+					grid = instanceAsList(((PPEInstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, el.workspace);
 				}		
 				if (el.isDeleted) { 
 					elName.getStyle().set("background-color", "#ffbf00");
@@ -176,17 +170,16 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 
 	private static Supplier<Boolean> falseSupplier = () -> Boolean.FALSE;
 
-	public static boolean isFullyFetched(Instance element) {
-		if ( element.hasProperty("fullyFetched") 
-				&& (      element.getPropertyAsValueOrElse("fullyFetched", falseSupplier) == null 
-				|| ((Boolean)element.getPropertyAsValueOrElse("fullyFetched", falseSupplier)) == false     ))
+	public static boolean isFullyFetched(PPEInstance element) {
+		if ( element.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED) 
+				&&       element.getTypedProperty(PPEInstanceType.IS_FULLYFETCHED, Boolean.class, true) )
 		{
 			return false;
 		} else
 			return true;
 	}
 
-	private Component addButtonToFullyFetchLazyLoadedInstance(Instance inst) {
+	private Component addButtonToFullyFetchLazyLoadedInstance(PPEInstance inst) {
 		Button fetchButton = new Button("Fetch Properties", evt -> {
 			Notification.show("Fetching properties via connector, this might take some time.");
 			new Thread(() -> { 
@@ -204,17 +197,17 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		return fetchButton;
 	}
 
-	private ArtifactIdentifier getArtifactIdentifier(Instance inst) {
+	private ArtifactIdentifier getArtifactIdentifier(PPEInstance inst) {
 		// less brittle, but requires consistent use by artifact connectors
-		String artId = (String) inst.getPropertyAsValue("id");
-		InstanceType instType = inst.getInstanceType();
+		String artId = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
+		PPEInstanceType instType = inst.getInstanceType();
 		List<String> idOptions = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(instType);
 		if (idOptions.isEmpty()) {
-			log.warn("Cannot determine identifier option for instance type: "+instType.name());
-			return new ArtifactIdentifier(artId, instType.name());
+			log.warn("Cannot determine identifier option for instance type: "+instType.getName());
+			return new ArtifactIdentifier(artId, instType.getName());
 		} 
 		String idType = idOptions.get(0);				
-		return new ArtifactIdentifier(artId, instType.name(), idType);
+		return new ArtifactIdentifier(artId, instType.getName(), idType);
 	}
 
 	private Component createFetchField() {
@@ -247,7 +240,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 			if (searchTerm.isEmpty())
 				return true;
 
-			boolean matchesProperty= matchesTerm(pe.name, searchTerm);
+			boolean matchesProperty= matchesTerm(pe.getName(), searchTerm);
 			boolean matchesValue = matchesTerm(PropertyConversionUtil.valueToString(pe.getValue()), searchTerm);
 
 			return matchesProperty || matchesValue;
@@ -404,7 +397,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 //		return grid;
 //	}
 
-	private Component getReloadIcon(Instance inst) {
+	private Component getReloadIcon(PPEInstance inst) {
 		if (inst == null && commandGateway.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
 		Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
@@ -413,54 +406,69 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 			ArtifactIdentifier ai = commandGateway.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
 			new Thread(() -> { 
 				try {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
 					commandGateway.getArtifactResolver().get(ai, true);
-					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
 				} catch (ProcessException e1) {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
 				}}
 					).start();
 		});
 		return icon;
 	}
 
-	public static class PropertyComparator implements Comparator<Property> {
+	public static class PropertyComparator implements Comparator<PPEPropertyType> {
 
 		@Override
-		public int compare(Property o1, Property o2) {
-			return o1.name.compareTo(o2.name);
+		public int compare(PPEPropertyType o1, PPEPropertyType o2) {
+			return o1.getName().compareTo(o2.getName());
 		}
 
 	}
 
-	private static ComponentRenderer<Span, Property> createValueRenderer() {
+	private static ComponentRenderer<Span, PPEPropertyType> createValueRenderer() {
 		return new ComponentRenderer<>(Span::new, propertyComponentUpdated);
 	}
 
-	private static final SerializableBiConsumer<Span, Property> propertyComponentUpdated = (span, prop) -> {
-		if (prop instanceof SingleProperty) {
-			span.add(singleValueToComponent(prop.get()));
-		} else     	
-			if (prop instanceof CollectionProperty) {
-				span.add(collectionValueToComponent((Collection) prop.get()));
-			} else
-				if (prop instanceof MapProperty) {
-					// not supported yet
-					span.add(mapValueToComponent(((MapProperty)prop).get()));
-				}
-				else span.setText("Unknown Property ");
+	private static final SerializableBiConsumer<Span, PPEPropertyType> propertyComponentUpdated = (span, prop) -> {
+		Object value = 
+		switch(prop.getCardinality()) {
+		case LIST:
+			break;
+		case MAP:
+			break;
+		case SET:
+			break;
+		case SINGLE:
+			break;
+		default:
+			break;
+		
+		}
+		
+//		if (prop instanceof SingleProperty) {
+//			span.add(singleValueToComponent(prop.get()));
+//		} else     	
+//			if (prop instanceof CollectionProperty) {
+//				span.add(collectionValueToComponent((Collection) prop.get()));
+//			} else
+//				if (prop instanceof MapProperty) {
+//					// not supported yet
+//					span.add(mapValueToComponent(((MapProperty)prop).get()));
+//				}
+//				else span.setText("Unknown Property ");
 	}; 
 
 	private static Component singleValueToComponent(Object value) {
-		if (value instanceof Instance) {
-			Instance inst = (Instance)value;
-			return new Paragraph(new Anchor("/instance/"+inst.id(), inst.name()));
-		} else if (value instanceof InstanceType) {
-			InstanceType inst = (InstanceType)value;
-			return new Paragraph(new Anchor("/instance/"+inst.id(), inst.name()));
-		} else if (value instanceof PropertyType) {
-			PropertyType pt = (PropertyType)value;
-			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.name(), pt.cardinality(), pt.referencedInstanceType()));
+		if (value instanceof PPEInstance) {
+			PPEInstance inst = (PPEInstance)value;
+			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+		} else if (value instanceof PPEInstanceType) {
+			PPEInstanceType inst = (PPEInstanceType)value;
+			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+		} else if (value instanceof PPEPropertyType) {
+			PPEPropertyType pt = (PPEPropertyType)value;
+			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));
 		} else
 			return new Paragraph(Objects.toString(value));
 	}

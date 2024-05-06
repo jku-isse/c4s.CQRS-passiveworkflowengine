@@ -34,30 +34,29 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
-import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
-import at.jku.isse.designspace.rule.model.ConsistencyRule;
-import at.jku.isse.designspace.rule.service.RuleService;
-import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.RepairTreeProvider;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ConstraintResultWrapper;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstanceScopedElement;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.messages.Events.ConstraintOverrideEvent;
 import at.jku.isse.passiveprocessengine.instance.messages.Events.ProcessChangedEvent;
+import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
+import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -67,12 +66,10 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 	private UIConfig conf;
 	 private Authentication authentication;
 	 private String loggedInUserNameOrNull = null;
-	 private ProcessConfigBaseElementFactory configFactory;
 	
-	public ProcessInstanceScopedElementView(RequestDelegate f, ProcessConfigBaseElementFactory configFactory) {
+	public ProcessInstanceScopedElementView(RequestDelegate f) {
 		 this.reqDel = f;
 		 this.conf = f.getUIConfig();
-		 this.configFactory = configFactory;
 		 this.authentication = SecurityContextHolder.getContext().getAuthentication();
 		 loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
 		 this.setMargin(false);
@@ -95,8 +92,8 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
             	ProcessStep wft = (ProcessStep)el; 
             	infoDialog(wft);
             	reqDel.getMonitor().stepViewed(wft, loggedInUserNameOrNull);
-            } else if (el instanceof ConstraintWrapper) {
-            	ConstraintWrapper rebc = (ConstraintWrapper)el;
+            } else if (el instanceof ConstraintResultWrapper) {
+            	ConstraintResultWrapper rebc = (ConstraintResultWrapper)el;
             	infoDialog(rebc);
             	reqDel.getMonitor().constraintedViewed(rebc, loggedInUserNameOrNull);
             } else {
@@ -188,27 +185,15 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         delIcon.getElement().setProperty("title", "Remove this process");
         l.add(delIcon);
         if (!conf.isAnonymized() && !conf.isExperimentModeEnabled()) {        
-        	Anchor a = new Anchor("/instance/"+wfi.getInstance().id(), "Internal Details (opens in new tab)");
+        	Anchor a = new Anchor("/instance/"+wfi.getInstance().getId(), "Internal Details (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);                
         } 
         if(!conf.isExperimentModeEnabled()) {
-        	Anchor a = new Anchor("/processlogs/"+wfi.getInstance().id().value(), "JSON Event Log (opens in new tab)");
+        	Anchor a = new Anchor("/processlogs/"+wfi.getInstance().getId(), "JSON Event Log (opens in new tab)");
         	a.setTarget("_blank");
         	l.add(a);
         }
-//        Dialog dialog = new Dialog();
-//        dialog.setWidth("80%");
-//        dialog.setMaxHeight("80%");
-//
-//        Icon icon = getStepIcon(wfi);
-//        icon.getStyle().set("cursor", "pointer");
-//        icon.addClickListener(e -> { 
-//        	reqDel.getMonitor().processViewed(wfi, authentication != null ? authentication.getName() : null);
-//        	dialog.open(); });
-//        dialog.add(l);
-//
-//        return icon;
         return l;
     }
 
@@ -224,7 +209,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 	private VerticalLayout getInfoHeader(ProcessStep step, String type) {
 		VerticalLayout l = this;
        // l.setClassName("scrollable");
-        Paragraph p = new Paragraph(type+" Instance ID:  "+step.getId());
+        Paragraph p = new Paragraph(type+" Instance ID:  "+step.getName());
         p.setClassName("info-header");
         l.add(p);
         H4 h4= new H4(step.getName());
@@ -301,31 +286,31 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	if (!pStep.getDefinition().getPreconditions().isEmpty()) {
     		H5 h5cond = new H5("Preconditions");
 			l.add(h5cond);
-    		pStep.getConstraints(ProcessStep.CoreProperties.preconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    		pStep.getConstraints(AbstractProcessStepType.CoreProperties.preconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
     	}
     	if (!pStep.getDefinition().getPostconditions().isEmpty()) {
     		H5 h5cond = new H5("Postconditions");
 			l.add(h5cond);
-    		pStep.getConstraints(ProcessStep.CoreProperties.postconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    		pStep.getConstraints(AbstractProcessStepType.CoreProperties.postconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
     	}
     	if (!pStep.getDefinition().getCancelconditions().isEmpty()) {
     		H5 h5cond = new H5("Cancel Conditions");
 			l.add(h5cond);
-    		pStep.getConstraints(ProcessStep.CoreProperties.cancelconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    		pStep.getConstraints(AbstractProcessStepType.CoreProperties.cancelconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
     	}
     	if (!pStep.getDefinition().getActivationconditions().isEmpty()) {
     		H5 h5cond = new H5("Activation Conditions");
 			l.add(h5cond);
-    		pStep.getConstraints(ProcessStep.CoreProperties.activationconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
+    		pStep.getConstraints(AbstractProcessStepType.CoreProperties.activationconditions.toString()).stream().forEach(cw -> addConstraintLine(l, pStep, cw, dialog));
     	}
     }
     
-    private void addConstraintLine(VerticalLayout l, ProcessStep pStep, ConstraintWrapper cw, Dialog dialog) {
+    private void addConstraintLine(VerticalLayout l, ProcessStep pStep, ConstraintResultWrapper cw, Dialog dialog) {
 		
     	HorizontalLayout line = new HorizontalLayout();
     	line.add(createValueRenderer(cw));
     	line.add(createFulfillmentIcon(cw));
-		if (cw.getSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
+		if (cw.getConstraintSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
 			line.add(createOverrideButtonRenderer(cw, dialog));
 		}
     	l.add(line);
@@ -335,7 +320,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     		l.add(repairDisplay);    	    	    
 	}
     
-//    private Component createRepairRenderer(ConstraintWrapper cw, ProcessStep pStep) {
+//    private Component createRepairRenderer(ConstraintResultWrapper cw, ProcessStep pStep) {
 //
 //    	try {    									    	        			        						    		
 //    		RepairNode repairTree = RuleService.repairTree(cw.getCr());
@@ -360,9 +345,9 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 //    	}
 //    }
 
-    private Icon createFulfillmentIcon(ConstraintWrapper cw) {
+    private Icon createFulfillmentIcon(ConstraintResultWrapper cw) {
     	Icon icon;
-		Optional<ConsistencyRule> crOpt = Optional.ofNullable(cw.getCr());
+		Optional<PPEInstance> crOpt = Optional.ofNullable(cw.getInstance());
 		if (crOpt.isPresent()) {
 			if (cw.getEvalResult()) {
 				icon = new Icon(VaadinIcon.CHECK_CIRCLE);
@@ -378,16 +363,16 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		return icon;
     }
     
-	private Component createValueRenderer(ConstraintWrapper cw) {
-		String idAndDesc = cw.getSpec().getName()+": "+cw.getSpec().getHumanReadableDescription();		 
+	private Component createValueRenderer(ConstraintResultWrapper cw) {
+		String idAndDesc = cw.getConstraintSpec().getName()+": "+cw.getConstraintSpec().getHumanReadableDescription();		 
 		Paragraph p = new Paragraph(idAndDesc);
-		p.setTitle(cw.getSpec().getConstraintSpec());
+		p.setTitle(cw.getConstraintSpec().getConstraintSpec());
 		//Span p = new Span(arl);
 		p.getStyle().set("white-space", "pre");		
 		return p;	
     }
     
-    private Component createOverrideButtonRenderer(ConstraintWrapper cw, Dialog dialog) {
+    private Component createOverrideButtonRenderer(ConstraintResultWrapper cw, Dialog dialog) {
     	if (cw.getIsOverriden()) {
     		if (cw.isOverrideDiffFromConstraintResult()) {    		
     			Button undoBtn = new Button("Remove Override", click -> {
@@ -399,7 +384,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         				events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, "Override removed", true));
         				events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
         				notifyOverrideAndUpdate(events, cw.getProcess());      	
-        				cw.getInstance().workspace.concludeTransaction();
+        				reqDel.getProcessContext().getInstanceRepository().concludeTransaction();
         				this.getUI().get().access(() -> {         					
         						Notification.show("Successfully removed result override");        						
         				});    				
@@ -438,7 +423,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     	reqDel.getFrontendPusher().update(proc);    	
     }
     
-	private VerticalLayout createOverrideDialogLayout(Dialog dialog, ConstraintWrapper cw ) {
+	private VerticalLayout createOverrideDialogLayout(Dialog dialog, ConstraintResultWrapper cw ) {
 		H2 headline = new H2("Override Reason ");
         headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
                 .set("font-size", "1.5em").set("font-weight", "bold");
@@ -460,7 +445,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         				events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, reason, false));
         				events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
     					notifyOverrideAndUpdate(events, cw.getProcess()); 
-    					cw.getInstance().workspace.concludeTransaction();
+    					reqDel.getProcessContext().getInstanceRepository().concludeTransaction();
     				}
     				this.getUI().get().access(() -> { 
     					if (errorResult.length() == 0) {
@@ -519,23 +504,23 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         l.add(expectedInOut);
     }
 
-    private Component expectedInOut(ProcessStep wft, Map<String, InstanceType> io, boolean isIn) {
+    private Component expectedInOut(ProcessStep wft, Map<String, PPEInstanceType> io, boolean isIn) {
         UnorderedList list = new UnorderedList();
         list.setClassName("const-margin");
         if (io.size() > 0) {
-            for (Map.Entry<String, InstanceType> entry : io.entrySet()) {
+            for (Map.Entry<String, PPEInstanceType> entry : io.entrySet()) {
                 HorizontalLayout line = new HorizontalLayout();
                 line.setClassName("line");
-                ListItem li = new ListItem(entry.getKey() + " (" + entry.getValue().name() + ")");
+                ListItem li = new ListItem(entry.getKey() + " (" + entry.getValue().getName() + ")");
                 if (!isIn) {
                 	wft.getDefinition().getInputToOutputMappingRules().entrySet().stream()
                 		.filter(dmentry -> dmentry.getKey().equalsIgnoreCase(entry.getKey()))
                 		.findAny().ifPresent(dmapentry -> li.setTitle(dmapentry.getValue()));
                 }
                 line.add(li);
-                Set<Instance> artifactList = isIn ? wft.getInput(entry.getKey()) : wft.getOutput(entry.getKey());
+                Set<PPEInstance> artifactList = isIn ? wft.getInput(entry.getKey()) : wft.getOutput(entry.getKey());
                 if (artifactList.size() == 1) {
-                    Instance a = artifactList.iterator().next();
+                    PPEInstance a = artifactList.iterator().next();
                     line.add(ComponentUtils.convertToResourceLinkWithBlankTarget(a));
                     line.add(getReloadIcon(a));
                     // first adding another element as input, then removal of this one allowed!! otherwise authorization will fail as no artifact is present to check with.
@@ -546,14 +531,14 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
                 } else if (artifactList.size() > 1) {
                     list.add(line);
                     UnorderedList nestedList = new UnorderedList();
-                    for (Instance a : artifactList) {
+                    for (PPEInstance a : artifactList) {
                         HorizontalLayout nestedLine = new HorizontalLayout();
                         nestedLine.setAlignItems(Alignment.START);
                         nestedLine.setClassName("line");
                         nestedLine.add(new ListItem(ComponentUtils.convertToResourceLinkWithBlankTarget(a)));
                         nestedLine.add(getReloadIcon(a));
                         if (isIn && !reqDel.getUIConfig().isExperimentModeEnabled() && wft instanceof ProcessInstance && wft.getProcess() == null) { // input to a toplevel process
-                        	nestedLine.add(getDeleteInputArtifactFromProcessButton((ProcessInstance)wft, entry.getKey(), a.name()));
+                        	nestedLine.add(getDeleteInputArtifactFromProcessButton((ProcessInstance)wft, entry.getKey(), a.getName()));
                         }
                         nestedList.add(nestedLine);
                     }
@@ -577,7 +562,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         return list;
     }
     
-    private Component getInputComponent(ProcessInstance pInst, String role, InstanceType artT) {
+    private Component getInputComponent(ProcessInstance pInst, String role, PPEInstanceType artT) {
     	HorizontalLayout inputData = new HorizontalLayout();
         inputData.setMargin(false);               
         inputData.setPadding(false);
@@ -587,7 +572,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         tf.setRequiredIndicatorVisible(true);
         tf.setMinWidth("300px");
         tf.setLabel(role);                
-        tf.setHelperText(artT.name());
+        tf.setHelperText(artT.getName());
         inputData.add(tf);
         
         ComboBox<String> idTypeBox = new ComboBox<>("Identifier Type");
@@ -613,7 +598,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         			Notification.show("Adding input might take some time. UI will be updated automatically upon success.");
         			new Thread(() -> { 
         				try {
-        					String idType = idTypeBox.getOptionalValue().orElse(artT.name()); 
+        					String idType = idTypeBox.getOptionalValue().orElse(artT.getName()); 
         					reqDel.addProcessInput(pInst, role, artId, idType) ;
         					this.getUI().get().access(() -> { 
         						Notification.show("Successfully added Artifact");
@@ -634,7 +619,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         return inputData;
     }
 
-	private Component getReloadIcon(Instance inst) {
+	private Component getReloadIcon(PPEInstance inst) {
 		if (inst == null || !conf.isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
@@ -643,11 +628,11 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         	ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
         	new Thread(() -> { 
         		try {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
         			reqDel.getArtifactResolver().get(ai, true);
-        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
         		} catch (ProcessException e1) {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
         		}}
         			).start();
         });
@@ -669,14 +654,15 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, ProcessInstance step) {		
 		if (step.getProcess() == null && !conf.isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
 			// see if a config is foreseen
+			PPEInstanceType configBaseType = reqDel.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
 			step.getDefinition().getExpectedInput().entrySet().stream()
-			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
+			.filter(entry -> entry.getValue().isOfTypeOrAnySubtype(configBaseType))
 			.forEach(configEntry -> {
 				//InstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
 				step.getInput(configEntry.getKey()).stream().forEach(config -> {
 				
 				detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
-				Anchor a = new Anchor("/instance/"+config.id(), "View and Edit in Artifact/Instance Inspector (DSId: "+config.id()+")");
+				Anchor a = new Anchor("/instance/"+config.getId(), "View and Edit in Artifact/Instance Inspector (DSId: "+config.getId()+")");
 	        	a.setTarget("_blank");
 	        	detailsContent2.add(a);  
 				});
@@ -684,27 +670,27 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		}
 	}
     
-    private Component infoDialog(ConstraintWrapper rebc) {
+    private Component infoDialog(ConstraintResultWrapper rebc) {
     	VerticalLayout l = this;/*new VerticalLayout();    	
     	l.setMargin(false);
     	this.add(l);*/
         Paragraph p = new Paragraph("Quality Assurance Constraint:");
         p.setClassName("info-header");
         l.add(p);
-        H3 h3 = new H3(rebc.getSpec().getName());
+        H3 h3 = new H3(rebc.getConstraintSpec().getName());
         h3.setClassName("info-header");
         l.add(h3);
         
         HorizontalLayout line = new HorizontalLayout();
         
-        H4 descr = new H4(rebc.getSpec().getHumanReadableDescription());
-        descr.setTitle(rebc.getSpec().getConstraintSpec());
+        H4 descr = new H4(rebc.getConstraintSpec().getHumanReadableDescription());
+        descr.setTitle(rebc.getConstraintSpec().getConstraintSpec());
         line.add(descr);
         Icon icon1= WorkflowTreeGrid.getQAIcon(rebc);
         line.add(new H4(icon1));
         Dialog dialog = new Dialog();	
     	line.add(dialog);
-    	if (rebc.getSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
+    	if (rebc.getConstraintSpec().isOverridable() && !reqDel.getUIConfig().isExperimentModeEnabled()) {
     		line.add(createOverrideButtonRenderer(rebc, dialog));
     	}
         l.add(line);
@@ -717,7 +703,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         return l;
     }
     
-    private Component getRepairDisplayComponent(ConstraintWrapper rebc, ProcessInstance scope) {
+    private Component getRepairDisplayComponent(ConstraintResultWrapper rebc, ProcessInstance scope) {
         boolean doShowRepairs = reqDel.getACL().doShowRepairs(scope, loggedInUserNameOrNull);                               
         // show the eval tree (if enabled), including repairs if so enabled        
         if (this.conf.isIntegratedEvalRepairTreeEnabled()) {
@@ -729,14 +715,15 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     		}        	
         } else {
         	// show the repair list if enabled, and there is an inconsistency (something to repair
-        	if (doShowRepairs && rebc.getCr() != null && !rebc.getCr().isConsistent()) {
+        	if (doShowRepairs && rebc.getInstance() != null && !rebc.getEvalResult()) {
         		try {
-    				RepairNode repairTree = RuleService.repairTree(rebc.getCr());
+        			RepairTreeProvider repairTreeProvider = reqDel.getProcessContext().getRepairTreeProvider();
+    				RepairNode repairTree = (RepairNode) repairTreeProvider.getRepairTree(rebc.getRuleResult());
     				/*RepairNodeScorer scorer=new alphaBeticalSort();
     				RepairTreeSorter rts=new RepairTreeSorter(null, scorer);
     				rts.updateTreeOnScores(repairTree,rebc.getCr().getProperty("name").getValue().toString());
     				rts.sortTree(repairTree, 1);*/
-    				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), rtf, reqDel);
+    				RepairTreeGrid rtg = new RepairTreeGrid(reqDel.getMonitor(), RepairVisualizationUtil.DEFAULT_REPAIR_TREE_FILTER, reqDel);
     				rtg.initTreeGrid();
     				rtg.updateConditionTreeGrid(repairTree, scope);                			
     				//rtg.expandRecursively(repairTree.getChildren(), 3);                			
@@ -746,7 +733,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     				return getRepairTreeErrorArea(e);
     			}
         	} else // if this is an experiment, just show the evaluation tree instead of a repair if there is an inconsistency 
-        		if (this.conf.isExperimentModeEnabled() && rebc.getCr() != null && !rebc.getCr().isConsistent()) {
+        		if (this.conf.isExperimentModeEnabled() && rebc.getRuleResult() != null && !rebc.getRuleResult().isConsistent()) {
         			try {        			  				
         				return getConstraintTreeGrid(rebc, doShowRepairs); 
             		} catch(Exception e) {
@@ -759,14 +746,15 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
         }  
     }
     
-    private ConstraintTreeGrid getConstraintTreeGrid(ConstraintWrapper rebc, boolean doShowRepairs ) {    	    	
+    private ConstraintTreeGrid getConstraintTreeGrid(ConstraintResultWrapper rebc, boolean doShowRepairs ) {    	    	
     	ConstraintTreeGrid ctg = new ConstraintTreeGrid(reqDel, doShowRepairs);        			
-		EvaluationNode node = RuleService.evaluationTree(rebc.getCr());
-		if (rebc.getCr().isConsistent()) {
+		RepairTreeProvider repairTreeProvider = reqDel.getProcessContext().getRepairTreeProvider();
+    	EvaluationNode node =  (EvaluationNode) repairTreeProvider.getEvaluationNode(rebc.getRuleResult()); // RuleService.evaluationTree(rebc.getCr());
+		if (rebc.getRuleResult().isConsistent()) {
 			ctg.updateGrid(node, getTopMostProcess(rebc.getProcess()));	
 		} else {
-			RepairNode repairTree = RuleService.repairTree(rebc.getCr()); 
-	    	rtf.filterRepairTree(repairTree);
+			RepairNode repairTree = (RepairNode) repairTreeProvider.getRepairTree(rebc.getRuleResult());//.repairTree(rebc.getCr()); 
+	    	RepairVisualizationUtil.DEFAULT_REPAIR_TREE_FILTER.filterRepairTree(repairTree);
 	    	node.clearRepairPathInclChildren();
 	    	Set<RepairAction> visibleRepairs = repairTree.getRepairActions();
 	    	visibleRepairs.stream()
@@ -791,27 +779,6 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
     
 
     
-    private static RepairTreeFilter rtf = new ProcessRepairTreeFilter();	
-	
-	private static class ProcessRepairTreeFilter extends RepairTreeFilter {
 
-		@Override
-		public boolean compliesTo(RepairAction ra) {
-			// lets not suggest any repairs that cannot be navigated to in an external tool. 
-			if (ra.getElement() == null) return false;
-			Instance artifact = (Instance) ra.getElement();
-			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
-			else
-			return ra.getProperty() != null 
-					//&& !ra.getProperty().equalsIgnoreCase("workItemType") // now done via metaproperties
-					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
-					&& !ra.getProperty().startsWith("in_")
-					&& !ra.getProperty().equalsIgnoreCase("name")
-					&& ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
-					; // typically used to describe key or id outside of designspace
-		
-		}
-		
-	}
 	
 }

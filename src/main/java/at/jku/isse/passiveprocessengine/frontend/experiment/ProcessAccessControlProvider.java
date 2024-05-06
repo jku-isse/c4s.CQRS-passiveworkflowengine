@@ -140,14 +140,8 @@ public class ProcessAccessControlProvider {
 		return processReg.getExistingAndPriorInstances().stream()
 			.filter(proc -> proc.getDefinition().getName().equals(processDefinition))
 			.map(proc -> proc.getInstance())				
-			.filter(instance -> isOwner(owner, instance))
+			.filter(instance -> instance.isOwner(owner))
 			.findAny();		
 	}
 	
-	private boolean isOwner(String userName, PPEInstance instance) {
-		return instance.getPropertyAsSet(ReservedNames.OWNERSHIP_PROPERTY).get().stream()
-			.map(strId -> Long.parseLong((String)strId))
-			.map(id -> User.users.get((Long)id))
-			.anyMatch(user -> ((User)user).name().equals(userName));
-	}
 }

@@ -60,6 +60,8 @@ import at.jku.isse.passiveprocessengine.definition.activeobjects.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+import at.jku.isse.passiveprocessengine.instance.factories.ProcessConfigFactory;
+import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import at.jku.isse.passiveprocessengine.instance.types.SpecificProcessConfigType.PropertySchemaDTO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,13 +72,11 @@ import lombok.extern.slf4j.Slf4j;
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Definitions")
 @UIScope
-//@SpringComponent
 public class DefinitionView extends VerticalLayout implements HasUrlParameter<String> {
 
-    
-    protected RequestDelegate commandGateway;
-    private IFrontendPusher pusher;
-    private ProcessConfigBaseElementFactory configFactory;
+    protected final RequestDelegate commandGateway;
+    private final IFrontendPusher pusher;
+    private final ProcessConfigFactory configFactory;
 
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
@@ -88,10 +88,13 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private ProcessDefinition selectedP = null;
     private List<ProcessDefinition> defs = Collections.emptyList();
     private ComboBox<ProcessDefinition> comboBox;
+    private final PPEInstanceType configBaseType;
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, ProcessConfigBaseElementFactory configFactory) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, ProcessConfigFactory configFactory) {    	
     	this.commandGateway = commandGateway;
     	this.configFactory = configFactory;
+    	configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
+    	assert(configBaseType != null);
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
@@ -256,28 +259,6 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         	l.add(h);
         }		
 	}
-	
-//	private void addConditionsTable(VerticalLayout l, StepDefinition step) {
-//		
-//		Grid<AbstractMap.SimpleEntry<Conditions,String>> grid = new Grid<AbstractMap.SimpleEntry<Conditions,String>>();
-//		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-//    	grid.setColumnReorderingAllowed(false);
-//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Constraint Type").setResizable(true).setWidth("150px").setFlexGrow(0);
-//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getValue())).setHeader("Constraint").setResizable(true);
-//    	Map<String, Object> prop = (Map<String, Object>) step.getInstance().getProperty(CoreProperties.conditions.toString()).getValue();
-//    	List<AbstractMap.SimpleEntry<Conditions,String>> entries = prop.entrySet().stream()
-//    			.map(entry -> new AbstractMap.SimpleEntry<Conditions,String>(Conditions.valueOf(entry.getKey()), Objects.toString(entry.getValue())) )
-//    			.sorted(new Comparator<AbstractMap.SimpleEntry<Conditions, String>>(){
-//    				@Override
-//    				public int compare(AbstractMap.SimpleEntry<Conditions,String> o1, AbstractMap.SimpleEntry<Conditions,String> o2) {
-//    					return Integer.compare(o1.getKey().ordinal(), o2.getKey().ordinal());
-//					}})
-//    			.collect(Collectors.toList()); 
-//    	grid.setItems(entries);
-//    	grid.setAllRowsVisible(true);    
-//    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-//    	l.add(grid);
-//	}
     
 	private void addConstraintTable(VerticalLayout l, String prefix, Set<ConstraintSpec> constraints) {
 		
@@ -380,11 +361,11 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
 			// see if a config is foreseen
 			step.getExpectedInput().entrySet().stream()
-			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
+			.filter(entry -> entry.getValue().isOfTypeOrAnySubtype(configBaseType))
 			.forEach(configEntry -> {
 				PPEInstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
 				
-				Set<PPEPropertyType> pTypes = procConfig.getPropertyTypes(false, true);
+				Set<PPEPropertyType> pTypes = procConfig.getPropertyNamesIncludingSuperClasses().stream().map(propName -> procConfig.getPropertyType(propName)).collect(Collectors.toSet());
 				ListDataProvider<PPEPropertyType> dataProvider = new ListDataProvider<>(pTypes);
 				detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
 				detailsContent2.add(propertyTypesAsList(dataProvider));
@@ -414,7 +395,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		 * */
 		nameField.setPreventInvalidInput(true);
 		ComboBox<PPEInstanceType> types = new ComboBox<>("Property Type");
-		types.setItems(BuildInType.STRING, BuildInType.BOOLEAN, BuildInType.DATE, BuildInType.INTEGER, BuildInType.REAL);
+		types.setItems(BuildInType.STRING, BuildInType.BOOLEAN, BuildInType.DATE, BuildInType.INTEGER, BuildInType.FLOAT);
 		types.setValue(BuildInType.BOOLEAN);
 		ComboBox<CARDINALITIES> cardinalities = new ComboBox<>("Cardinality");
 		cardinalities.setItems(CARDINALITIES.values());
@@ -429,11 +410,12 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 			if (!nameField.isInvalid()) {
 				String name = nameField.getValue().trim();				
 				PropertySchemaDTO dto = new PropertySchemaDTO(name, types.getValue().getName(), cardinalities.getValue().toString());
-				Map<PropertySchemaDTO, Boolean> result = configFactory.augmentConfig(Set.of(dto), configType);
-				if (result.get(dto) == true) {
+				ProcessContext ctx = commandGateway.getProcessContext();
+				boolean result = dto.addPropertyToType(configType, ctx.getSchemaRegistry(), ctx.getSchemaRegistry(), ctx.getFactoryIndex().getRuleDefinitionFactory());
+				if (result == true) {
 					Notification.show("Successfully added property "+name);
-					configType.workspace.concludeTransaction();
-					Set<PPEPropertyType> pTypes = configType.getPropertyTypes(false, true);
+					commandGateway.getProcessContext().getInstanceRepository().concludeTransaction();
+					Set<PPEPropertyType> pTypes = configType.getPropertyNamesIncludingSuperClasses().stream().map(propName -> configType.getPropertyType(propName)).collect(Collectors.toSet());
 					dataProvider.getItems().clear();
 					dataProvider.getItems().addAll(pTypes);
 					dataProvider.refreshAll();

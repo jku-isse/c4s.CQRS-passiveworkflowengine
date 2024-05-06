@@ -40,11 +40,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
@@ -75,10 +74,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	final private ConstraintTreeGrid evalTree;
 	final private TextArea errorResultArea = new TextArea();
 	final private TextArea arlArea = new TextArea();
-	final private ComboBox<InstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type (rule starting point/context)");
+	final private ComboBox<PPEInstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type (rule starting point/context)");
 
 	private OCLBot oclBot;
-	private InstanceType lastUsedContext = null;
+	private PPEInstanceType lastUsedContext = null;
 	private BotResult lastResult = null;
 	private Checkbox checkboxUseRule = new Checkbox(false);
 	private Checkbox checkboxFetchIncomplete = new Checkbox(false);
@@ -178,12 +177,12 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private Component getARLEditorComponent() {
 		VerticalLayout layout = new VerticalLayout();
 		// field to provide context: instance type
-		List<InstanceType> instTypes = commandGateway.getWorkspace().debugInstanceTypes().stream()
-				.filter(iType -> !iType.isDeleted)
+		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()
+				//.filter(iType -> !iType.isDeleted)
 				.sorted(new InstanceTypeComparator())
 				.collect(Collectors.toList());
 		instanceTypeComboBox.setItems(instTypes);
-		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.name(), iType.id().toString(), iType.getQualifiedName()));
+		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.getName(), iType.getId().toString(), iType.getName()));
 		instanceTypeComboBox.setWidthFull();
 		//instanceTypeComboBox.setMinWidth("100px");
 		layout.add(instanceTypeComboBox);
@@ -237,7 +236,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return layout;
 	}
 	
-	private void triggerEvaluation(InstanceType context, String rule, boolean doFetchIncomplete) {
+	private void triggerEvaluation(PPEInstanceType context, String rule, boolean doFetchIncomplete) {
 		errorResultArea.setVisible(false);
 		//grid.setItems(Collections.emptySet());
 		result.clear();
@@ -368,7 +367,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private BotRequest augmentInputPrompt(String userRequest) {
 		BotRequest request = null;
 		String existingRule = checkboxUseRule.getValue() ? arlArea.getValue().trim() : null; // whether to include rule as basis for refinement
-		Optional<InstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
+		Optional<PPEInstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
 		if (ctxType.isPresent()) {			
 			String schema = getChangedOrNullSchemaAndReset(ctxType.get());
 			request = new BotRequest(Instant.now(), user, userRequest, ctxType.get(), schema, existingRule );
@@ -379,7 +378,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return request;
 	}
 
-	private String getChangedOrNullSchemaAndReset(InstanceType currentSelectedContextType) {
+	private String getChangedOrNullSchemaAndReset(PPEInstanceType currentSelectedContextType) {
 		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType)) {
 			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor();
 			String schema = extractor.getSchemaForInstanceTypeAndOneHop(currentSelectedContextType, false).values().stream()  // for now, TODO: differentiate between steps and not, and whether to get subtypes
@@ -427,7 +426,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 				Dialog dialog = new Dialog();
 				dialog.setWidth("80%");
 				dialog.setMaxHeight("80%");
-				RepairNode repairTree = RuleService.repairTree(entry.getRuleInstance());
+				RepairNode repairTree = (RepairNode)commandGateway.getProcessContext().getRepairTreeProvider().getRepairTree(entry.getRuleInstance());
 				RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
 				rtg.initTreeGrid();
 				rtg.updateConditionTreeGrid(repairTree, null);				
@@ -442,14 +441,11 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return button;
 	}
 
-	public static class InstanceTypeComparator implements Comparator<InstanceType> {
+	public static class InstanceTypeComparator implements Comparator<PPEInstanceType> {
 
 		@Override
-		public int compare(InstanceType o1, InstanceType o2) {
-			if (o1.getQualifiedName() == null || o2.getQualifiedName() == null)
-				return o1.name().compareTo(o2.name());
-			else 
-				return o1.getQualifiedName().compareTo(o2.getQualifiedName());
+		public int compare(PPEInstanceType o1, PPEInstanceType o2) {
+			return o1.getName().compareTo(o2.getName());
 		}
 
 	}

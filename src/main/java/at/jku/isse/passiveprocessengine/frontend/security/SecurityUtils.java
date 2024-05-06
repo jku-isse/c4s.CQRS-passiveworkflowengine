@@ -2,14 +2,14 @@ package at.jku.isse.passiveprocessengine.frontend.security;
 
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vaadin.flow.server.HandlerHelper.RequestType;
 import com.vaadin.flow.shared.ApplicationConstants;
-
-import javax.servlet.http.HttpServletRequest;
 
 public final class SecurityUtils {
 

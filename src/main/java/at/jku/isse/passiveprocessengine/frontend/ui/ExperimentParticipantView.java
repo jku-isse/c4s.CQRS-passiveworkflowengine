@@ -24,16 +24,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.User;
-import at.jku.isse.passiveprocessengine.WrapperCache;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -141,11 +139,11 @@ public class ExperimentParticipantView extends VerticalLayout  {
 
 	private Component taskInfoToCompletionButton(TaskInfo entry) {
 		Button delButton = null;
-		Optional<Instance> optInst = commandGateway.getACL().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		Optional<PPEInstance> optInst = commandGateway.getACL().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
 		if (optInst.isPresent()) {
-			Instance procInst = optInst.get();
-			if (!procInst.isDeleted) {
-				ProcessInstance wfi = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+			PPEInstance procInst = optInst.get();
+			if (!procInst.isMarkedAsDeleted()) {
+				ProcessInstance wfi = commandGateway.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst);
 				delButton = new Button("Finish", evt ->  {
 					commandGateway.getMonitor().processDeleted(wfi, participantId);
 					commandGateway.deleteProcessInstance(wfi.getName());

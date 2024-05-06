@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.security.core.Authentication;
@@ -17,11 +18,15 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
+import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
+import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
+import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -173,6 +178,18 @@ public class RepairVisualizationUtil {
 		return Collections.emptyList();
 	}
 		
+	public static Component singleRepairValueToComponent(Object value) {
+		if (value instanceof Instance) {
+			Instance inst = (Instance)value;
+			return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+		} else if (value instanceof InstanceType) {
+	    		InstanceType inst = (InstanceType)value;
+	    		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+	    } else
+		return new Span(Objects.toString(value));
+	}
+
+
 	public static Collection<Component> object2String(AbstractRepairAction ra) {
 		if (ra.getValue() instanceof Instance) {
 			return Set.of(new Span(( ComponentUtils.generateDisplayNameForInstance((Instance) ra.getValue()))));
@@ -197,6 +214,9 @@ public class RepairVisualizationUtil {
 		}
 	}
 	
+	
+	
+	
 	public static boolean isSimpleRepairValue(AbstractRepairAction ra) {
 		if (ra.getValue()!=null && !(ra.getValue() instanceof Instance) && !(ra.getValue() instanceof InstanceType))
 			return true;
@@ -205,7 +225,32 @@ public class RepairVisualizationUtil {
 	}	
 	
 	
+	
+	
 	public static interface ReloadIconProvider {
-		public Component getReloadIcon(Instance inst);
+		public Component getReloadIcon(PPEInstance inst);
+	}
+
+    public static RepairTreeFilter DEFAULT_REPAIR_TREE_FILTER = new ProcessRepairTreeFilter();	
+	
+	private static class ProcessRepairTreeFilter extends RepairTreeFilter {
+
+		@Override
+		public boolean compliesTo(RepairAction ra) {
+			// lets not suggest any repairs that cannot be navigated to in an external tool. 
+			if (ra.getElement() == null) return false;
+			Instance artifact = (Instance) ra.getElement();
+			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
+			else
+			return ra.getProperty() != null 
+					//&& !ra.getProperty().equalsIgnoreCase("workItemType") // now done via metaproperties
+					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
+					&& !ra.getProperty().startsWith("in_")
+					&& !ra.getProperty().equalsIgnoreCase("name")
+					&& ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
+					; // typically used to describe key or id outside of designspace
+		
+		}
+		
 	}
 }

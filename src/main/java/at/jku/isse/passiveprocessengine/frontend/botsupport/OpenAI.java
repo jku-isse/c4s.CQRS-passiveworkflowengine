@@ -35,9 +35,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.rule.arl.parser.ArlParser;
 import at.jku.isse.designspace.rule.arl.parser.ArlType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -152,7 +152,7 @@ public class OpenAI implements OCLBot{
     	}
     	// set which object to use as context
     	if (userInput.getContextType() != null) {
-    		prompt.append(String.format(OCL_CONTEXT_PROMPT_TEMPLATE, userInput.getContextType().name()));
+    		prompt.append(String.format(OCL_CONTEXT_PROMPT_TEMPLATE, userInput.getContextType().getName()));
     	}
     	// if example ocl available, remove prior ones (we only provide the latest example)
     	if (userInput.getExistingRule() != null) {
