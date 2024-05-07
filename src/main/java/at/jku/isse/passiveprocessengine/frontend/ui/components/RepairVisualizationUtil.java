@@ -14,6 +14,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.Span;
 
+import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.PropertyType;
@@ -25,6 +26,8 @@ import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +38,11 @@ public class RepairVisualizationUtil {
 	private RequestDelegate reqDel;
 	private ReloadIconProvider iconProvider;
 	private String authenticatedUserId;
+	private DesignspaceAbstractionMapper abstractionMapper = null;
 	
 	public RepairVisualizationUtil(RequestDelegate reqDel, ReloadIconProvider iconProvider) {
 		this.reqDel = reqDel;
+		this.abstractionMapper = (DesignspaceAbstractionMapper) reqDel.getProcessContext().getInstanceRepository(); //FIXME: ugly hack to deal with incomplete abstraction layer
 		this.iconProvider = iconProvider;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		authenticatedUserId = auth != null ? auth.getName() : null;
@@ -79,9 +84,22 @@ public class RepairVisualizationUtil {
 	
 	
 	private Collection<Component> generateRestrictedRepair(AbstractRepairAction ra, String restriction) {
-		
-		Component target = ra.getElement() != null ? new Span(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Span("");	
-		Component reload = iconProvider.getReloadIcon((Instance)ra.getElement());
+		Component target = null;
+		Component reload = null;
+		if (ra.getElement() != null) {
+			if (ra.getElement() instanceof Instance) {
+					PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance)ra.getElement());
+					target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+					reload  = iconProvider.getReloadIcon(inst);
+			} else {
+				PPEInstanceType inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType)ra.getElement());
+				target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+				reload  = iconProvider.getReloadIcon(inst);
+			}
+		} else {
+			target = new Span(""); 
+			reload  = iconProvider.getReloadIcon(null);
+		}		
 		switch(ra.getOperator()) {
 		case ADD:
 			List<Component> list = new ArrayList<>();			 
@@ -123,8 +141,22 @@ public class RepairVisualizationUtil {
 	
 	
 	private Collection<Component> generatePlainRepairs(AbstractRepairAction ra) {
-		Component target = ra.getElement() != null ? new Span(ComponentUtils.convertToResourceLinkWithBlankTarget((Instance)ra.getElement())) : new Span("");
-		Component reload = iconProvider.getReloadIcon((Instance)ra.getElement());
+		Component target = null;
+		Component reload = null;
+		if (ra.getElement() != null) {
+			if (ra.getElement() instanceof Instance) {
+					PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance)ra.getElement());
+					target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+					reload  = iconProvider.getReloadIcon(inst);
+			} else {
+				PPEInstanceType inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType)ra.getElement());
+				target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
+				reload  = iconProvider.getReloadIcon(inst);
+			}
+		} else {
+			target = new Span(""); 
+			reload  = iconProvider.getReloadIcon(null);
+		}		
 		Collection<Component> change = object2String(ra);
 		switch(ra.getOperator()) {
 		case ADD:
@@ -178,23 +210,25 @@ public class RepairVisualizationUtil {
 		return Collections.emptyList();
 	}
 		
-	public static Component singleRepairValueToComponent(Object value) {
+	public Component singleRepairValueToComponent(Object value) {
 		if (value instanceof Instance) {
-			Instance inst = (Instance)value;
+			PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) value);
 			return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 		} else if (value instanceof InstanceType) {
-	    		InstanceType inst = (InstanceType)value;
+	    		PPEInstanceType inst =  abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType) value);
 	    		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 	    } else
 		return new Span(Objects.toString(value));
 	}
 
 
-	public static Collection<Component> object2String(AbstractRepairAction ra) {
+	public  Collection<Component> object2String(AbstractRepairAction ra) {
 		if (ra.getValue() instanceof Instance) {
-			return Set.of(new Span(( ComponentUtils.generateDisplayNameForInstance((Instance) ra.getValue()))));
+			PPEInstance ppeInst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) ra.getValue());
+			return Set.of(new Span(( ComponentUtils.generateDisplayNameForInstance(ppeInst))));
 		} else if (ra.getValue() instanceof InstanceType) {
-			return List.of(new Span("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget((InstanceType) ra.getValue()));
+			PPEInstance ppeInstType = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType) ra.getValue());
+			return List.of(new Span("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget(ppeInstType));
 		} else {
 			if (ra.getValue()!=null) {
 				if (ra.getValue()==UnknownRepairValue.UNKNOWN) {

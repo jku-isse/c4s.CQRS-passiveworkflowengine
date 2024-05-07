@@ -10,7 +10,6 @@ import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.model.ConsistencyRule;
 import at.jku.isse.designspace.rule.model.ConsistencyRuleType;
 import at.jku.isse.designspace.rule.service.RuleService;
-import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +73,7 @@ public class ARLPlaygroundEvaluator {
 	
 	 @Data
 	 public static class ResultEntry {
-	    	final PPEInstance instance;
+	    	final Instance instance;
 	    	final Boolean result;
 	    	final String error;
 	    	final EvaluationNode rootNode;

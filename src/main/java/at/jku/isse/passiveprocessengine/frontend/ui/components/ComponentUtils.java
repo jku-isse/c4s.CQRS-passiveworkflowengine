@@ -28,7 +28,7 @@ public class ComponentUtils {
 		if (artifact.hasPropertyType("html_url")) {
 			a = new Anchor(artifact.getTypedProperty("html_url", String.class), artifact.getName());
 		} else {
-			a = new Anchor("/instance/"+artifact.getId(), artifact.getName());
+			a = new Anchor("/instancetype/"+artifact.getId(), artifact.getName());
 		}
 		a.setTarget("_blank");
 		return a;

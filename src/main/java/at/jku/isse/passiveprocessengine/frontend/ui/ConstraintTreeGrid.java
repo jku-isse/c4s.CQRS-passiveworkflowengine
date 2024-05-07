@@ -154,7 +154,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 					span.add(collectionValueToComponent((Collection) expl));
 				} 
 				else if (rNode.getNode().getRepairs().isEmpty()) {
-						span.add(RepairVisualizationUtil.singleRepairValueToComponent(expl));
+						span.add(repairViz.singleRepairValueToComponent(expl));
 				}	
 		}
 		if (doShowRepairs) {
@@ -172,11 +172,11 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		}
 	}
     
-	private static ComponentRenderer<Span, RotationNode> createDefaultValueRenderer() {
+	private ComponentRenderer<Span, RotationNode> createDefaultValueRenderer() {
     	return new ComponentRenderer<>(Span::new, defaultBiConsumer);
     }
     
-	private static final SerializableBiConsumer<Span, RotationNode> defaultBiConsumer = (span, rNode) -> {
+	private final SerializableBiConsumer<Span, RotationNode> defaultBiConsumer = (span, rNode) -> {
 			Object expl = rNode.getNode().expression.explain(rNode.getNode());					
 			if (expl instanceof Map) {				
 				span.add(String.format("having %s entries", ((Map)expl).size()));
@@ -184,22 +184,22 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			else  if (expl instanceof Collection) {
 				span.add(String.format("having %s entries", ((Collection)expl).size()));
 			} 
-			else span.add(RepairVisualizationUtil.singleRepairValueToComponent(expl));
+			else span.add(repairViz.singleRepairValueToComponent(expl));
 		
     }; 
     
-    private static Component collectionValueToComponent(Collection value) {
+    private Component collectionValueToComponent(Collection value) {
     	if (value == null || value.size() == 0)	
     		return new Span( "[ ]");
     	else if (value.size() == 1)
-    		return RepairVisualizationUtil.singleRepairValueToComponent(value.iterator().next());
+    		return repairViz.singleRepairValueToComponent(value.iterator().next());
     	else {    		
     		VerticalLayout vLayout = new VerticalLayout();
     		vLayout.setPadding(false);
     		vLayout.setMargin(false);
     		//UnorderedList list = new UnorderedList();    		
     		//list.setClassName("no-padding");
-    		value.stream().forEach(val -> vLayout.add(RepairVisualizationUtil.singleRepairValueToComponent(val)));
+    		value.stream().forEach(val -> vLayout.add(repairViz.singleRepairValueToComponent(val)));
     		//if (value instanceof Set) // we sort the entries in the set for easier readability, for lists, we maintain the list order
     		//	list.
     		//vLayout.add(list);

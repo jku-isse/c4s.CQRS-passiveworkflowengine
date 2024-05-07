@@ -11,8 +11,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import at.jku.isse.designspace.azure.service.IAzureService;
 //import at.jku.isse.designspace.git.service.IGitService;
-import at.jku.isse.designspace.jama.service.IJamaService;
-import at.jku.isse.designspace.jira.service.IJiraService;
+//import at.jku.isse.designspace.jama.service.IJamaService;
+//import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
@@ -29,11 +29,11 @@ import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper
 import at.jku.isse.passiveprocessengine.designspace.RewriterFactory;
 import at.jku.isse.passiveprocessengine.designspace.RuleServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.artifacts.ProcessConfigProvider;
 import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
+import at.jku.isse.passiveprocessengine.instance.providers.ProcessConfigProvider;
 import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
@@ -79,15 +79,20 @@ public class FrontendSpringConfig {
 		return new TriggeredProcessLoader(registry);
 	}
 		
-
+	@Bean
+	public ProcessConfigProvider getProcessConfigProvider(SchemaRegistry schemaReg, InstanceRepository ws) {
+		return new ProcessConfigProvider(schemaReg,  ws);
+	}
+	
+	
 	@Bean
 	public ArtifactResolver getArtifactResolver(IAzureService azure,
-			/* IGitService github, */  IJiraService jira, IJamaService jama, ProcessConfigProvider procconf, ProcessRegistry procReg ) {
+			/* IGitService github,   IJiraService jira, IJamaService jama, */ ProcessConfigProvider procconf, ProcessRegistry procReg ) {
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
-		/* ar.register(github); */
+		/* ar.register(github); 
 		ar.register(jira);
-		ar.register(jama);
+		ar.register(jama);*/
 		ar.register(procconf);
 		return ar;
 	}
@@ -148,19 +153,19 @@ public class FrontendSpringConfig {
     	return new RepairStats();
     }
     
-    @Bean
-    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
-    	RepairNodeScorer scorer= new NoSort();
-    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
-    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
-    	
-		if (repAnalyzer != null)
-			repAnalyzer.inject(ws);
-		ArlRuleEvaluator arl = new ArlRuleEvaluator();
-		arl.registerListener(repAnalyzer);
-		RuleService.setEvaluator(arl);
-		//RuleService.currentWorkspace = ws;
-    }
+//    @Bean
+//    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
+//    	RepairNodeScorer scorer= new NoSort();
+//    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
+//    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
+//    	
+//		if (repAnalyzer != null)
+//			repAnalyzer.inject(ws);
+//		ArlRuleEvaluator arl = new ArlRuleEvaluator();
+//		arl.registerListener(repAnalyzer);
+//		RuleService.setEvaluator(arl);
+//		//RuleService.currentWorkspace = ws;
+//    }
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {

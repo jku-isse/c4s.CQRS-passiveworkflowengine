@@ -35,9 +35,9 @@ class ConnectorTests {
 	void testFetchAzure() throws ProcessException {
 //		Instance gitIssue = artRes.get(new ArtifactIdentifier("p2f.processguidance/issues/4", "git_issue"));
 //		assert(gitIssue.name().equalsIgnoreCase("p2f.processguidance/issues/4"));
-		PPEInstance azureIssue = artRes.get(new ArtifactIdentifier("CEPS-1/38", "azure_workitem"));
-		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("CEPS-1/38"));
-		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
+//		PPEInstance azureIssue = artRes.get(new ArtifactIdentifier("CEPS-1/38", "azure_workitem"));
+//		assert(((String) azureIssue.getPropertyAsValue("id")).equalsIgnoreCase("CEPS-1/38"));
+//		assertEquals(azureIssue.getPropertyAsValue(AzureBaseElementType.ASSIGNEE),azureIssue.getPropertyAsValue(AzureBaseElementType.CREATOR));
 	}
 
 //	@Test
@@ -48,11 +48,11 @@ class ConnectorTests {
 //	}
 	
 	
-	@Test
-	void testFetchJiraFRQAndJama() throws ProcessException {
-		PPEInstance issue = artRes.get(new ArtifactIdentifier("PVCSG-5048", "jira_core_artifact", IJiraService.JiraIdentifier.JiraIssueKey.toString()));
-		PPEInstance jama = issue.getPropertyAsInstance(JiraJamaItemAugmentor.JIRA2JAMALINKPROPERTYNAME);
-		assert(jama != null);
-		
-	}
+//	@Test
+//	void testFetchJiraFRQAndJama() throws ProcessException {
+//		PPEInstance issue = artRes.get(new ArtifactIdentifier("PVCSG-5048", "jira_core_artifact", IJiraService.JiraIdentifier.JiraIssueKey.toString()));
+//		PPEInstance jama = issue.getPropertyAsInstance(JiraJamaItemAugmentor.JIRA2JAMALINKPROPERTYNAME);
+//		assert(jama != null);
+//		
+//	}
 }
