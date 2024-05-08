@@ -76,7 +76,6 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 
     protected final RequestDelegate commandGateway;
     private final IFrontendPusher pusher;
-    private final ProcessConfigFactory configFactory;
 
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
@@ -90,9 +89,8 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private ComboBox<ProcessDefinition> comboBox;
     private final PPEInstanceType configBaseType;
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, ProcessConfigFactory configFactory) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
     	this.commandGateway = commandGateway;
-    	this.configFactory = configFactory;
     	configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
     	assert(configBaseType != null);
     	this.pusher = pusher;

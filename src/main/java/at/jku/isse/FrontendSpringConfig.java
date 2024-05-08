@@ -9,15 +9,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import at.jku.isse.designspace.azure.service.IAzureService;
-//import at.jku.isse.designspace.git.service.IGitService;
-//import at.jku.isse.designspace.jama.service.IJamaService;
-//import at.jku.isse.designspace.jira.service.IJiraService;
-import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
-import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
+import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
+import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
+import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
+import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
+import at.jku.isse.designspace.azure.updateservice.UpdateEventQueueReader;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
-import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
-import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.core.ConfigurationBuilder;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
@@ -67,6 +64,13 @@ public class FrontendSpringConfig {
 		return configBuilder.getContext();
 	}
 	
+	/* Tool Connector setups  */
+           
+    @Bean
+    public static UpdateEventQueueReader getUpdateEventQueueReader() {
+    	return new UpdateEventQueueReader();
+    }
+	
 	/* Frontend Setup*/
 	
 	@Bean 
@@ -84,10 +88,12 @@ public class FrontendSpringConfig {
 		return new ProcessConfigProvider(schemaReg,  ws);
 	}
 	
-	
+
 	@Bean
-	public ArtifactResolver getArtifactResolver(IAzureService azure,
+	public ArtifactResolver getArtifactResolver(AzureServiceBuilder azureBuilder,
 			/* IGitService github,   IJiraService jira, IJamaService jama, */ ProcessConfigProvider procconf, ProcessRegistry procReg ) {
+		IArtifactProvider azure = azureBuilder.build();
+		
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
 		/* ar.register(github); 
