@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Scope("session")
 @ConditionalOnExpression(value = "${openai.enabled:false}")
+@Primary
 public class OpenAI implements OCLBot{
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";

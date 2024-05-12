@@ -118,8 +118,8 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			splitLayout.setSplitterPosition(100);
 			bot.setVisible(false);
 		}
-        splitLayout.setSizeFull();    
-		
+        splitLayout.setSizeFull();
+
 		errorResultArea.setWidthFull();
 		errorResultArea.setMinHeight("100px");
 		errorResultArea.setLabel("Constraint Evaluation Feedback");

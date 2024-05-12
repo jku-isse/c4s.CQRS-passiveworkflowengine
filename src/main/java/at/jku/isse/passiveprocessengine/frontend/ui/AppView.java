@@ -67,7 +67,8 @@ public class AppView extends AppLayout{
 	      createTab(VaadinIcon.RECORDS, "Process Definitions", DefinitionView.class),	      
 	      createTab(VaadinIcon.COMPILE, "Connector Progress", GlobalProgressView.class),
 	      createTab(VaadinIcon.GAMEPAD, "Rule Playground", ARLPlaygroundView.class),
-	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class)	      
+	      createTab(VaadinIcon.FLASK, "Test Data Playground", TestDataPlaygroundView.class),
+	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class)
 	    );
 	    if (uiconf.isBlocklyEditorEnabled()) {
 	    	tabs.add(

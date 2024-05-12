@@ -1,14 +1,12 @@
 package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import at.jku.isse.designspace.core.model.InstanceType;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 
 
 public interface OCLBot {
@@ -50,15 +48,30 @@ public interface OCLBot {
 	@ToString(doNotUseGetters = true, callSuper = true)
     @Data
     @AllArgsConstructor
-	public static class BotRequest extends BotInteraction{
-    	final Instant time;
-    	final String role;
-    	@NonNull final String userPrompt;
-    	final InstanceType contextType;
-		String schema;
-		final String existingRule;
-	}
-	
+    public static class BotRequest extends BotInteraction {
+        final Instant time;
+        final String role;
+        @NonNull
+        final String userPrompt;
+        final InstanceType contextType;
+        String schema;
+        final String existingRule;
+    }
+
+
+    class TestDataBotRequest extends BotRequest {
+        final Set<InstanceType> instanceTypes;
+        final Map.Entry<String,String> outputFormat;
+
+        public TestDataBotRequest(Instant time, String role,
+                                  String userPrompt,
+                                  Set<InstanceType> instanceTypes, Map.Entry<String,String> outputFormat) {
+            super(time, role, userPrompt, null, null, null);
+            this.instanceTypes = instanceTypes;
+            this.outputFormat = outputFormat;
+        }
+    }
+
     @EqualsAndHashCode(callSuper = true)
 	@ToString(doNotUseGetters = true, callSuper = true)
     @Data
@@ -68,4 +81,15 @@ public interface OCLBot {
     	final String botResult;
 		final String oclRule;
 	}
+
+    @Getter
+    public class TestDataBotResult extends BotResult {
+        final String testData;
+
+
+        public TestDataBotResult(String result) {
+            super(null, null, null, null);
+            this.testData = result;
+        }
+    }
 }
