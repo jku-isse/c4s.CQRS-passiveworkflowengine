@@ -68,7 +68,27 @@
 		<appender-ref ref="RollingFile" />
 	</logger>
 
-	<root level="info">
+	<logger name="at.jku.isse.designspace.rule" level="INFO" additivity="false">
+		<appender-ref ref="Console" />
+		<appender-ref ref="ConsoleToFile" />
+	</logger>
+
+	<logger name="at.jku.isse.designspace.core" level="INFO" additivity="false">
+		<appender-ref ref="Console" />
+		<appender-ref ref="ConsoleToFile" />
+	</logger>
+
+	<logger name="at.jku.isse.designspace.jama" level="INFO" additivity="false">
+		<appender-ref ref="Console" />
+		<appender-ref ref="ConsoleToFile" />
+	</logger>
+	
+		<logger name="at.jku.isse.passiveprocessengine.analysis" level="INFO" additivity="false">
+		<appender-ref ref="Console" />
+		<appender-ref ref="ConsoleToFile" />
+	</logger>
+
+	<root level="INFO">
 		<appender-ref ref="Console" />
 		<appender-ref ref="ConsoleToFile" />
 	</root>

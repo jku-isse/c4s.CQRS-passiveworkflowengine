@@ -295,7 +295,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         						try {
         							ProcessInstance pi = commandGateway.instantiateProcess(id, inputs, procName);
         							if (auth != null && auth.getName() != null) {
-        								pi.getInstance().addOwner(new User(auth.getName()));
+        								pi.getInstance().addOwner(auth.getName());
         							}
         							commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
         							this.getUI().get().access(() -> { 

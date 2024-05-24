@@ -144,7 +144,7 @@ class TestExperimentProcessDataConsistency {
 			return false;
 		} else {
 			ProcessInstance procInst = instantiate(entry);
-			procInst.getInstance().addOwner(new User(participantId));
+			procInst.getInstance().addOwner(participantId);
 			// now delete process again
 			reqDelegate.deleteProcessInstance(procInst.getName());
 			return true;

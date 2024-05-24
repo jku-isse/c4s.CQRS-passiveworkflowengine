@@ -118,7 +118,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 						inputs.put(entry.getInputParam(), new ArtifactIdentifier(entry.getInputId(), entry.getArtifactType(), entry.getIdType()));
 						ProcessInstance pi = commandGateway.instantiateProcess(id, inputs, entry.getProcessId());						 
 						if (auth != null && auth.getName() != null) {
-							pi.getInstance().addOwner(new User(auth.getName()));
+							pi.getInstance().addOwner(auth.getName());
 						}
 						commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
 //						this.getUI().get().access(() -> { 

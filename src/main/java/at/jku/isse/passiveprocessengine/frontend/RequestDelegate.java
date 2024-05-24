@@ -49,8 +49,8 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestDelegate {
 
 	
-	@Autowired
-	WorkspaceService wss;
+	//@Autowired
+	//WorkspaceService wss;
 	
 	Workspace ws;
 

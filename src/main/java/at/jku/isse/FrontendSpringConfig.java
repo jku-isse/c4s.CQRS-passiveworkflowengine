@@ -3,6 +3,7 @@ package at.jku.isse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import at.jku.isse.designspace.azure.service.IAzureService;
+import at.jku.isse.designspace.core.events.Event;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.service.ServiceRegistry;
 import at.jku.isse.designspace.core.service.WorkspaceService;
 //import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
@@ -18,6 +21,7 @@ import at.jku.isse.designspace.jira.service.IJiraService;
 import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
 import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
+import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -41,6 +45,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FrontendSpringConfig {
 
+public static AtomicBoolean isInit = new AtomicBoolean(false);
+	
+	private static void init() {
+		if (isInit.compareAndExchange(false, true) == false) {
+			try {
+				new WorkspaceService();
+				new RuleService();
+			} catch (IOException e) {				
+				e.printStackTrace();
+				throw new RuntimeException("Error starting Workspace Service");
+			} // to force PUBLIC WORKSPACE IS AVAILABLE
+
+			ServiceRegistry.initializeAllPersistenceUnawareServices();
+	        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
+
+	        Event.setInitialized();
+
+	        ServiceRegistry.initializeAllPersistenceAwareServices();
+	        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();  
+		}
+	}
+	
 	@Bean UIConfig getUIConfig(ApplicationContext context) {
 		
 		
@@ -72,15 +98,16 @@ public class FrontendSpringConfig {
 	}
 		
 	@Bean Workspace getWorkspace() {
+		init();
 		return WorkspaceService.PUBLIC_WORKSPACE;
 	}
 	
-	@Bean ProcessConfigBaseElementFactory getProcessConfigBaseElementFactory() {
-		return new ProcessConfigBaseElementFactory(WorkspaceService.PUBLIC_WORKSPACE);
+	@Bean ProcessConfigBaseElementFactory getProcessConfigBaseElementFactory(Workspace workspace) {
+		return new ProcessConfigBaseElementFactory(workspace);
 	}
 	
-	@Bean ProcessConfigProvider getProcessConfigProvider(ProcessConfigBaseElementFactory configFactory) {
-		return new ProcessConfigProvider(configFactory, WorkspaceService.PUBLIC_WORKSPACE);
+	@Bean ProcessConfigProvider getProcessConfigProvider(ProcessConfigBaseElementFactory configFactory, Workspace workspace) {
+		return new ProcessConfigProvider(configFactory, workspace);
 	}
 
 	@Bean
