@@ -18,9 +18,7 @@ import at.jku.isse.designspace.core.service.WorkspaceService;
 //import at.jku.isse.designspace.git.service.IGitService;
 import at.jku.isse.designspace.jama.service.IJamaService;
 import at.jku.isse.designspace.jira.service.IJiraService;
-import at.jku.isse.designspace.rule.arl.repair.order.NoSort;
-import at.jku.isse.designspace.rule.arl.repair.order.RepairNodeScorer;
-import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
+import at.jku.isse.designspace.rule.arl.repair.analyzer.RepairAnalyzer;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
@@ -32,11 +30,11 @@ import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
+import at.jku.isse.passiveprocessengine.monitoring.ExecutedRepiarListenerImp;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 import at.jku.isse.passiveprocessengine.monitoring.RepairFeatureToggle;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
@@ -123,17 +121,23 @@ public static AtomicBoolean isInit = new AtomicBoolean(false);
 		return ar;
 	}
     
-    @Bean
-    public RepairStats getRepairStats() {
-    	return new RepairStats();
-    }
+//    @Bean
+//    public RepairStats getRepairStats() {
+//    	return new RepairStats();
+//    }
+//	
 	
-    @Bean
-    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
-    	RepairNodeScorer scorer= new NoSort();
-    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
-    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
-    }
+	@Bean
+	public RepairAnalyzer getRepairAnalyzer(ITimeStampProvider tsProvider, UsageMonitor monitor) {
+    	return new at.jku.isse.designspace.rule.arl.repair.analyzer.RepairAnalyzer(null,new ExecutedRepiarListenerImp(new UsageMonitor(tsProvider))); 
+	}
+	
+//    @Bean
+//    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {    	 
+//    	RepairNodeScorer scorer= new NoSort();
+//    	RepairFeatureToggle rtf=new RepairFeatureToggle(true,false,false);
+//    	return new RepairAnalyzer(null,rs, scorer, tsProvider, monitor,rtf); // workspace will/must be injected in RequestDelegate    	
+//    }
 
 	
     @Bean 

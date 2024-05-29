@@ -23,6 +23,7 @@ import at.jku.isse.designspace.core.controlflow.ControlEventEngine;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.service.WorkspaceService;
+import at.jku.isse.designspace.rule.arl.repair.analyzer.RepairAnalyzer;
 import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.designspace.rule.service.RuleService;
 import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
@@ -39,7 +40,6 @@ import at.jku.isse.passiveprocessengine.instance.messages.Commands.ProcessScoped
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import at.jku.isse.passiveprocessengine.instance.messages.WorkspaceListenerSequencer;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 

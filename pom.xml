@@ -29,7 +29,7 @@
 		<connector.core.version>1.4.0</connector.core.version>
 		<connector.jira.version>1.8.0</connector.jira.version>
 		<connector.jama.version>1.2.0-SNAPSHOT</connector.jama.version>
-		<PPEv3.version>0.6.2-SNAPSHOT</PPEv3.version>		
+		<PPEv3.version>0.6.4-SNAPSHOT</PPEv3.version>		
 		<PPEv3.blocklytransformer.version>0.1.8-SNAPSHOT</PPEv3.blocklytransformer.version>
 		<spring-security.version>5.3.4.RELEASE</spring-security.version>
 	</properties>

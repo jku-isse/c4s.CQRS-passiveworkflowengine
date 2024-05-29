@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import at.jku.isse.designspace.rule.arl.repair.analyzer.RepairAnalyzer;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 
 @RestController
 @CrossOrigin(origins = "*")//to allow incoming calls from other ports

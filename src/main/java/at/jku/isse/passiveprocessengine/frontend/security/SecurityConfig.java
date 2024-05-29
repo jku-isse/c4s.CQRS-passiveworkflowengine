@@ -77,15 +77,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
 	Random rand = new Random(654654l);	  	  	  
 	Set<UserDetails> users = new HashSet<>();
-	for (int i = 1; i < 50; i++) {
-		String name = "P"+i;		
-		String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
-		users.add(User.withUsername(name)
-            .password("{noop}"+pw)
-            .roles("USER")
-            .build());		
-		System.out.println(String.format("Created user credentials %s : %s", name, pw));
-    }
+//	for (int i = 1; i < 50; i++) {
+//		String name = "P"+i;		
+//		String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
+//		users.add(User.withUsername(name)
+//            .password("{noop}"+pw)
+//            .roles("USER")
+//            .build());		
+//		System.out.println(String.format("Created user credentials %s : %s", name, pw));
+//    }
 	users.add(User.withUsername("dev")
             .password("{noop}dev")
             .roles("USER")
