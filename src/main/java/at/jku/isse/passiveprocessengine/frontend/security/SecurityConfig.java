@@ -100,6 +100,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   public void configure(WebSecurity web) {
     web.ignoring().antMatchers(
+    	// allowed endpoints
+    	"/get_repairs/**",
+    		
         // webhook endpoints
     	"/azure/**",
     	"/jira/**",
