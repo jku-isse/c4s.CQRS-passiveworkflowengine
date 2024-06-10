@@ -295,7 +295,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 	
 	
 	public Component getReloadIcon(PPEInstance inst) {
-		if (inst == null || !reqDel.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
+		if (inst == null || !reqDel.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -307,7 +307,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
         			reqDel.getArtifactResolver().get(ai, true);
         			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
         		} catch (ProcessException e1) {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
         		}}
         			).start();
         });

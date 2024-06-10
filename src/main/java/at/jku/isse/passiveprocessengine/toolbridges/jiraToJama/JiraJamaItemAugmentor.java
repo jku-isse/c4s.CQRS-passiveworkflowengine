@@ -8,16 +8,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import at.jku.isse.designspace.core.events.Operation;
-import at.jku.isse.designspace.core.events.PropertyUpdateSet;
-import at.jku.isse.designspace.core.model.Cardinality;
-import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.ServiceProvider;
-import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.designspace.core.service.ServiceRegistry;
-import at.jku.isse.designspace.core.service.WorkspaceService;
+//import at.jku.isse.designspace.core.events.Operation;
+//import at.jku.isse.designspace.core.events.PropertyUpdateSet;
+//import at.jku.isse.designspace.core.model.Cardinality;
+//import at.jku.isse.designspace.core.model.Folder;
+//import at.jku.isse.designspace.core.model.Instance;
+//import at.jku.isse.designspace.core.model.InstanceType;
+//import at.jku.isse.designspace.core.model.ServiceProvider;
+//import at.jku.isse.designspace.core.model.Workspace;
+//import at.jku.isse.designspace.core.service.ServiceRegistry;
+//import at.jku.isse.designspace.core.service.WorkspaceService;
 //import at.jku.isse.designspace.jama.service.IJamaService;
 //import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 //import at.jku.isse.designspace.jira.model.JiraBaseElementType;
@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-@DependsOn({"controleventengine"})
 @ConditionalOnExpression(value = "${jama.enabled:false} and ${jira.enabled:false}") 
 public class JiraJamaItemAugmentor { //implements ServiceProvider {
 

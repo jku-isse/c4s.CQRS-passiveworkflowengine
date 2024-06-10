@@ -104,8 +104,8 @@ public class ExperimentParticipantView extends VerticalLayout  {
 	private Component taskInfoToEvalButton(TaskInfo entry) {
 
 		Button button = null;
-		String nextAllowedProc = commandGateway.getACL().isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
-		if (commandGateway.getACL().doAllowProcessInstantiation(entry.getInputId(), seq.getParticipantId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
+		String nextAllowedProc = commandGateway.getAclProvider().isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
+		if (commandGateway.getAclProvider().doAllowProcessInstantiation(entry.getInputId(), seq.getParticipantId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
 			button = new Button("Start", evt -> {
 				String id = entry.getInputId()+entry.getProcessId();
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -118,7 +118,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 						if (auth != null && auth.getName() != null) {
 							pi.getInstance().addOwner(auth.getName());
 						}
-						commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
+						commandGateway.getUsageMonitor().processCreated(pi, auth != null ? auth.getName() : null);
 //						this.getUI().get().access(() -> { 
 //							Notification.show("Successfully instantiated process"); 
 //	//						dataProvider.refreshAll();
@@ -139,13 +139,13 @@ public class ExperimentParticipantView extends VerticalLayout  {
 
 	private Component taskInfoToCompletionButton(TaskInfo entry) {
 		Button delButton = null;
-		Optional<PPEInstance> optInst = commandGateway.getACL().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		Optional<PPEInstance> optInst = commandGateway.getAclProvider().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
 		if (optInst.isPresent()) {
 			PPEInstance procInst = optInst.get();
 			if (!procInst.isMarkedAsDeleted()) {
 				ProcessInstance wfi = commandGateway.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst);
 				delButton = new Button("Finish", evt ->  {
-					commandGateway.getMonitor().processDeleted(wfi, participantId);
+					commandGateway.getUsageMonitor().processDeleted(wfi, participantId);
 					commandGateway.deleteProcessInstance(wfi.getName());
 					dataProvider.refreshAll();
 				});

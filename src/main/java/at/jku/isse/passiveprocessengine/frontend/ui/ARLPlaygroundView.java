@@ -40,17 +40,18 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
+import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
+import at.jku.isse.passiveprocessengine.core.RuleEvaluationService.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotRequest;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotResult;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
@@ -87,12 +88,12 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private Button runButton = new Button("Execute OCL/ARL constraint");
 	// adapted from: https://github.com/samie/vaadin-openai-chat/blob/main/src/main/java/com/example/application/views/helloworld/ChatView.java
 	// https://vaadin.com/blog/building-a-chatbot-in-vaadin-with-openai
-
+	
 	private String user;
 	
 	public ARLPlaygroundView(RequestDelegate commandGateway, OCLBot oclBot, SecurityService securityService) {
 		this.commandGateway = commandGateway;
-		this.oclBot = oclBot;
+		this.oclBot = oclBot;		
 		//       setSizeFull();
 		setMargin(false);
 		//  setPadding(false);
@@ -101,43 +102,41 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		user = securityService.getAuthenticatedUser() != null ? securityService.getAuthenticatedUser().getUsername() : "user";
 	}
 
-	private void statePanel() {
-		this.add(new Span("Currently Not available"));
-	}
-
-
 //	private void statePanel() {
-//		VerticalLayout layout = this; // new VerticalLayout();
-//
-//		
-//		Component arl = getARLEditorComponent();
-//		Component bot = getBotSupportComponent();
-//		SplitLayout splitLayout = new SplitLayout(arl, bot);
-//		if (commandGateway.getUIConfig().isARLBotSupportEnabled()) {
-//			splitLayout.setSplitterPosition(70);	
-//		} else {
-//			splitLayout.setSplitterPosition(100);
-//			bot.setVisible(false);
-//		}
-//        splitLayout.setSizeFull();    
-//		
-//		errorResultArea.setWidthFull();
-//		errorResultArea.setMinHeight("100px");
-//		errorResultArea.setLabel("Constraint Evaluation Feedback");
-//		errorResultArea.setVisible(false);
-//
-//		Grid<ResultEntry> grid = new Grid<>();
-//		Grid.Column<ResultEntry> instColumn = grid.addComponentColumn(rge -> resultEntryToInstanceLink(rge)).setHeader("Instance").setResizable(true).setSortable(true);
-//		Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
-//		Grid.Column<ResultEntry> evalColumn = grid.addComponentColumn(rge -> resultEntryToEvalButton(rge)).setHeader("EvalTree").setResizable(true).setSortable(false);        	
-//		Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
-//		grid.setAllRowsVisible(true);
-//		grid.setDataProvider(dataProvider);
-//
-//		// text field to show error message or result
-//		layout.add(splitLayout, errorResultArea, grid);
-//		this.setAlignSelf(Alignment.STRETCH, splitLayout);
+//		this.add(new Span("Currently Not available"));
 //	}
+	private void statePanel() {
+		VerticalLayout layout = this; // new VerticalLayout();
+
+		
+		Component arl = getARLEditorComponent();
+		Component bot = getBotSupportComponent();
+		SplitLayout splitLayout = new SplitLayout(arl, bot);
+		if (commandGateway.getUiConfig().isARLBotSupportEnabled()) {
+			splitLayout.setSplitterPosition(70);	
+		} else {
+			splitLayout.setSplitterPosition(100);
+			bot.setVisible(false);
+		}
+        splitLayout.setSizeFull();    
+		
+		errorResultArea.setWidthFull();
+		errorResultArea.setMinHeight("100px");
+		errorResultArea.setLabel("Constraint Evaluation Feedback");
+		errorResultArea.setVisible(false);
+
+		Grid<ResultEntry> grid = new Grid<>();
+		Grid.Column<ResultEntry> instColumn = grid.addComponentColumn(rge -> resultEntryToInstanceLink(rge)).setHeader("Instance").setResizable(true).setSortable(true);
+		Grid.Column<ResultEntry> resColumn = grid.addColumn(rge -> rge.getResult().toString()).setHeader("Result").setResizable(true).setSortable(true);
+		Grid.Column<ResultEntry> evalColumn = grid.addComponentColumn(rge -> resultEntryToEvalButton(rge)).setHeader("EvalTree").setResizable(true).setSortable(false);        	
+		Grid.Column<ResultEntry> repairColumn = grid.addComponentColumn(rge -> resultEntryToButton(rge)).setHeader("RepairTree").setResizable(true).setSortable(true);
+		grid.setAllRowsVisible(true);
+		grid.setDataProvider(dataProvider);
+
+		// text field to show error message or result
+		layout.add(splitLayout, errorResultArea, grid);
+		this.setAlignSelf(Alignment.STRETCH, splitLayout);
+	}
 //
 	@Override
 	public void beforeLeave(BeforeLeaveEvent event) {
@@ -175,293 +174,291 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return dialog;
 		
 	}
-//
-//	private Component getARLEditorComponent() {
-//		VerticalLayout layout = new VerticalLayout();
-//		// field to provide context: instance type
-//		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()
-//				//.filter(iType -> !iType.isDeleted)
-//				.sorted(new InstanceTypeComparator())
-//				.collect(Collectors.toList());
-//		instanceTypeComboBox.setItems(instTypes);
-//		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.getName(), iType.getId().toString(), iType.getName()));
-//		instanceTypeComboBox.setWidthFull();
-//		//instanceTypeComboBox.setMinWidth("100px");
-//		layout.add(instanceTypeComboBox);
-//
-//		// Text field to display ARL rule
-//
-//		arlArea.setWidthFull();
-//		arlArea.setMinHeight("200px");
-//		arlArea.setLabel("Constraint Definition");
-//		arlArea.setPlaceholder("OCL/ARL constraint here starting with 'self.' ");
-//		layout.add(arlArea);
-//
-//
-//		
-//		checkboxFetchIncomplete.setLabel("Fetch incompletely loaded artifacts? (may significantly increase evaluation duration!)");      
-//		checkboxFetchIncomplete.setClassName("medtext");
-//
-//		Checkbox checkboxLimitToFetched = new Checkbox(true);
-//		checkboxLimitToFetched.setLabel("Show results for fully fetched artifacts only");        	
-//		checkboxLimitToFetched.setClassName("medtext");
-//
-//		checkboxLimitToFetched.addValueChangeListener(e -> 
-//		dataProvider.refreshAll());
-//		dataProvider.addFilter(pe -> {
-//			if (!checkboxLimitToFetched.getValue()) {
-//				return true;
-//			} else {
-//				return InstanceView.isFullyFetched(pe.getInstance());
-//			}
-//		}
-//				);  
-//
-//		// Button to send
-//		Button evalButton = new Button("Evaluate");
-//		evalButton.addClickListener(clickEvent -> {
-//			if (arlArea.getValue().length() < 5)
-//				Notification.show("Make sure to enter a non-empty OCL/ARL constraint!");
-//			else if (instanceTypeComboBox.getOptionalValue().isEmpty())
-//				Notification.show("Make sure to select an Instance Type!");
-//			else {     
-//				triggerEvaluation(instanceTypeComboBox.getValue(), arlArea.getValue(), checkboxFetchIncomplete.getValue() );
-//			}
-//
-//		});
-//		HorizontalLayout fetchPart = new HorizontalLayout();
-//		fetchPart.add(checkboxLimitToFetched);
-//		fetchPart.add(checkboxFetchIncomplete);        	
-//		layout.add(fetchPart, evalButton);
-//
-//
-//		return layout;
-//	}
-//	
-//	private void triggerEvaluation(PPEInstanceType context, String rule, boolean doFetchIncomplete) {
-//		errorResultArea.setVisible(false);
-//		//grid.setItems(Collections.emptySet());
-//		result.clear();
-//		dataProvider.refreshAll(); 
-//		new Thread(() -> { 
-//			try {
-//				Set<ResultEntry> evalResult = null;
-//				if (doFetchIncomplete) {
-//					do {
-//						if (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded()) {
-//							this.getUI().get().access(() ->Notification.show("Constraint encountered lazy loaded artifact, fetching artifact and reevaluating constraint ..."));
-//							commandGateway.getProcessChangeListenerWrapper().batchFetchLazyLoaded();
-//						}
-//						evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-//								context,
-//								"constraintplaygroundrule_"+counter.getAndIncrement(), 
-//								rule, false);
-//					} while (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded());
-//
-//				} else {
-//					evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-//							context,
-//							"constraintplaygroundrule_"+counter.getAndIncrement(), 
-//							rule, false);
-//				}
-//
-//				this.getUI().get().access(() ->Notification.show("Constraint evaluated successfully."));
-//				//						errorResultArea.setValue(evalResult.entrySet().stream()
-//				//								.map(entry -> entry.getKey().name() + " evaluated to " +entry.getValue())
-//				//								.collect(Collectors.joining("\r\n")));
-//				final Set<ResultEntry> finalResult = evalResult;
-//				if (evalResult.isEmpty()) {
-//					//errorResultArea.setVisible(true);
-//					this.getUI().get().access(() ->Notification.show("No instances available to evaluate OCL/ARL constraint on."));
-//				} else {
-//					this.getUI().get().access(() -> { 
-//						result.clear();
-//						result.addAll(finalResult); 
-//						dataProvider.refreshAll(); 
-//					});
-//				}
-//			} catch (ProcessException e) {
-//				this.getUI().get().access(() -> {
-//					errorResultArea.setVisible(true);
-//					errorResultArea.setValue(e.getMessage());        						
-//				});
-//			}
-//		}).start();
-//	}
-//	
-//	
-//	private Component getBotSupportComponent() {
-//
-//		
-//		checkboxUseRule.setLabel("Use OCL/ARL rule as basis for refinement");      
-//		checkboxUseRule.setClassName("medtext");
-//		Scroller scroller = new Scroller(botUI);		
-//		scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
-//		scroller.getStyle()
-//		.set("border-bottom", "1px solid var(--lumo-contrast-20pct)")
-//		.set("padding", "var(--lumo-space-m)");
-//	
-//		copyButton.setEnabled(false);
-//		copyButton.addClickListener(clickEvent -> {    
-//			if (lastResult != null && lastResult.getOclRule() != null) {
-//				arlArea.setValue(lastResult.getOclRule());
-//			}
-//		});    
-//		
-//		runButton.setEnabled(false);
-//		runButton.addClickListener(clickEvent -> {    
-//			if (lastResult != null && lastResult.getOclRule() != null && instanceTypeComboBox.getValue() != null) {
-//				triggerEvaluation(instanceTypeComboBox.getValue(), lastResult.getOclRule(), checkboxFetchIncomplete.getValue());
-//			}
-//		});
-//	        
-//	    Button resetButton = new Button("Reset Bot");
-//		resetButton.addClickListener(clickEvent -> {    
-//	        oclBot.resetSession();
-//	        botUI.setItems(Collections.emptyList());
-//		});
-//		HorizontalLayout controls = new HorizontalLayout();
-//		controls.add(copyButton, runButton, resetButton);
-//		
-//		
-//		input.addSubmitListener(this::onBotSubmit);
-//		VerticalLayout botLayout = new VerticalLayout();
-//		botLayout.add(checkboxUseRule, scroller, input, controls);
-//		botLayout.setHorizontalComponentAlignment(Alignment.STRETCH, scroller, input, checkboxUseRule, controls);
-//		botLayout.setPadding(true); // Leave some white space
-//		botLayout.setMargin(false);
-//		botLayout.setHeightFull(); // We maximize to window
-//		scroller.setMaxHeight("500px");
-//		botUI.setSizeFull(); // Chat takes most of the space
-//		input.setWidthFull(); // Full width only
-//		botUI.setMaxWidth("800px"); // Until to certain size
-//		input.setMaxWidth("800px"); // Until to certain size
-//
-//		
-//		
-//		return botLayout;
-//	}
-//
-//	private void onBotSubmit(MessageInput.SubmitEvent submitEvent) {
-//		// Append an item (this will be overriden later when reply comes)
-//		List<MessageListItem> items = new ArrayList<>(botUI.getItems());
-//		MessageListItem inputItem = new MessageListItem(submitEvent.getValue(), Instant.now(), user);
-//		items.add(inputItem);
-//		botUI.setItems(items);
-//
-//		// Query AIbot
-//		oclBot.sendAsync(augmentInputPrompt(submitEvent.getValue())).whenComplete((response, t) -> {
-//			getUI().get().access(() -> {
-//				lastResult = response;
-//				if (response.getOclRule() != null) {
-//					runButton.setEnabled(true);
-//					copyButton.setEnabled(true);
-//				} else {
-//					runButton.setEnabled(false);
-//					copyButton.setEnabled(false);
-//				}
-//				items.add(convertResult(response));
-//				botUI.setItems(items);				
-//			});
-//		});
-//	}
-//
-//	private BotRequest augmentInputPrompt(String userRequest) {
-//		BotRequest request = null;
-//		String existingRule = checkboxUseRule.getValue() ? arlArea.getValue().trim() : null; // whether to include rule as basis for refinement
-//		Optional<PPEInstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
-//		if (ctxType.isPresent()) {			
-//			String schema = getChangedOrNullSchemaAndReset(ctxType.get());
-//			request = new BotRequest(Instant.now(), user, userRequest, ctxType.get(), schema, existingRule );
-//		} else {
-//			lastUsedContext = null;
-//			request = new BotRequest(Instant.now(), user, userRequest, null, OCLBot.FORGET_SCHEMA, existingRule );
-//		}
-//		return request;
-//	}
-//
-//	private String getChangedOrNullSchemaAndReset(PPEInstanceType currentSelectedContextType) {
-//		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType)) {
-//			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor();
-//			String schema = extractor.getSchemaForInstanceTypeAndOneHop(currentSelectedContextType, false).values().stream()  // for now, TODO: differentiate between steps and not, and whether to get subtypes
-//					.collect(Collectors.joining("\r\n"));
-//			lastUsedContext = currentSelectedContextType;
-//			return schema;
-//		} else
-//			return null;
-//	}
-//
-//	private MessageListItem convertResult(BotResult msg) {
-//		return new MessageListItem(msg.getBotResult(), msg.getTime(), msg.getRole());
-//	}
-//
-//
-//	
-//	
-//	private Component resultEntryToInstanceLink(ResultEntry rge) {
-//		if (InstanceView.isFullyFetched(rge.getInstance())) {
-//			return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()));
-//		} else {
-//			return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
-//		}
-//	}      
-//
-//	private Component resultEntryToEvalButton(ResultEntry entry) {
-//
-//		Button button = new Button("Show Eval", evt -> {
-//			Dialog dialog = new Dialog();
-//			dialog.setWidth("80%");
-//			dialog.setMaxHeight("80%");    			
-//			evalTree.updateGrid(entry.getRootNode(), null);    			
-//			evalTree.setAllRowsVisible(true);
-//			dialog.add(evalTree);
-//			dialog.open();
-//		});
-//		return button;
-//	}
-//
-//	private Component resultEntryToButton(ResultEntry entry) {
-//
-//		Button button = null;
-//		if (entry.getError() == null && entry.getResult() == false) {
-//			button = new Button("Show Repairs", evt -> {
-//				Dialog dialog = new Dialog();
-//				dialog.setWidth("80%");
-//				dialog.setMaxHeight("80%");
-//				RepairNode repairTree = (RepairNode)commandGateway.getProcessContext().getRepairTreeProvider().getRepairTree(entry.getRuleInstance());
-//				RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
-//				rtg.initTreeGrid();
-//				rtg.updateConditionTreeGrid(repairTree, null);				
-//				rtg.setAllRowsVisible(true);
-//				dialog.add(rtg);
-//				dialog.open();
-//			});
-//		} else {
-//			button = new Button("Show Repairs");
-//			button.setEnabled(false);
-//		}
-//		return button;
-//	}
-//
-//	public static class InstanceTypeComparator implements Comparator<PPEInstanceType> {
-//
-//		@Override
-//		public int compare(PPEInstanceType o1, PPEInstanceType o2) {
-//			return o1.getName().compareTo(o2.getName());
-//		}
-//
-//	}
-//
-//	private static RepairTreeFilter rtf = new NoOpRepairTreeFilter();	
-//
-//	private static class NoOpRepairTreeFilter extends RepairTreeFilter {
-//
-//		@Override
-//		public boolean compliesTo(RepairAction ra) {
-//			return true;		
-//		}
-//
-//	}
+
+	private Component getARLEditorComponent() {
+		VerticalLayout layout = new VerticalLayout();
+		// field to provide context: instance type
+		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()
+				//.filter(iType -> !iType.isDeleted)
+				.sorted(new InstanceTypeComparator())
+				.collect(Collectors.toList());
+		instanceTypeComboBox.setItems(instTypes);
+		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.getName(), iType.getId().toString(), iType.getName()));
+		instanceTypeComboBox.setWidthFull();
+		//instanceTypeComboBox.setMinWidth("100px");
+		layout.add(instanceTypeComboBox);
+
+		// Text field to display ARL rule
+
+		arlArea.setWidthFull();
+		arlArea.setMinHeight("200px");
+		arlArea.setLabel("Constraint Definition");
+		arlArea.setPlaceholder("OCL/ARL constraint here starting with 'self.' ");
+		layout.add(arlArea);
+
+
+		
+		checkboxFetchIncomplete.setLabel("Fetch incompletely loaded artifacts? (may significantly increase evaluation duration!)");      
+		checkboxFetchIncomplete.setClassName("medtext");
+
+		Checkbox checkboxLimitToFetched = new Checkbox(true);
+		checkboxLimitToFetched.setLabel("Show results for fully fetched artifacts only");        	
+		checkboxLimitToFetched.setClassName("medtext");
+
+		checkboxLimitToFetched.addValueChangeListener(e -> 
+		dataProvider.refreshAll());
+		dataProvider.addFilter(pe -> {
+			if (!checkboxLimitToFetched.getValue()) {
+				return true;
+			} else {
+				return InstanceView.isFullyFetched(pe.getInstance());
+			}
+		}
+				);  
+
+		// Button to send
+		Button evalButton = new Button("Evaluate");
+		evalButton.addClickListener(clickEvent -> {
+			if (arlArea.getValue().length() < 5)
+				Notification.show("Make sure to enter a non-empty OCL/ARL constraint!");
+			else if (instanceTypeComboBox.getOptionalValue().isEmpty())
+				Notification.show("Make sure to select an Instance Type!");
+			else {     
+				triggerEvaluation(instanceTypeComboBox.getValue(), arlArea.getValue(), checkboxFetchIncomplete.getValue() );
+			}
+
+		});
+		HorizontalLayout fetchPart = new HorizontalLayout();
+		fetchPart.add(checkboxLimitToFetched);
+		fetchPart.add(checkboxFetchIncomplete);        	
+		layout.add(fetchPart, evalButton);
+
+
+		return layout;
+	}
+	
+	private void triggerEvaluation(PPEInstanceType context, String rule, boolean doFetchIncomplete) {
+		errorResultArea.setVisible(false);
+		//grid.setItems(Collections.emptySet());
+		result.clear();
+		dataProvider.refreshAll(); 
+		new Thread(() -> { 
+			try {
+				Set<ResultEntry> evalResult = null;
+				if (doFetchIncomplete) {
+					do {
+						if (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded()) {
+							this.getUI().get().access(() ->Notification.show("Constraint encountered lazy loaded artifact, fetching artifact and reevaluating constraint ..."));
+							commandGateway.getProcessChangeListenerWrapper().batchFetchLazyLoaded();
+						}
+						evalResult = commandGateway.getRuleEvaluationService().evaluateTransientRule( 
+								context,								
+								rule);
+					} while (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded());
+
+				} else {
+					evalResult = commandGateway.getRuleEvaluationService().evaluateTransientRule( 
+							context,								
+							rule);
+				}
+
+				this.getUI().get().access(() ->Notification.show("Constraint evaluated successfully."));
+				//						errorResultArea.setValue(evalResult.entrySet().stream()
+				//								.map(entry -> entry.getKey().name() + " evaluated to " +entry.getValue())
+				//								.collect(Collectors.joining("\r\n")));
+				final Set<ResultEntry> finalResult = evalResult;
+				if (evalResult.isEmpty()) {
+					//errorResultArea.setVisible(true);
+					this.getUI().get().access(() ->Notification.show("No instances available to evaluate OCL/ARL constraint on."));
+				} else {
+					this.getUI().get().access(() -> { 
+						result.clear();
+						result.addAll(finalResult); 
+						dataProvider.refreshAll(); 
+					});
+				}
+			} catch (Exception e) {
+				this.getUI().get().access(() -> {
+					errorResultArea.setVisible(true);
+					errorResultArea.setValue(e.getMessage());        						
+				});
+			}
+		}).start();
+	}
+	
+	
+	private Component getBotSupportComponent() {
+
+		
+		checkboxUseRule.setLabel("Use OCL/ARL rule as basis for refinement");      
+		checkboxUseRule.setClassName("medtext");
+		Scroller scroller = new Scroller(botUI);		
+		scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+		scroller.getStyle()
+		.set("border-bottom", "1px solid var(--lumo-contrast-20pct)")
+		.set("padding", "var(--lumo-space-m)");
+	
+		copyButton.setEnabled(false);
+		copyButton.addClickListener(clickEvent -> {    
+			if (lastResult != null && lastResult.getOclRule() != null) {
+				arlArea.setValue(lastResult.getOclRule());
+			}
+		});    
+		
+		runButton.setEnabled(false);
+		runButton.addClickListener(clickEvent -> {    
+			if (lastResult != null && lastResult.getOclRule() != null && instanceTypeComboBox.getValue() != null) {
+				triggerEvaluation(instanceTypeComboBox.getValue(), lastResult.getOclRule(), checkboxFetchIncomplete.getValue());
+			}
+		});
+	        
+	    Button resetButton = new Button("Reset Bot");
+		resetButton.addClickListener(clickEvent -> {    
+	        oclBot.resetSession();
+	        botUI.setItems(Collections.emptyList());
+		});
+		HorizontalLayout controls = new HorizontalLayout();
+		controls.add(copyButton, runButton, resetButton);
+		
+		
+		input.addSubmitListener(this::onBotSubmit);
+		VerticalLayout botLayout = new VerticalLayout();
+		botLayout.add(checkboxUseRule, scroller, input, controls);
+		botLayout.setHorizontalComponentAlignment(Alignment.STRETCH, scroller, input, checkboxUseRule, controls);
+		botLayout.setPadding(true); // Leave some white space
+		botLayout.setMargin(false);
+		botLayout.setHeightFull(); // We maximize to window
+		scroller.setMaxHeight("500px");
+		botUI.setSizeFull(); // Chat takes most of the space
+		input.setWidthFull(); // Full width only
+		botUI.setMaxWidth("800px"); // Until to certain size
+		input.setMaxWidth("800px"); // Until to certain size
+
+		
+		
+		return botLayout;
+	}
+
+	private void onBotSubmit(MessageInput.SubmitEvent submitEvent) {
+		// Append an item (this will be overriden later when reply comes)
+		List<MessageListItem> items = new ArrayList<>(botUI.getItems());
+		MessageListItem inputItem = new MessageListItem(submitEvent.getValue(), Instant.now(), user);
+		items.add(inputItem);
+		botUI.setItems(items);
+
+		// Query AIbot
+		oclBot.sendAsync(augmentInputPrompt(submitEvent.getValue())).whenComplete((response, t) -> {
+			getUI().get().access(() -> {
+				lastResult = response;
+				if (response.getOclRule() != null) {
+					runButton.setEnabled(true);
+					copyButton.setEnabled(true);
+				} else {
+					runButton.setEnabled(false);
+					copyButton.setEnabled(false);
+				}
+				items.add(convertResult(response));
+				botUI.setItems(items);				
+			});
+		});
+	}
+
+	private BotRequest augmentInputPrompt(String userRequest) {
+		BotRequest request = null;
+		String existingRule = checkboxUseRule.getValue() ? arlArea.getValue().trim() : null; // whether to include rule as basis for refinement
+		Optional<PPEInstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
+		if (ctxType.isPresent()) {			
+			String schema = getChangedOrNullSchemaAndReset(ctxType.get());
+			request = new BotRequest(Instant.now(), user, userRequest, ctxType.get(), schema, existingRule );
+		} else {
+			lastUsedContext = null;
+			request = new BotRequest(Instant.now(), user, userRequest, null, OCLBot.FORGET_SCHEMA, existingRule );
+		}
+		return request;
+	}
+
+	private String getChangedOrNullSchemaAndReset(PPEInstanceType currentSelectedContextType) {
+		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType)) {
+			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor(commandGateway.getProcessContext().getSchemaRegistry());
+			String schema = extractor.getSchemaForInstanceTypeAndOneHop(currentSelectedContextType, false).values().stream()  // for now, TODO: differentiate between steps and not, and whether to get subtypes
+					.collect(Collectors.joining("\r\n"));
+			lastUsedContext = currentSelectedContextType;
+			return schema;
+		} else
+			return null;
+	}
+
+	private MessageListItem convertResult(BotResult msg) {
+		return new MessageListItem(msg.getBotResult(), msg.getTime(), msg.getRole());
+	}
+
+
+	
+	
+	private Component resultEntryToInstanceLink(ResultEntry rge) {
+		if (InstanceView.isFullyFetched(rge.getInstance())) {
+			return new Paragraph(new Anchor("/instance/"+rge.getInstance().getId(), rge.getInstance().getName()));
+		} else {
+			return new Paragraph(new Anchor("/instance/"+rge.getInstance().getId(), rge.getInstance().getName()+" (not fully fetched)"));
+		}
+	}      
+
+	private Component resultEntryToEvalButton(ResultEntry entry) {
+
+		Button button = new Button("Show Eval", evt -> {
+			Dialog dialog = new Dialog();
+			dialog.setWidth("80%");
+			dialog.setMaxHeight("80%");    			
+			evalTree.updateGrid((EvaluationNode) entry.getEvalTreeRootNode(), null);    			
+			evalTree.setAllRowsVisible(true);
+			dialog.add(evalTree);
+			dialog.open();
+		});
+		return button;
+	}
+
+	private Component resultEntryToButton(ResultEntry entry) {
+
+		Button button = null;
+		if (entry.getError() == null && entry.getResult() == false) {
+			button = new Button("Show Repairs", evt -> {
+				Dialog dialog = new Dialog();
+				dialog.setWidth("80%");
+				dialog.setMaxHeight("80%");
+				RepairNode repairTree = (RepairNode) entry.getRepairTreeRootNode();
+				RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
+				rtg.initTreeGrid();
+				rtg.updateConditionTreeGrid(repairTree, null);				
+				rtg.setAllRowsVisible(true);
+				dialog.add(rtg);
+				dialog.open();
+			});
+		} else {
+			button = new Button("Show Repairs");
+			button.setEnabled(false);
+		}
+		return button;
+	}
+
+	public static class InstanceTypeComparator implements Comparator<PPEInstanceType> {
+
+		@Override
+		public int compare(PPEInstanceType o1, PPEInstanceType o2) {
+			return o1.getName().compareTo(o2.getName());
+		}
+
+	}
+
+	private static RepairTreeFilter rtf = new NoOpRepairTreeFilter();	
+
+	private static class NoOpRepairTreeFilter extends RepairTreeFilter {
+
+		@Override
+		public boolean compliesTo(RepairAction ra) {
+			return true;		
+		}
+
+	}
 
 
 

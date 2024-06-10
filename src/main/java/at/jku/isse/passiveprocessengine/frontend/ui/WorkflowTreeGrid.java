@@ -82,7 +82,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         idFilter = "";
 //        propertiesFilter = new HashMap<>();
 //        propertiesFilter.put("", ""); // default filter
-        this.conf = f.getUIConfig();
+        this.conf = f.getUiConfig();
       
         //this.setHeightByRows(true);
         this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -337,7 +337,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
   		String artId = wfi.getInput(inParam).iterator().next().getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
   		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String authenticatedUserId = auth != null ? auth.getName() : null;
-  		boolean authorized = reqDel.getACL().doAllowProcessInstantiation(artId, authenticatedUserId);
+  		boolean authorized = reqDel.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId);
   		return authorized;
  	 };
     

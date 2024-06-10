@@ -19,14 +19,13 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
-import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.designspace.rule.arl.repair.RestrictionNode;
 import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
-import at.jku.isse.designspace.rule.checker.ConsistencyUtils;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
@@ -39,13 +38,14 @@ public class RepairVisualizationUtil {
 	private ReloadIconProvider iconProvider;
 	private String authenticatedUserId;
 	private DesignspaceAbstractionMapper abstractionMapper = null;
+
 	
 	public RepairVisualizationUtil(RequestDelegate reqDel, ReloadIconProvider iconProvider) {
 		this.reqDel = reqDel;
 		this.abstractionMapper = (DesignspaceAbstractionMapper) reqDel.getProcessContext().getInstanceRepository(); //FIXME: ugly hack to deal with incomplete abstraction layer
 		this.iconProvider = iconProvider;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		authenticatedUserId = auth != null ? auth.getName() : null;
+		authenticatedUserId = auth != null ? auth.getName() : null;			
 	}
 	
 	
@@ -59,7 +59,7 @@ public class RepairVisualizationUtil {
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
-			if (rootNode != null && reqDel.getACL().doShowRestrictions(scope, authenticatedUserId)) {
+			if (rootNode != null && reqDel.getAclProvider().doShowRestrictions(scope, authenticatedUserId)) {
 				try {
 					String restriction = rootNode.printNodeTree(false,2);
 //					String restriction1=rootNode.toTreeString(10);
@@ -233,9 +233,11 @@ public class RepairVisualizationUtil {
 			if (ra.getValue()!=null) {
 				if (ra.getValue()==UnknownRepairValue.UNKNOWN) {
 					Instance subject = (Instance) ra.getElement();
-					if (subject.hasProperty(ra.getProperty())) {
-						PropertyType propT = subject.getProperty(ra.getProperty()).propertyType();
-						String propType = propT.referencedInstanceType().name();
+					PPEInstance ppeSubj = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) subject);
+					String propName = ra.getProperty();					
+					if (ppeSubj.getInstanceType().hasPropertyType(propName)) {
+						PPEPropertyType pType = ppeSubj.getInstanceType().getPropertyType(propName);
+						String propType = pType.getInstanceType().getName();
 						return List.of(new Span("some suitable "+propType));
 					} else {
 						return List.of(new Span("something suitable"));
@@ -263,28 +265,5 @@ public class RepairVisualizationUtil {
 	
 	public static interface ReloadIconProvider {
 		public Component getReloadIcon(PPEInstance inst);
-	}
-
-    public static RepairTreeFilter DEFAULT_REPAIR_TREE_FILTER = new ProcessRepairTreeFilter();	
-	
-	private static class ProcessRepairTreeFilter extends RepairTreeFilter {
-
-		@Override
-		public boolean compliesTo(RepairAction ra) {
-			// lets not suggest any repairs that cannot be navigated to in an external tool. 
-			if (ra.getElement() == null) return false;
-			Instance artifact = (Instance) ra.getElement();
-			if (!artifact.hasProperty("html_url") || artifact.getPropertyAsValue("html_url") == null) return false;
-			else
-			return ra.getProperty() != null 
-					//&& !ra.getProperty().equalsIgnoreCase("workItemType") // now done via metaproperties
-					&& !ra.getProperty().startsWith("out_") // no change to input or output --> WE do suggest as an info that it needs to come from somewhere else, other step
-					&& !ra.getProperty().startsWith("in_")
-					&& !ra.getProperty().equalsIgnoreCase("name")
-					&& ConsistencyUtils.isPropertyRepairable(artifact.getInstanceType(), ra.getProperty())
-					; // typically used to describe key or id outside of designspace
-		
-		}
-		
 	}
 }

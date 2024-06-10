@@ -141,7 +141,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         
         if (commandGateway != null ) {
         	comboBox = new ComboBox<>("Process Definitions");        	
-        	defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+        	defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
         			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown
         			.peek(pdef -> {
         				if (pdef.getName().equals(selectedProcess)) {
@@ -332,7 +332,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     }
     
     private void addDeleteButtonIfTopLevelProcess(VerticalLayout l, StepDefinition step) {
-    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
+    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUiConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
     		Icon delIcon = new Icon(VaadinIcon.TRASH);
             delIcon.setColor("red");
             delIcon.getStyle()
@@ -343,10 +343,10 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 
             Button deleteBtn = new Button("Delete Process Definition and process instances thereof", delIcon, e -> {            	
             	log.info("Deleting process definiton: "+step.getName());
-            	Map<String, Map<String, Set<PPEInstance>>> formerInputs = commandGateway.getRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
+            	Map<String, Map<String, Set<PPEInstance>>> formerInputs = commandGateway.getProcessRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
             	log.info(String.format("Deleted %s running process instance(s)", formerInputs.size()));
             	formerInputs.keySet().forEach(id -> pusher.remove(id));
-            	commandGateway.getRegistry().removeProcessDefinition(step.getName());
+            	commandGateway.getProcessRegistry().removeProcessDefinition(step.getName());
             	log.info("Deleted process definition: "+step.getName());
             	this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
             });
@@ -356,7 +356,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     }
     
 	private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, StepDefinition step) {		
-		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
+		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUiConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
 			// see if a config is foreseen
 			step.getExpectedInput().entrySet().stream()
 			.filter(entry -> entry.getValue().isOfTypeOrAnySubtype(configBaseType))

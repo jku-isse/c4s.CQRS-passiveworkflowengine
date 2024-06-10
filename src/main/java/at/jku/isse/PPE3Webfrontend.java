@@ -27,13 +27,6 @@ public class PPE3Webfrontend extends SpringBootServletInitializer implements App
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent  event) {
     	// DONE BY BaseConfiguration in DS Wrapper
-//    	ServiceRegistry.initializeAllPersistenceUnawareServices();
-//        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
-//
-//        Event.setInitialized();
-//
-//        ServiceRegistry.initializeAllPersistenceAwareServices();
-//        WorkspaceService.PUBLIC_WORKSPACE.concludeTransaction();
     }
 
 }

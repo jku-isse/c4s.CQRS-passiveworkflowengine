@@ -79,7 +79,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
 	
 	
 	public Component getReloadIcon(PPEInstance inst) {
-		if (inst == null || !reqDel.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
+		if (inst == null || !reqDel.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -91,7 +91,7 @@ public class RepairTreeGrid  extends TreeGrid<at.jku.isse.passiveprocessengine.f
         			reqDel.getArtifactResolver().get(ai, true);
         			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
         		} catch (ProcessException e1) {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
         		}}
         			).start();
         });

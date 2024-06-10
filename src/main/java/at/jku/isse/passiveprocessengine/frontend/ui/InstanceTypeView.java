@@ -94,7 +94,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 //			editmode = EDITMODE.readonly;
 //		}
 		String strid = s;
-		if (commandGateway.getUIConfig().isAnonymized()) {  
+		if (commandGateway.getUiConfig().isAnonymized()) {  
 			id = null;
 		}
 		if (strid != null) {
@@ -122,7 +122,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 		layout.setMargin(false);
 		layout.setWidthFull();
 
-		if (commandGateway.getUIConfig().isAnonymized())  {
+		if (commandGateway.getUiConfig().isAnonymized())  {
 			layout.add(new Paragraph("This view is not available in double blind reviewing mode"));
 		} else       		    	    {
 			layout.add(createFetchField());
@@ -246,7 +246,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 //	}
 
 	private Component getReloadIcon(PPEInstance inst) {
-		if (inst == null && commandGateway.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
+		if (inst == null && commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
 		Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
 		icon.getElement().setProperty("title", "Force Refetching of Artifact");
@@ -258,7 +258,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 					commandGateway.getArtifactResolver().get(ai, true);
 					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
 				} catch (ProcessException e1) {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMainMessage())));
+					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
 				}}
 					).start();
 		});

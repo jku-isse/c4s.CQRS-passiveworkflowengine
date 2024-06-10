@@ -6,14 +6,14 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotRequest;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.ChatRequest;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
 
 class TestInteractionHistory {
 
-	private static final InstanceType CONTEXTTYPE = null;
+	private static final PPEInstanceType CONTEXTTYPE = null;
 	private OpenAI openAI;
 	
 	@BeforeEach

@@ -145,13 +145,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-    		int count = commandGateway.resetAndUpdate();
+    		//int count = commandGateway.getresetAndUpdate();
     		//if (count <= 0) // otherwise there is an update called from the FrontendPusher
     		pusher.requestUpdate(getUI().get(), this); 
     }    
 
     private void reloadProcessDefinitions() {
-    	List<ProcessDefinition> defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+    	List<ProcessDefinition> defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
     			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
 				.sorted(new DefinitionComparator())
 				.collect(Collectors.toList());
@@ -278,11 +278,11 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         			String artId = inputs.values().iterator().next().getId();
         			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         			String authenticatedUserId = auth != null ? auth.getName() : null;
-        			if (!commandGateway.getACL().doAllowProcessInstantiation(artId, authenticatedUserId )) {
+        			if (!commandGateway.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId )) {
         				Notification.show("You are not authorized to access the artifact used as process input - unable to instantiate process.");        			
         			} else {        				
         				String procName = definitionsBox.getValue().getName();
-        				String nextAllowedProc = commandGateway.getACL().isAllowedAsNextProc(procName, authenticatedUserId);
+        				String nextAllowedProc = commandGateway.getAclProvider().isAllowedAsNextProc(procName, authenticatedUserId);
         				if (!nextAllowedProc.equalsIgnoreCase(procName)) {
         					Notification.show("You are not authorized to instantiate this process now: "+nextAllowedProc);
         				} else {
@@ -296,7 +296,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         							if (auth != null && auth.getName() != null) {
         								pi.getInstance().addOwner(auth.getName());
         							}
-        							commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
+        							commandGateway.getUsageMonitor().processCreated(pi, auth != null ? auth.getName() : null);
         							this.getUI().get().access(() -> { 
         								Notification.show("Success");
         								splitLayout.setSplitterPosition(70);
