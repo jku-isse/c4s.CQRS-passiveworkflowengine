@@ -129,7 +129,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 			if (commandGateway != null && commandGateway.getProcessContext() != null && id != null) {
 				layout.add(new Hr());
 				HorizontalLayout hl = new HorizontalLayout();
-				Optional<PPEInstance> el = commandGateway.getProcessContext().getInstanceRepository().findInstanceyById(id);
+				Optional<PPEInstance> el = commandGateway.getProcessContext().getInstanceRepository().findInstanceById(id);
 				if (el.isEmpty()) { 
 					layout.add(new Paragraph("Instance with id "+id+" does not exists."));
 					return layout;				

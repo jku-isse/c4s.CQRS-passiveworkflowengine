@@ -211,7 +211,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			if (!checkboxLimitToFetched.getValue()) {
 				return true;
 			} else {
-				return InstanceView.isFullyFetched(pe.getInstance());
+				return InstanceView.isFullyFetched(pe.getContextInstance());
 			}
 		}
 				);  
@@ -396,10 +396,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	
 	
 	private Component resultEntryToInstanceLink(ResultEntry rge) {
-		if (InstanceView.isFullyFetched(rge.getInstance())) {
-			return new Paragraph(new Anchor("/instance/"+rge.getInstance().getId(), rge.getInstance().getName()));
+		if (InstanceView.isFullyFetched(rge.getContextInstance())) {
+			return new Paragraph(new Anchor("/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()));
 		} else {
-			return new Paragraph(new Anchor("/instance/"+rge.getInstance().getId(), rge.getInstance().getName()+" (not fully fetched)"));
+			return new Paragraph(new Anchor("/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()+" (not fully fetched)"));
 		}
 	}      
 
