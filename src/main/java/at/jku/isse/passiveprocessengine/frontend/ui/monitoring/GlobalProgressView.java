@@ -36,6 +36,7 @@ import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.AppView;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -188,7 +189,7 @@ public class GlobalProgressView extends VerticalLayout {
                 		PPEInstance inst = artRes.get(ai, forceRefetch);
                 		if (inst != null) {
                 			// redirect to new page:
-                			UI.getCurrent().getPage().open("instance/"+inst.getId(), "_blank");
+                			UI.getCurrent().getPage().open(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), "_blank");
                 		//	UI.getCurrent().navigate("instance/show", new QueryParameters(Map.of("id", List.of(inst.id().toString()))));
                 		}
                 	}

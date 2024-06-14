@@ -10,6 +10,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+
 @Route(value="processeditor", layout = AppView.class)
 @CssImport(value="./styles/grid-styles.css", themeFor="vaadin-grid")
 @CssImport(value="./styles/theme.css")
@@ -24,7 +26,7 @@ public class BlocklyEditorView extends VerticalLayout  {
 		setSizeFull();
 		setMargin(false);
 		setPadding(false);
-		EditorPane editor = new EditorPane("/editor/index.html");
+		EditorPane editor = new EditorPane(ComponentUtils.getBaseUrl()+"/editor/index.html");
 		editor.setSizeFull();
 		this.add(editor);
 	}

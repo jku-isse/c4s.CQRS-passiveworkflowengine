@@ -3,7 +3,10 @@ package at.jku.isse.passiveprocessengine.frontend.ui.components;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletContext;
+
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.server.VaadinServlet;
 
 import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
@@ -12,12 +15,16 @@ import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 
 public class ComponentUtils {
 
+	public static String getBaseUrl() {
+		return VaadinServlet.getCurrent().getServletContext().getContextPath();		
+	}
+	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstance artifact) {
 		Anchor a;
-		if (artifact.getInstanceType().hasPropertyType("html_url") && artifact.getTypedProperty("html_url", String.class) != null) {
-			a = new Anchor(artifact.getTypedProperty("html_url", String.class), generateDisplayNameForInstance(artifact));
+		if (artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL) && artifact.getTypedProperty(CoreTypeFactory.URL, String.class) != null) {
+			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class), generateDisplayNameForInstance(artifact));
 		} else {
-			a = new Anchor("/instance/"+artifact.getId(), generateDisplayNameForInstance(artifact));
+			a = new Anchor(getBaseUrl()+"/instance/"+artifact.getId(), generateDisplayNameForInstance(artifact));
 		}
 		a.setTarget("_blank");
 		return a;
@@ -25,10 +32,10 @@ public class ComponentUtils {
 	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstanceType artifact) {
 		Anchor a;
-		if (artifact.hasPropertyType("html_url")) {
-			a = new Anchor(artifact.getTypedProperty("html_url", String.class), artifact.getName());
+		if (artifact.hasPropertyType(CoreTypeFactory.URL)) {
+			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class), artifact.getName());
 		} else {
-			a = new Anchor("/instancetype/"+artifact.getId(), artifact.getName());
+			a = new Anchor(getBaseUrl()+"/instancetype/"+artifact.getId(), artifact.getName());
 		}
 		a.setTarget("_blank");
 		return a;

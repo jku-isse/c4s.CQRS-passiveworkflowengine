@@ -53,6 +53,7 @@ import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotRequest;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotResult;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -397,9 +398,9 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	
 	private Component resultEntryToInstanceLink(ResultEntry rge) {
 		if (InstanceView.isFullyFetched(rge.getContextInstance())) {
-			return new Paragraph(new Anchor("/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()));
 		} else {
-			return new Paragraph(new Anchor("/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()+" (not fully fetched)"));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()+" (not fully fetched)"));
 		}
 	}      
 

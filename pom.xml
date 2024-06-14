@@ -24,13 +24,12 @@
 		<!-- <vaadin.version>14.4.9</vaadin.version> -->
 		<vaadin.version>14.10.1</vaadin.version>
 		<lombok.version>1.18.30</lombok.version>
-		<connector.azure.version>2.6.0</connector.azure.version>
+		<connector.azure.version>2.6.1</connector.azure.version>
 		<connector.git.version>1.3.0</connector.git.version>
 		<connector.core.version>2.0.1</connector.core.version>
 		<connector.jira.version>1.7.0</connector.jira.version>
 		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>
 		<PPEv3.version>1.0.1-SNAPSHOT</PPEv3.version>		
-		<PPEv3.blocklytransformer.version>0.2.0-SNAPSHOT</PPEv3.blocklytransformer.version>
 		<spring-security.version>5.3.4.RELEASE</spring-security.version>
 	</properties>
 
@@ -209,17 +208,6 @@
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-jdk14</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
-			<artifactId>ProcessDefinitionConverter</artifactId>
-			<version>${PPEv3.blocklytransformer.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

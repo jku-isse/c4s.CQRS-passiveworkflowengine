@@ -8,50 +8,34 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
-import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
-import at.jku.isse.designspace.azure.updateservice.UpdateEventQueueReader;
-import at.jku.isse.designspace.rule.arl.repair.order.RepairStats;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
-import at.jku.isse.passiveprocessengine.core.ConfigurationBuilder;
-import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
-import at.jku.isse.passiveprocessengine.core.RepairTreeProvider;
-import at.jku.isse.passiveprocessengine.core.RuleDefinitionService;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.ProcessInstanceChangeListener;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
-import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper;
-import at.jku.isse.passiveprocessengine.designspace.RewriterFactory;
-import at.jku.isse.passiveprocessengine.designspace.RuleServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.frontend.registry.TriggeredProcessLoader;
+import at.jku.isse.passiveprocessengine.frontend.monitoring.ProgressObserver;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.providers.ProcessConfigProvider;
-import at.jku.isse.passiveprocessengine.monitoring.CurrentSystemTimeProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
-import at.jku.isse.passiveprocessengine.monitoring.ProcessMonitor;
-import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
-import at.jku.isse.passiveprocessengine.monitoring.ProcessStateChangeLog;
-import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @Slf4j
-public class FrontendSpringConfig {
+public class WebFrontendSpringConfig {
 	
 	/* Remaining Frontend Setup beyond what is done in RestFrontend Project*/	 	
 
 	@Bean @Primary // overriding basic resolver from RestFrontend
-	public ArtifactResolver getArtifactResolver(AzureServiceBuilder azureBuilder,
+	public ArtifactResolver getArtifactResolverForWebfrontend(AzureServiceBuilder azureBuilder,
 			/* IGitService github,   IJiraService jira, IJamaService jama, */ ProcessConfigProvider procconf, ProcessRegistry procReg ) {
 		IArtifactProvider azure = azureBuilder.build();
 		
@@ -65,7 +49,7 @@ public class FrontendSpringConfig {
 	}	  
 
     @Bean @Primary
-    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapper(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver, EventDistributor eventDistributor, IFrontendPusher uiUpdater) {
+    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver, EventDistributor eventDistributor, IFrontendPusher uiUpdater) {
     	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor );
 		changeEventTransformer.registerWithWorkspace(picp);
 		return picp;
@@ -86,6 +70,11 @@ public class FrontendSpringConfig {
 		return props;
 	}
     
+	@Bean @Primary
+	public static IProgressObserver getProgressPusher(ITimeStampProvider timeProvider) {
+		return new ProgressPusher(timeProvider);
+	}
+	
 //    @Bean
 //    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
 //    	RepairNodeScorer scorer= new NoSort();

@@ -1,5 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -189,12 +191,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		delIcon.getElement().setProperty("title", "Remove this process");
 		l.add(delIcon);
 		if (!conf.isAnonymized() && !conf.isExperimentModeEnabled()) {        
-			Anchor a = new Anchor("/instance/"+wfi.getInstance().getId(), "Internal Details (opens in new tab)");
+			Anchor a = new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+wfi.getInstance().getId(), "Internal Details (opens in new tab)");
 			a.setTarget("_blank");
 			l.add(a);                
 		} 
 		if(!conf.isExperimentModeEnabled()) {
-			Anchor a = new Anchor("/processlogs/"+wfi.getInstance().getId(), "JSON Event Log (opens in new tab)");
+			Anchor a = new Anchor(ComponentUtils.getBaseUrl()+"/processlogs/"+URLEncoder.encode(wfi.getInstance().getName(), StandardCharsets.UTF_8) , "JSON Event Log (opens in new tab)");
 			a.setTarget("_blank");
 			l.add(a);
 		}
@@ -666,7 +668,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 				step.getInput(configEntry.getKey()).stream().forEach(config -> {
 
 					detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
-					Anchor a = new Anchor("/instance/"+config.getId(), "View and Edit in Artifact/Instance Inspector (DSId: "+config.getId()+")");
+					Anchor a = new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+config.getId(), "View and Edit in Artifact/Instance Inspector (DSId: "+config.getId()+")");
 					a.setTarget("_blank");
 					detailsContent2.add(a);  
 				});

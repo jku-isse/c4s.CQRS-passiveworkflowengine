@@ -49,7 +49,7 @@ public class RequestDelegate {
 	@Autowired @Getter EventDistributor eventDistributor;
 	@Autowired @Getter UsageMonitor usageMonitor;
 	@Autowired @Getter ProcessAccessControlProvider aclProvider;
-	@Autowired @Getter ProcessChangeNotifier processChangeListenerWrapper;
+	@Autowired @Getter ProcessChangeListenerWrapper processChangeListenerWrapper;
 	
 	Gson gson = new GsonBuilder().create();
 	

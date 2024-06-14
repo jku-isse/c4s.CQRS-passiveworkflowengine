@@ -59,6 +59,7 @@ import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import lombok.extern.slf4j.Slf4j;
@@ -80,31 +81,31 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private EDITMODE editmode = EDITMODE.readonly;
 
 	private enum EDITMODE { readonly, write };
-	
+
 	@Override
 	public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String s) {
 		// example link: http://localhost:8080/home/?key=DEMO-9&value=Task
-//		Location location = beforeEvent.getLocation();
-//		QueryParameters queryParameters = location.getQueryParameters();
-//		Map<String, List<String>> parametersMap = queryParameters.getParameters();
-//		String mode = parametersMap.getOrDefault("editmode", List.of("readonly")).get(0);
-//		try {
-//			editmode = EDITMODE.valueOf(mode);
-//		} catch (Exception e) {
-//			editmode = EDITMODE.readonly;
-//		}
+		//		Location location = beforeEvent.getLocation();
+		//		QueryParameters queryParameters = location.getQueryParameters();
+		//		Map<String, List<String>> parametersMap = queryParameters.getParameters();
+		//		String mode = parametersMap.getOrDefault("editmode", List.of("readonly")).get(0);
+		//		try {
+		//			editmode = EDITMODE.valueOf(mode);
+		//		} catch (Exception e) {
+		//			editmode = EDITMODE.readonly;
+		//		}
 		String strid = s;
 		if (commandGateway.getUiConfig().isAnonymized()) {  
 			id = null;
 		}
 		if (strid != null) {
-//			try {
-//				long lId = Long.parseLong(strid);
-//				id = Id.of(lId);	
-				id = strid;
-//			} catch(Exception e) {
-//				log.warn("Parameter id cannot be parsed to long");
-//			}
+			//			try {
+			//				long lId = Long.parseLong(strid);
+			//				id = Id.of(lId);	
+			id = strid;
+			//			} catch(Exception e) {
+			//				log.warn("Parameter id cannot be parsed to long");
+			//			}
 		}
 		statePanel();
 	}
@@ -137,29 +138,29 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				inst = el.get();
 				Paragraph elName = new Paragraph("Artifact/Instance (DSid="+id+"): "+inst.getName());
 				hl.add(elName);
-				
+
 				Component grid = null;
 				Dialog dialog = new Dialog();				 				
-//				if (el instanceof PPEInstance) {        		
+				//				if (el instanceof PPEInstance) {        		
 				PPEInstanceType configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
-					if (!inst.getInstanceType().isOfTypeOrAnySubtype(configBaseType)) { // only allow editing of process config instances
-						editmode = EDITMODE.readonly;
-					} else {
-						editmode = EDITMODE.write;
-					}
-					if (!isFullyFetched(inst))
-						hl.add(addButtonToFullyFetchLazyLoadedInstance(inst));
-					else if (inst.getInstanceType().hasPropertyType("fullyFetched")) {
-						hl.add(getReloadIcon(inst));
-					}
-					List<Entry<PPEPropertyType, Object>> props = inst.getInstanceType().getPropertyNamesIncludingSuperClasses().stream()
-							.sorted()
-							.map(pName -> inst.getInstanceType().getPropertyType(pName))
-							.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, inst.getTypedProperty(prop.getName(), Object.class)))
-							.collect(Collectors.toList());
-					grid = instanceAsList(props, dialog);
-//				} else if (el instanceof PPEInstanceType) {
-//					grid = instanceAsList(((PPEInstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, el.workspace);
+				if (!inst.getInstanceType().isOfTypeOrAnySubtype(configBaseType)) { // only allow editing of process config instances
+					editmode = EDITMODE.readonly;
+				} else {
+					editmode = EDITMODE.write;
+				}
+				if (!isFullyFetched(inst))
+					hl.add(addButtonToFullyFetchLazyLoadedInstance(inst));
+				else if (inst.getInstanceType().hasPropertyType("fullyFetched")) {
+					hl.add(getReloadIcon(inst));
+				}
+				List<Entry<PPEPropertyType, Object>> props = inst.getInstanceType().getPropertyNamesIncludingSuperClasses().stream()
+						.sorted()
+						.map(pName -> inst.getInstanceType().getPropertyType(pName))
+						.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, inst.getTypedProperty(prop.getName(), Object.class)))
+						.collect(Collectors.toList());
+				grid = instanceAsList(props, dialog);
+				//				} else if (el instanceof PPEInstanceType) {
+				//					grid = instanceAsList(((PPEInstanceType) el).getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()), dialog, el.workspace);
 				//}		
 				if (inst.isMarkedAsDeleted()) { 
 					elName.getStyle().set("background-color", "#ffbf00");
@@ -173,8 +174,6 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		}
 		return layout;
 	}
-
-	private static Supplier<Boolean> falseSupplier = () -> Boolean.FALSE;
 
 	public static boolean isFullyFetched(PPEInstance element) {
 		if ( element.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED) 
@@ -287,123 +286,123 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		return grid;
 	}
 
-	
-	
+
+
 	private static String KEY = "key";
-	
+
 	private VerticalLayout createEditDialogLayout(Dialog dialog, PPEPropertyType property) {
 		H2 headline = new H2("Update Property: "+property.getName());
-        headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
-                .set("font-size", "1.5em").set("font-weight", "bold");
-        PPEInstanceType type =  property.getInstanceType();
-        Map<String,Object> newValue = new HashMap<>();
-        Component input = null;
-        if (type.equals(BuildInType.STRING)) {
-        	TextField stringField = new TextField(Objects.toString(inst.getTypedProperty(property.getName(), String.class)));
-        	stringField.setLabel("Enter new 'String' value: ");
-        	input = stringField;
-        	stringField.addValueChangeListener(change -> {
-        		newValue.put(KEY, change.getValue());
-        	});
-        } else if (type.equals(BuildInType.BOOLEAN)) {
-        	ComboBox<Boolean> boolBox = new ComboBox<>();
-        	boolBox.setItems(Boolean.TRUE, Boolean.FALSE);
-        	boolBox.setLabel("Choose new 'Boolean' value: ");
-        	input = boolBox;
-        	Optional<Boolean> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Boolean.class));
-        	currentValue.ifPresentOrElse(curValue -> boolBox.setValue(curValue), () -> { 
-        		boolBox.setValue(true); 
-        		newValue.put(KEY, true); });       // otherwise we need to set it to false and then true again when no value is present and we want to choose true 	
-        	boolBox.addValueChangeListener(change -> {
-        		newValue.put(KEY, change.getValue());
-        	});
-        } else if (type.equals(BuildInType.DATE)) {
-        	DatePicker.DatePickerI18n singleFormatI18n = new DatePicker.DatePickerI18n();
-        	singleFormatI18n.setDateFormat("yyyy-MM-dd");
-        	DatePicker datePicker = new DatePicker("Date");
-        	datePicker.setLabel("Enter new 'Date' value: ");
-        	datePicker.setI18n(singleFormatI18n);
-        	Optional<Date> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Date.class));
-        	currentValue.ifPresent(curValue -> datePicker.setValue(curValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));        	
-        	input = datePicker;
-        	datePicker.addValueChangeListener(change -> {
-        		ZoneId defaultZoneId = ZoneId.systemDefault();
-        		Date date = Date.from(change.getValue().atStartOfDay(defaultZoneId).toInstant());
-        		newValue.put(KEY,  date);
-        	});
-        } else if (type.equals(BuildInType.INTEGER)) {
-        	NumberField numberField = new NumberField();     
-        	numberField.setMinWidth("150px");
-        	numberField.setLabel("Enter new 'Integer' number: ");
-        	input = numberField;
-        	Optional<Integer> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Integer.class));
-        	currentValue.ifPresent(curValue -> numberField.setValue(curValue.doubleValue()));
-        	numberField.addValueChangeListener(change -> {
-        		newValue.put(KEY, change.getValue().intValue());
-        	});
-        } else if (type.equals(BuildInType.FLOAT)) {
-        	NumberField numberField2 = new NumberField();       
-        	numberField2.setMinWidth("150px");
-        	numberField2.setLabel("Enter new 'Double' number");
-        	input = numberField2;
-        	Optional<Double> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Double.class));
-        	currentValue.ifPresent(curValue -> numberField2.setValue(curValue));
-        	numberField2.addValueChangeListener(change -> {
-        		newValue.put(KEY, change.getValue());
-        	});
-        } else {
-        	String msg = String.format("Edit Dialog encountered unsupported type %s for property %s", type.getName(), property.getName());
-        	log.warn(msg);
-        	dialog.close();
-        	Notification.show(String.format("Edit Dialog encountered unsupported type %s for property %s", type.getName(), property.getName()));
-        }
-       
-        Button cancelButton = new Button("Cancel", e -> dialog.close());
-        Button saveButton = new Button("Save", e -> { 
-        	if (newValue.containsKey(KEY)) {
-        		Object newObj = newValue.get(KEY);
-        		inst.setSingleProperty(property.getName(), newValue);
-        		//property.set(newObj);        		
-            	// conclude transaction in the background/tread
-        		new Thread(() -> { 
-        			commandGateway.getProcessContext().getInstanceRepository().concludeTransaction();
-//        			ws.concludeTransaction();
-        			this.getUI().get().access(() -> { 
-        				dataProvider.refreshAll();
-        			});
+		headline.getStyle().set("margin", "var(--lumo-space-m) 0 0 0")
+		.set("font-size", "1.5em").set("font-weight", "bold");
+		PPEInstanceType type =  property.getInstanceType();
+		Map<String,Object> newValue = new HashMap<>();
+		Component input = null;
+		if (type.equals(BuildInType.STRING)) {
+			TextField stringField = new TextField(Objects.toString(inst.getTypedProperty(property.getName(), String.class)));
+			stringField.setLabel("Enter new 'String' value: ");
+			input = stringField;
+			stringField.addValueChangeListener(change -> {
+				newValue.put(KEY, change.getValue());
+			});
+		} else if (type.equals(BuildInType.BOOLEAN)) {
+			ComboBox<Boolean> boolBox = new ComboBox<>();
+			boolBox.setItems(Boolean.TRUE, Boolean.FALSE);
+			boolBox.setLabel("Choose new 'Boolean' value: ");
+			input = boolBox;
+			Optional<Boolean> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Boolean.class));
+			currentValue.ifPresentOrElse(curValue -> boolBox.setValue(curValue), () -> { 
+				boolBox.setValue(true); 
+				newValue.put(KEY, true); });       // otherwise we need to set it to false and then true again when no value is present and we want to choose true 	
+			boolBox.addValueChangeListener(change -> {
+				newValue.put(KEY, change.getValue());
+			});
+		} else if (type.equals(BuildInType.DATE)) {
+			DatePicker.DatePickerI18n singleFormatI18n = new DatePicker.DatePickerI18n();
+			singleFormatI18n.setDateFormat("yyyy-MM-dd");
+			DatePicker datePicker = new DatePicker("Date");
+			datePicker.setLabel("Enter new 'Date' value: ");
+			datePicker.setI18n(singleFormatI18n);
+			Optional<Date> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Date.class));
+			currentValue.ifPresent(curValue -> datePicker.setValue(curValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));        	
+			input = datePicker;
+			datePicker.addValueChangeListener(change -> {
+				ZoneId defaultZoneId = ZoneId.systemDefault();
+				Date date = Date.from(change.getValue().atStartOfDay(defaultZoneId).toInstant());
+				newValue.put(KEY,  date);
+			});
+		} else if (type.equals(BuildInType.INTEGER)) {
+			NumberField numberField = new NumberField();     
+			numberField.setMinWidth("150px");
+			numberField.setLabel("Enter new 'Integer' number: ");
+			input = numberField;
+			Optional<Integer> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Integer.class));
+			currentValue.ifPresent(curValue -> numberField.setValue(curValue.doubleValue()));
+			numberField.addValueChangeListener(change -> {
+				newValue.put(KEY, change.getValue().intValue());
+			});
+		} else if (type.equals(BuildInType.FLOAT)) {
+			NumberField numberField2 = new NumberField();       
+			numberField2.setMinWidth("150px");
+			numberField2.setLabel("Enter new 'Double' number");
+			input = numberField2;
+			Optional<Double> currentValue = Optional.ofNullable(inst.getTypedProperty(property.getName(), Double.class));
+			currentValue.ifPresent(curValue -> numberField2.setValue(curValue));
+			numberField2.addValueChangeListener(change -> {
+				newValue.put(KEY, change.getValue());
+			});
+		} else {
+			String msg = String.format("Edit Dialog encountered unsupported type %s for property %s", type.getName(), property.getName());
+			log.warn(msg);
+			dialog.close();
+			Notification.show(String.format("Edit Dialog encountered unsupported type %s for property %s", type.getName(), property.getName()));
+		}
+
+		Button cancelButton = new Button("Cancel", e -> dialog.close());
+		Button saveButton = new Button("Save", e -> { 
+			if (newValue.containsKey(KEY)) {
+				Object newObj = newValue.get(KEY);
+				inst.setSingleProperty(property.getName(), newValue);
+				//property.set(newObj);        		
+				// conclude transaction in the background/tread
+				new Thread(() -> { 
+					commandGateway.getProcessContext().getInstanceRepository().concludeTransaction();
+					//        			ws.concludeTransaction();
+					this.getUI().get().access(() -> { 
+						dataProvider.refreshAll();
+					});
 				} ).start();        		        		
-        		dialog.close();
-        	} else {
-        		Notification.show("No input found, please provide a new value before saving");
-        	}
-        	 
-        });
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton,
-                saveButton);
-        buttonLayout
-                .setJustifyContentMode(JustifyContentMode.END);
+				dialog.close();
+			} else {
+				Notification.show("No input found, please provide a new value before saving");
+			}
 
-        VerticalLayout dialogLayout = new VerticalLayout(headline, input,
-                buttonLayout);
-        dialogLayout.setPadding(false);
-        dialogLayout.setAlignItems(Alignment.STRETCH);
-        dialogLayout.getStyle().set("width", "300px").set("max-width", "100%");
+		});
+		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+		HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton,
+				saveButton);
+		buttonLayout
+		.setJustifyContentMode(JustifyContentMode.END);
 
-        return dialogLayout;
+		VerticalLayout dialogLayout = new VerticalLayout(headline, input,
+				buttonLayout);
+		dialogLayout.setPadding(false);
+		dialogLayout.setAlignItems(Alignment.STRETCH);
+		dialogLayout.getStyle().set("width", "300px").set("max-width", "100%");
+
+		return dialogLayout;
 	}
-	
-//	private Component instanceAsList(InstanceType inst) {
-//		List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
-//		dataProvider = new ListDataProvider<>(content);
-//		Grid<Property> grid = new Grid<Property>();
-//		grid.setColumnReorderingAllowed(false);
-//		Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
-//		Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
-//		grid.setDataProvider(dataProvider);
-//		grid.setHeightByRows(true);
-//		return grid;
-//	}
+
+	//	private Component instanceAsList(InstanceType inst) {
+	//		List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))
+	//		dataProvider = new ListDataProvider<>(content);
+	//		Grid<Property> grid = new Grid<Property>();
+	//		grid.setColumnReorderingAllowed(false);
+	//		Grid.Column<Property> nameColumn = grid.addColumn(p -> p.name).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
+	//		Grid.Column<Property> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
+	//		grid.setDataProvider(dataProvider);
+	//		grid.setHeightByRows(true);
+	//		return grid;
+	//	}
 
 	private Component getReloadIcon(PPEInstance inst) {
 		if (inst == null && commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
@@ -439,7 +438,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	}
 
 	private static final SerializableBiConsumer<Span, Entry<PPEPropertyType, Object>> propertyComponentUpdated = (span, entry) -> {
-		
+
 		switch(entry.getKey().getCardinality()) {
 		case LIST: //fallthrough
 		case SET:
@@ -460,10 +459,10 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private static Component singleValueToComponent(Object value) {
 		if (value instanceof PPEInstance) {
 			PPEInstance inst = (PPEInstance)value;
-			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
 		} else if (value instanceof PPEInstanceType) {
 			PPEInstanceType inst = (PPEInstanceType)value;
-			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
 		} else if (value instanceof PPEPropertyType) {
 			PPEPropertyType pt = (PPEPropertyType)value;
 			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));

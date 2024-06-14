@@ -59,6 +59,7 @@ import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +76,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 
 	private RequestDelegate commandGateway;
 	private String id = null;
-	private PPEInstanceType inst;
+	private PPEInstanceType instType;
 	private ListDataProvider<Entry<PPEPropertyType, Object>> dataProvider = null;
 	private EDITMODE editmode = EDITMODE.readonly;
 
@@ -134,21 +135,21 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 					layout.add(new Paragraph("InstanceType with id "+id+" does not exists."));
 					return layout;				
 				}
-				inst = el.get();
-				Paragraph elName = new Paragraph("Artifact/Instance Type (DSid="+id+"): "+inst.getName());
+				instType = el.get();
+				Paragraph elName = new Paragraph("Artifact/Instance Type (DSid="+id+"): "+instType.getName());
 				hl.add(elName);
 				
 				Component grid = null;
 				Dialog dialog = new Dialog();				 				
 
-					List<Entry<PPEPropertyType, Object>> props = inst.getInstanceType().getPropertyNamesIncludingSuperClasses().stream()
+					List<Entry<PPEPropertyType, Object>> props = instType.getPropertyNamesIncludingSuperClasses().stream()
 							.sorted()
-							.map(pName -> inst.getInstanceType().getPropertyType(pName))
-							.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, inst.getTypedProperty(prop.getName(), Object.class)))
+							.map(pName -> instType.getPropertyType(pName))
+							.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, instType.getTypedProperty(prop.getName(), Object.class)))
 							.collect(Collectors.toList());
 					grid = instanceAsList(props, dialog);
 	
-				if (inst.isMarkedAsDeleted()) { 
+				if (instType.isMarkedAsDeleted()) { 
 					elName.getStyle().set("background-color", "#ffbf00");
 					editmode = EDITMODE.readonly;
 				}
@@ -300,10 +301,10 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 	private static Component singleValueToComponent(Object value) {
 		if (value instanceof PPEInstance) {
 			PPEInstance inst = (PPEInstance)value;
-			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
 		} else if (value instanceof PPEInstanceType) {
 			PPEInstanceType inst = (PPEInstanceType)value;
-			return new Paragraph(new Anchor("/instance/"+inst.getId(), inst.getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
 		} else if (value instanceof PPEPropertyType) {
 			PPEPropertyType pt = (PPEPropertyType)value;
 			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));
