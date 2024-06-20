@@ -76,6 +76,9 @@ public class AppView extends AppLayout{
 	    			createTab(VaadinIcon.AUTOMATION, "Process Deployment Result", DeployResultView.class)
 		    );		      
 	    } 	    
+	    if (uiconf.isStagesEnabled()) {
+	    	tabs.add(createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class));
+	    }
 	    
 	    if (uiconf.isExperimentModeEnabled()) {
 	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );

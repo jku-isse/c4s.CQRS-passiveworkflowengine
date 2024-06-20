@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
+
 
 @EnableWebSecurity
 @Configuration
@@ -30,7 +32,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private static final String LOGIN_FAILURE_URL = "/login?error";
   private static final String LOGIN_URL = "/login";
   private static final String LOGOUT_SUCCESS_URL = "/login";
-
+  
   /**
    * Require login to access internal pages and configure login form.
    */
@@ -77,15 +79,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
 	Random rand = new Random(654654l);	  	  	  
 	Set<UserDetails> users = new HashSet<>();
-	for (int i = 1; i < 50; i++) {
-		String name = "P"+i;		
-		String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
-		users.add(User.withUsername(name)
-            .password("{noop}"+pw)
-            .roles("USER")
-            .build());		
-		System.out.println(String.format("Created user credentials %s : %s", name, pw));
-    }
+	
+	UIConfig uiConfig = super.getApplicationContext().getBean(UIConfig.class);
+	if (uiConfig != null && uiConfig.isExperimentModeEnabled()) {
+		for (int i = 1; i < 50; i++) {
+			String name = "P"+i;		
+			String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
+			users.add(User.withUsername(name)
+					.password("{noop}"+pw)
+					.roles("USER")
+					.build());		
+			System.out.println(String.format("Created user credentials %s : %s", name, pw));
+		}
+	}
 	users.add(User.withUsername("dev")
             .password("{noop}dev")
             .roles("USER")
@@ -133,6 +139,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	"/qastatistics**",	
     	"/participants**",
     	"/stages/**",
+    	"/connectors/**",
     	
     	// Client-side JS
         "/VAADIN/**",

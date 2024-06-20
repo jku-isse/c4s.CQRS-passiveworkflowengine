@@ -21,8 +21,8 @@
 
 		<java.version>17</java.version>
 		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-		<!-- <vaadin.version>14.4.9</vaadin.version> -->
-		<vaadin.version>14.10.1</vaadin.version>
+		<!-- <vaadin.version>14.4.9</vaadin.version> 14.10.1--> 
+		<vaadin.version>14.11.11</vaadin.version>
 		<lombok.version>1.18.30</lombok.version>
 		<connector.azure.version>2.6.1</connector.azure.version>
 		<connector.git.version>1.3.0</connector.git.version>
@@ -350,40 +350,7 @@
 				<artifactId>maven-install-plugin</artifactId>
 				<version>3.0.0-M1</version>
 				<executions>
-					<!-- <execution> <id>install-analytics</id> <phase>initialize</phase> 
-						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
-						<artifactId>c4s.analytics</artifactId> <version>${analytics.version}</version> 
-						<packaging>jar</packaging> <file>${basedir}/libs/c4s.analytics-${analytics.version}.jar</file> 
-						</configuration> </execution> -->
-					<!-- <execution> <id>install-artifact-api</id> <phase>initialize</phase> 
-						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
-						<artifactId>c4s.artifact.api</artifactId> <version>${artifact.api.version}</version> 
-						<packaging>jar</packaging> <file>${basedir}/libs/c4s.artifact.api-${artifact.api.version}.jar</file> 
-						</configuration> </execution> -->
-					<!-- <execution> <id>install-jiralightconnector</id> <phase>initialize</phase> 
-						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
-						<artifactId>c4s.jiralightconnector</artifactId> <version>${jiralightconnector.version}</version> 
-						<packaging>jar</packaging> <file>${basedir}/libs/c4s.jiralightconnector-${jiralightconnector.version}.jar</file> 
-						</configuration> </execution> -->
-					<!-- <execution> <id>install-passiveprocessengine</id> <phase>initialize</phase> 
-						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
-						<artifactId>c4s.passiveprocessengine.v2</artifactId> <version>${passiveprocessengine.v2.version}</version> 
-						<packaging>jar</packaging> <file>${basedir}/libs/c4s.passiveprocessengine.v2-${passiveprocessengine.v2.version}.jar</file> 
-						</configuration> </execution> -->
-					<!-- <execution> <id>install-jamaconnector</id> <phase>initialize</phase> 
-						<goals> <goal>install-file</goal> </goals> <configuration> <groupId>JKU.ISSE</groupId> 
-						<artifactId>c4s.jamaconnector</artifactId> <version>${jamaconnector.version}</version> 
-						<packaging>jar</packaging> <file>${basedir}/libs/c4s.jamaconnector-${jamaconnector.version}.jar</file> 
-						</configuration> </execution> <execution> <id>install-designspaceconnector</id> 
-						<phase>initialize</phase> <configuration> <file>${basedir}/libs/artifact-client-${designspace.client.version}.jar</file> 
-						<groupId>at.jku.isse.sdk</groupId> <artifactId>artifact-client</artifactId> 
-						<version>${designspace.client.version}</version> <packaging>jar</packaging> 
-						</configuration> <goals> <goal>install-file</goal> </goals> </execution> 
-						<execution> <id>install-designspacemain</id> <phase>initialize</phase> <configuration> 
-						<file>${basedir}/libs/main-${designspace.main.version}-jar-with-dependencies.jar</file> 
-						<groupId>at.jku.isse.designspace.sdk</groupId> <artifactId>main</artifactId> 
-						<version>${designspace.main.version}</version> <packaging>jar</packaging> 
-						</configuration> <goals> <goal>install-file</goal> </goals> </execution> -->
+
 				</executions>
 			</plugin>
 

@@ -17,8 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.User;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -27,12 +26,10 @@ import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.T
 import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityConfig;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessStep;
-import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ConstraintResultWrapper;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.NonNull;
 
@@ -48,12 +45,6 @@ class TestExperimentProcessDataConsistency {
 	
 	@Autowired
 	ArtifactResolver artRes;
-	
-	@Autowired
-	RepairAnalyzer repairanalyzer;
-	
-	@Autowired
-	ProcessQAStatsMonitor qastats;
 	
 	@Autowired 
 	UsageMonitor usageMonitor;
@@ -107,8 +98,8 @@ class TestExperimentProcessDataConsistency {
 	}
 	
 
-	@Test
-	void checkIfExperimentDataIsConsistent() throws ProcessException {
+	@Test 
+	void checkIfExperimentDataIsConsistent() throws ProcessException {		
 		// for each user
 		List<String> allResults = participantIds.stream()
 				.map(participantId -> {
@@ -137,14 +128,14 @@ class TestExperimentProcessDataConsistency {
 	}
 	
 	private boolean instantiateAndClose(TaskInfo entry, String participantId) throws ProcessException {
-		String nextAllowedProc = reqDelegate.getACL().isAllowedAsNextProc(entry.getProcessId(), participantId);
-		boolean allowInstantiation = reqDelegate.getACL().doAllowProcessInstantiation(entry.getInputId(), participantId) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId());
+		String nextAllowedProc = reqDelegate.getAclProvider().isAllowedAsNextProc(entry.getProcessId(), participantId);
+		boolean allowInstantiation = reqDelegate.getAclProvider().doAllowProcessInstantiation(entry.getInputId(), participantId) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId());
 		if (!allowInstantiation) {
 			System.out.println(String.format("User %s not allowed to init process %s ", participantId, entry.getProcessId()));
 			return false;
 		} else {
 			ProcessInstance procInst = instantiate(entry);
-			procInst.getInstance().addOwner(new User(participantId));
+			procInst.getInstance().addOwner(participantId);
 			// now delete process again
 			reqDelegate.deleteProcessInstance(procInst.getName());
 			return true;
@@ -170,7 +161,7 @@ class TestExperimentProcessDataConsistency {
 		boolean hasError = false;
 		PROCESSTYPEIDS procId = PROCESSTYPEIDS.valueOf(procInst.getDefinition().getName());
 		ProcessStep onlyStep = procInst.getProcessSteps().stream().findAny().get();
-		ConstraintWrapper onlyQA = onlyStep.getQAstatus().stream().findAny().get();
+		ConstraintResultWrapper onlyQA = onlyStep.getQAstatus().stream().findAny().get();
 		if(procInst.getInput("CRs").size() == 0) {
 			System.out.println(String.format("Process Step %s has no input", onlyStep.getName())); 
 			hasError = true;

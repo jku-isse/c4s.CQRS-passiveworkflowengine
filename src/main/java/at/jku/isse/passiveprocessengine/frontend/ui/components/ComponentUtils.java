@@ -1,5 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend.ui.components;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,16 @@ public class ComponentUtils {
 
 	public static String getBaseUrl() {
 		return VaadinServlet.getCurrent().getServletContext().getContextPath();		
+	}
+	
+	public static String getRelativeBaseUrl() {
+		String fullBaseUrl = VaadinServlet.getCurrent().getServletContext().getContextPath();
+		URI withoutPath = URI.create(fullBaseUrl).resolve("/");
+		String prefix = withoutPath.toString();
+		if (prefix.length() > fullBaseUrl.length())
+			return fullBaseUrl;
+		else
+			return fullBaseUrl.substring(prefix.length());		
 	}
 	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstance artifact) {

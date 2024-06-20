@@ -150,7 +150,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 				}
 				if (!isFullyFetched(inst))
 					hl.add(addButtonToFullyFetchLazyLoadedInstance(inst));
-				else if (inst.getInstanceType().hasPropertyType("fullyFetched")) {
+				else if (inst.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED)) { 
 					hl.add(getReloadIcon(inst));
 				}
 				List<Entry<PPEPropertyType, Object>> props = inst.getInstanceType().getPropertyNamesIncludingSuperClasses().stream()
@@ -176,10 +176,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	}
 
 	public static boolean isFullyFetched(PPEInstance element) {
-		if ( element.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED) 
-				&&       element.getTypedProperty(PPEInstanceType.IS_FULLYFETCHED, Boolean.class, true) )
-		{
-			return false;
+		if ( element.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED)) { // an instance with this property  
+			return element.getTypedProperty(PPEInstanceType.IS_FULLYFETCHED, Boolean.class, true);
 		} else
 			return true;
 	}
@@ -405,7 +403,11 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	//	}
 
 	private Component getReloadIcon(PPEInstance inst) {
-		if (inst == null && commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
+		if (inst == null 
+				|| commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()
+				|| !inst.getInstanceType().isOfTypeOrAnySubtype(commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(CoreTypeFactory.BASE_TYPE_NAME)))  { 
+			return new Paragraph("");
+		}
 		Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
 		icon.getElement().setProperty("title", "Force Refetching of Artifact");
@@ -457,12 +459,12 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	}; 
 
 	private static Component singleValueToComponent(Object value) {
-		if (value instanceof PPEInstance) {
-			PPEInstance inst = (PPEInstance)value;
-			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
-		} else if (value instanceof PPEInstanceType) {
+		if (value instanceof PPEInstanceType) {
 			PPEInstanceType inst = (PPEInstanceType)value;
-			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instancetype/"+inst.getId(), inst.getName()));
+		}else if (value instanceof PPEInstance) {
+			PPEInstance inst = (PPEInstance)value;
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));		
 		} else if (value instanceof PPEPropertyType) {
 			PPEPropertyType pt = (PPEPropertyType)value;
 			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));

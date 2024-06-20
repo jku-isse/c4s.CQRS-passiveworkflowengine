@@ -1,21 +1,15 @@
 package at.jku.isse.passiveprocessengine.tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
-import at.jku.isse.designspace.jira.service.IJiraService;
-import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.toolbridges.jiraToJama.JiraJamaItemAugmentor;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest

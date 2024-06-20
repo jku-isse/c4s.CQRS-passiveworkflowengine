@@ -14,7 +14,9 @@ public class UIConfig extends Properties {
 		experimentMode_enabled("experimentMode.enabled"),
 		openai_enabled("openai.enabled"),
 		blocklyeditor_enabled("blocklyeditor.enabled"),
+		blocklyeditor_url("blocklyeditor.url"),
 		stages_enabled("stages.enabled");
+		
 		
 		private final String label;
 		private Keys(String label) { this.label = label; }
@@ -66,6 +68,10 @@ public class UIConfig extends Properties {
 	
 	public boolean isBlocklyEditorEnabled() {
 		return Boolean.valueOf(this.getProperty(Keys.blocklyeditor_enabled.toString(), "true"));
+	}
+	
+	public String getBlocklyEditorUrl() {
+		return this.getProperty(Keys.blocklyeditor_url.toString(), "./editor/index.html");
 	}
 	
 	public String getVersion() {
