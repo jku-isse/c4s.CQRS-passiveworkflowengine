@@ -30,13 +30,9 @@ public class BlocklyEditorView extends VerticalLayout  {
 		setSizeFull();
 		setMargin(false);
 		setPadding(false);
-		String relUrlBase = ComponentUtils.getRelativeBaseUrl(); //FIXME running with a context-path other than '/' will cause the vaadin router to try to navigate instead of serving the static resource
+		String absUrlBase = ComponentUtils.getBaseUrl();
 		EditorPane editor = null;
-		if (relUrlBase != null && relUrlBase.length() > 1) { // workaround for now
-			editor = new EditorPane(reqDel.getUiConfig().getBlocklyEditorUrl());			
-		} else {
-			editor = new EditorPane(relUrlBase+"/editor/index.html");
-		}
+		editor = new EditorPane(absUrlBase+"/editor/index.html");
 		editor.setSizeFull();
 		this.add(editor);
 	}
