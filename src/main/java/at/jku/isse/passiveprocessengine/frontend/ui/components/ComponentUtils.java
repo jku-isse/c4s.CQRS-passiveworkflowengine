@@ -43,8 +43,8 @@ public class ComponentUtils {
 	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstanceType artifact) {
 		Anchor a;
-		if (artifact.hasPropertyType(CoreTypeFactory.URL)) {
-			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class), artifact.getName());
+		if (artifact.getInstanceType() != null && artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL)) { // we need to check not whether this instancetype defines a propertyType of URL but whether it has one itself, via checking its parent
+			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class, getBaseUrl()+"/instancetype/"+artifact.getId()), artifact.getName());
 		} else {
 			a = new Anchor(getBaseUrl()+"/instancetype/"+artifact.getId(), artifact.getName());
 		}

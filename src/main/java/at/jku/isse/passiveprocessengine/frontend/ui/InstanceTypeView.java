@@ -77,7 +77,7 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 	private RequestDelegate commandGateway;
 	private String id = null;
 	private PPEInstanceType instType;
-	private ListDataProvider<Entry<PPEPropertyType, Object>> dataProvider = null;
+	private ListDataProvider<PPEPropertyType> dataProvider = null;
 	private EDITMODE editmode = EDITMODE.readonly;
 
 	private enum EDITMODE { readonly, write };
@@ -142,10 +142,10 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 				Component grid = null;
 				Dialog dialog = new Dialog();				 				
 
-					List<Entry<PPEPropertyType, Object>> props = instType.getPropertyNamesIncludingSuperClasses().stream()
+					List<PPEPropertyType> props = instType.getPropertyNamesIncludingSuperClasses().stream()
 							.sorted()
 							.map(pName -> instType.getPropertyType(pName))
-							.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, instType.getTypedProperty(prop.getName(), Object.class)))
+							//.map(prop -> new AbstractMap.SimpleEntry<PPEPropertyType, Object>(prop, instType.getTypedProperty(prop.getName(), Object.class)))
 							.collect(Collectors.toList());
 					grid = instanceAsList(props, dialog);
 	
@@ -201,8 +201,8 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 			if (searchTerm.isEmpty())
 				return true;
 
-			boolean matchesProperty= matchesTerm(pe.getKey().getName(), searchTerm);
-			boolean matchesValue = matchesTerm(PropertyConversionUtil.valueToString(pe.getValue()), searchTerm);
+			boolean matchesProperty= matchesTerm(pe.getName(), searchTerm);
+			boolean matchesValue = matchesTerm(PropertyConversionUtil.valueToString(pe), searchTerm);
 
 			return matchesProperty || matchesValue;
 		});    	    	
@@ -217,13 +217,14 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 		else return false;
 	}
 
-	private Component instanceAsList(List<Entry<PPEPropertyType, Object>> content, Dialog dialog) {
+	private Component instanceAsList(List<PPEPropertyType> content, Dialog dialog) {
 		//List<Property> content = inst.getProperties().stream().sorted(new PropertyComparator()).collect(Collectors.toList()) ; //.filter(prop -> !prop.name.startsWith("@"))	
 		dataProvider = new ListDataProvider<>(content);
-		Grid<Entry<PPEPropertyType, Object>> grid = new Grid<Entry<PPEPropertyType, Object>>();
+		Grid<PPEPropertyType> grid = new Grid<PPEPropertyType>();
 		grid.setColumnReorderingAllowed(false);
-		Grid.Column<Entry<PPEPropertyType, Object>> nameColumn = grid.addColumn(p -> p.getKey().getName()).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
-		Grid.Column<Entry<PPEPropertyType, Object>> valueColumn = grid.addColumn(createValueRenderer()).setHeader("Value").setResizable(true);
+		Grid.Column<PPEPropertyType> nameColumn = grid.addColumn(p -> p.getName()).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
+		Grid.Column<PPEPropertyType> typeColumn = grid.addColumn(createValueRenderer()).setHeader("Value Type").setResizable(true);
+		Grid.Column<PPEPropertyType> cardinalityColumn = grid.addColumn(p -> p.getCardinality()).setHeader("Cardinality").setResizable(true);
 		grid.setDataProvider(dataProvider);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		grid.setAllRowsVisible(true);
@@ -246,25 +247,25 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 //		return grid;
 //	}
 
-	private Component getReloadIcon(PPEInstance inst) {
-		if (inst == null && commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
-		Icon icon = new Icon(VaadinIcon.REFRESH);
-		icon.getStyle().set("cursor", "pointer");
-		icon.getElement().setProperty("title", "Force Refetching of Artifact");
-		icon.addClickListener(e -> { 
-			ArtifactIdentifier ai = commandGateway.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
-			new Thread(() -> { 
-				try {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
-					commandGateway.getArtifactResolver().get(ai, true);
-					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
-				} catch (ProcessException e1) {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
-				}}
-					).start();
-		});
-		return icon;
-	}
+//	private Component getReloadIcon(PPEInstance inst) {
+//		if (inst == null && commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Paragraph("");
+//		Icon icon = new Icon(VaadinIcon.REFRESH);
+//		icon.getStyle().set("cursor", "pointer");
+//		icon.getElement().setProperty("title", "Force Refetching of Artifact");
+//		icon.addClickListener(e -> { 
+//			ArtifactIdentifier ai = commandGateway.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
+//			new Thread(() -> { 
+//				try {
+//					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
+//					commandGateway.getArtifactResolver().get(ai, true);
+//					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
+//				} catch (ProcessException e1) {
+//					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
+//				}}
+//					).start();
+//		});
+//		return icon;
+//	}
 
 	public static class PropertyComparator implements Comparator<PPEPropertyType> {
 
@@ -275,81 +276,66 @@ public class InstanceTypeView extends VerticalLayout implements HasUrlParameter<
 
 	}
 
-	private static ComponentRenderer<Span, Entry<PPEPropertyType, Object>> createValueRenderer() {
+	private static ComponentRenderer<Span, PPEPropertyType> createValueRenderer() {
 		return new ComponentRenderer<>(Span::new, propertyComponentUpdated);
 	}
 
-	private static final SerializableBiConsumer<Span, Entry<PPEPropertyType, Object>> propertyComponentUpdated = (span, entry) -> {
-		
-		switch(entry.getKey().getCardinality()) {
-		case LIST: //fallthrough
-		case SET:
-			span.add(collectionValueToComponent((Collection) entry.getValue()));
-			break;
-		case MAP:
-			span.add(mapValueToComponent((Map)entry.getValue()));
-			break;
-		case SINGLE:
-			span.add(singleValueToComponent(entry.getValue()));
-			break;
-		default:
-			span.setText("Unknown Property ");
-			break;
-		};
+	private static final SerializableBiConsumer<Span, PPEPropertyType> propertyComponentUpdated = (span, propertyType) -> {		
+		span.add(ComponentUtils.convertToResourceLinkWithBlankTarget(propertyType.getInstanceType()));
 	}; 
-
-	private static Component singleValueToComponent(Object value) {
-		if (value instanceof PPEInstance) {
-			PPEInstance inst = (PPEInstance)value;
-			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
-		} else if (value instanceof PPEInstanceType) {
-			PPEInstanceType inst = (PPEInstanceType)value;
-			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
-		} else if (value instanceof PPEPropertyType) {
-			PPEPropertyType pt = (PPEPropertyType)value;
-			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));
-		} else
-			return new Paragraph(Objects.toString(value));
-	}
-
-	private static Component collectionValueToComponent(Collection value) {
-		if (value == null || value.size() == 0)	
-			return new Paragraph( "[ ]");
-		else if (value.size() == 1)
-			return singleValueToComponent(value.iterator().next());
-		else {
-			UnorderedList list = new UnorderedList();
-			list.setClassName("no-padding");
-			value.stream().forEach(val -> list.add(singleValueToComponent(val)));
-			return list;
-		}
-	}
-
-
-	protected static Component mapValueToComponent(Map value) {
-		Grid<Map.Entry<String, Object>> grid = new Grid<Map.Entry<String, Object>>();
-		grid.setColumnReorderingAllowed(false);
-		Grid.Column<Map.Entry<String, Object>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Key").setResizable(true).setSortable(true);
-		Grid.Column<Map.Entry<String, Object>> valueColumn = grid.addColumn(createMapValueRenderer()).setHeader("Value").setResizable(true);
-		grid.setItems(value.entrySet());
-		grid.setAllRowsVisible(true);
-		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-		return grid;
-	}
-
-	private static ComponentRenderer<Span, Map.Entry<String, Object>> createMapValueRenderer() {
-		return new ComponentRenderer<>(Span::new, propertyMapUpdated);
-	}
-
-	private static final SerializableBiConsumer<Span, Map.Entry<String, Object>> propertyMapUpdated = (span, obj) -> {
-		if (obj.getValue() instanceof Collection) {
-			span.add(collectionValueToComponent((Collection)obj.getValue()));
-		} else     	
-			if (obj.getValue() instanceof Map) {
-				span.add(mapValueToComponent((Map)obj.getValue()));
-			} else {
-				span.add(singleValueToComponent(obj.getValue()));
-			}
-
-	};
+//
+//	private static Component singleValueToComponent(Object value) {
+//		if (value instanceof PPEInstance) {
+//			PPEInstance inst = (PPEInstance)value;
+//			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
+//		} else if (value instanceof PPEInstanceType) {
+//			PPEInstanceType inst = (PPEInstanceType)value;
+//			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+inst.getId(), inst.getName()));
+//		} else if (value instanceof PPEPropertyType) {
+//			PPEPropertyType pt = (PPEPropertyType)value;
+//			return new Paragraph(String.format("PropertyType: %s %s of type %s", pt.getName(), pt.getCardinality(), pt.getInstanceType()));
+//		} else
+//			return new Paragraph(Objects.toString(value));
+//	}
+//
+//	private static Component collectionValueToComponent(Collection value) {
+//		if (value == null || value.size() == 0)	
+//			return new Paragraph( "[ ]");
+//		else if (value.size() == 1)
+//			return singleValueToComponent(value.iterator().next());
+//		else {
+//			UnorderedList list = new UnorderedList();
+//			list.setClassName("no-padding");
+//			value.stream().forEach(val -> list.add(singleValueToComponent(val)));
+//			return list;
+//		}
+//	}
+//
+//
+//	protected static Component mapValueToComponent(Map value) {
+//		Grid<Map.Entry<String, Object>> grid = new Grid<Map.Entry<String, Object>>();
+//		grid.setColumnReorderingAllowed(false);
+//		Grid.Column<Map.Entry<String, Object>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Key").setResizable(true).setSortable(true);
+//		Grid.Column<Map.Entry<String, Object>> valueColumn = grid.addColumn(createMapValueRenderer()).setHeader("Value").setResizable(true);
+//		grid.setItems(value.entrySet());
+//		grid.setAllRowsVisible(true);
+//		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+//		return grid;
+//	}
+//
+//	private static ComponentRenderer<Span, Map.Entry<String, Object>> createMapValueRenderer() {
+//		return new ComponentRenderer<>(Span::new, propertyMapUpdated);
+//	}
+//
+//	private static final SerializableBiConsumer<Span, Map.Entry<String, Object>> propertyMapUpdated = (span, obj) -> {
+//		if (obj.getValue() instanceof Collection) {
+//			span.add(collectionValueToComponent((Collection)obj.getValue()));
+//		} else     	
+//			if (obj.getValue() instanceof Map) {
+//				span.add(mapValueToComponent((Map)obj.getValue()));
+//			} else {
+//				span.add(singleValueToComponent(obj.getValue()));
+//			}
+//
+//	};
 }
