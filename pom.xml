@@ -118,6 +118,12 @@
 			<groupId>at.jku.isse.passiveprocessengine</groupId>
 			<artifactId>ppe-rest-frontend</artifactId>
 			<version>${ppe.rest.version}</version>	
+			<exclusions>
+				<exclusion>
+					<groupId>at.jku.isse.designspace</groupId>
+            		<artifactId>artifact-connector.ds5wrapper</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
