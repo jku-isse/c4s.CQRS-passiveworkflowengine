@@ -55,7 +55,13 @@ public class RepairVisualizationUtil {
 			return Set.of(new Span("Do one of:"));
 		case SEQUENCE:
 			return Set.of(new Span("Do all of:"));
-		case MULTIVALUE: //fallthrough
+		case FUTURE:
+			return Set.of(new Span("Do at some time in the future"));
+		case IMMEDIATE:
+			return Set.of(new Span("Do immediately"));
+		case NO_REPAIR:
+			return Set.of(new Span("No longer fixable due to unrepairable temporal constraint"));
+		case MULTIVALUE: //fallthrough		
 		case VALUE:
 			AbstractRepairAction ra = (AbstractRepairAction)rn;
 			RestrictionNode rootNode =  ra.getValue()==UnknownRepairValue.UNKNOWN && ra.getRepairValueOption().getRestriction() != null ? ra.getRepairValueOption().getRestriction().getRootNode() : null;
