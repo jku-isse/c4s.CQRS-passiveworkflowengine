@@ -89,24 +89,15 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		iList.setHeight("100%");
 		
 		this.add(tList, dList, iList);
-//		Div pages = new Div(tList, dList, iList); //, snap, split
-//		pages.setHeight("97%");
-//		pages.setWidthFull();
-//
-//		pageContent.removeAll();
-//		pageContent.setClassName("layout-style");
-//		pageContent.add(/*tabs,*/ pages);
 	}
 
 
 	private VerticalLayout transformPanel() {
 				
 		VerticalLayout layout = new VerticalLayout();
-		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Transformation Feedback");
 		layout.add(pLabel);
@@ -117,7 +108,7 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<TransformationError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true).setWidth("55%").setFlexGrow(4);
 		Grid.Column<TransformationError> link = grid.addComponentColumn(ti -> generateAnchor(ti)).setHeader("Scope").setResizable(true).setSortable(true).setWidth("15%").setFlexGrow(1);
 		grid.setDataProvider(tdataProvider);	
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		
 		layout.add(grid);
@@ -139,11 +130,9 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 	private VerticalLayout deployPanel() {
 		
 		VerticalLayout layout = new VerticalLayout();
-		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Deployment Feedback");
 		layout.add(pLabel);
@@ -154,7 +143,7 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<ProcessDefinitionError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true).setWidth("55%").setFlexGrow(4);
 		Grid.Column<ProcessDefinitionError> link = grid.addComponentColumn(ti -> ComponentUtils.convertToResourceLinkWithBlankTarget(ti.getErrorScope().getInstance())).setHeader("Scope").setResizable(true).setSortable(true).setWidth("15%").setFlexGrow(1);
 		grid.setDataProvider(ddataProvider);	
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		
 		layout.add(grid);
@@ -165,11 +154,9 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 	private VerticalLayout instancePanel() {
 		
 		VerticalLayout layout = new VerticalLayout();
-		//layout.setClassName("big-text");
 		layout.setMargin(false);
 		layout.setHeight("50%");
 		layout.setWidthFull();
-		//layout.setFlexGrow(0);
 
 		Label pLabel = new Label("Process Re-Instantiation Feedback");
 		layout.add(pLabel);
@@ -180,7 +167,7 @@ public class StagesTransformationResultView extends VerticalLayout implements Ha
 		Grid.Column<ProcessInstanceError> msg = grid.addComponentColumn(ti -> generatePara(ti.getErrorMsg())).setHeader("Message").setResizable(true).setSortable(true).setWidth("55%").setFlexGrow(4);
 		Grid.Column<ProcessInstanceError> link = grid.addComponentColumn(ti -> ComponentUtils.convertToResourceLinkWithBlankTarget(ti.getErrorScope().getInstance())).setHeader("Scope").setResizable(true).setSortable(true).setWidth("15%").setFlexGrow(1);
 		grid.setDataProvider(idataProvider);	
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		
 		layout.add(grid);

@@ -24,16 +24,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.User;
-import at.jku.isse.passiveprocessengine.WrapperCache;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
-import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequenceProvider;
+import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -50,12 +48,12 @@ public class ExperimentParticipantView extends VerticalLayout  {
 	protected AtomicInteger counter = new AtomicInteger(0);
 
 	protected RequestDelegate commandGateway;
-	protected ExperimentSequenceProvider sequenceProvider;
+	protected ProcessAccessControlProvider sequenceProvider;
 	protected ExperimentSequence seq;
 	protected String participantId;
 	private ListDataProvider<ExperimentSequence.TaskInfo> dataProvider;
 
-	public ExperimentParticipantView(RequestDelegate commandGateway, ExperimentSequenceProvider sequenceProvider, SecurityService securityService) {
+	public ExperimentParticipantView(RequestDelegate commandGateway, ProcessAccessControlProvider sequenceProvider, SecurityService securityService) {
 		this.commandGateway = commandGateway;
 	//	setSizeFull();
 		setMargin(false);
@@ -90,7 +88,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start Task/Process").setResizable(false).setSortable(false);	
 		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("Finish Task/Process").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
-		grid.setHeightByRows(true);
+		grid.setAllRowsVisible(true);
 		layout.add(grid);
 
 		return layout;
@@ -106,8 +104,8 @@ public class ExperimentParticipantView extends VerticalLayout  {
 	private Component taskInfoToEvalButton(TaskInfo entry) {
 
 		Button button = null;
-		String nextAllowedProc = commandGateway.isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
-		if (commandGateway.doAllowProcessInstantiation(entry.getInputId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
+		String nextAllowedProc = commandGateway.getAclProvider().isAllowedAsNextProc(entry.getProcessId(), seq.getParticipantId());
+		if (commandGateway.getAclProvider().doAllowProcessInstantiation(entry.getInputId(), seq.getParticipantId()) && nextAllowedProc.equalsIgnoreCase(entry.getProcessId())) {
 			button = new Button("Start", evt -> {
 				String id = entry.getInputId()+entry.getProcessId();
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -118,9 +116,9 @@ public class ExperimentParticipantView extends VerticalLayout  {
 						inputs.put(entry.getInputParam(), new ArtifactIdentifier(entry.getInputId(), entry.getArtifactType(), entry.getIdType()));
 						ProcessInstance pi = commandGateway.instantiateProcess(id, inputs, entry.getProcessId());						 
 						if (auth != null && auth.getName() != null) {
-							pi.getInstance().addOwner(new User(auth.getName()));
+							pi.getInstance().addOwner(auth.getName());
 						}
-						commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
+						commandGateway.getUsageMonitor().processCreated(pi, auth != null ? auth.getName() : null);
 //						this.getUI().get().access(() -> { 
 //							Notification.show("Successfully instantiated process"); 
 //	//						dataProvider.refreshAll();
@@ -141,13 +139,13 @@ public class ExperimentParticipantView extends VerticalLayout  {
 
 	private Component taskInfoToCompletionButton(TaskInfo entry) {
 		Button delButton = null;
-		Optional<Instance> optInst = commandGateway.findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		Optional<PPEInstance> optInst = commandGateway.getAclProvider().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
 		if (optInst.isPresent()) {
-			Instance procInst = optInst.get();
-			if (!procInst.isDeleted) {
-				ProcessInstance wfi = WrapperCache.getWrappedInstance(ProcessInstance.class, procInst);
+			PPEInstance procInst = optInst.get();
+			if (!procInst.isMarkedAsDeleted()) {
+				ProcessInstance wfi = commandGateway.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst);
 				delButton = new Button("Finish", evt ->  {
-					commandGateway.getMonitor().processDeleted(wfi, participantId);
+					commandGateway.getUsageMonitor().processDeleted(wfi, participantId);
 					commandGateway.deleteProcessInstance(wfi.getName());
 					dataProvider.refreshAll();
 				});

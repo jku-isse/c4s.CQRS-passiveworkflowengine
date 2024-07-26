@@ -39,15 +39,14 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.User;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.ProcessDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.DefinitionView.DefinitionComparator;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,9 +64,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     	
     @Autowired
     private RequestDelegate commandGateway;
-    private ProcessConfigBaseElementFactory configFactory;
     @Autowired
     private IFrontendPusher pusher;
+    
     private @Getter WorkflowTreeGrid grid;
     private ComboBox<ProcessDefinition> definitionsBox;
     private Details loadProcess;
@@ -104,10 +103,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
 
-    public MainView(RequestDelegate reqDel, IFrontendPusher pusher, ProcessConfigBaseElementFactory configFactory) {
+    public MainView(RequestDelegate reqDel, IFrontendPusher pusher) {
     	 this.commandGateway = reqDel;
     	 this.pusher = pusher;
-    	 this.configFactory = configFactory;
     	setSizeFull();
         setMargin(false);
         
@@ -125,7 +123,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         header.expand(loadProcess); 
         header.setWidth("100%");
                 
-        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel, configFactory);
+        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel);
         detailsView.setVisible(false); // initially nothing to show, hence invisible, will be made visible upon selection
         grid = new WorkflowTreeGrid(commandGateway);                
         grid.initTreeGrid();        
@@ -147,13 +145,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
     private void refresh(WorkflowTreeGrid grid) {
-    		int count = commandGateway.resetAndUpdate();
+    		//int count = commandGateway.getresetAndUpdate();
     		//if (count <= 0) // otherwise there is an update called from the FrontendPusher
     		pusher.requestUpdate(getUI().get(), this); 
     }    
 
     private void reloadProcessDefinitions() {
-    	List<ProcessDefinition> defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+    	List<ProcessDefinition> defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
     			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
 				.sorted(new DefinitionComparator())
 				.collect(Collectors.toList());
@@ -194,8 +192,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             source.removeAll();
             role2IdType.clear();
             param2Field.clear();
-            for (Map.Entry<String, InstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
-            	InstanceType artT = entry.getValue();                
+            for (Map.Entry<String, PPEInstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
+            	PPEInstanceType artT = entry.getValue();                
                 String role = entry.getKey();
             	
             	HorizontalLayout inputData = new HorizontalLayout();            	
@@ -207,7 +205,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 //tf.setWidthFull();
                 tf.setMinWidth("600px");
                 tf.setLabel(role);                
-                tf.setHelperText(artT.name());
+                tf.setHelperText(artT.getName());
                 param2Field.put(role, tf);
                 inputData.add(tf);
                 
@@ -219,7 +217,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                 idTypeBox.setAllowCustomValue(false);
                 inputData.add(idTypeBox);
                 
-                if (artT.isKindOf(configFactory.getBaseType())) {
+                PPEInstanceType configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
+                if (artT.isOfTypeOrAnySubtype(configBaseType)) {
                 	// this is a configuration artifact, lets make it possible to create a config on the fly, if the users wishes so
                 	Icon createIcon = new Icon(VaadinIcon.PLUS);
                     createIcon.getStyle()
@@ -228,8 +227,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             	      .set("margin-inline-start", "var(--lumo-space-xs)")
             	      .set("padding", "var(--lumo-space-xs)");
                 	Button createConfigButton = new Button("New Config", createIcon, evt -> {
-                		Instance config = configFactory.createConfigInstance(role, artT);
-                		tf.setValue(config.id().toString());
+                		PPEInstance config = commandGateway.getProcessContext().getFactoryIndex().getProcessConfigFactory().createConfigInstance(role, artT);
+                		tf.setValue(config.getId());
                 	});     
                 	createConfigButton.getElement().getStyle().set("margin-top","37px");
                 	inputData.add(createConfigButton);
@@ -277,12 +276,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         		if (count.get() == inputs.size()) {
         			// FIXME: hack for ensuring only input that user is allowed to access can be used to instantiate a process:
         			String artId = inputs.values().iterator().next().getId();
-        			if (!commandGateway.doAllowProcessInstantiation(artId)) {
+        			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        			String authenticatedUserId = auth != null ? auth.getName() : null;
+        			if (!commandGateway.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId )) {
         				Notification.show("You are not authorized to access the artifact used as process input - unable to instantiate process.");        			
-        			} else {
-        				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        			} else {        				
         				String procName = definitionsBox.getValue().getName();
-        				String nextAllowedProc = commandGateway.isAllowedAsNextProc(procName, auth != null ? auth.getName() : null);
+        				String nextAllowedProc = commandGateway.getAclProvider().isAllowedAsNextProc(procName, authenticatedUserId);
         				if (!nextAllowedProc.equalsIgnoreCase(procName)) {
         					Notification.show("You are not authorized to instantiate this process now: "+nextAllowedProc);
         				} else {
@@ -294,9 +294,9 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         						try {
         							ProcessInstance pi = commandGateway.instantiateProcess(id, inputs, procName);
         							if (auth != null && auth.getName() != null) {
-        								pi.getInstance().addOwner(new User(auth.getName()));
+        								pi.getInstance().addOwner(auth.getName());
         							}
-        							commandGateway.getMonitor().processCreated(pi, auth != null ? auth.getName() : null);
+        							commandGateway.getUsageMonitor().processCreated(pi, auth != null ? auth.getName() : null);
         							this.getUI().get().access(() -> { 
         								Notification.show("Success");
         								splitLayout.setSplitterPosition(70);

@@ -5,7 +5,8 @@ import java.util.Collection;
 
 import com.vaadin.flow.component.UI;
 
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+
 
 public interface IFrontendPusher {
 

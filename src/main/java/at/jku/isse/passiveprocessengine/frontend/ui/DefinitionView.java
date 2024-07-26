@@ -8,12 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.springframework.security.access.method.P;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
@@ -49,24 +46,23 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.core.model.Cardinality;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.PropertyType;
-import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory;
-import at.jku.isse.passiveprocessengine.configurability.ProcessConfigBaseElementFactory.PropertySchemaDTO;
-import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.ConstraintSpec;
-import at.jku.isse.passiveprocessengine.definition.StepDefinition;
-import at.jku.isse.passiveprocessengine.definition.StepDefinition.CoreProperties;
+import at.jku.isse.passiveprocessengine.core.BuildInType;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
+import at.jku.isse.passiveprocessengine.core.ProcessContext;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.ConstraintSpec;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.DecisionNodeDefinition;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.ProcessDefinition;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.ProcessDefinitionScopedElement;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
-import at.jku.isse.passiveprocessengine.instance.StepLifecycle.Conditions;
+import at.jku.isse.passiveprocessengine.instance.factories.ProcessConfigFactory;
+import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
+import at.jku.isse.passiveprocessengine.instance.types.SpecificProcessConfigType.PropertySchemaDTO;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -76,13 +72,10 @@ import lombok.extern.slf4j.Slf4j;
 @CssImport(value="./styles/theme.css")
 @PageTitle("Process Definitions")
 @UIScope
-//@SpringComponent
 public class DefinitionView extends VerticalLayout implements HasUrlParameter<String> {
 
-    
-    protected RequestDelegate commandGateway;
-    private IFrontendPusher pusher;
-    private ProcessConfigBaseElementFactory configFactory;
+    protected final RequestDelegate commandGateway;
+    private final IFrontendPusher pusher;
 
     private Set<ProcessDefinitionScopedElement> pdefs = new HashSet<>();
     private TreeGrid<ProcessDefinitionScopedElement> grid = null;
@@ -94,10 +87,12 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private ProcessDefinition selectedP = null;
     private List<ProcessDefinition> defs = Collections.emptyList();
     private ComboBox<ProcessDefinition> comboBox;
+    private final PPEInstanceType configBaseType;
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, ProcessConfigBaseElementFactory configFactory) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
     	this.commandGateway = commandGateway;
-    	this.configFactory = configFactory;
+    	configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
+    	assert(configBaseType != null);
     	this.pusher = pusher;
     	setMargin(false);
     	setPadding(false);
@@ -146,7 +141,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         
         if (commandGateway != null ) {
         	comboBox = new ComboBox<>("Process Definitions");        	
-        	defs = commandGateway.getRegistry().getAllDefinitions(true).stream()
+        	defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
         			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown
         			.peek(pdef -> {
         				if (pdef.getName().equals(selectedProcess)) {
@@ -156,7 +151,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         			.sorted(new DefinitionComparator())
         				.collect(Collectors.toList());
         	comboBox.setItems(defs);        	
-        	comboBox.setItemLabelGenerator(pdef -> { return pdef.getName() + " (DSid: "+pdef.getInstance().id()+")"; } );
+        	comboBox.setItemLabelGenerator(pdef -> { return pdef.getName() + " (DSid: "+pdef.getInstance().getId()+")"; } );
         	comboBox.addValueChangeListener( e -> {
         		pdefs.clear();
         		pdefs.add(e.getValue());
@@ -262,28 +257,6 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         	l.add(h);
         }		
 	}
-	
-//	private void addConditionsTable(VerticalLayout l, StepDefinition step) {
-//		
-//		Grid<AbstractMap.SimpleEntry<Conditions,String>> grid = new Grid<AbstractMap.SimpleEntry<Conditions,String>>();
-//		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-//    	grid.setColumnReorderingAllowed(false);
-//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader("Constraint Type").setResizable(true).setWidth("150px").setFlexGrow(0);
-//    	Grid.Column<AbstractMap.SimpleEntry<Conditions,String>> valueColumn = grid.addComponentColumn(p -> createValueRenderer(p.getValue())).setHeader("Constraint").setResizable(true);
-//    	Map<String, Object> prop = (Map<String, Object>) step.getInstance().getProperty(CoreProperties.conditions.toString()).getValue();
-//    	List<AbstractMap.SimpleEntry<Conditions,String>> entries = prop.entrySet().stream()
-//    			.map(entry -> new AbstractMap.SimpleEntry<Conditions,String>(Conditions.valueOf(entry.getKey()), Objects.toString(entry.getValue())) )
-//    			.sorted(new Comparator<AbstractMap.SimpleEntry<Conditions, String>>(){
-//    				@Override
-//    				public int compare(AbstractMap.SimpleEntry<Conditions,String> o1, AbstractMap.SimpleEntry<Conditions,String> o2) {
-//    					return Integer.compare(o1.getKey().ordinal(), o2.getKey().ordinal());
-//					}})
-//    			.collect(Collectors.toList()); 
-//    	grid.setItems(entries);
-//    	grid.setAllRowsVisible(true);    
-//    	grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-//    	l.add(grid);
-//	}
     
 	private void addConstraintTable(VerticalLayout l, String prefix, Set<ConstraintSpec> constraints) {
 		
@@ -335,18 +308,18 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		return p;	
     }
         
-    private void addParams(VerticalLayout l, Map<String, InstanceType> stepParams, String title) {
-    	Grid<Map.Entry<String, InstanceType>> grid = new Grid<Map.Entry<String, InstanceType>>();
+    private void addParams(VerticalLayout l, Map<String, PPEInstanceType> stepParams, String title) {
+    	Grid<Map.Entry<String, PPEInstanceType>> grid = new Grid<Map.Entry<String, PPEInstanceType>>();
     	grid.setColumnReorderingAllowed(false);
-    	Grid.Column<Map.Entry<String, InstanceType>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader(title).setResizable(true);
-    	Grid.Column<Map.Entry<String, InstanceType>> valueColumn = grid.addColumn(createTypeRenderer()).setHeader("Type").setResizable(true);    	
+    	Grid.Column<Map.Entry<String, PPEInstanceType>> nameColumn = grid.addColumn(p -> p.getKey()).setHeader(title).setResizable(true);
+    	Grid.Column<Map.Entry<String, PPEInstanceType>> valueColumn = grid.addColumn(createTypeRenderer()).setHeader("Type").setResizable(true);    	
     	if (stepParams.isEmpty()) {
-    		grid.setItems(List.of(new AbstractMap.SimpleEntry<String, InstanceType>("None", null)));
+    		grid.setItems(List.of(new AbstractMap.SimpleEntry<String, PPEInstanceType>("None", null)));
     	} else {
     		grid.setItems(stepParams.entrySet().stream()
-    				.sorted(new Comparator<Map.Entry<String, InstanceType>>() {
+    				.sorted(new Comparator<Map.Entry<String, PPEInstanceType>>() {
 						@Override
-						public int compare(Entry<String, InstanceType> o1, Entry<String, InstanceType> o2) {
+						public int compare(Entry<String, PPEInstanceType> o1, Entry<String, PPEInstanceType> o2) {
 							return o1.getKey().compareTo(o2.getKey());							
 						}    					
     				}) 
@@ -359,7 +332,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     }
     
     private void addDeleteButtonIfTopLevelProcess(VerticalLayout l, StepDefinition step) {
-    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
+    	if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUiConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess    		
     		Icon delIcon = new Icon(VaadinIcon.TRASH);
             delIcon.setColor("red");
             delIcon.getStyle()
@@ -370,10 +343,10 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 
             Button deleteBtn = new Button("Delete Process Definition and process instances thereof", delIcon, e -> {            	
             	log.info("Deleting process definiton: "+step.getName());
-            	Map<String, Map<String, Set<Instance>>> formerInputs = commandGateway.getRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
+            	Map<String, Map<String, Set<PPEInstance>>> formerInputs = commandGateway.getProcessRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
             	log.info(String.format("Deleted %s running process instance(s)", formerInputs.size()));
             	formerInputs.keySet().forEach(id -> pusher.remove(id));
-            	commandGateway.getRegistry().removeProcessDefinition(step.getName());
+            	commandGateway.getProcessRegistry().removeProcessDefinition(step.getName());
             	log.info("Deleted process definition: "+step.getName());
             	this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
             });
@@ -383,15 +356,15 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     }
     
 	private void addConfigViewIfTopLevelProcess(VerticalLayout detailsContent2, StepDefinition step) {		
-		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUIConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
+		if (step instanceof ProcessDefinition && step.getProcess() == null && !commandGateway.getUiConfig().isExperimentModeEnabled()) { // only a toplevel process has no ProcessDefinitio returned via getProcess 
 			// see if a config is foreseen
 			step.getExpectedInput().entrySet().stream()
-			.filter(entry -> entry.getValue().isKindOf(configFactory.getBaseType()))
+			.filter(entry -> entry.getValue().isOfTypeOrAnySubtype(configBaseType))
 			.forEach(configEntry -> {
-				InstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
+				PPEInstanceType procConfig = configEntry.getValue();//configFactory.getOrCreateProcessSpecificSubtype(configEntry.getKey(), (ProcessDefinition) step);		
 				
-				Set<PropertyType> pTypes = procConfig.getPropertyTypes(false, true);
-				ListDataProvider<PropertyType> dataProvider = new ListDataProvider<>(pTypes);
+				Set<PPEPropertyType> pTypes = procConfig.getPropertyNamesIncludingSuperClasses().stream().map(propName -> procConfig.getPropertyType(propName)).collect(Collectors.toSet());
+				ListDataProvider<PPEPropertyType> dataProvider = new ListDataProvider<>(pTypes);
 				detailsContent2.add(new Label(String.format("'%s' configuration properties:",configEntry.getKey())));
 				detailsContent2.add(propertyTypesAsList(dataProvider));
 				
@@ -403,7 +376,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		}
 	}
 	
-	private Component propertyAddControls(ListDataProvider<PropertyType> dataProvider, InstanceType configType) {				
+	private Component propertyAddControls(ListDataProvider<PPEPropertyType> dataProvider, PPEInstanceType configType) {				
 		TextField nameField = new TextField();		
 		nameField.setLabel("Property Name");
 		nameField.setPattern("^[a-zA-Z0-9_]+$");
@@ -419,12 +392,12 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 			$ : end of string
 		 * */
 		nameField.setPreventInvalidInput(true);
-		ComboBox<InstanceType> types = new ComboBox<>("Property Type");
-		types.setItems(Workspace.STRING, Workspace.BOOLEAN, Workspace.DATE, Workspace.INTEGER, Workspace.REAL);
-		types.setValue(Workspace.BOOLEAN);
-		ComboBox<Cardinality> cardinalities = new ComboBox<>("Cardinality");
-		cardinalities.setItems(Cardinality.values());
-		cardinalities.setValue(Cardinality.SINGLE);
+		ComboBox<PPEInstanceType> types = new ComboBox<>("Property Type");
+		types.setItems(BuildInType.STRING, BuildInType.BOOLEAN, BuildInType.DATE, BuildInType.INTEGER, BuildInType.FLOAT);
+		types.setValue(BuildInType.BOOLEAN);
+		ComboBox<CARDINALITIES> cardinalities = new ComboBox<>("Cardinality");
+		cardinalities.setItems(CARDINALITIES.values());
+		cardinalities.setValue(CARDINALITIES.SINGLE);
 		Icon addIcon = new Icon(VaadinIcon.PLUS);
         addIcon.getStyle()
 	      .set("box-sizing", "border-box")
@@ -434,12 +407,13 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		Button createButton = new Button("Create Property", addIcon, evt -> {
 			if (!nameField.isInvalid()) {
 				String name = nameField.getValue().trim();				
-				PropertySchemaDTO dto = new PropertySchemaDTO(name, types.getValue().name(), cardinalities.getValue().toString());
-				Map<PropertySchemaDTO, Boolean> result = configFactory.augmentConfig(Set.of(dto), configType);
-				if (result.get(dto) == true) {
+				PropertySchemaDTO dto = new PropertySchemaDTO(name, types.getValue().getName(), cardinalities.getValue().toString());
+				ProcessContext ctx = commandGateway.getProcessContext();
+				boolean result = dto.addPropertyToType(configType, ctx.getSchemaRegistry(), ctx.getSchemaRegistry(), ctx.getFactoryIndex().getRuleDefinitionFactory());
+				if (result == true) {
 					Notification.show("Successfully added property "+name);
-					configType.workspace.concludeTransaction();
-					Set<PropertyType> pTypes = configType.getPropertyTypes(false, true);
+					commandGateway.getProcessContext().getInstanceRepository().concludeTransaction();
+					Set<PPEPropertyType> pTypes = configType.getPropertyNamesIncludingSuperClasses().stream().map(propName -> configType.getPropertyType(propName)).collect(Collectors.toSet());
 					dataProvider.getItems().clear();
 					dataProvider.getItems().addAll(pTypes);
 					dataProvider.refreshAll();
@@ -457,23 +431,23 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		return l;
 	}
 	
-	private Component propertyTypesAsList(ListDataProvider<PropertyType> dataProvider) {		
-		Grid<PropertyType> grid = new Grid<PropertyType>();
+	private Component propertyTypesAsList(ListDataProvider<PPEPropertyType> dataProvider) {		
+		Grid<PPEPropertyType> grid = new Grid<PPEPropertyType>();
 		grid.setColumnReorderingAllowed(false);
-		Grid.Column<PropertyType> nameColumn = grid.addColumn(p -> p.name()).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
-		Grid.Column<PropertyType> typeColumn = grid.addColumn(p -> p.nativeType()).setHeader("Type").setResizable(true);
-		Grid.Column<PropertyType> cardinalityColumn = grid.addColumn(p -> p.cardinality().toString() ).setHeader("Cardinality").setResizable(true);
+		Grid.Column<PPEPropertyType> nameColumn = grid.addColumn(p -> p.getName()).setHeader("Property").setWidth("300px").setResizable(true).setSortable(true).setFlexGrow(0);
+		Grid.Column<PPEPropertyType> typeColumn = grid.addColumn(p -> p.getInstanceType()).setHeader("Type").setResizable(true);
+		Grid.Column<PPEPropertyType> cardinalityColumn = grid.addColumn(p -> p.getCardinality().toString() ).setHeader("Cardinality").setResizable(true);
 		grid.setDataProvider(dataProvider);
 		grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 		grid.setAllRowsVisible(true);		
 		return grid;
 	}
     
-	private static ComponentRenderer<Span, Map.Entry<String, InstanceType>> createTypeRenderer() {
+	private static ComponentRenderer<Span, Map.Entry<String, PPEInstanceType>> createTypeRenderer() {
     	return new ComponentRenderer<>(Span::new, type2Component);
     }
     
-    private static final SerializableBiConsumer<Span, Map.Entry<String, InstanceType>> type2Component = (span, obj) -> {
+    private static final SerializableBiConsumer<Span, Map.Entry<String, PPEInstanceType>> type2Component = (span, obj) -> {
     	if (obj.getValue() != null) {
     		span.add(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));
     		//Paragraph p =  new Paragraph(ComponentUtils.convertToResourceLinkWithBlankTarget(obj.getValue()));		
@@ -589,7 +563,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     	scopeMembers.addAll(subscopeDnds);    	
     	scopeMembers.sort(new PDSEComparator());
     	
-    	SequenceSubscopeDecisionNodeDefinition subDND = new SequenceSubscopeDecisionNodeDefinition(parentDND.getInstance(), scopeMembers);
+    	SequenceSubscopeDecisionNodeDefinition subDND = new SequenceSubscopeDecisionNodeDefinition(parentDND.getInstance(), scopeMembers, commandGateway.getProcessContext());
     	return subDND;
     }
     
@@ -647,8 +621,8 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 
     	private List<ProcessDefinitionScopedElement> scope;
     	
-		public SequenceSubscopeDecisionNodeDefinition(Instance instance, List<ProcessDefinitionScopedElement> scope) {
-			super(instance);
+		public SequenceSubscopeDecisionNodeDefinition(PPEInstance instance, List<ProcessDefinitionScopedElement> scope, ProcessContext context) {
+			super(instance, context);
 			this.scope = scope;			
 		}
 		
@@ -665,7 +639,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private static class DummySpec extends ConstraintSpec {
     	
     	protected DummySpec() {
-    		super(null);
+    		super(null, null);
     	}
 
 		@Override
@@ -689,11 +663,6 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		}
 
 		@Override
-		public String getId() {
-			return "-1";
-		}
-
-		@Override
 		public String getName() {
 			return "";
 		}
@@ -704,7 +673,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		}
 
 		@Override
-		public void deleteCascading(ProcessConfigBaseElementFactory configFactory) {
+		public void deleteCascading() {
 			;
 		}    	
 		

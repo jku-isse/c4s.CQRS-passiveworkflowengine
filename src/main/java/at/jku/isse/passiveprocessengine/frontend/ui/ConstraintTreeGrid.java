@@ -1,20 +1,16 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -24,9 +20,7 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.evaluator.RotationNode;
 import at.jku.isse.designspace.rule.arl.expressions.AsTypeExpression;
@@ -37,13 +31,12 @@ import at.jku.isse.designspace.rule.arl.expressions.LiteralExpression;
 import at.jku.isse.designspace.rule.arl.expressions.OperationCallExpression;
 import at.jku.isse.designspace.rule.arl.expressions.TypeExpression;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
-import at.jku.isse.designspace.rule.arl.repair.RepairAction;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
-import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.RepairVisualizationUtil.ReloadIconProvider;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -131,8 +124,8 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			String shortConstr = constraint;		
 			if (constraint.startsWith(parentConstr)) 
 				shortConstr = shortConstr.substring(parentConstr.length());
-			Span para = new Span(shortConstr.trim());
-			//Span para = new Span(rNode.getNode().expression.getLocalARL());
+			//Span para = new Span(shortConstr.trim());
+			Span para = new Span(rNode.getNode().expression.getLocalARL());
 			para.setTitle(shortConstr.trim());
 			para.getStyle().set("white-space", "pre");
 			return para;
@@ -161,7 +154,7 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 					span.add(collectionValueToComponent((Collection) expl));
 				} 
 				else if (rNode.getNode().getRepairs().isEmpty()) {
-						span.add(singleValueToComponent(expl));
+						span.add(repairViz.singleRepairValueToComponent(expl));
 				}	
 		}
 		if (doShowRepairs) {
@@ -179,11 +172,11 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		}
 	}
     
-	private static ComponentRenderer<Span, RotationNode> createDefaultValueRenderer() {
+	private ComponentRenderer<Span, RotationNode> createDefaultValueRenderer() {
     	return new ComponentRenderer<>(Span::new, defaultBiConsumer);
     }
     
-	private static final SerializableBiConsumer<Span, RotationNode> defaultBiConsumer = (span, rNode) -> {
+	private final SerializableBiConsumer<Span, RotationNode> defaultBiConsumer = (span, rNode) -> {
 			Object expl = rNode.getNode().expression.explain(rNode.getNode());					
 			if (expl instanceof Map) {				
 				span.add(String.format("having %s entries", ((Map)expl).size()));
@@ -191,33 +184,22 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			else  if (expl instanceof Collection) {
 				span.add(String.format("having %s entries", ((Collection)expl).size()));
 			} 
-			else span.add(singleValueToComponent(expl));
+			else span.add(repairViz.singleRepairValueToComponent(expl));
 		
     }; 
     
-    private static Component singleValueToComponent(Object value) {
-    	if (value instanceof Instance) {
-    		Instance inst = (Instance)value;
-    		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
-    	} else if (value instanceof InstanceType) {
-        		InstanceType inst = (InstanceType)value;
-        		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
-        } else
-    	return new Span(Objects.toString(value));
-    }
-    
-    private static Component collectionValueToComponent(Collection value) {
+    private Component collectionValueToComponent(Collection value) {
     	if (value == null || value.size() == 0)	
     		return new Span( "[ ]");
     	else if (value.size() == 1)
-    		return singleValueToComponent(value.iterator().next());
+    		return repairViz.singleRepairValueToComponent(value.iterator().next());
     	else {    		
     		VerticalLayout vLayout = new VerticalLayout();
     		vLayout.setPadding(false);
     		vLayout.setMargin(false);
     		//UnorderedList list = new UnorderedList();    		
     		//list.setClassName("no-padding");
-    		value.stream().forEach(val -> vLayout.add(singleValueToComponent(val)));
+    		value.stream().forEach(val -> vLayout.add(repairViz.singleRepairValueToComponent(val)));
     		//if (value instanceof Set) // we sort the entries in the set for easier readability, for lists, we maintain the list order
     		//	list.
     		//vLayout.add(list);
@@ -310,22 +292,10 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 		}
 	}
 	
-//	private Stream<RotationNode> getChildElements(RotationNode rn) {
-//		return Stream.concat(
-//				rn.getLhs().stream()
-//				.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-//				.filter(node -> node.getNode() != null) 
-//				,
-//				rn.getRhs().stream()
-//				.filter(node -> node.getNode() != null) 
-//				.filter(node -> !(node.getNode().expression instanceof LiteralExpression))
-//
-//				);
-//	}
 	
 	
-	public Component getReloadIcon(Instance inst) {
-		if (inst == null || !reqDel.getUIConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
+	public Component getReloadIcon(PPEInstance inst) {
+		if (inst == null || !reqDel.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()) return new Span("");
         Icon icon = new Icon(VaadinIcon.REFRESH);
 		icon.getStyle().set("cursor", "pointer");
         icon.getElement().setProperty("title", "Refetch Artifact");
@@ -333,11 +303,11 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
         	ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
         	new Thread(() -> { 
         		try {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
         			reqDel.getArtifactResolver().get(ai, true);
-        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.name())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
         		} catch (ProcessException e1) {
-        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.name(), e1.getMainMessage())));
+        			this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
         		}}
         			).start();
         });
@@ -365,46 +335,5 @@ public class ConstraintTreeGrid extends TreeGrid<RotationNode> implements Reload
 			return true;
 	}
 	
-//	public static class RotationOrRepair {
-//		RotationNode rNode = null;
-//		AbstractRepairAction repair = null;
-//		
-//		RotationOrRepair(RotationNode rNode) {
-//			this.rNode = rNode;
-//			this.repair = null;
-//		}
-//		
-//		RotationOrRepair(AbstractRepairAction repair) {
-//			this.rNode = null;
-//			this.repair = repair;
-//		}
-//		
-//		boolean hasRotation() {
-//			return this.rNode != null;
-//		}
-//		
-//		boolean hasRepair() {
-//			return this.repair != null;
-//		}
-//		
-//		public RotationNode getRotationNode() {
-//			return rNode;
-//		}
-//		
-//		public AbstractRepairAction getRepairAction() {
-//			return repair;
-//		}
-//		
-//		public boolean shouldIndent() {
-//			if (this.hasRepair()) return true;
-//			if (this.rNode.getParent() == null || this.rNode.getParent().equals(RotationNode.ROOTROTATION)) { 
-//				return false;
-//			}
-//			if (rNode.isCollectionOrCombinationNode() || this.rNode.getParent().isCollectionOrCombinationNode()) {
-//				return true;
-//			}
-//			return false;
-//		}				
-//	}
 	
 }

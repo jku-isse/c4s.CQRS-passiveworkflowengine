@@ -1,34 +1,21 @@
 package at.jku.isse.passiveprocessengine.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import at.jku.isse.designspace.artifactconnector.core.artifactapi.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.service.WorkspaceService;
-import at.jku.isse.designspace.jama.service.IJamaService.JamaIdentifiers;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
-import at.jku.isse.passiveprocessengine.instance.ProcessException;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
 import at.jku.isse.passiveprocessengine.monitoring.ProcessQAStatsMonitor;
-import at.jku.isse.passiveprocessengine.monitoring.RepairAnalyzer;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class JamaProcessTests {
 
-	@Autowired
-	WorkspaceService workspaceService;
+
 	
 	@Autowired
 	RequestDelegate reqDelegate;
@@ -39,8 +26,6 @@ class JamaProcessTests {
 	@Autowired
 	ArtifactResolver artRes;
 	
-	@Autowired
-	RepairAnalyzer repairanalyzer;
 	
 	@Autowired
 	ProcessQAStatsMonitor qastats;

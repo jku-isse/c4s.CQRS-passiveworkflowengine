@@ -18,6 +18,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.google.common.collect.Lists;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -30,22 +33,22 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.rule.arl.repair.RepairNode;
-import at.jku.isse.passiveprocessengine.ProcessDefinitionScopedElement;
-import at.jku.isse.passiveprocessengine.ProcessInstanceScopedElement;
-import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition;
-import at.jku.isse.passiveprocessengine.definition.ProcessDefinition;
-import at.jku.isse.passiveprocessengine.definition.StepDefinition;
-import at.jku.isse.passiveprocessengine.definition.DecisionNodeDefinition.InFlowType;
+import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.core.ProcessContext;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.DecisionNodeDefinition;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.DecisionNodeDefinition.InFlowType;
+import at.jku.isse.passiveprocessengine.definition.activeobjects.StepDefinition;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.StepLifecycleStateMapper;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
-import at.jku.isse.passiveprocessengine.instance.ConstraintWrapper;
-import at.jku.isse.passiveprocessengine.instance.DecisionNodeInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessInstance;
-import at.jku.isse.passiveprocessengine.instance.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.StepLifecycle.State;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ConstraintResultWrapper;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.DecisionNodeInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstanceScopedElement;
+import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
+import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -79,7 +82,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         idFilter = "";
 //        propertiesFilter = new HashMap<>();
 //        propertiesFilter.put("", ""); // default filter
-        this.conf = f.getUIConfig();
+        this.conf = f.getUiConfig();
       
         //this.setHeightByRows(true);
         this.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -106,9 +109,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			Span span = new Span(icon, new Span(wft.getDefinition().getName()));                    
             	span.getElement().setProperty("title", wft.getDefinition().getName());
             	return span;
-            } else if (o instanceof ConstraintWrapper) {
-                ConstraintWrapper rebc = (ConstraintWrapper) o;
-                String title = rebc.getSpec().getHumanReadableDescription() != null ? rebc.getSpec().getHumanReadableDescription() : rebc.getSpec().getName();
+            } else if (o instanceof ConstraintResultWrapper) {
+                ConstraintResultWrapper rebc = (ConstraintResultWrapper) o;
+                String title = rebc.getConstraintSpec().getHumanReadableDescription() != null ? rebc.getConstraintSpec().getHumanReadableDescription() : rebc.getConstraintSpec().getName();
                 Icon icon = DefinitionView.createIcon(VaadinIcon.CLIPBOARD_CHECK) ;
                 Span span = new Span(icon, new Span(title));
                 span.getElement().setProperty("title", rebc.getName());
@@ -147,8 +150,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         			}
         		} 
         	}
-        	if (o instanceof ConstraintWrapper) {
-                ConstraintWrapper rebc = (ConstraintWrapper) o;
+        	if (o instanceof ConstraintResultWrapper) {
+                ConstraintResultWrapper rebc = (ConstraintResultWrapper) o;
                 try {
                     return formatter.format(rebc.getLastChanged());
                 } catch (DateTimeException e) {
@@ -177,9 +180,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         	if (o instanceof ProcessInstance) {
         		ProcessInstance wfi = (ProcessInstance)o;
         		boolean unsatisfied = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> !wft.areConstraintsFulfilled(ProcessStep.CoreProperties.qaState.toString()));
+                        .anyMatch(wft -> !wft.areConstraintsFulfilled(AbstractProcessStepType.CoreProperties.qaState.toString()));
                 boolean fulfilled = wfi.getProcessSteps().stream()
-                        .anyMatch(wft -> wft.areConstraintsFulfilled(ProcessStep.CoreProperties.qaState.toString()));
+                        .anyMatch(wft -> wft.areConstraintsFulfilled(AbstractProcessStepType.CoreProperties.qaState.toString()));
                Icon icon = getIcon(unsatisfied, fulfilled, wfi.getProcessSteps().size());
                icon.setColor("grey");
                return icon;                              
@@ -192,9 +195,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                Icon icon = getIcon(unsatisfied, fulfilled, wft.getDefinition().getQAConstraints().size());
            	   icon.setColor("grey");
                return icon;
-            } else if (o instanceof ConstraintWrapper) {
-            	return getQAIcon((ConstraintWrapper)o);
-                //return infoDialog((ConstraintWrapper)o);
+            } else if (o instanceof ConstraintResultWrapper) {
+            	return getQAIcon((ConstraintResultWrapper)o);
+                //return infoDialog((ConstraintResultWrapper)o);
             } else {
                 return new Label("");
             }
@@ -205,8 +208,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //        		return infoDialog((ProcessInstance)o);                          
 //            } else if (o instanceof ProcessStep) {
 //            	return infoDialog((ProcessStep)o);
-//            } else if (o instanceof ConstraintWrapper) {
-//            	return infoDialog((ConstraintWrapper)o);
+//            } else if (o instanceof ConstraintResultWrapper) {
+//            	return infoDialog((ConstraintResultWrapper)o);
 //            } else {
 //                return new Label("");
 //            }
@@ -286,9 +289,9 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         return icon;
     }
     
-    public static Icon getQAIcon(ConstraintWrapper rebc) {
+    public static Icon getQAIcon(ConstraintResultWrapper rebc) {
     	Icon icon;
-        if (rebc.getCr() == null) {
+        if (rebc.getInstance() == null) {
             icon = new Icon(VaadinIcon.QUESTION_CIRCLE);
             icon.setColor("orange");
         } else if (rebc.getEvalResult()) {
@@ -331,8 +334,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     
     private boolean doHaveAccessRight(ProcessInstance wfi)  { 
   		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
-  		String artId = (String)wfi.getInput(inParam).iterator().next().getPropertyAsValue("id");
-  		boolean authorized = reqDel.doAllowProcessInstantiation(artId);
+  		String artId = wfi.getInput(inParam).iterator().next().getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
+  		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String authenticatedUserId = auth != null ? auth.getName() : null;
+  		boolean authorized = reqDel.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId);
   		return authorized;
  	 };
     
@@ -355,7 +360,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
         			|| (wfi.getName() != null && wfi.getName().startsWith(nameFilter))) 
         		&& 
         		( idFilter.equals("") 
-        				|| wfi.getInstance().id().toString().equals(idFilter)		
+        				|| wfi.getInstance().getId().toString().equals(idFilter)		
         		)
         	);// &&
          //       ( wfi.getPropertiesReadOnly().size() == 0 || wfi.getPropertiesReadOnly().stream()
@@ -372,7 +377,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
                 o -> {
                     if (o instanceof ProcessInstance) {
                         ProcessInstance wfi = (ProcessInstance) o;
-                        if (wfi.getInstance().id().toString().equals(focusedElementId))
+                        if (wfi.getInstance().getId().toString().equals(focusedElementId))
                         	this.focusedElement = wfi;
                         return getChildElementsFromProcess(wfi);
 //                        return wfi.getProcessSteps().stream()
@@ -380,12 +385,12 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
 //                        		.map(wft -> (ProcessInstanceScopedElement) wft);
                     } else if (o instanceof ProcessStep) {
                         ProcessStep wft = (ProcessStep) o;
-                        if (wft.getInstance().id().toString().equals(focusedElementId))
+                        if (wft.getInstance().getId().toString().equals(focusedElementId))
                         	this.focusedElement = wft;
-                        return wft.getQAstatus().stream().sorted(new ConstraintWrapperComparator()).map(x -> (ConstraintWrapper)x);
-                    } else if (o instanceof ConstraintWrapper) { 
-                    	ConstraintWrapper cw = (ConstraintWrapper) o;
-                    	if (cw.getInstance().id().toString().equals(focusedElementId)) {
+                        return wft.getQAstatus().stream().sorted(new ConstraintResultWrapperComparator()).map(x -> (ConstraintResultWrapper)x);
+                    } else if (o instanceof ConstraintResultWrapper) { 
+                    	ConstraintResultWrapper cw = (ConstraintResultWrapper) o;
+                    	if (cw.getInstance().getId().toString().equals(focusedElementId)) {
                         	this.focusedElement = cw;                        
                     	}
                     	return Stream.empty();
@@ -479,7 +484,7 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	scopeMembers.addAll(subscopeDnds);    	
     	scopeMembers.sort(new PDSEComparator());
     	
-    	SequenceSubscopeDecisionNodeInstance subDND = new SequenceSubscopeDecisionNodeInstance(parentDND.getInstance(), parentDND.getDefinition(), scopeMembers);
+    	SequenceSubscopeDecisionNodeInstance subDND = new SequenceSubscopeDecisionNodeInstance(parentDND.getInstance(), parentDND.getDefinition(), scopeMembers, reqDel.getProcessContext());
     	return subDND;
     }
     
@@ -503,10 +508,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     			.sorted(new PDSEComparator());
     }
     
-    private static class ConstraintWrapperComparator implements Comparator<ConstraintWrapper> {
+    private static class ConstraintResultWrapperComparator implements Comparator<ConstraintResultWrapper> {
 		@Override
-		public int compare(ConstraintWrapper o1, ConstraintWrapper o2) {
-			return o1.getSpec().getOrderIndex().compareTo(o2.getSpec().getOrderIndex());
+		public int compare(ConstraintResultWrapper o1, ConstraintResultWrapper o2) {
+			return o1.getConstraintSpec().getOrderIndex().compareTo(o2.getConstraintSpec().getOrderIndex());
 		}
     }
     
@@ -524,8 +529,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	stack.add(focusedElement);
     	if (focusedElement instanceof ProcessStep)
     		stack.addAll(expandElementStack(focusedElement.getProcess()));
-    	else if (focusedElement instanceof ConstraintWrapper)
-    		stack.addAll(expandElementStack(((ConstraintWrapper) focusedElement).getParentStep()));
+    	else if (focusedElement instanceof ConstraintResultWrapper)
+    		stack.addAll(expandElementStack(((ConstraintResultWrapper) focusedElement).getParentStep()));
     	return stack;
     }
     
@@ -548,8 +553,8 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     	private List<ProcessInstanceScopedElement> scope;
     	private DecisionNodeDefinition def;
     	
-		public SequenceSubscopeDecisionNodeInstance(Instance instance, DecisionNodeDefinition def, List<ProcessInstanceScopedElement> scope) {
-			super(instance);
+		public SequenceSubscopeDecisionNodeInstance(PPEInstance instance, DecisionNodeDefinition def, List<ProcessInstanceScopedElement> scope, ProcessContext context) {
+			super(instance, context);
 			this.scope = scope;			
 			this.def = def;
 		}

@@ -40,19 +40,20 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.core.model.InstanceType;
+import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
-import at.jku.isse.designspace.rule.service.RuleService;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
+import at.jku.isse.passiveprocessengine.core.RuleEvaluationService.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotRequest;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotResult;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator;
-import at.jku.isse.passiveprocessengine.frontend.rule.ARLPlaygroundEvaluator.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,10 +76,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	final private ConstraintTreeGrid evalTree;
 	final private TextArea errorResultArea = new TextArea();
 	final private TextArea arlArea = new TextArea();
-	final private ComboBox<InstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type (rule starting point/context)");
+	final private ComboBox<PPEInstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type (rule starting point/context)");
 
 	private OCLBot oclBot;
-	private InstanceType lastUsedContext = null;
+	private PPEInstanceType lastUsedContext = null;
 	private BotResult lastResult = null;
 	private Checkbox checkboxUseRule = new Checkbox(false);
 	private Checkbox checkboxFetchIncomplete = new Checkbox(false);
@@ -88,12 +89,12 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private Button runButton = new Button("Execute OCL/ARL constraint");
 	// adapted from: https://github.com/samie/vaadin-openai-chat/blob/main/src/main/java/com/example/application/views/helloworld/ChatView.java
 	// https://vaadin.com/blog/building-a-chatbot-in-vaadin-with-openai
-
+	
 	private String user;
 	
 	public ARLPlaygroundView(RequestDelegate commandGateway, OCLBot oclBot, SecurityService securityService) {
 		this.commandGateway = commandGateway;
-		this.oclBot = oclBot;
+		this.oclBot = oclBot;		
 		//       setSizeFull();
 		setMargin(false);
 		//  setPadding(false);
@@ -102,9 +103,9 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		user = securityService.getAuthenticatedUser() != null ? securityService.getAuthenticatedUser().getUsername() : "user";
 	}
 
-
-
-
+//	private void statePanel() {
+//		this.add(new Span("Currently Not available"));
+//	}
 	private void statePanel() {
 		VerticalLayout layout = this; // new VerticalLayout();
 
@@ -112,7 +113,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		Component arl = getARLEditorComponent();
 		Component bot = getBotSupportComponent();
 		SplitLayout splitLayout = new SplitLayout(arl, bot);
-		if (commandGateway.getUIConfig().isARLBotSupportEnabled()) {
+		if (commandGateway.getUiConfig().isARLBotSupportEnabled()) {
 			splitLayout.setSplitterPosition(70);	
 		} else {
 			splitLayout.setSplitterPosition(100);
@@ -137,7 +138,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		layout.add(splitLayout, errorResultArea, grid);
 		this.setAlignSelf(Alignment.STRETCH, splitLayout);
 	}
-
+//
 	@Override
 	public void beforeLeave(BeforeLeaveEvent event) {
 		if (!arlArea.isEmpty()) {
@@ -178,12 +179,12 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private Component getARLEditorComponent() {
 		VerticalLayout layout = new VerticalLayout();
 		// field to provide context: instance type
-		List<InstanceType> instTypes = commandGateway.getWorkspace().debugInstanceTypes().stream()
-				.filter(iType -> !iType.isDeleted)
+		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()
+				//.filter(iType -> !iType.isDeleted)
 				.sorted(new InstanceTypeComparator())
 				.collect(Collectors.toList());
 		instanceTypeComboBox.setItems(instTypes);
-		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.name(), iType.id().toString(), iType.getQualifiedName()));
+		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.getName(), iType.getId().toString(), iType.getName()));
 		instanceTypeComboBox.setWidthFull();
 		//instanceTypeComboBox.setMinWidth("100px");
 		layout.add(instanceTypeComboBox);
@@ -211,7 +212,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			if (!checkboxLimitToFetched.getValue()) {
 				return true;
 			} else {
-				return InstanceView.isFullyFetched(pe.getInstance());
+				return InstanceView.isFullyFetched(pe.getContextInstance());
 			}
 		}
 				);  
@@ -237,7 +238,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return layout;
 	}
 	
-	private void triggerEvaluation(InstanceType context, String rule, boolean doFetchIncomplete) {
+	private void triggerEvaluation(PPEInstanceType context, String rule, boolean doFetchIncomplete) {
 		errorResultArea.setVisible(false);
 		//grid.setItems(Collections.emptySet());
 		result.clear();
@@ -251,17 +252,15 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 							this.getUI().get().access(() ->Notification.show("Constraint encountered lazy loaded artifact, fetching artifact and reevaluating constraint ..."));
 							commandGateway.getProcessChangeListenerWrapper().batchFetchLazyLoaded();
 						}
-						evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-								context,
-								"constraintplaygroundrule_"+counter.getAndIncrement(), 
-								rule, false);
+						evalResult = commandGateway.getRuleEvaluationService().evaluateTransientRule( 
+								context,								
+								rule);
 					} while (commandGateway.getProcessChangeListenerWrapper().foundLazyLoaded());
 
 				} else {
-					evalResult = ARLPlaygroundEvaluator.evaluateRule(commandGateway.getWorkspace(), 
-							context,
-							"constraintplaygroundrule_"+counter.getAndIncrement(), 
-							rule, false);
+					evalResult = commandGateway.getRuleEvaluationService().evaluateTransientRule( 
+							context,								
+							rule);
 				}
 
 				this.getUI().get().access(() ->Notification.show("Constraint evaluated successfully."));
@@ -279,7 +278,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 						dataProvider.refreshAll(); 
 					});
 				}
-			} catch (ProcessException e) {
+			} catch (Exception e) {
 				this.getUI().get().access(() -> {
 					errorResultArea.setVisible(true);
 					errorResultArea.setValue(e.getMessage());        						
@@ -368,7 +367,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private BotRequest augmentInputPrompt(String userRequest) {
 		BotRequest request = null;
 		String existingRule = checkboxUseRule.getValue() ? arlArea.getValue().trim() : null; // whether to include rule as basis for refinement
-		Optional<InstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
+		Optional<PPEInstanceType> ctxType = instanceTypeComboBox.getOptionalValue();
 		if (ctxType.isPresent()) {			
 			String schema = getChangedOrNullSchemaAndReset(ctxType.get());
 			request = new BotRequest(Instant.now(), user, userRequest, ctxType.get(), schema, existingRule );
@@ -379,9 +378,9 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return request;
 	}
 
-	private String getChangedOrNullSchemaAndReset(InstanceType currentSelectedContextType) {
+	private String getChangedOrNullSchemaAndReset(PPEInstanceType currentSelectedContextType) {
 		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType)) {
-			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor();
+			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor(commandGateway.getProcessContext().getSchemaRegistry());
 			String schema = extractor.getSchemaForInstanceTypeAndOneHop(currentSelectedContextType, false).values().stream()  // for now, TODO: differentiate between steps and not, and whether to get subtypes
 					.collect(Collectors.joining("\r\n"));
 			lastUsedContext = currentSelectedContextType;
@@ -398,10 +397,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	
 	
 	private Component resultEntryToInstanceLink(ResultEntry rge) {
-		if (InstanceView.isFullyFetched(rge.getInstance())) {
-			return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()));
+		if (InstanceView.isFullyFetched(rge.getContextInstance())) {
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()));
 		} else {
-			return new Paragraph(new Anchor("/instance/"+rge.getInstance().id(), rge.getInstance().name()+" (not fully fetched)"));
+			return new Paragraph(new Anchor(ComponentUtils.getBaseUrl()+"/instance/"+rge.getContextInstance().getId(), rge.getContextInstance().getName()+" (not fully fetched)"));
 		}
 	}      
 
@@ -411,7 +410,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			Dialog dialog = new Dialog();
 			dialog.setWidth("80%");
 			dialog.setMaxHeight("80%");    			
-			evalTree.updateGrid(entry.getRootNode(), null);    			
+			evalTree.updateGrid((EvaluationNode) entry.getEvalTreeRootNode(), null);    			
 			evalTree.setAllRowsVisible(true);
 			dialog.add(evalTree);
 			dialog.open();
@@ -427,7 +426,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 				Dialog dialog = new Dialog();
 				dialog.setWidth("80%");
 				dialog.setMaxHeight("80%");
-				RepairNode repairTree = RuleService.repairTree(entry.getRuleInstance());
+				RepairNode repairTree = (RepairNode) entry.getRepairTreeRootNode();
 				RepairTreeGrid rtg = new RepairTreeGrid(null, rtf, commandGateway);
 				rtg.initTreeGrid();
 				rtg.updateConditionTreeGrid(repairTree, null);				
@@ -442,14 +441,11 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		return button;
 	}
 
-	public static class InstanceTypeComparator implements Comparator<InstanceType> {
+	public static class InstanceTypeComparator implements Comparator<PPEInstanceType> {
 
 		@Override
-		public int compare(InstanceType o1, InstanceType o2) {
-			if (o1.getQualifiedName() == null || o2.getQualifiedName() == null)
-				return o1.name().compareTo(o2.name());
-			else 
-				return o1.getQualifiedName().compareTo(o2.getQualifiedName());
+		public int compare(PPEInstanceType o1, PPEInstanceType o2) {
+			return o1.getName().compareTo(o2.getName());
 		}
 
 	}

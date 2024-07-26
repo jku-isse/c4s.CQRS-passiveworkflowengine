@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="i}Vn!zoajJxdZkSQ;mCV">
                     <field name="qacheckId">REQtoCR</field>
-                    <field name="description">Ensure that each Requirement traces only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child.</field>
+                    <field name="description">Ensure that each Requirement traces (via 'predecessor') only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child.</field>
                     <value name="constraint">
                       <block type="constraint" id="iR$^ELL1uAp24zcl`y8Z">
                         <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.predecessorItems&#10;-&gt;select( pre | pre.workItemType='Change Request')    &#10;-&gt;difference(self.in_CRs)&#10;-&gt;forAll(cr |   cr.state = 'Released' &#10;             or cr.successorItems&#10;               -&gt;select(suc | suc.workItemType='Issue')&#10;               -&gt;exists(issue : &lt;root/types/azure/azure_workitem&gt; | issue.priority = 1)&#10;   )&#10;)</field>

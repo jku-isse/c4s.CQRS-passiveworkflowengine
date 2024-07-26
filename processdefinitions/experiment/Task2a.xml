@@ -128,7 +128,7 @@
                 <statement name="QA">
                   <block type="qacheck" id="L}^*UEpl;#R@HC{iu,$I">
                     <field name="qacheckId">ReleasedReqReviewFindings</field>
-                    <field name="description">Ensure that all Requirements in state 'released' trace to at least one Review, all which must not have any 'open' Review Findings.</field>
+                    <field name="description">Ensure that all Requirements in state 'released' trace (via 'successor') to at least one Review, all which must not have any 'open' Review Findings.</field>
                     <value name="constraint">
                       <block type="constraint" id="#)RJt^YCegSzrki_!p1t">
                         <field name="arlRule">self.out_REQs&#10;-&gt;select (req2 | req2.state = 'Released')&#10;-&gt;forAll(req  | req.successorItems&#10;-&gt;exists(item3 | item3.workItemType = 'Review')&#10;and &#10;req.successorItems&#10;-&gt;select(item | item.workItemType = 'Review')&#10;-&gt;forAll(rev  | &#10;     rev.successorItems&#10;       -&gt;select(item2 | item2.workItemType = &#10;                                 'ReviewFinding')&#10;       -&gt;forAll(finding  &#10;          | finding.state &lt;&gt; 'Open')&#10;  )&#10;)</field>
