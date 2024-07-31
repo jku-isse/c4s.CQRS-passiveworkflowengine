@@ -274,16 +274,16 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         		});
         		// send command
         		if (count.get() == inputs.size()) {
-        			// FIXME: hack for ensuring only input that user is allowed to access can be used to instantiate a process:
-        			String artId = inputs.values().iterator().next().getId();
+        			// ensuring only input that user is allowed to access can be used to instantiate a process:
+        			ArtifactIdentifier artId = inputs.values().iterator().next();
         			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         			String authenticatedUserId = auth != null ? auth.getName() : null;
-        			if (!commandGateway.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId )) {
+        			if (!commandGateway.getAclProvider().doAllowProcessInstantiationAuth(artId)) {
         				Notification.show("You are not authorized to access the artifact used as process input - unable to instantiate process.");        			
         			} else {        				
         				String procName = definitionsBox.getValue().getName();
         				String nextAllowedProc = commandGateway.getAclProvider().isAllowedAsNextProc(procName, authenticatedUserId);
-        				if (!nextAllowedProc.equalsIgnoreCase(procName)) {
+        				if (nextAllowedProc != null && !nextAllowedProc.equalsIgnoreCase(procName)) {
         					Notification.show("You are not authorized to instantiate this process now: "+nextAllowedProc);
         				} else {
 

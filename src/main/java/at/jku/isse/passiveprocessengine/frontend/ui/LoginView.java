@@ -1,5 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.ui;
 
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -23,7 +25,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
 
 		login.setAction("login"); 
 
-		add(new H1("Passive Process Engine Dashboard"), login);
+		Anchor googleLoginLink = new Anchor("/oauth2/authorization/google", "Login with Google");
+
+		add(new H1("Passive Process Engine Dashboard"), login, new Html("<hr>"), googleLoginLink);
 	}
 	
 	@Override

@@ -14,6 +14,10 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -136,6 +140,11 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 					return layout;				
 				}
 				inst = el.get();
+				// Authentication here:
+				if (!commandGateway.getAclProvider().isAuthorizedToView(inst)) {
+					layout.add(new Paragraph("You are not authorized to access the artifact."));
+				}								
+				
 				Paragraph elName = new Paragraph("Artifact/Instance (DSid="+id+"): "+inst.getName());
 				hl.add(elName);
 
@@ -175,6 +184,8 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 		return layout;
 	}
 
+	
+	
 	public static boolean isFullyFetched(PPEInstance element) {
 		if ( element.getInstanceType().hasPropertyType(PPEInstanceType.IS_FULLYFETCHED)) { // an instance with this property  
 			return element.getTypedProperty(PPEInstanceType.IS_FULLYFETCHED, Boolean.class, true);

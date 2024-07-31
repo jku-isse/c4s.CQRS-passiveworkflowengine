@@ -334,10 +334,10 @@ public class WorkflowTreeGrid extends TreeGrid<ProcessInstanceScopedElement> {
     
     private boolean doHaveAccessRight(ProcessInstance wfi)  { 
   		String inParam = wfi.getDefinition().getExpectedInput().keySet().iterator().next();
-  		String artId = wfi.getInput(inParam).iterator().next().getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
-  		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String authenticatedUserId = auth != null ? auth.getName() : null;
-  		boolean authorized = reqDel.getAclProvider().doAllowProcessInstantiation(artId, authenticatedUserId);
+  		PPEInstance art = wfi.getInput(inParam).iterator().next();
+  		//Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		//String authenticatedUserId = auth != null ? auth.getName() : null;
+  		boolean authorized = reqDel.getAclProvider().doAllowProcessInstantiationAuth(art);
   		return authorized;
  	 };
     
