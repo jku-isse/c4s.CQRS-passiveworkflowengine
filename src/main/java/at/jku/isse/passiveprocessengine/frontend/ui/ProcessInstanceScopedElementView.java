@@ -16,6 +16,8 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
@@ -312,7 +314,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 	}
 
 	private void addConstraintLine(VerticalLayout l, ProcessStep pStep, ConstraintResultWrapper cw, Dialog dialog) {
-
+		
 		HorizontalLayout line = new HorizontalLayout();
 		line.add(createValueRenderer(cw));
 		line.add(createFulfillmentIcon(cw));
@@ -322,8 +324,13 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		l.add(line);
 
 		Component repairDisplay = getRepairDisplayComponent(cw, getTopMostProcess(pStep));
-		if (repairDisplay != null)
-			l.add(repairDisplay);    	    	    
+		if (repairDisplay != null) {			
+			var details = new Details("Guidance/Repair Details", repairDisplay);
+			details.setOpened(true);
+			details.addThemeVariants(DetailsVariant.FILLED);
+			details.getElement().getStyle().set("width", "100%");
+			l.add(details);    	    
+		}
 	}
 
 	//    private Component createRepairRenderer(ConstraintResultWrapper cw, ProcessStep pStep) {
