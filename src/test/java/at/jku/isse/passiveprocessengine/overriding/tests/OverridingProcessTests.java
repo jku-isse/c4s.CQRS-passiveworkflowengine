@@ -66,7 +66,7 @@ public class OverridingProcessTests {
 	}
 
 	@Test
-	void OV_23testWorkItemWithCondition_0V2() throws ProcessException {
+	void OV23_testWorkItemWithCondition_0V2() throws ProcessException {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess23.xml");
 		List<String> expected_warnings=new LinkedList<>();
@@ -389,7 +389,7 @@ public class OverridingProcessTests {
 		int i = 0;
 		// external resources (same directory as JAR)
 		try {
-			File directory = new File("./processdefinitions/"); // no longer files in separate directories, all in a single one now
+			File directory = new File("./processdefinitions//overridingProcesses/"); // no longer files in separate directories, all in a single one now
 			FileFilter fileFilter = new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {

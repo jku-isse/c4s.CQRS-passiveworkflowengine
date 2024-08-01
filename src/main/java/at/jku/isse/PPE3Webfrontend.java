@@ -17,9 +17,7 @@ public class PPE3Webfrontend extends SpringBootServletInitializer implements App
 	private static ApplicationContext ctx;
 	
     public static void main(String[] args) {
-
-    	 ctx = SpringApplication.run(PPE3Webfrontend.class, args);
-
+    	ctx = SpringApplication.run(PPE3Webfrontend.class, args);
         System.out.println("Successfully initialized!");
         System.out.println("======================================================================================================");
     }
