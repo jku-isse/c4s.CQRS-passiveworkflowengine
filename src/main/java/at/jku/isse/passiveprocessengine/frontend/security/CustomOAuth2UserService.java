@@ -11,8 +11,10 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+	
 	@Autowired
-	EmailToIdMapper emailMapper;
+	private EmailToIdMapper emailMapper;
+	
 	// Flag that allows signing users that are not already known by the EmailMapper
 	static boolean allowSignUp = false;
 

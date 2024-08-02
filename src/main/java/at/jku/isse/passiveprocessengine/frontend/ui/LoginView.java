@@ -10,6 +10,8 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+
 @Route("login")
 @PageTitle("Login Passive Process Engine Dashboard")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver{
@@ -25,7 +27,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
 
 		login.setAction("login"); 
 
-		Anchor googleLoginLink = new Anchor("/oauth2/authorization/google", "Login with Google");
+		Anchor googleLoginLink = new Anchor(ComponentUtils.getBaseUrl()+"/oauth2/authorization/google", "Login with Google");
 
 		add(new H1("Passive Process Engine Dashboard"), login, new Html("<hr>"), googleLoginLink);
 	}

@@ -152,7 +152,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	"/participants**",
     	"/stages/**",
     	"/connectors/**",
-    	
+    	"/constraint/**",
+    	"/process/**",
     	// Client-side JS
         "/VAADIN/**",
 
