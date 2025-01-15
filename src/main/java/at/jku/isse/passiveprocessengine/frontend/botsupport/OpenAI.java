@@ -33,7 +33,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import at.jku.isse.designspace.rule.arl.parser.ArlParser;
 import at.jku.isse.designspace.rule.arl.parser.ArlType;
@@ -50,14 +53,19 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnExpression(value = "${openai.enabled:false}")
 public class OpenAI implements OCLBot{
 
-    private static final String API_URL = "https://api.openai.com/v1/chat/completions";
+    public static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
-    private static final String MODEL = "gpt-3.5-turbo";
+    //public static final String MODEL = "gpt-3.5-turbo";
+    public static final String MODEL = "o1-mini";
 
     private static int maxInteractions = 20;
     
     private final String apiKey;
     protected List<BotInteraction> interaction = new ArrayList<>();
+    protected ObjectMapper objectMapper =  JsonMapper.builder()
+    			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    			.build();
+    
 
     public OpenAI(@Value("${openai.apikey}")String apiKey) {
         this.apiKey = apiKey;
@@ -71,48 +79,53 @@ public class OpenAI implements OCLBot{
                 throw new RuntimeException(e);
             }
         });
-    }
-
+    }   
+    
     public BotResult send(BotRequest userInput) {
         try {
             ChatRequest request  = compileRequest(userInput);
-            log.info(request.toString());
-            ObjectMapper objectMapper = new ObjectMapper();
-            String requestBody = objectMapper.writeValueAsString(request);
-
-            URL url = new URL(API_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + this.apiKey);
-            conn.setDoOutput(true);
-
-            conn.getOutputStream().write(requestBody.getBytes());
-
-            if (conn.getResponseCode() >= 400) {
-                Scanner scanner = new Scanner(conn.getErrorStream());
-                StringBuilder responseBuilder = new StringBuilder();
-                while (scanner.hasNextLine()) {
-                    responseBuilder.append(scanner.nextLine());
-                }
-                String errorBody = responseBuilder.toString();
-                APIError error = objectMapper.readValue(errorBody, APIError.class);
-                log.info(error.toString());
-                return new BotResult(Instant.now(), "system", error.getError().message, null);
-            } else {
-                Scanner scanner = new Scanner(conn.getInputStream());
-                StringBuilder responseBuilder = new StringBuilder();
-                while (scanner.hasNextLine()) {
-                    responseBuilder.append(scanner.nextLine());
-                }
-                String responseBody = responseBuilder.toString();
-                ChatResponse response = objectMapper.readValue(responseBody, ChatResponse.class);
-                log.info(response.toString());
-                return compileResult(response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList()), userInput);
-            }
+            var response = sendRequest(request);
+            return compileResult(response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList()), userInput);
         }catch (Exception e) {
         	log.warn(e.getMessage());
             return new BotResult(Instant.now(), "system", e.getMessage(), null);
+        }
+    }
+    
+    protected ChatResponse sendRequest(ChatRequest request) throws Exception {
+    	log.info(request.toString());
+       String requestBody = objectMapper.writeValueAsString(request);
+
+        URL url = new URL(API_URL);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + this.apiKey);
+        conn.setDoOutput(true);
+
+        conn.getOutputStream().write(requestBody.getBytes());
+
+        if (conn.getResponseCode() >= 400) {
+            Scanner scanner = new Scanner(conn.getErrorStream());
+            StringBuilder responseBuilder = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                responseBuilder.append(scanner.nextLine());
+            }
+            String errorBody = responseBuilder.toString();
+            System.out.println(errorBody);
+            APIError error = objectMapper.readValue(errorBody, APIError.class);
+            log.info(error.toString());
+            throw new Exception(error.getError().message);
+        } else {
+            Scanner scanner = new Scanner(conn.getInputStream());
+            StringBuilder responseBuilder = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                responseBuilder.append(scanner.nextLine());
+            }
+            String responseBody = responseBuilder.toString();
+            log.info(responseBody);
+            ChatResponse response = objectMapper.readValue(responseBody, ChatResponse.class);            
+            return response;
         }
     }
     
@@ -158,10 +171,12 @@ public class OpenAI implements OCLBot{
     	if (userInput.getExistingRule() != null) {
     		prompt.append(String.format(OCL_STARTINGPOINT_PROMPT_TEMPLATE, userInput.getExistingRule()));
     	}
+    	prompt.append(TASKFOLLOWS_PROMPT);
+    	// append the actual user task;
+    	prompt.append(userInput.getUserPrompt());
     	// augment current request with prompt to focus on OCL creation
     	prompt.append(OUTPUTFORMAT_PROMPT);
-    	// finally append the actual user task;
-    	prompt.append(userInput.getUserPrompt());
+    	
     	// add to input messages
     	messages.add(new Message("user", prompt.toString(), userInput.getTime()));
     	// store request in interactions for later recall and chat interaction recreation
@@ -187,9 +202,15 @@ public class OpenAI implements OCLBot{
     }
     
     protected String extractOCLorNull(String message) {
-    	int pos = message.lastIndexOf("inv:");
-    	if (pos >= 0) {
-    		String ocl = message.substring(pos+4).trim();
+    	int pos = message.lastIndexOf("inv:");    	
+    	if (pos >= 0) {    		
+    		var afterInv = message.substring(pos+4).trim();
+    		var posSelf = afterInv.indexOf("self");    		
+    		String ocl = message.substring(posSelf > 0 ? posSelf : 0).trim();
+    		int posOfTrippleTick = ocl.lastIndexOf("```");
+    		if (posOfTrippleTick > 0) {
+    			ocl = ocl.substring(0, posOfTrippleTick);
+    		}
     		return ocl;
     	} else
     		return null;
@@ -225,6 +246,7 @@ public class OpenAI implements OCLBot{
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ChatResponse {
         private String id;
         private String object;
@@ -235,6 +257,7 @@ public class OpenAI implements OCLBot{
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Choice {
         private int index;
         private Message message;
@@ -242,6 +265,7 @@ public class OpenAI implements OCLBot{
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Usage {
         private int prompt_tokens;
         private int completion_tokens;
@@ -249,6 +273,7 @@ public class OpenAI implements OCLBot{
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Message {
 
         @JsonIgnore
@@ -278,18 +303,20 @@ public class OpenAI implements OCLBot{
         		return new Message("user", req.getUserPrompt(), req.getTime());
         	} else if (interaction instanceof BotResult) {
         		BotResult res = (BotResult)interaction;
-        		return new Message("system", res.getBotResult(), res.getTime());
+        		return new Message("user", res.getBotResult(), res.getTime());
         	} else 
         		throw new RuntimeException("Unexpected BotInteraction subclass: "+interaction.getClass().toString());
         }
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class APIError {
         private ErrorDetail error;        
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ErrorDetail {
         private String message;
         private String type;

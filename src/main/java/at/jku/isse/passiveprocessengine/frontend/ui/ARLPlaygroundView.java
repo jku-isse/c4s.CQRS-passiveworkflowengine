@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,12 +18,14 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.messages.MessageListItem;
@@ -45,6 +49,7 @@ import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.core.RuleDefinition;
 import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
 import at.jku.isse.passiveprocessengine.core.RuleEvaluationService.ResultEntry;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
@@ -77,9 +82,13 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	final private TextArea errorResultArea = new TextArea();
 	final private TextArea arlArea = new TextArea();
 	final private ComboBox<PPEInstanceType> instanceTypeComboBox = new ComboBox<>("Instance Type (rule starting point/context)");
+	
+	private Details schemaSelection;
+	private final MultiSelectListBox<PPEInstanceType> relevantSchemaList = new MultiSelectListBox<>();
 
 	private OCLBot oclBot;
 	private PPEInstanceType lastUsedContext = null;
+	private Set<PPEInstanceType> ruleRelevantContext = new HashSet<>();
 	private BotResult lastResult = null;
 	private Checkbox checkboxUseRule = new Checkbox(false);
 	private Checkbox checkboxFetchIncomplete = new Checkbox(false);
@@ -181,10 +190,11 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		// field to provide context: instance type
 		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()
 				//.filter(iType -> !iType.isDeleted)
+				.filter(type -> !(type instanceof RuleDefinition))
 				.sorted(new InstanceTypeComparator())
 				.collect(Collectors.toList());
 		instanceTypeComboBox.setItems(instTypes);
-		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s FQN: %s ) ",iType.getName(), iType.getId().toString(), iType.getName()));
+		instanceTypeComboBox.setItemLabelGenerator(iType -> String.format("%s (DSid: %s ) ",iType.getName(), iType.getId().toString()));
 		instanceTypeComboBox.setWidthFull();
 		//instanceTypeComboBox.setMinWidth("100px");
 		layout.add(instanceTypeComboBox);
@@ -288,8 +298,9 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	}
 	
 	
-	private Component getBotSupportComponent() {
-
+	private Component getBotSupportComponent() {		
+		
+		schemaSelection = new Details("Select relevant work item types", getSchemaList());
 		
 		checkboxUseRule.setLabel("Use OCL/ARL rule as basis for refinement");      
 		checkboxUseRule.setClassName("medtext");
@@ -316,15 +327,15 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	    Button resetButton = new Button("Reset Bot");
 		resetButton.addClickListener(clickEvent -> {    
 	        oclBot.resetSession();
+	        relevantSchemaList.deselectAll();
 	        botUI.setItems(Collections.emptyList());
 		});
 		HorizontalLayout controls = new HorizontalLayout();
-		controls.add(copyButton, runButton, resetButton);
-		
+		controls.add(copyButton, runButton, resetButton);		
 		
 		input.addSubmitListener(this::onBotSubmit);
-		VerticalLayout botLayout = new VerticalLayout();
-		botLayout.add(checkboxUseRule, scroller, input, controls);
+		VerticalLayout botLayout = new VerticalLayout();		
+		botLayout.add(schemaSelection, checkboxUseRule, scroller, input, controls);
 		botLayout.setHorizontalComponentAlignment(Alignment.STRETCH, scroller, input, checkboxUseRule, controls);
 		botLayout.setPadding(true); // Leave some white space
 		botLayout.setMargin(false);
@@ -334,12 +345,28 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		input.setWidthFull(); // Full width only
 		botUI.setMaxWidth("800px"); // Until to certain size
 		input.setMaxWidth("800px"); // Until to certain size
-
-		
-		
+				
 		return botLayout;
 	}
 
+	private Component getSchemaList() {
+		HorizontalLayout layout = new HorizontalLayout();
+		List<PPEInstanceType> instTypes = commandGateway.getProcessContext().getSchemaRegistry().getAllNonDeletedInstanceTypes().stream()				
+				.filter(type -> !(type instanceof RuleDefinition))
+				.filter(type -> !type.getName().startsWith("ProcessStep")) //TODO nicer  filter out process steps
+				.filter(type -> !type.getName().startsWith("ProcessDefinition")) //TODO nicer filtering out process
+				.filter(type -> !type.getName().startsWith("ProcessInstance")) //TOD nicer filter out process 
+				.sorted(new InstanceTypeComparator())
+				.collect(Collectors.toList());
+		relevantSchemaList.setItems(instTypes);
+		//relevantSchemaList.setRenderer(iType -> String.format("%s (DSid: %s ) ",iType.getName(), iType.getId().toString()));
+		relevantSchemaList.setWidthFull();
+		
+		//instanceTypeComboBox.setMinWidth("100px");
+		layout.add(relevantSchemaList);
+		return layout;
+	}
+	
 	private void onBotSubmit(MessageInput.SubmitEvent submitEvent) {
 		// Append an item (this will be overriden later when reply comes)
 		List<MessageListItem> items = new ArrayList<>(botUI.getItems());
@@ -348,7 +375,8 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 		botUI.setItems(items);
 
 		// Query AIbot
-		oclBot.sendAsync(augmentInputPrompt(submitEvent.getValue())).whenComplete((response, t) -> {
+		oclBot.sendAsync(augmentInputPrompt(submitEvent.getValue()))
+			  .whenComplete((response, t) -> {
 			getUI().get().access(() -> {
 				lastResult = response;
 				if (response.getOclRule() != null) {
@@ -379,22 +407,32 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	}
 
 	private String getChangedOrNullSchemaAndReset(PPEInstanceType currentSelectedContextType) {
-		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType)) {
-			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor(commandGateway.getProcessContext().getSchemaRegistry());
-			String schema = extractor.getSchemaForInstanceTypeAndOneHop(currentSelectedContextType, false).values().stream()  // for now, TODO: differentiate between steps and not, and whether to get subtypes
-					.collect(Collectors.joining("\r\n"));
+		if (lastUsedContext == null || !lastUsedContext.equals(currentSelectedContextType) || hasRelevantSchemaChanged()) {
+			HumanReadableSchemaExtractor extractor = new HumanReadableSchemaExtractor(commandGateway.getProcessContext().getSchemaRegistry());			
+			var currentSelection = new HashSet<>(relevantSchemaList.getSelectedItems());
+			currentSelection.add(currentSelectedContextType);
+			Map<PPEInstanceType, List<PPEInstanceType>> clusters = extractor.clusterTypes(currentSelection);
+			StringBuffer schemaStringSet = new StringBuffer();							
+			clusters.entrySet().forEach(entry -> {
+						var props = extractor.processSubgroup(entry.getKey(), entry.getValue());
+						var schema = extractor.compileSchemaList(entry.getKey(),  entry.getValue(), props.getKey(), props.getValue());
+						schemaStringSet.append(schema);
+					});													
 			lastUsedContext = currentSelectedContextType;
-			return schema;
+			ruleRelevantContext = currentSelection;
+			return schemaStringSet.toString();
 		} else
 			return null;
 	}
 
+	private boolean hasRelevantSchemaChanged() {
+		var currentSelection = relevantSchemaList.getSelectedItems();		
+		return !(currentSelection.size() == ruleRelevantContext.size() && currentSelection.containsAll(ruleRelevantContext)); 
+	}
+	
 	private MessageListItem convertResult(BotResult msg) {
 		return new MessageListItem(msg.getBotResult(), msg.getTime(), msg.getRole());
-	}
-
-
-	
+	}	
 	
 	private Component resultEntryToInstanceLink(ResultEntry rge) {
 		if (InstanceView.isFullyFetched(rge.getContextInstance())) {

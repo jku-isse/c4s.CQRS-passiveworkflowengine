@@ -1,5 +1,7 @@
 package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -27,7 +29,7 @@ class TestInteractionHistory {
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, null, null) );
 		assert(req.getMessages().size() == 1);
 		Message msg = req.getMessages().get(0); 
-		assert(!msg.getContent().contains("Only use properties in the OCL rule"));
+		assertFalse(msg.getContent().contains("Only use properties in the OCL rule"));
 	}
 
 	

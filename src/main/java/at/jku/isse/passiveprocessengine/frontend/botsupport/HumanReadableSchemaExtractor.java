@@ -1,11 +1,14 @@
 package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,44 +68,51 @@ public class HumanReadableSchemaExtractor {
 	
 	private String getSchema(PPEInstanceType type, Set<PPEInstanceType> foundComplexTypes) {
 		// check if a process or step:
-		
-		if (type.isOfTypeOrAnySubtype(stepType)) {
-			return getSchemaForStep(type, foundComplexTypes);
-		}
-		
 		StringBuffer sb = new StringBuffer();
-		if (type.getParentType()==null) {
-			sb.append(String.format("\r\nThe %s object consists of the following properties: ", type.getName()));
-		} else {
-			String parent = type.getParentType().getName();
-			if ( type.getParentType().isOfTypeOrAnySubtype(artType)) {
-				sb.append(String.format("\r\nThe %s object consists of the following properties: ", type.getName()));
-			} else {
-				sb.append(String.format("\r\nThe %s object is a subtype of %s and consists of the following properties: ", type.getName(), parent));
-			}
-		}
-		type.getPropertyNamesIncludingSuperClasses().stream()
-		.map(propName -> type.getPropertyType(propName))
-		.forEach(prop ->  { 
-			if (foundComplexTypes != null && isAComplexType(prop)) {
-				foundComplexTypes.add(prop.getInstanceType());
-			}
-			sb.append(getPropertyDescription(type, prop)); } );
+		getSchemaStrings(type, foundComplexTypes)
+		.forEach(propDesc -> sb.append(propDesc));
 		return sb.toString();
 	}
 	
-	private String getSchemaForStep(PPEInstanceType type, Set<PPEInstanceType> foundComplexTypes) {
+	public List<String> getSchemaStrings(PPEInstanceType type, Set<PPEInstanceType> foundComplexTypes) {
+		// check if a process or step:
+		if (type.isOfTypeOrAnySubtype(stepType)) {
+			return getSchemaForStep(type, foundComplexTypes);
+		}
+		//				if (type.getParentType()==null) {
+		//					sb.append(String.format("\r\nThe %s object consists of the following properties: ", type.getName()));
+		//				} else {
+		//					String parent = type.getParentType().getName();
+		//					if ( type.getParentType().isOfTypeOrAnySubtype(artType)) {
+		//						sb.append(String.format("\r\nThe %s object consists of the following properties: ", type.getName()));
+		//					} else {
+		//						sb.append(String.format("\r\nThe %s object is a subtype of %s and consists of the following properties: ", type.getName(), parent));
+		//					}
+		//				}
+		return type.getPropertyNamesIncludingSuperClasses().stream()
+				.map(propName -> type.getPropertyType(propName))
+				.map(prop ->  { 
+					if (foundComplexTypes != null && isAComplexType(prop)) {
+						foundComplexTypes.add(prop.getInstanceType());
+					}
+					return getPropertyDescription(type, prop); } )
+				.sorted()
+				.toList();				
+	}
+	
+	private List<String> getSchemaForStep(PPEInstanceType type, Set<PPEInstanceType> foundComplexTypes) {
 		StringBuffer sb = new StringBuffer();
 		sb.append(String.format("\r\nThe process step %s consists of the following input and output properties: ", type.getName()));
-		type.getPropertyNamesIncludingSuperClasses().stream()
+		return type.getPropertyNamesIncludingSuperClasses().stream()
 			.map(propName -> type.getPropertyType(propName))
 			.filter(prop -> prop.getName().startsWith(SpecificProcessStepType.PREFIX_IN) || prop.getName().startsWith(SpecificProcessStepType.PREFIX_OUT))
-			.forEach(prop ->  { 
+			.map(prop ->  { 
 				if (foundComplexTypes != null && isAComplexType(prop)) {
 					foundComplexTypes.add(prop.getInstanceType());
 				}
-				sb.append(getPropertyDescription(type, prop)); } );
-		return sb.toString();
+				return getPropertyDescription(type, prop); } )
+			.toList();
+		
 	}
 	
 	private String getPropertyDescription(PPEInstanceType type, PPEPropertyType prop) {
@@ -135,7 +145,7 @@ public class HumanReadableSchemaExtractor {
 	}
 	
 	private boolean isAComplexType(PPEPropertyType prop) {
-		if (BuildInType.isAtomicType(prop.getInstanceType().getInstanceType()))
+		if (BuildInType.isAtomicType(prop.getInstanceType()))
 			return false;
 		else
 			return true;
@@ -152,5 +162,55 @@ public class HumanReadableSchemaExtractor {
 			return "of multiple ";
 		}
 	}
+	
+	public Map<PPEInstanceType, List<PPEInstanceType>> clusterTypes(Collection<PPEInstanceType> types) {
+		 return types.stream().collect(Collectors.groupingBy(PPEInstanceType::getParentType));		
+	}
+	
+	public boolean doClustersIncludeType( Map<PPEInstanceType, List<PPEInstanceType>> clusters, PPEInstanceType type) {
+		if (clusters.keySet().contains(type))
+			return true;
+		return clusters.values().stream().anyMatch(clusterList -> clusterList.contains(type));
+	}
+	
+	
+	public Entry<Set<String>, List<ArrayList<String>>> processSubgroup(PPEInstanceType parentType, List<PPEInstanceType> group) {
+		Set<String> superProps = new HashSet<>(this.getSchemaStrings(parentType, null));
+		
+		List<ArrayList<String>> specificProps = group.stream().map(type -> this.getSchemaStrings(type, null))
+			.map(strList -> new ArrayList<>(strList))
+			.map(strList -> { strList.removeAll(superProps); return strList; })
+			.toList();
+		
+		// all the properties not in the super type
+		Set<String> allSpecificProps = specificProps.stream().flatMap(strList -> strList.stream()).distinct().collect(Collectors.toSet());
+		// all the props that each object in the group has
+		var commonProps = allSpecificProps.stream()
+				.filter(propCandidate -> specificProps.stream()
+							.allMatch(propList -> propList.contains(propCandidate)) )
+				.toList();
+		// lets add these commonProps to super Prop and remove them from individual prop
+		superProps.addAll(commonProps);
+		// lets remove from individual ones
+		specificProps.stream().forEach(propList -> propList.removeAll(commonProps));
+								
+		return new AbstractMap.SimpleEntry<>(superProps, specificProps);
+	}
+	
+	public String compileSchemaList(PPEInstanceType parentType, List<PPEInstanceType> group, Set<String> parentProps, List<ArrayList<String>> individualProps) {
+		StringBuffer sb = new StringBuffer(String.format("\r\nGeneric object type %s contains following properties:", parentType.getName()));
+		parentProps.stream().sorted().forEach(prop -> sb.append(prop));
+				
+		for (int i = 0 ; i < group.size() ; i++) {
+			var type = group.get(i);
+			var props  = individualProps.get(i);
+			if (props.isEmpty()) continue;
+			sb.append(String.format("\r\n\r\nObject type %s contains following properties:", type.getName()));
+			props.stream().sorted().forEach(prop -> sb.append(prop));
+		}
+		return sb.toString();
+	}
+	
+	
 }
  
