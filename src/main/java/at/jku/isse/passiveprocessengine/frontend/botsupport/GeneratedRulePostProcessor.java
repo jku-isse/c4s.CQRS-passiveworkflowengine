@@ -2,9 +2,23 @@ package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
 import lombok.NonNull;
 
+
 public class GeneratedRulePostProcessor {
 
-	public void process(@NonNull String rawRule) {
+	private final String rawRule; 
+	
+	private GeneratedRulePostProcessor (String rawRule) {
+		this.rawRule = rawRule;
+	}
+	
+	public static GeneratedRulePostProcessor init(@NonNull String rawRule) {
+		var processor = new GeneratedRulePostProcessor(rawRule);
+		processor.replaceDomainspecificProperties();
+		
+		return processor;
+	}
+	
+	public void replaceDomainspecificProperties() {
 		rawRule.replace("workItemType", "externalType");		
 	}
 	

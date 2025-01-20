@@ -4,10 +4,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.xtext.testing.util.ParseHelper;
+import org.eclipse.xtext.testing.validation.ValidationTestHelper;
+import org.eclipse.xtext.util.Modules2;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
@@ -16,10 +22,13 @@ import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.core.ProcessInstanceChangeListener;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.monitoring.ProgressObserver;
+import at.jku.isse.passiveprocessengine.frontend.oclx.OCLXSupportModule;
+import at.jku.isse.passiveprocessengine.frontend.oclx.OCLXSupportSetup;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.monitoring.ProgressPusher;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
@@ -89,7 +98,25 @@ public class WebFrontendSpringConfig {
 //		//RuleService.currentWorkspace = ws;
 //    }
 
+	private static  OCLXSupportSetup setup;
+	
+	@Bean @Primary
+	public static Injector getOCLXDependencies(DesignSpaceSchemaRegistry designspace) {
+		if (setup == null) {
+			setup = new OCLXSupportSetup(designspace);
+			setup.createInjectorAndDoEMFRegistration();
+		}
+		return setup.createInjector(); // returns same injector used above.
+	}
 
-
+	@Bean 
+	public static ParseHelper getParser(Injector injector) {
+		return injector.getInstance(ParseHelper.class);
+	}
+	
+	@Bean 
+	public static ValidationTestHelper getValidationHelper(Injector injector) {
+		return injector.getInstance(ValidationTestHelper.class);
+	}
 
 }
