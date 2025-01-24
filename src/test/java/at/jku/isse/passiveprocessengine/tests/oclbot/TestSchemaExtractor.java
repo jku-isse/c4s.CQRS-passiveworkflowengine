@@ -1,13 +1,13 @@
 package at.jku.isse.passiveprocessengine.tests.oclbot;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +18,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import at.jku.isse.PPE3Webfrontend;
 import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
@@ -98,5 +96,49 @@ class TestSchemaExtractor {
 		});						
 	}
 	
-
+	@Test
+	void testPrintSchemaSubselectionFromStep() throws ProcessException {
+		var schemaExtractor = new HumanReadableSchemaExtractor(schemaReg);
+		//CrIssueFd
+		var steps = schemaReg.findAllInstanceTypesByFQN("ProcessStep_CheckingRequirements_RequirementsManagementProcessV2");
+		assertEquals(1, steps.size());
+		var types = new ArrayList<PPEInstanceType>();
+		types.addAll(steps);
+		var subsetIds = List.of("Review", "Reviewfinding", "Requirement", "L3Requirements");
+		types.addAll(artRes.getAvailableInstanceTypes().stream()
+						.filter(type -> subsetIds.contains(type.getName()))
+						.toList());
+		
+		Map<PPEInstanceType, List<PPEInstanceType>> subsetGroups =  schemaExtractor.clusterTypes(
+				types						);
+		assertEquals(2, subsetGroups.size());
+		subsetGroups.entrySet().forEach(entry -> {
+			var props = schemaExtractor.processSubgroup(entry.getKey(), entry.getValue());
+			var schema = schemaExtractor.compileSchemaList(entry.getKey(),  entry.getValue(), props.getKey(), props.getValue());
+			System.out.println(schema);
+		});						
+	}
+	
+	@Test
+	void testPrintSchemaSubselectionFromStep2() throws ProcessException {
+		var schemaExtractor = new HumanReadableSchemaExtractor(schemaReg);
+		//CrIssueFd
+		var steps = schemaReg.findAllInstanceTypesByFQN("ProcessStep_CheckingRequirements_RequirementsManagementProcessV2");
+		assertEquals(1, steps.size());
+		var types = new ArrayList<PPEInstanceType>();
+		types.addAll(steps);
+		var subsetIds = List.of("Bug", "Requirement", "L3Requirements");
+		types.addAll(artRes.getAvailableInstanceTypes().stream()
+						.filter(type -> subsetIds.contains(type.getName()))
+						.toList());
+		
+		Map<PPEInstanceType, List<PPEInstanceType>> subsetGroups =  schemaExtractor.clusterTypes(
+				types						);
+		assertEquals(2, subsetGroups.size());
+		subsetGroups.entrySet().forEach(entry -> {
+			var props = schemaExtractor.processSubgroup(entry.getKey(), entry.getValue());
+			var schema = schemaExtractor.compileSchemaList(entry.getKey(),  entry.getValue(), props.getKey(), props.getValue());
+			System.out.println(schema);
+		});						
+	}
 }

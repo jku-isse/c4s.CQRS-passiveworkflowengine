@@ -130,54 +130,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
-<!--		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-acl</artifactId>
-		</dependency>-->
-		<!--<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>			
-		</dependency>
-		<dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-web</artifactId>
-        <version>${spring-security.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-core</artifactId>
-        <version>${spring-security.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-config</artifactId>
-        <version>${spring-security.version}</version>
-    </dependency>-->
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
-<!--		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-core</artifactId>
-			<version>2.6.11</version>
-		</dependency>-->
-		<!-- Storing the ACL info 
-		<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>-->
-<!--        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>-->
-		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<!-- 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
 
-		</dependency> -->
 		<dependency>
 			<groupId>net.logstash.logback</groupId>
 			<artifactId>logstash-logback-encoder</artifactId>
@@ -197,31 +155,6 @@
 		</dependency>
 
 
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j -->
-		<!-- 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-to-slf4j</artifactId>
-
-		</dependency> -->
-
-		<!--<dependency>
-			<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
-			<artifactId>c4s.passiveprocessengine.v3</artifactId>
-			<version>${PPEv3.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-jdk14</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>-->
-		<!-- <dependency> <groupId>at.jku.isse.designspace</groupId> <artifactId>main</artifactId> 
-			<version>3.9.0-SNAPSHOT</version> </dependency> -->
-		<!-- 		<dependency>
-			<groupId>JKU.ISSE</groupId>
-			<artifactId>c4s.artifact.api</artifactId>
-			<version>${artifact.api.version}</version>
-		</dependency> -->
 		<dependency>
 			<groupId>at.jku.isse.designspace</groupId>
 			<artifactId>artifact-connector.core</artifactId>
@@ -232,59 +165,22 @@
 			<artifactId>artifact-connector.azure</artifactId>
 			<version>${connector.azure.version}</version>
 		</dependency>
-<!--		<dependency>
-			<groupId>at.jku.isse.designspace</groupId>
-			<artifactId>artifact-connector.git</artifactId>
-			<version>${connector.git.version}</version>
-		</dependency>-->
-	<!--	<dependency>
-			<groupId>at.jku.isse.designspace</groupId>
-			<artifactId>artifact-connector.jira</artifactId>
-			<version>${connector.jira.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>at.jku.isse.designspace</groupId>
-			<artifactId>artifact-connector.jama</artifactId>
-			<version>${connector.jama.version}</version>
-		</dependency>-->
-<!--		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.activation</groupId>
-			<artifactId>jakarta.activation-api</artifactId>
-			<version>2.0.1</version>
-		</dependency>-->
-
 		<dependency>
 			<groupId>at.jku.isse.oclx</groupId>
 			<artifactId>at.jku.isse.oclx</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>1.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>at.jku.isse.oclx</groupId>
 			<artifactId>at.jku.isse.oclx.ide</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>1.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.xtext</groupId>
 			<artifactId>org.eclipse.xtext.ide</artifactId>
 			<version>${xtextVersion}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.eclipse.xtext</groupId>
-			<artifactId>org.eclipse.xtext.testing</artifactId>
-			<version>${xtextVersion}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.xtext</groupId>
-			<artifactId>org.eclipse.xtext.xbase.testing</artifactId>
-			<version>${xtextVersion}</version>
-			<scope>compile</scope>
-		</dependency>
+
 		<!-- Vaadin -->
 		<dependency>
 			<groupId>com.vaadin</groupId>
@@ -334,13 +230,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-		</dependency>
-		<!-- Inject -->
-		<dependency>
-			<groupId>com.google.inject</groupId>
-			<artifactId>guice</artifactId>
-			<version>4.2.3</version>
-		</dependency>
+		</dependency>		
 		<!-- JSON -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>

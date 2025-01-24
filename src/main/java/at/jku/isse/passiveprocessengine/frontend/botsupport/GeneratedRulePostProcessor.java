@@ -1,25 +1,34 @@
 package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 
 public class GeneratedRulePostProcessor {
-
-	private final String rawRule; 
+	
+	@Getter
+	private String processedRule;
 	
 	private GeneratedRulePostProcessor (String rawRule) {
-		this.rawRule = rawRule;
+		this.processedRule = rawRule;
 	}
 	
-	public static GeneratedRulePostProcessor init(@NonNull String rawRule) {
-		var processor = new GeneratedRulePostProcessor(rawRule);
+	public static GeneratedRulePostProcessor init(@NonNull String rawRule) {		
+		var processor = new GeneratedRulePostProcessor(rawRule);		
 		processor.replaceDomainspecificProperties();
-		
+		processor.replaceARLspecifics();
 		return processor;
 	}
 	
 	public void replaceDomainspecificProperties() {
-		rawRule.replace("workItemType", "externalType");		
+		processedRule = processedRule.replace("workItemType", "externalType");		
+	}
+	
+	public void replaceARLspecifics() {
+		processedRule = processedRule.replace("oclIsTypeOf", "isTypeOf");
+		processedRule = processedRule.replace("oclAsType", "asType");
+		processedRule = processedRule.replace("oclIsKindOf", "isKindOf");
+		processedRule = processedRule.replace("oclIsUndefined()", "isDefined() = false");		
 	}
 	
 	public void augmentWithTypes(@NonNull String rawRule) {

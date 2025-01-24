@@ -1,9 +1,12 @@
 package at.jku.isse.passiveprocessengine.frontend.oclx;
 
+import org.eclipse.xtext.util.Modules2;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import at.jku.isse.OCLXStandaloneSetup;
+import at.jku.isse.ide.OCLXIdeModule;
 import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 import lombok.RequiredArgsConstructor;
 
@@ -12,13 +15,11 @@ public class OCLXSupportSetup extends OCLXStandaloneSetup {
 	
 	private final DesignSpaceSchemaRegistry designspace;
 	
-	private Injector injector;
+	//private Injector injector;
 	
 	@Override
-	public Injector createInjector() {
-		 if (injector == null)
-			 injector = Guice.createInjector(new OCLXSupportModule(designspace));
-		 return injector;
+	public Injector createInjector() {		
+		 return Guice.createInjector(Modules2.mixin(new OCLXSupportModule(designspace),  new OCLXIdeModule()));		 
 	}
 	
 	

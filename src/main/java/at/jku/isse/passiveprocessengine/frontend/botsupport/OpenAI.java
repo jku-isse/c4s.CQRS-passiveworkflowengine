@@ -191,7 +191,7 @@ public class OpenAI implements OCLBot{
     	// lets just use the first message
     	Message msg = responses.get(0);
     	
-    	String ocl = extractOCLorNull(msg.getContent());
+    	String ocl = new OCLExtractor(msg.getContent()).extractOCLorNull();
     	String content = msg.getContent();
     	if (ocl != null && userInput != null && userInput.getContextType() != null) {    		
     		content = content + "\r\n" +checkARL(ocl, userInput.getContextType());
@@ -201,21 +201,7 @@ public class OpenAI implements OCLBot{
     	return res;
     }
     
-    protected String extractOCLorNull(String message) {
-    	int pos = message.lastIndexOf("inv:");    	
-    	if (pos >= 0) {    		
-    		var afterInv = message.substring(pos+4).trim();
-    		var posSelf = afterInv.indexOf("self");    		
-    		String ocl = message.substring(posSelf > 0 ? posSelf : 0).trim();
-    		int posOfTrippleTick = ocl.lastIndexOf("```");
-    		if (posOfTrippleTick > 0) {
-    			ocl = ocl.substring(0, posOfTrippleTick);
-    		}
-    		return ocl;
-    	} else
-    		return null;
-    	
-    }
+    
     
     private  ArlParser parser = new ArlParser(); 
     
