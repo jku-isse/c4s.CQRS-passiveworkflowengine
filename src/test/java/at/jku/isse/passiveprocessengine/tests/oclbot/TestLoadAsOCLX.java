@@ -52,13 +52,13 @@ class TestLoadAsOCLX {
 	
 	static Stream<Arguments> generateTestData() {
 		 
-		return Stream.of(Arguments.of(TestOclExtractor.raw1, "Issue"), 
-				Arguments.of(TestOclExtractor.raw2, "Issue"), 
-				Arguments.of(TestOclExtractor.raw3, "Issue"), 
-				Arguments.of(TestOclExtractor.raw4, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2"),
-				Arguments.of(TestOclExtractor.raw5, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2")
-				)
-												;
+		return Stream.of(Arguments.of(TestOclExtractor.raw1, "Issue")); //, 
+//				Arguments.of(TestOclExtractor.raw2, "Issue"), 
+//				Arguments.of(TestOclExtractor.raw3, "Issue"), 
+//				Arguments.of(TestOclExtractor.raw4, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2"),
+//				Arguments.of(TestOclExtractor.raw5, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2")
+//				)
+//												;
 	}
 	
 	

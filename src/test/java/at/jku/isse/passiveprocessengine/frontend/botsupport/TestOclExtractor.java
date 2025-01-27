@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -14,22 +15,19 @@ public class TestOclExtractor {
 			+ "context Issue\r\n"
 			+ "inv: self.successorItems->select(w | w.workItemType = 'Requirement')->forAll(r | r.state = 'Released')\r\n"
 			+ "```";   
-	//TODO analysis somehow infers that output of select is a list of Boolean values
 			
 	public final static String raw2 = "```ocl\r\n"
 			+ "context Issue\r\n"
 			+ "inv AllSucceedingRequirementsReleased:\r\n"
 			+ "  self.successorItems->select(r | r.oclIsTypeOf(Requirement))->forAll(r | r.state = 'released')\r\n"
 			+ "```";
-	//TODO Needs fixing of 'Requirement' in < > brackets otherwise incorrect syntax
-	//TODO duplicate variable
 	
 	public final static String raw3 = "```ocl\r\n"
 			+ "context Issue\r\n"
 			+ "    inv AllSucceedingRequirementsReleased:\r\n"
 			+ "        self.successorItems->select(w | w.workItemType = 'Requirement')->forAll(r | r.state = 'released')\r\n"
 			+ "```";
-	//TODO analysis somehow infers that output of select is a list of Boolean values
+
 	
 	public final static String raw4 = "```ocl\r\n"
 			+ "context ProcessStep_CheckingRequirements_RequirementsManagementProcessV2\r\n"
@@ -69,5 +67,16 @@ public class TestOclExtractor {
 		assertNotNull(ocl);
 		System.out.println(ocl);
 		
+	}
+	
+	@Test
+	void testPostProcessingTypeBrackets() {
+		var ocl = new OCLExtractor(raw2).extractOCLorNull();
+		assertNotNull(ocl);
+		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
+		assertNotNull(processedOCL);
+		System.out.println(processedOCL);
+		assertTrue(processedOCL.contains("<"));
+		assertTrue(processedOCL.contains(">"));
 	}
 }

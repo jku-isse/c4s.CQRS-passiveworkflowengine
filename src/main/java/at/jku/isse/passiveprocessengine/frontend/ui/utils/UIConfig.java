@@ -15,7 +15,8 @@ public class UIConfig extends Properties {
 		openai_enabled("openai.enabled"),
 		blocklyeditor_enabled("blocklyeditor.enabled"),
 		blocklyeditor_url("blocklyeditor.url"),
-		stages_enabled("stages.enabled");
+		stages_enabled("stages.enabled"),
+		designspaceProperties_enabled ("designspaceProperties.enabled");
 		
 		
 		private final String label;
@@ -72,6 +73,10 @@ public class UIConfig extends Properties {
 	
 	public String getBlocklyEditorUrl() {
 		return this.getProperty(Keys.blocklyeditor_url.toString(), "./editor/index.html");
+	}
+	
+	public boolean isDesignspacePropertiesDisplayEnabled() {
+		return Boolean.valueOf(this.getProperty(Keys.designspaceProperties_enabled.toString(), "false"));
 	}
 	
 	public String getVersion() {
