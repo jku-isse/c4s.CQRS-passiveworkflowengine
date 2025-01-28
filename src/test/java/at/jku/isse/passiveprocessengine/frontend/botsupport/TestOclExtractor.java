@@ -22,6 +22,8 @@ public class TestOclExtractor {
 			+ "  self.successorItems->select(r | r.oclIsTypeOf(Requirement))->forAll(r | r.state = 'released')\r\n"
 			+ "```";
 	
+	//TODO: auto replace typename with FQN
+	
 	public final static String raw3 = "```ocl\r\n"
 			+ "context Issue\r\n"
 			+ "    inv AllSucceedingRequirementsReleased:\r\n"

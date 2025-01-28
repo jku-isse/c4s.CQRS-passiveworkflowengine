@@ -32,7 +32,7 @@ class TestGenerateOCL {
 		try {
 			InputStream input = new FileInputStream("application.properties") ;
             props.load(input);
-            bot = new OpenAI(props.getProperty("openai.apikey"));
+            bot = new OpenAI(props.getProperty("openai.apikey"), null);
 		} catch(IOException e) {
 			String msg = "No ./application.properties found";
 			log.error(msg);

@@ -52,13 +52,13 @@ class TestLoadAsOCLX {
 	
 	static Stream<Arguments> generateTestData() {
 		 
-		return Stream.of(Arguments.of(TestOclExtractor.raw1, "Issue")); //, 
-//				Arguments.of(TestOclExtractor.raw2, "Issue"), 
-//				Arguments.of(TestOclExtractor.raw3, "Issue"), 
-//				Arguments.of(TestOclExtractor.raw4, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2"),
-//				Arguments.of(TestOclExtractor.raw5, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2")
-//				)
-//												;
+		return Stream.of(Arguments.of(TestOclExtractor.raw1, "Issue") 
+				, Arguments.of(TestOclExtractor.raw2, "Issue") 
+				, Arguments.of(TestOclExtractor.raw3, "Issue") 
+//				,Arguments.of(TestOclExtractor.raw4, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2"),
+//				,Arguments.of(TestOclExtractor.raw5, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2")
+				)
+					;
 	}
 	
 	
@@ -69,16 +69,26 @@ class TestLoadAsOCLX {
 		assertNotNull(ocl);				
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		processedOCL = wrapInOCLX(processedOCL, context);
-		System.out.println("Processing: "+processedOCL);		
+		System.out.println("\r\nProcessing: "+processedOCL);		
 		CodeActionExecuter executer = provider.buildExecuter(processedOCL);
 		executer.checkForIssues();
 		var issues = executer.getProblems();
 		issues.forEach(issue -> System.out.println("Problem: "+issue.getMessage()));		
-		executer.executeRepairs();
+		executer.executeRepairs();		
 		var repair = executer.getExecutedCodeAction();
 		if (repair != null) {
+			processedOCL = executer.getRepairedConstraint();
 			repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));
-		}					
+			System.out.println("Repaired Constraint: "+processedOCL);
+			executer = provider.buildExecuter(processedOCL); // we need a new executer (to parse the new text)
+			executer.checkForIssues(); // any remaining issues?
+			if (executer.getProblems().isEmpty()) {
+				System.out.println("Constraint is correct now");
+			} else {
+				executer.getProblems().forEach(issue -> System.out.println("Remaining Problem: "+issue.getMessage()));	
+			}
+		}	
+		
 	}
 	
 	private String wrapInOCLX(String constraint, String context) {

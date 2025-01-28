@@ -27,6 +27,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
@@ -40,7 +42,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import at.jku.isse.designspace.rule.arl.parser.ArlParser;
 import at.jku.isse.designspace.rule.arl.parser.ArlType;
+import at.jku.isse.ide.assistance.CodeActionExecuter;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,10 +69,12 @@ public class OpenAI implements OCLBot{
     protected ObjectMapper objectMapper =  JsonMapper.builder()
     			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     			.build();
-    
+	
+	protected final CodeActionExecuterProvider provider;
 
-    public OpenAI(@Value("${openai.apikey}")String apiKey) {
+    public OpenAI(@Value("${openai.apikey}")String apiKey, 	CodeActionExecuterProvider provider) {
         this.apiKey = apiKey;
+        this.provider = provider;
     }
 
     public CompletableFuture<BotResult> sendAsync(BotRequest userInput) {
@@ -191,12 +197,44 @@ public class OpenAI implements OCLBot{
     	// lets just use the first message
     	Message msg = responses.get(0);
     	
-    	String ocl = new OCLExtractor(msg.getContent()).extractOCLorNull();
-    	String content = msg.getContent();
-    	if (ocl != null && userInput != null && userInput.getContextType() != null) {    		
-    		content = content + "\r\n" +checkARL(ocl, userInput.getContextType());
+    	String basicOcl = new OCLExtractor(msg.getContent()).extractOCLorNull();
+    	
+    	StringBuffer content = new StringBuffer(msg.getContent());
+    	if (basicOcl != null && userInput != null && userInput.getContextType() != null && provider != null) {    		
+        	var ocl = GeneratedRulePostProcessor.init(basicOcl).getProcessedRule();
+        	ocl = wrapInOCLX(ocl, userInput.getContextType().getName());
+        	CodeActionExecuter executer = provider.buildExecuter(ocl);    		
+    		String lastVersion = null;
+    		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
+    			executer.checkForIssues();
+        		var issues = executer.getProblems();
+    			if (!issues.isEmpty()) {
+    				content.append("\r\n Found Errors in generated OCL statement: "); 
+    				issues.forEach(issue -> content.append("\r\n: - "+issue.getMessage()));		
+    				executer.executeRepairs();
+    				var repair = executer.getExecutedCodeAction();
+    				if (repair != null) {    					
+    					lastVersion = (executer.getRepairedConstraint());
+    					basicOcl = NodeModelUtils.findActualNodeFor(executer.getModel().getConstraints().get(0).getExpression()).getText();
+    					executer = provider.buildExecuter(ocl);  //reset executer for new round
+    					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
+    				} else {
+    					break; // we could repair the top most problem, hence aborting
+    				}    			
+    			} else 
+    				break;
+    		}
+    		if (lastVersion != null) {
+    			content.append("\r\n Applied automatic repair(s), repaired OCL:" );
+    			content.append("\r\n"+basicOcl);
+    		}
+    		
+    		//TODO: extract repaired OCL string (not whole OCLX constraint)
+    		
+    		//TODO: maintain remaining error message to feed back into LLM iteration
+    		content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
     	}
-    	BotResult res = new BotResult(msg.getTime(), "OCLbot", content, ocl);
+    	BotResult res = new BotResult(msg.getTime(), "OCLbot", content.toString(), basicOcl);
     	interaction.add(res);
     	return res;
     }
@@ -214,6 +252,14 @@ public class OpenAI implements OCLBot{
              return String.format("Warning: Rule caused parsing error: %s (Line=%d, Column=%d)", ex.getMessage(), parser.getLine(), parser.getColumn());
          }
     }
+    
+	private String wrapInOCLX(String constraint, String context) {
+		return "rule TestRule {\r\n"
+				+ "					description: \"ignored\"\r\n"
+				+ "					context: "+context+"\r\n"
+				+ "					expression: "+constraint+" \r\n"
+				+ "				}";	
+	}
     
     @Data
     public static class ChatRequest {

@@ -20,7 +20,7 @@ class TestInteractionHistory {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		openAI = new OpenAI("NOTRELEVANT");
+		openAI = new OpenAI("NOTRELEVANT", null);
 	}
 	
 	

@@ -86,7 +86,7 @@ class TestSelectTypes {
 		var prompt = String.format(promptTemplate1, constraint ,types1);
 		messages.add(new Message("user", prompt.toString(), Instant.now()));
 		var req = new OpenAI.ChatRequest(OpenAI.MODEL, messages);
-		OpenAI bot = new OpenAI(props.getProperty("openai.apikey"));
+		OpenAI bot = new OpenAI(props.getProperty("openai.apikey"), null);
 		var response = bot.sendRequest(req);
 		var responses = response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList());
 		String answer = responses.get(0).getContent();
@@ -101,7 +101,7 @@ class TestSelectTypes {
 		var prompt = String.format(promptTemplate1, constraint ,types1);
 		messages.add(new Message("user", prompt.toString(), Instant.now()));
 		var req = new OpenAI.ChatRequest(OpenAI.MODEL, messages);
-		OpenAI bot = new OpenAI(props.getProperty("openai.apikey"));
+		OpenAI bot = new OpenAI(props.getProperty("openai.apikey"), null);
 		var response = bot.sendRequest(req);
 		var responses = response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList());
 		String answer = responses.get(0).getContent();
