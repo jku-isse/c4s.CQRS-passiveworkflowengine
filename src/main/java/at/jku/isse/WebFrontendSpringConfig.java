@@ -15,8 +15,13 @@ import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserv
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
+import at.jku.isse.passiveprocessengine.core.InstanceRepository;
+import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
+import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.demo.DemoArtifactProvider;
+import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
 import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
@@ -39,19 +44,28 @@ public class WebFrontendSpringConfig {
 
 	@Bean @Primary // overriding basic resolver from RestFrontend
 	public ArtifactResolver getArtifactResolverForWebfrontend(AzureServiceBuilder azureBuilder,
-			/* IGitService github,   IJiraService jira, IJamaService jama, */ ProcessConfigProvider procconf, ProcessRegistry procReg ) {
+			 ProcessConfigProvider procconf, ProcessRegistry procReg
+			 , UIConfig uiConfig, InstanceRepository repo, SchemaRegistry schemaReg) {
 		IArtifactProvider azure = azureBuilder.build();
 		
 		ArtifactResolver ar = new ArtifactResolver();
 		ar.register(azure);
-		/* ar.register(github); 
-		ar.register(jira);
-		ar.register(jama);*/
 		ar.register(procconf);
+		
+		// we dont want to polute schema with demo artifact if demo mode is off
+		if (uiConfig.isDemoModeEnabled()) {
+			var demoArtFactory = new TestArtifacts(repo, schemaReg);	
+			PPEInstance jiraB =  demoArtFactory.getJiraInstance("IssueB");
+    		PPEInstance jiraC = demoArtFactory.getJiraInstance("IssueC");		
+    		PPEInstance jiraA = demoArtFactory.getJiraInstance("IssueA", jiraB, jiraC);
+			var demoissueProvider = new DemoArtifactProvider(schemaReg, repo, demoArtFactory);
+			ar.register(demoissueProvider);
+		}
+		
 		return ar;
 	}	  
 
-    @Bean @Primary
+    @Bean @Primary // overriding basic listener from RestFrontend
     public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver, EventDistributor eventDistributor, IFrontendPusher uiUpdater) {
     	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor );
 		changeEventTransformer.registerWithWorkspace(picp);

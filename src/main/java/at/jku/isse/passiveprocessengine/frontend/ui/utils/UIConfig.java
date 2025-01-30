@@ -16,7 +16,9 @@ public class UIConfig extends Properties {
 		blocklyeditor_enabled("blocklyeditor.enabled"),
 		blocklyeditor_url("blocklyeditor.url"),
 		stages_enabled("stages.enabled"),
-		designspaceProperties_enabled ("designspaceProperties.enabled");
+		designspaceProperties_enabled ("designspaceProperties.enabled"),
+		demomode_enabled("demomode.enabled")
+		;
 		
 		
 		private final String label;
@@ -77,6 +79,11 @@ public class UIConfig extends Properties {
 	
 	public boolean isDesignspacePropertiesDisplayEnabled() {
 		return Boolean.valueOf(this.getProperty(Keys.designspaceProperties_enabled.toString(), "false"));
+	}
+	
+	// demo artifact provider and types enabled
+	public boolean isDemoModeEnabled() {
+		return Boolean.valueOf(this.getProperty(Keys.demomode_enabled.toString(), "true"));
 	}
 	
 	public String getVersion() {

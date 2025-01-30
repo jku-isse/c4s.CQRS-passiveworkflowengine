@@ -26,7 +26,7 @@
 		<lombok.version>1.18.30</lombok.version>
 		<connector.azure.version>2.6.2</connector.azure.version>
 		<connector.git.version>1.3.0</connector.git.version>
-		<connector.core.version>2.0.7</connector.core.version>
+		<connector.core.version>2.0.8</connector.core.version>
 		<connector.jira.version>1.7.0</connector.jira.version>
 		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>	
 		<ppe.rest.version>2.0.7-SNAPSHOT</ppe.rest.version>
