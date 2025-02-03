@@ -123,12 +123,12 @@ class TestWithEvalData {
 
 	private IterationResult checkResponse(String context, String prompt,
 			String answer, int iteration) {
-		// check for errors 
 		var result = new IterationResult(iteration, prompt, answer);
-		
-		// --> correct OCL?
+		// check for errors, correct OCL?
 		var ocl = new OCLExtractor(answer).extractOCLorNull();
-		if (ocl == null) return result;
+		if (ocl == null) {
+			return result;
+		}
 		result.setOclString(ocl);
 		// if yes --> correct OCLX?
 		
@@ -141,7 +141,6 @@ class TestWithEvalData {
 			executer = provider.buildExecuter(processedOCL);
 		} catch (Exception e) {
 			result.setError(e.getMessage());
-			e.printStackTrace();
 			return result;
 		}
 		// there are problems:
@@ -160,7 +159,7 @@ class TestWithEvalData {
 			return result;
 		}
 		// else autoexecuted repair
-		result.setFixedOclxString(executer.getRepairedConstraint());
+		result.setFixedOclxString(executer.getRepairedExpression());
 		executer = provider.buildExecuter(processedOCL); // we need a new executer (to parse the new text)
 		executer.checkForIssues(); // any remaining issues?
 		if (executer.getProblems().isEmpty()) {

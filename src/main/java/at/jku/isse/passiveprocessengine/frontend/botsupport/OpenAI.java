@@ -217,12 +217,12 @@ public class OpenAI implements OCLBot{
     				executer.executeRepairs();
     				var repair = executer.getExecutedCodeAction();
     				if (repair != null) {    					
-    					lastOCLXVersion = (executer.getRepairedConstraint());
-    					basicOcl = NodeModelUtils.findActualNodeFor(executer.getModel().getConstraints().get(0).getExpression()).getText();
+    					lastOCLXVersion = (executer.getRepairedOclxConstraint());
+    					basicOcl = executer.getRepairedExpression();
     					executer = provider.buildExecuter(ocl);  //reset executer for new round
     					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
     				} else {
-    					break; // we could repair the top most problem, hence aborting
+    					break; // we couldnot repair the top most problem, hence aborting
     				}    			
     			} else 
     				break;
