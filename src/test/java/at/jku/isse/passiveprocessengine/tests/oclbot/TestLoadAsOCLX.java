@@ -80,7 +80,7 @@ public class TestLoadAsOCLX {
 		executer.executeRepairs();		
 		var repair = executer.getExecutedCodeAction();
 		if (repair != null) {
-			processedOCL = executer.getRepairedConstraint();
+			processedOCL = executer.getRepairedOclxConstraint();
 			repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));
 			System.out.println("Repaired Constraint: "+processedOCL);
 			executer = provider.buildExecuter(processedOCL); // we need a new executer (to parse the new text)
