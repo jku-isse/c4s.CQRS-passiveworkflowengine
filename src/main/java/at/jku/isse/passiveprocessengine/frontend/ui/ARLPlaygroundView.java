@@ -95,7 +95,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	private MessageList botUI = new MessageList();
 	private MessageInput input = new MessageInput();
 	private Button copyButton = new Button("Copy OCL/ARL constraint");
-	private Button runButton = new Button("Execute OCL/ARL constraint");
+	private Button repairButton = new Button("Request Repair from Bot");
 	// adapted from: https://github.com/samie/vaadin-openai-chat/blob/main/src/main/java/com/example/application/views/helloworld/ChatView.java
 	// https://vaadin.com/blog/building-a-chatbot-in-vaadin-with-openai
 	
@@ -317,10 +317,10 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 			}
 		});    
 		
-		runButton.setEnabled(false);
-		runButton.addClickListener(clickEvent -> {    
-			if (lastResult != null && lastResult.getOclRule() != null && instanceTypeComboBox.getValue() != null) {
-				triggerEvaluation(instanceTypeComboBox.getValue(), lastResult.getOclRule(), checkboxFetchIncomplete.getValue());
+		repairButton.setEnabled(false);
+		repairButton.addClickListener(clickEvent -> {    
+			if (lastResult != null && lastResult.getOclError() != null && instanceTypeComboBox.getValue() != null) {
+				submitMsgToBot(OCLBot.REPAIR_REQUEST_PREFIX_PROMPT+lastResult.getOclError());
 			}
 		});
 	        
@@ -331,7 +331,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	        botUI.setItems(Collections.emptyList());
 		});
 		HorizontalLayout controls = new HorizontalLayout();
-		controls.add(copyButton, runButton, resetButton);		
+		controls.add(copyButton, repairButton, resetButton);		
 		
 		input.addSubmitListener(this::onBotSubmit);
 		VerticalLayout botLayout = new VerticalLayout();		
@@ -355,7 +355,7 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 				.filter(type -> !(type instanceof RuleDefinition))
 				.filter(type -> !type.getName().startsWith("ProcessStep")) //TODO nicer  filter out process steps
 				.filter(type -> !type.getName().startsWith("ProcessDefinition")) //TODO nicer filtering out process
-				.filter(type -> !type.getName().startsWith("ProcessInstance")) //TOD nicer filter out process 
+				.filter(type -> !type.getName().startsWith("ProcessInstance")) //TODO nicer filter out process 
 				.sorted(new InstanceTypeComparator())
 				.collect(Collectors.toList());
 		relevantSchemaList.setItems(instTypes);
@@ -368,24 +368,23 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	}
 	
 	private void onBotSubmit(MessageInput.SubmitEvent submitEvent) {
+		submitMsgToBot(submitEvent.getValue());
+	}
+	
+	private void submitMsgToBot(String msg) {
 		// Append an item (this will be overriden later when reply comes)
 		List<MessageListItem> items = new ArrayList<>(botUI.getItems());
-		MessageListItem inputItem = new MessageListItem(submitEvent.getValue(), Instant.now(), user);
+		MessageListItem inputItem = new MessageListItem(msg, Instant.now(), user);
 		items.add(inputItem);
 		botUI.setItems(items);
 
 		// Query AIbot
-		oclBot.sendAsync(augmentInputPrompt(submitEvent.getValue()))
+		oclBot.sendAsync(augmentInputPrompt(msg))
 			  .whenComplete((response, t) -> {
 			getUI().get().access(() -> {
 				lastResult = response;
-				if (response.getOclRule() != null) {
-					runButton.setEnabled(true);
-					copyButton.setEnabled(true);
-				} else {
-					runButton.setEnabled(false);
-					copyButton.setEnabled(false);
-				}
+				copyButton.setEnabled(response.getOclRule() != null);
+				repairButton.setEnabled(response.getOclError() != null);
 				items.add(convertResult(response));
 				botUI.setItems(items);				
 			});

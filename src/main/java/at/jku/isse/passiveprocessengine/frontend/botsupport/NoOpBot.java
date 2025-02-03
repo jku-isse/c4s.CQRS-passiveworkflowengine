@@ -11,7 +11,7 @@ public class NoOpBot implements OCLBot {
 
 	@Override
 	public BotResult send(BotRequest request) {
-		return new BotResult(Instant.now(), "NoOpBot", "No OCLBot configured", null);
+		return new BotResult(Instant.now(), "NoOpBot", "No OCLBot configured", null, null);
 	}
 
 	@Override

@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @TestInstance(Lifecycle.PER_CLASS)
-class TestGenerateOCL {
+public class TestGenerateOCL {
 
 
 	OpenAI bot;
@@ -80,7 +80,7 @@ class TestGenerateOCL {
 //    	```
     	}
 	
-	private String compilePrompt(String schema, String context, String humanReadableConstraint) {
+	public static String compilePrompt(String schema, String context, String humanReadableConstraint) {
 		StringBuffer prompt = new StringBuffer();
     	prompt.append(OCLBot.TASK_PROMPT);
     	prompt.append(String.format(OCLBot.SCHEMA_PROMPT_TEMPLATE, schema));
@@ -100,14 +100,14 @@ class TestGenerateOCL {
 		return extractAnswer(bot.sendRequest(compileRequest(prompt)));
 	}
 	
-	private OpenAI.ChatRequest compileRequest(String prompt) {
+	public static OpenAI.ChatRequest compileRequest(String prompt) {
 		List<Message> messages = new ArrayList<>();
 		messages.add(new Message("user", prompt.toString(), Instant.now()));
 		var req = new OpenAI.ChatRequest(OpenAI.MODEL, messages);
 		return req;
 	}
 	
-	private String extractAnswer(OpenAI.ChatResponse response) {
+	public static String extractAnswer(OpenAI.ChatResponse response) {
 		var responses = response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList());
 		String answer = responses.get(0).getContent();
 		return answer;

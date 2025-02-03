@@ -24,7 +24,9 @@ public interface OCLBot {
     public static final String OUTPUTFORMAT_PROMPT = " Remember, only provide the OCL rule, but no explanation unless explicitly asked for it \r\n";
 
     public static final String TASKFOLLOWS_PROMPT = " The exact task is the following: \r\n";
-    		    
+    
+    public static final String REPAIR_REQUEST_PREFIX_PROMPT = " Rephrase the ocl constraint to fix: ";
+    
     public static final String FORGET_SCHEMA = "FORGET_SCHEMA"; // used to indicate to not use any schema information, not necessary when providing new schema as this overrides old schema
 	
     
@@ -68,5 +70,6 @@ public interface OCLBot {
     	final String role;
     	final String botResult;
 		final String oclRule;
+		final String oclError;
 	}
 }

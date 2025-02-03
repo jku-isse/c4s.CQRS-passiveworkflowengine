@@ -27,7 +27,7 @@ import at.jku.isse.passiveprocessengine.frontend.botsupport.TestOclExtractor;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes=PPE3Webfrontend.class)
 @SpringBootTest
-class TestLoadAsOCLX {
+public class TestLoadAsOCLX {
 
 
 	@Autowired
@@ -52,9 +52,12 @@ class TestLoadAsOCLX {
 	
 	static Stream<Arguments> generateTestData() {
 		 
-		return Stream.of(Arguments.of(TestOclExtractor.raw1, "Issue") 
-				, Arguments.of(TestOclExtractor.raw2, "Issue") 
-				, Arguments.of(TestOclExtractor.raw3, "Issue") 
+		return Stream.of(
+				
+				Arguments.of(TestOclExtractor.raw1a, "ProcessStep_BugReqTrace_Task1a")
+			//	, Arguments.of(TestOclExtractor.raw1, "Issue") 
+			//	, Arguments.of(TestOclExtractor.raw2, "Issue") 
+			//	, Arguments.of(TestOclExtractor.raw3, "Issue") 
 //				,Arguments.of(TestOclExtractor.raw4, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2"),
 //				,Arguments.of(TestOclExtractor.raw5, "ProcessStep_CheckingRequirements_RequirementsManagementProcessV2")
 				)
@@ -91,7 +94,7 @@ class TestLoadAsOCLX {
 		
 	}
 	
-	private String wrapInOCLX(String constraint, String context) {
+	public static String wrapInOCLX(String constraint, String context) {
 		return "rule TestRule {\r\n"
 				+ "					description: \"ignored\"\r\n"
 				+ "					context: "+context+"\r\n"

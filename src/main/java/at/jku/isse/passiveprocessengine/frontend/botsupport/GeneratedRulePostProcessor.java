@@ -54,7 +54,7 @@ public class GeneratedRulePostProcessor {
 		var typeBracketEnd  = processedRule.indexOf(">", posTypeBracketBegin) ;
 		if (typeBracketEnd == -1 || typeBracketEnd > closeBracket) { // no > within call
 			// insert at end, just before )
-			processedRule = processedRule.substring(0, closeBracket-1) + ">" + processedRule.substring(closeBracket-1);
+			processedRule = processedRule.substring(0, closeBracket) + ">" + processedRule.substring(closeBracket);
 		}
 		var typeBracketBegin = processedRule.indexOf("<", posTypeBracketBegin) ;
 		if (typeBracketBegin == -1 || typeBracketBegin > closeBracket) { // no < within call
@@ -76,7 +76,7 @@ public class GeneratedRulePostProcessor {
 	final static char open = '(';
 	final static char close = ')';
 	
-	/** very primitive checking of brackets '<' , '(' match, at which pos, and ignoring simple ' quotations, stops upon first mismatch
+	/** very primitive checking of brackets  '(' match, at which pos, and ignoring simple ' quotations, stops upon first mismatch
 	 * @param toParse
 	 * @return positions of corresponding open and close brackets, closing pos of -1 for open brackets encountered until first mismatch
 	 */
@@ -94,8 +94,8 @@ public class GeneratedRulePostProcessor {
 			} else 
 			if (!isSkippingOn) {	
 				if ( open == cur) {
-					symbolStack.add(cur);
-					posStack.add(i);
+					symbolStack.addFirst(cur);
+					posStack.addFirst(i);
 				} else if (close == cur) {
 					if (symbolStack.isEmpty()) break;
 					if (symbolStack.peek() == open) { // opening bracket matches this closing bracket

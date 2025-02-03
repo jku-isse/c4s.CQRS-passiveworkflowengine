@@ -6,14 +6,14 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task1c</field>
-    <comment pinned="true" h="259" w="837">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability between requirements and Test cases in this task is to identify evidence (the review) that the Test cases are sufficient and mature to cover the requirements.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure traces between requirements and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <field name="NAME">Task3a</field>
+    <comment pinned="true" h="237" w="641">This task is about ensuring that any bugs affecting the most important requirements are explicitly tracked. This ensures that critical bugs are definitely resolved before a release.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs, change requests and issues. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.is function.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
         <value name="VALUE">
           <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
-            <field name="Type">azure_workitem</field>
+            <field name="Type">root/types/azure/azure_workitem</field>
           </block>
         </value>
         <next>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqTestTrace</field>
+                <field name="StepId">AssessingBugStates</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,27 +38,27 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
                     <field name="State">POSTCONDITION</field>
                     <value name="condition">
-                      <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
-                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Active')</field>
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Released')</field>
                       </block>
                     </value>
                   </block>
                 </statement>
                 <statement name="Datamappings">
-                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                  <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
                     <field name="mappingId">REQs</field>
-                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
                     <next>
-                      <block type="datamapping" id="IAXyBKMo5{yF(HGU6tNG">
+                      <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
                         <next>
-                          <block type="datamapping" id="VZjM`~Jg9vN~/l$X/wM(">
+                          <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                             <field name="mappingId">Bugs</field>
-                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
+                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
                           </block>
                         </next>
                       </block>
@@ -70,7 +70,7 @@
                     <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
                     <value name="VALUE">
                       <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
-                        <field name="Type">azure_workitem</field>
+                        <field name="Type">root/types/azure/azure_workitem</field>
                       </block>
                     </value>
                     <next>
@@ -86,7 +86,7 @@
                             <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
                             <value name="VALUE">
                               <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
-                                <field name="Type">azure_workitem</field>
+                                <field name="Type">root/types/azure/azure_workitem</field>
                               </block>
                             </value>
                             <next>
@@ -102,7 +102,7 @@
                                     <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
                                     <value name="VALUE">
                                       <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
-                                        <field name="Type">azure_workitem</field>
+                                        <field name="Type">root/types/azure/azure_workitem</field>
                                       </block>
                                     </value>
                                     <next>
@@ -126,12 +126,12 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="W1fbY4q$(rWfRrae@0K2">
-                    <field name="qacheckId">REQtoTC</field>
-                    <field name="description">Ensure that each Requirement traces (via 'tested by') to at least one Test Case in state 'Released'.</field>
+                  <block type="qacheck" id="rA5Srg,=6DFA]n?Z+8q#">
+                    <field name="qacheckId">Priority1ReqBugsState</field>
+                    <field name="description">Ensure that either all Bugs for priority '1' 'affects' Requirements are 'Closed' or otherwise that the Requirement is traced (as 'predecessor') from one of the Change Request's 'active' child Issues.</field>
                     <value name="constraint">
-                      <block type="constraint" id="fv4uP?X:2{U0B5]32/XN">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;   req.testedbyItems-&gt;size() &gt; 0 &#10;   and&#10;   req.testedbyItems&#10; -&gt;forAll(tc |  tc.workItemType = 'Test Case' &#10;               and tc.state = 'Released')&#10;)</field>
+                      <block type="constraint" id="61,1Yz2_o6iIx2(k|F_-">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req  : &lt;root/types/azure/Requirement&gt; | req.priority=1)&#10;-&gt;forAll(prioreq : &lt;root/types/azure/azure_workitem&gt;| &#10;    ( prioreq.affectedByItems&#10;        -&gt;select( item | &#10;                  item.externalType = 'Bug'  )&#10;        -&gt;forAll( bug | bug.state = 'Closed')&#10;    )&#10;   or&#10;    (  prioreq.successorItems&#10;        -&gt;exists(item3 |&#10;              item3.externalType = 'Issue' &#10;              and &#10;              item3.state='Active' &#10;              and &#10;              item3.parentItems            &#10;              -&gt;intersection(self.in_CRs)&#10;                    .size() &gt; 0&#10;            )&#10;    )&#10;)</field>
                       </block>
                     </value>
                   </block>

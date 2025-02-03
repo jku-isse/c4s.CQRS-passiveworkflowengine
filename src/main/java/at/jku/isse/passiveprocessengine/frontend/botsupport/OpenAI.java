@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+import org.eclipse.xtext.validation.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -94,7 +95,7 @@ public class OpenAI implements OCLBot{
             return compileResult(response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList()), userInput);
         }catch (Exception e) {
         	log.warn(e.getMessage());
-            return new BotResult(Instant.now(), "system", e.getMessage(), null);
+            return new BotResult(Instant.now(), "system", e.getMessage(), null, null);
         }
     }
     
@@ -118,7 +119,7 @@ public class OpenAI implements OCLBot{
                 responseBuilder.append(scanner.nextLine());
             }
             String errorBody = responseBuilder.toString();
-            System.out.println(errorBody);
+            log.warn(errorBody);
             APIError error = objectMapper.readValue(errorBody, APIError.class);
             log.info(error.toString());
             throw new Exception(error.getError().message);
@@ -156,7 +157,8 @@ public class OpenAI implements OCLBot{
     	String finalSchema = Stream.concat(interaction.stream()
     		.filter(BotRequest.class::isInstance)
     		.map(BotRequest.class::cast)
-    		.map(req -> req.getSchema()) , Stream.of(userInput.getSchema()))
+    		.map(req -> req.getSchema()) 
+    		, Stream.of(userInput.getSchema()))
     		.reduce(null, (prioSchema, currentSchema) -> { 
     			if (currentSchema == null || currentSchema.length() < 10)
     				return prioSchema;
@@ -198,23 +200,24 @@ public class OpenAI implements OCLBot{
     	Message msg = responses.get(0);
     	
     	String basicOcl = new OCLExtractor(msg.getContent()).extractOCLorNull();
-    	
+    	String oclError = null;
     	StringBuffer content = new StringBuffer(msg.getContent());
     	if (basicOcl != null && userInput != null && userInput.getContextType() != null && provider != null) {    		
         	var ocl = GeneratedRulePostProcessor.init(basicOcl).getProcessedRule();
         	ocl = wrapInOCLX(ocl, userInput.getContextType().getName());
         	CodeActionExecuter executer = provider.buildExecuter(ocl);    		
-    		String lastVersion = null;
+    		String lastOCLXVersion = null;
+    		List<Issue> issues = null;
     		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
     			executer.checkForIssues();
-        		var issues = executer.getProblems();
+        		issues = executer.getProblems();
     			if (!issues.isEmpty()) {
     				content.append("\r\n Found Errors in generated OCL statement: "); 
-    				issues.forEach(issue -> content.append("\r\n: - "+issue.getMessage()));		
+    				issues.forEach(issue -> content.append("\r\n - "+issue.getMessage()));		
     				executer.executeRepairs();
     				var repair = executer.getExecutedCodeAction();
     				if (repair != null) {    					
-    					lastVersion = (executer.getRepairedConstraint());
+    					lastOCLXVersion = (executer.getRepairedConstraint());
     					basicOcl = NodeModelUtils.findActualNodeFor(executer.getModel().getConstraints().get(0).getExpression()).getText();
     					executer = provider.buildExecuter(ocl);  //reset executer for new round
     					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
@@ -224,17 +227,18 @@ public class OpenAI implements OCLBot{
     			} else 
     				break;
     		}
-    		if (lastVersion != null) {
-    			content.append("\r\n Applied automatic repair(s), repaired OCL:" );
+    		if (lastOCLXVersion != null) {
+    			content.append("\r\nApplied automatic repair(s) resulting in:" );
     			content.append("\r\n"+basicOcl);
     		}
-    		
-    		//TODO: extract repaired OCL string (not whole OCLX constraint)
-    		
-    		//TODO: maintain remaining error message to feed back into LLM iteration
-    		content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
+    		if (!issues.isEmpty()) {
+    			// maintain topmost remaining error message to feed back into LLM iteration
+    			oclError = issues.get(0).getMessage();
+    			content.append("\r\nRemaining error: "+issues.get(0).getMessage());
+    		}
+    		//content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
     	}
-    	BotResult res = new BotResult(msg.getTime(), "OCLbot", content.toString(), basicOcl);
+    	BotResult res = new BotResult(msg.getTime(), "OCLbot", content.toString(), basicOcl, oclError);
     	interaction.add(res);
     	return res;
     }
@@ -330,11 +334,9 @@ public class OpenAI implements OCLBot{
         }       
         
         protected static Message fromHistory(BotInteraction interaction) {
-        	if (interaction instanceof BotRequest) {
-        		BotRequest req = (BotRequest)interaction;
+        	if (interaction instanceof BotRequest req) {
         		return new Message("user", req.getUserPrompt(), req.getTime());
-        	} else if (interaction instanceof BotResult) {
-        		BotResult res = (BotResult)interaction;
+        	} else if (interaction instanceof BotResult res) {
         		return new Message("user", res.getBotResult(), res.getTime());
         	} else 
         		throw new RuntimeException("Unexpected BotInteraction subclass: "+interaction.getClass().toString());

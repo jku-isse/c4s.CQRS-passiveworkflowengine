@@ -22,8 +22,6 @@ public class TestOclExtractor {
 			+ "  self.successorItems->select(r | r.oclIsTypeOf(Requirement))->forAll(r | r.state = 'released')\r\n"
 			+ "```";
 	
-	//TODO: auto replace typename with FQN
-	
 	public final static String raw3 = "```ocl\r\n"
 			+ "context Issue\r\n"
 			+ "    inv AllSucceedingRequirementsReleased:\r\n"
@@ -58,8 +56,11 @@ public class TestOclExtractor {
 			+ "    )\r\n"
 			+ "```";
 	
+	public static final String raw1a = "```ocl context ProcessStep_BugReqTrace_Task1a inv: out_Bugs->forAll(bug | bug.affectsItems->exists(a | a.oclIsTypeOf(Requirement) and a.state <> 'Released')) \n```";
+	
 	static Stream<String> generateTestData() {
 		return Stream.of(raw1, raw2, raw3, raw4, raw5, raw6);
+		
 	}
 	
 	@ParameterizedTest
@@ -73,12 +74,11 @@ public class TestOclExtractor {
 	
 	@Test
 	void testPostProcessingTypeBrackets() {
-		var ocl = new OCLExtractor(raw2).extractOCLorNull();
+		var ocl = new OCLExtractor(raw2).extractOCLorNull(); //raw2 , raw1a
 		assertNotNull(ocl);
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
-		assertTrue(processedOCL.contains("<"));
-		assertTrue(processedOCL.contains(">"));
+		assertTrue(processedOCL.contains("<Requirement>"));
 	}
 }
