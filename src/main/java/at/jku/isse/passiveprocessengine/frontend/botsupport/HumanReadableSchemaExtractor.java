@@ -20,9 +20,12 @@ import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.definition.types.ProcessStepDefinitionType;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
+import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessInstanceType;
+import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
 import at.jku.isse.passiveprocessengine.instance.types.SpecificProcessStepType;
 import lombok.NonNull;
 
@@ -37,9 +40,9 @@ public class HumanReadableSchemaExtractor {
 	public HumanReadableSchemaExtractor(@NonNull SchemaRegistry schemaReg) {
 		samples = Collections.emptyMap();
 		this.schemaReg = schemaReg;
-		this.stepType = schemaReg.getType(ProcessStep.class);
-		this.procType = schemaReg.getType(ProcessInstance.class);
-		this.artType = schemaReg.getTypeByName(CoreTypeFactory.BASE_TYPE_NAME);
+		this.stepType = schemaReg.getTypeByName(AbstractProcessStepType.typeId);
+		this.procType = schemaReg.getTypeByName(AbstractProcessInstanceType.typeId);
+		this.artType = schemaReg.getTypeByName(CoreTypeFactory.BASE_TYPE_URI);
 	}
 	
 	public Map<PPEInstanceType, String> getSchemaForInstanceTypeAndOneHop(PPEInstanceType type, boolean includeSubTypes) {

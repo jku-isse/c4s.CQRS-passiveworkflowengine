@@ -4,7 +4,7 @@
 
 	<groupId>JKU.ISSE</groupId>
 	<artifactId>ppeV3frontend</artifactId>
-	<version>2.0.6-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 
 	<name>PPE V3 Frontend</name>
 	<description>Frontend for Passive Process Engine V3</description>
@@ -24,12 +24,12 @@
 		<!-- <vaadin.version>14.4.9</vaadin.version> 14.10.1--> 
 		<vaadin.version>14.11.11</vaadin.version>
 		<lombok.version>1.18.30</lombok.version>
-		<connector.azure.version>2.6.2</connector.azure.version>
-		<connector.git.version>1.3.0</connector.git.version>
-		<connector.core.version>2.0.8</connector.core.version>
+		<connector.azure.version>3.0.0</connector.azure.version>
+		<connector.core.version>3.0.0</connector.core.version>
+		<!--<connector.git.version>1.3.0</connector.git.version>		
 		<connector.jira.version>1.7.0</connector.jira.version>
-		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>	
-		<ppe.rest.version>2.0.7-SNAPSHOT</ppe.rest.version>
+		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>	-->
+		<ppe.rest.version>3.0.0-SNAPSHOT</ppe.rest.version>
 		<xtextVersion>2.34.0</xtextVersion>
 		<!-- <spring-security.version>5.3.4.RELEASE</spring-security.version> -->
 	</properties>
@@ -168,12 +168,12 @@
 		<dependency>
 			<groupId>at.jku.isse.oclx</groupId>
 			<artifactId>at.jku.isse.oclx</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>at.jku.isse.oclx</groupId>
 			<artifactId>at.jku.isse.oclx.ide</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.xtext</groupId>

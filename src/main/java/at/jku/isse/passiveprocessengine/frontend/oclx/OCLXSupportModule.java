@@ -5,13 +5,12 @@ import com.google.inject.Binder;
 
 import at.jku.isse.validation.MethodRegistry;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
-import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 
 public class OCLXSupportModule extends AbstractOCLXRuntimeModule {
 
-	DesignSpaceSchemaRegistry designspace;
+	SchemaRegistry designspace;
 	
-	public OCLXSupportModule(DesignSpaceSchemaRegistry designspace) {
+	public OCLXSupportModule(SchemaRegistry designspace) {
 		this.designspace = designspace;
 	}
 	

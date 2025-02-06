@@ -214,8 +214,8 @@ public class OpenAI implements OCLBot{
     				executer.executeRepairs();
     				var repair = executer.getExecutedCodeAction();
     				if (repair != null) {    					
-    					lastVersion = (executer.getRepairedConstraint());
-    					basicOcl = NodeModelUtils.findActualNodeFor(executer.getModel().getConstraints().get(0).getExpression()).getText();
+    					lastVersion = (executer.getRepairedOclxConstraint());
+    					basicOcl = executer.getRepairedExpression();
     					executer = provider.buildExecuter(ocl);  //reset executer for new round
     					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
     				} else {
@@ -232,7 +232,7 @@ public class OpenAI implements OCLBot{
     		//TODO: extract repaired OCL string (not whole OCLX constraint)
     		
     		//TODO: maintain remaining error message to feed back into LLM iteration
-    		content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
+    		//content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
     	}
     	BotResult res = new BotResult(msg.getTime(), "OCLbot", content.toString(), basicOcl);
     	interaction.add(res);
@@ -241,17 +241,17 @@ public class OpenAI implements OCLBot{
     
     
     
-    private  ArlParser parser = new ArlParser(); 
-    
-    protected String checkARL(String rule, PPEInstanceType instanceType) {
-    	 try {
-             parser.parse(rule, ArlType.get(ArlType.TypeKind.INSTANCE, ArlType.CollectionKind.SINGLE, instanceType), null);
-             return "Rule constains no syntax errors";
-         }
-         catch (Exception ex) {             
-             return String.format("Warning: Rule caused parsing error: %s (Line=%d, Column=%d)", ex.getMessage(), parser.getLine(), parser.getColumn());
-         }
-    }
+//    private  ArlParser parser = new ArlParser(); 
+//    
+//    protected String checkARL(String rule, PPEInstanceType instanceType) {
+//    	 try {
+//             parser.parse(rule, ArlType.get(ArlType.TypeKind.INSTANCE, ArlType.CollectionKind.SINGLE, instanceType), null);
+//             return "Rule constains no syntax errors";
+//         }
+//         catch (Exception ex) {             
+//             return String.format("Warning: Rule caused parsing error: %s (Line=%d, Column=%d)", ex.getMessage(), parser.getLine(), parser.getColumn());
+//         }
+//    }
     
 	private String wrapInOCLX(String constraint, String context) {
 		return "rule TestRule {\r\n"

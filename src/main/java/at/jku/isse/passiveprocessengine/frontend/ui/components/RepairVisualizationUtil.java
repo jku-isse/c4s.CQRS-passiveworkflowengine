@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.rdf.model.RDFNode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -14,10 +18,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.Span;
 
-import at.jku.isse.designspace.core.model.Element;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.PropertyType;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
@@ -26,9 +26,9 @@ import at.jku.isse.designspace.rule.arl.repair.UnknownRepairValue;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
-import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
+import at.jku.isse.passiveprocessengine.rdfwrapper.RuleEnabledResolver;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -37,12 +37,12 @@ public class RepairVisualizationUtil {
 	private RequestDelegate reqDel;
 	private ReloadIconProvider iconProvider;
 	private String authenticatedUserId;
-	private DesignspaceAbstractionMapper abstractionMapper = null;
+	private RuleEnabledResolver abstractionMapper = null;
 
 	
 	public RepairVisualizationUtil(RequestDelegate reqDel, ReloadIconProvider iconProvider) {
 		this.reqDel = reqDel;
-		this.abstractionMapper = (DesignspaceAbstractionMapper) reqDel.getProcessContext().getInstanceRepository(); //FIXME: ugly hack to deal with incomplete abstraction layer
+		this.abstractionMapper = (RuleEnabledResolver) reqDel.getProcessContext().getInstanceRepository(); //FIXME: ugly hack to deal with incomplete abstraction layer
 		this.iconProvider = iconProvider;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		authenticatedUserId = auth != null ? auth.getName() : null;			
@@ -87,12 +87,12 @@ public class RepairVisualizationUtil {
 		Component target = null;
 		Component reload = null;
 		if (ra.getElement() != null) {
-			if (ra.getElement() instanceof Instance) {
-					PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance)ra.getElement());
+			if (ra.getElement() instanceof OntIndividual ontObj) {
+					PPEInstance inst = (PPEInstance) abstractionMapper.resolveToRDFElement(ontObj);
 					target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 					reload  = iconProvider.getReloadIcon(inst);
 			} else {
-				PPEInstanceType inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType)ra.getElement());
+				PPEInstanceType inst = abstractionMapper.resolveToType((RDFNode)ra.getElement());
 				target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 				reload  = iconProvider.getReloadIcon(inst);
 			}
@@ -144,12 +144,12 @@ public class RepairVisualizationUtil {
 		Component target = null;
 		Component reload = null;
 		if (ra.getElement() != null) {
-			if (ra.getElement() instanceof Instance) {
-					PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance)ra.getElement());
+			if (ra.getElement() instanceof OntIndividual indiv) {
+					PPEInstance inst = (PPEInstance) abstractionMapper.resolveToRDFElement(indiv);
 					target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 					reload  = iconProvider.getReloadIcon(inst);
 			} else {
-				PPEInstanceType inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType)ra.getElement());
+				PPEInstanceType inst = abstractionMapper.resolveToType((RDFNode)ra.getElement());
 				target = new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 				reload  = iconProvider.getReloadIcon(inst);
 			}
@@ -211,29 +211,29 @@ public class RepairVisualizationUtil {
 	}
 		
 	public Component singleRepairValueToComponent(Object value) {
-		if (value instanceof Instance) {
-			PPEInstance inst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) value);
+		if (value instanceof OntIndividual indiv) {
+			PPEInstance inst = (PPEInstance) abstractionMapper.resolveToRDFElement(indiv);
 			return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
-		} else if (value instanceof InstanceType) {
-	    		PPEInstanceType inst =  abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType) value);
+		} else if (value instanceof OntClass ontClass) {
+	    		PPEInstanceType inst =  abstractionMapper.resolveToType(ontClass);
 	    		return new Span(ComponentUtils.convertToResourceLinkWithBlankTarget(inst));
 	    } else
-		return new Span(Objects.toString(value));
+	    	return new Span(Objects.toString(value));
 	}
 
 
 	public  Collection<Component> object2String(AbstractRepairAction ra) {
-		if (ra.getValue() instanceof Instance) {
-			PPEInstance ppeInst = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) ra.getValue());
+		if (ra.getValue() instanceof OntIndividual indiv) {
+			PPEInstance ppeInst = (PPEInstance) abstractionMapper.resolveToRDFElement(indiv);
 			return Set.of(new Span(( ComponentUtils.generateDisplayNameForInstance(ppeInst))));
-		} else if (ra.getValue() instanceof InstanceType) {
-			PPEInstance ppeInstType = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstanceType((InstanceType) ra.getValue());
+		} else if (ra.getValue() instanceof OntClass ontClass) {
+			PPEInstance ppeInstType = abstractionMapper.resolveToType(ontClass);
 			return List.of(new Span("a type of "), ComponentUtils.convertToResourceLinkWithBlankTarget(ppeInstType));
 		} else {
 			if (ra.getValue()!=null) {
 				if (ra.getValue()==UnknownRepairValue.UNKNOWN) {
-					Instance subject = (Instance) ra.getElement();
-					PPEInstance ppeSubj = abstractionMapper.mapDesignSpaceInstanceToProcessDomainInstance((Instance) subject);
+					OntIndividual subject = (OntIndividual) ra.getElement();
+					PPEInstance ppeSubj = (PPEInstance) abstractionMapper.resolveToRDFElement(subject);
 					String propName = ra.getProperty();					
 					if (ppeSubj.getInstanceType().hasPropertyType(propName)) {
 						PPEPropertyType pType = ppeSubj.getInstanceType().getPropertyType(propName);
@@ -248,20 +248,14 @@ public class RepairVisualizationUtil {
 				return List.of(new Span("null"));
 			}
 		}
-	}
-	
-	
-	
+	}			
 	
 	public static boolean isSimpleRepairValue(AbstractRepairAction ra) {
-		if (ra.getValue()!=null && !(ra.getValue() instanceof Instance) && !(ra.getValue() instanceof InstanceType))
+		if (ra.getValue()!=null && !(ra.getValue() instanceof OntObject) )
 			return true;
 		else
 			return false;
-	}	
-	
-	
-	
+	}				
 	
 	public static interface ReloadIconProvider {
 		public Component getReloadIcon(PPEInstance inst);

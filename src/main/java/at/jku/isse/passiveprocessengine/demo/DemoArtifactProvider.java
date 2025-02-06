@@ -33,7 +33,7 @@ public class DemoArtifactProvider extends DesignspaceArtifactRepository implemen
 	private boolean isSimulatorRunning = false;
 	
 	public DemoArtifactProvider(SchemaRegistry schemaReg, InstanceRepository ws, TestArtifacts artifactFactory ) {
-		super(artifactFactory.getJiraInstanceType(), schemaReg.getTypeByName(CoreTypeFactory.BASE_TYPE_NAME) , ws);
+		super(artifactFactory.getJiraInstanceType(), schemaReg.getTypeByName(CoreTypeFactory.BASE_TYPE_URI) , ws);
 		demoType = artifactFactory.getJiraInstanceType();
 		this.artifactFactory = artifactFactory;
 		this.ws = ws;

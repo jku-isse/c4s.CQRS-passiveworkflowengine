@@ -416,7 +416,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 	private Component getReloadIcon(PPEInstance inst) {
 		if (inst == null 
 				|| commandGateway.getUiConfig().isGenerateRefetchButtonsPerArtifactEnabled()
-				|| !inst.getInstanceType().isOfTypeOrAnySubtype(commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(CoreTypeFactory.BASE_TYPE_NAME)))  { 
+				|| !inst.getInstanceType().isOfTypeOrAnySubtype(commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(CoreTypeFactory.BASE_TYPE_URI)))  { 
 			return new Paragraph("");
 		}
 		Icon icon = new Icon(VaadinIcon.REFRESH);

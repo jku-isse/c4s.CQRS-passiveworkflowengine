@@ -47,7 +47,6 @@ import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.RepairTreeProvider;
-import at.jku.isse.passiveprocessengine.designspace.DesignspaceAbstractionMapper;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.DefaultProcessRepairTreeFilter;
@@ -63,6 +62,7 @@ import at.jku.isse.passiveprocessengine.instance.messages.Events.ConstraintOverr
 import at.jku.isse.passiveprocessengine.instance.messages.Events.ProcessChangedEvent;
 import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
 import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
+import at.jku.isse.passiveprocessengine.rdfwrapper.RuleEnabledResolver;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -80,7 +80,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		this.authentication = SecurityContextHolder.getContext().getAuthentication();
 		loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
 		this.setMargin(false);
-		DEFAULT_REPAIR_TREE_FILTER = new DefaultProcessRepairTreeFilter((DesignspaceAbstractionMapper) reqDel.getProcessContext().getInstanceRepository()); //FIXME: ugly hack to deal with incomplete abstraction layer);	
+		DEFAULT_REPAIR_TREE_FILTER = new DefaultProcessRepairTreeFilter((RuleEnabledResolver) reqDel.getProcessContext().getInstanceRepository()); //FIXME: ugly hack to deal with incomplete abstraction layer);	
 	}
 
 	private void resetDetailsContent() {

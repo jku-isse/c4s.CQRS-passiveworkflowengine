@@ -11,8 +11,10 @@ import org.springframework.context.annotation.Primary;
 
 import com.google.inject.Injector;
 
+import at.jku.isse.artifacteventstreaming.rule.RuleSchemaProvider;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
+import at.jku.isse.designspace.artifactconnector.core.security.EmailToIdMapper;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
@@ -22,7 +24,6 @@ import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.demo.DemoArtifactProvider;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
-import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -48,7 +49,7 @@ public class WebFrontendSpringConfig {
 			 , UIConfig uiConfig, InstanceRepository repo, SchemaRegistry schemaReg) {
 		IArtifactProvider azure = azureBuilder.build();
 		
-		ArtifactResolver ar = new ArtifactResolver();
+		ArtifactResolver ar = new ArtifactResolver(repo);
 		ar.register(azure);
 		ar.register(procconf);
 		
@@ -66,8 +67,9 @@ public class WebFrontendSpringConfig {
 	}	  
 
     @Bean @Primary // overriding basic listener from RestFrontend
-    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver, EventDistributor eventDistributor, IFrontendPusher uiUpdater) {
-    	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor );
+    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver
+    		, EventDistributor eventDistributor, IFrontendPusher uiUpdater, RuleSchemaProvider ruleSchemaProvider) {
+    	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor, ruleSchemaProvider );
 		changeEventTransformer.registerWithWorkspace(picp);
 		return picp;
     }
@@ -92,6 +94,16 @@ public class WebFrontendSpringConfig {
 		return new ProgressPusher(timeProvider);
 	}
 	
+	@Bean
+	public static EmailToIdMapper getNoOpEmailToIdMapper() {
+		return new EmailToIdMapper() {
+			@Override
+			public String getIdForEmail(String email) {
+				return "NONE";
+			}			
+		};		
+	}
+	
 //    @Bean
 //    public RepairAnalyzer getRepairAnalyzer(RepairStats rs, ITimeStampProvider tsProvider, UsageMonitor monitor) {
 //    	RepairNodeScorer scorer= new NoSort();
@@ -109,7 +121,7 @@ public class WebFrontendSpringConfig {
 	private static  Injector injector;
 	
 	@Bean @Primary
-	public static Injector getOCLXDependencies(DesignSpaceSchemaRegistry designspace) {
+	public static Injector getOCLXDependencies(SchemaRegistry designspace) {
 		if (injector == null) {
 			var	setup = new OCLXSupportSetup(designspace);
 			injector = setup.createInjectorAndDoEMFRegistration();
