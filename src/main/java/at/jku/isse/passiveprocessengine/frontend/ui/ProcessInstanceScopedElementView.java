@@ -44,6 +44,7 @@ import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairNode;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
+import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.RepairTreeProvider;
@@ -68,19 +69,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProcessInstanceScopedElementView extends VerticalLayout{
 
-	private RequestDelegate reqDel; 
-	private UIConfig conf;
-	private Authentication authentication;
-	private String loggedInUserNameOrNull = null;
-	private RepairTreeFilter DEFAULT_REPAIR_TREE_FILTER = null;
+	private final RequestDelegate reqDel; 
+	private final UIConfig conf;
+	private final Authentication authentication;
+	private final String loggedInUserNameOrNull;
+	private final RepairTreeFilter DEFAULT_REPAIR_TREE_FILTER;
+	private final InstanceRepository instRepo;
 
-	public ProcessInstanceScopedElementView(RequestDelegate f) {
+	public ProcessInstanceScopedElementView(RequestDelegate f, InstanceRepository instRepo) {
 		this.reqDel = f;
+		this.instRepo = instRepo;
 		this.conf = f.getUiConfig();
 		this.authentication = SecurityContextHolder.getContext().getAuthentication();
 		loggedInUserNameOrNull = authentication != null ? authentication.getName() : null;
 		this.setMargin(false);
-		DEFAULT_REPAIR_TREE_FILTER = new DefaultProcessRepairTreeFilter((RuleEnabledResolver) reqDel.getProcessContext().getInstanceRepository()); //FIXME: ugly hack to deal with incomplete abstraction layer);	
+		DEFAULT_REPAIR_TREE_FILTER = new DefaultProcessRepairTreeFilter((RuleEnabledResolver) instRepo); //FIXME: ugly hack to deal with incomplete abstraction layer);	
 	}
 
 	private void resetDetailsContent() {
@@ -90,6 +93,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 
 	protected void fillDetailsView(ProcessInstanceScopedElement el) {
 		if (el != null) {
+			instRepo.startReadTransaction();
 			this.removeAll();
 			this.setVisible(true);    	    		
 			if (el instanceof ProcessInstance) {
@@ -107,6 +111,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 			} else {
 				this.add(new Label(""));
 			}
+			instRepo.concludeTransaction();
 		} else {
 			resetDetailsContent();
 		}
@@ -385,11 +390,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		return p;	
 	}
 
-	private Component createOverrideButtonRenderer(ConstraintResultWrapper cw, Dialog dialog) {
+	private Component createOverrideButtonRenderer(ConstraintResultWrapper cw, Dialog dialog) {		
 		if (cw.getIsOverriden()) {
 			if (cw.isOverrideDiffFromConstraintResult()) {    		
 				Button undoBtn = new Button("Remove Override", click -> {
-					new Thread(() -> {         				
+					new Thread(() -> { 
+						instRepo.startWriteTransaction();
 						cw.removeOverride();
 						// reeval process
 						ProcessStep owningStep = cw.getParentStep();        				
@@ -397,19 +403,22 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 						events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, "Override removed", true));
 						events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
 						notifyOverrideAndUpdate(events, cw.getProcess());      	
-						reqDel.getProcessContext().getInstanceRepository().concludeTransaction();
+						instRepo.concludeTransaction();						
 						this.getUI().get().access(() -> {         					
 							Notification.show("Successfully removed result override");        						
-						});    				
+						});
+						
 					} ).start();
 				});    	
 				undoBtn.getElement().setProperty("title", cw.getOverrideReasonOrNull());
 				return undoBtn;
 			} else {
 				Button undoBtn = new Button("Remove no longer necessary Override", click -> {
+					instRepo.startWriteTransaction();
 					cw.removeOverride();
 					List<ProcessChangedEvent> events = List.of(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, "Constraint now matches override value", true));
 					notifyOverrideAndUpdate(events, cw.getProcess());         				
+					instRepo.concludeTransaction();
 					this.getUI().get().access(() -> {     					
 						Notification.show("Successfully removed result override");  					    					
 					});  
@@ -451,15 +460,16 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 			if (reason.length() > 0) {        		            	
 				new Thread(() -> { 
 					// set the override value and then trigger reevaluation of process
+					instRepo.startWriteTransaction();
 					String errorResult = cw.setOverrideWithReason(reason);
 					if (errorResult.length() == 0) {
 						ProcessStep owningStep = cw.getParentStep();        				
 						List<ProcessChangedEvent> events = new LinkedList<>(); 
 						events.add(new ConstraintOverrideEvent(cw.getProcess(), cw.getParentStep(), cw, reason, false));
 						events.addAll(owningStep.processConditionsChanged(cw));        				        				        				        				        				
-						notifyOverrideAndUpdate(events, cw.getProcess()); 
-						reqDel.getProcessContext().getInstanceRepository().concludeTransaction();
+						notifyOverrideAndUpdate(events, cw.getProcess()); 						
 					}
+					instRepo.concludeTransaction();
 					this.getUI().get().access(() -> { 
 						if (errorResult.length() == 0) {
 							Notification.show("Successfully overriden result and reevaluated effect on process");
@@ -489,11 +499,11 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		return dialogLayout;
 	}
 
-	public static ProcessInstance getTopMostProcess(ProcessStep step) {
+	private ProcessInstance getTopMostProcess(ProcessStep step) {
 		if (step.getProcess() != null)
 			return getTopMostProcess(step.getProcess());
-		else if (step instanceof ProcessInstance) {
-			return (ProcessInstance) step;
+		else if (step instanceof ProcessInstance procInst) {
+			return procInst;
 		} else
 			return null;
 	}
@@ -604,10 +614,12 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		Button addInputButton = new Button("Add", startIcon, evt -> {
 			String artId = tf.getValue().trim();
 			if (artId != null && artId.length() > 0) {
+				instRepo.startWriteTransaction();
 				if (!reqDel.getAclProvider().doAllowProcessInstantiation(artId, loggedInUserNameOrNull)) {
-					Notification.show("You are not authorized to access the artifact used as process input - unable to add to process.");        			
+					Notification.show("You are not authorized to access the artifact used as process input - unable to add to process.");
+					instRepo.concludeTransaction();
 				} else {
-
+					instRepo.concludeTransaction();
 					Notification.show("Adding input might take some time. UI will be updated automatically upon success.");
 					new Thread(() -> { 
 						try {
@@ -624,6 +636,7 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 						}
 					} ).start();
 				}
+
 			} else { 
 				Notification.show("Make sure to fill out the artifact identifier!");
 			}});
@@ -638,16 +651,21 @@ public class ProcessInstanceScopedElementView extends VerticalLayout{
 		icon.getStyle().set("cursor", "pointer");
 		icon.getElement().setProperty("title", "Refetch Artifact");
 		icon.addClickListener(e -> { 
+			instRepo.startReadTransaction();
 			ArtifactIdentifier ai = reqDel.getProcessChangeListenerWrapper().getArtifactIdentifier(inst);
+			instRepo.concludeTransaction();
 			new Thread(() -> { 
+				instRepo.startWriteTransaction();
 				try {
-					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));
+					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server", inst.getName())));					
 					reqDel.getArtifactResolver().get(ai, true);
 					this.getUI().get().access(() ->Notification.show(String.format("Fetching succeeded", inst.getName())));
+					
 				} catch (ProcessException e1) {
 					this.getUI().get().access(() ->Notification.show(String.format("Updating/Fetching Artifact %s from backend server failed: %s", inst.getName(), e1.getMessage())));
-				}}
-					).start();
+				}
+				instRepo.concludeTransaction();	
+			}).start();
 		});
 		return icon;
 	}

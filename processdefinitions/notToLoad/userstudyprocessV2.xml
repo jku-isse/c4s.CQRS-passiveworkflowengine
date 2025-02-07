@@ -1,0 +1,590 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="WNAvoU`9:C=KWe.j%8;n">IssueFDs</variable>
+    <variable id="M3md.wX*tEQ*De4J||=^">SWRequirementsBaseline</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</variable>
+    <variable id="nR;.9@[SuoaR^Ht?~,B/">IssueSWs</variable>
+    <variable id="VK0zKWNg`yQ{Fs+.:|eu">Review</variable>
+    <variable id="H[sFi~mX4MsyhW-$l=PQ">ReviewFinding</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
+    <field name="NAME">RequirementsManagementProcessV2</field>
+    <comment pinned="false" h="241" w="848">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability between requirements and change requests in this task is to support understanding which requirements  are implemented together or have been subject to earlier implementation iterations.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure the trace between requirements and change requests. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <statement name="STACK">
+      <block type="variables_set" id="eR1cUGUi.mn5*3u|xq_s">
+        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">IssueFDs</field>
+        <value name="VALUE">
+          <block type="artifact" id="8~77RcY8,p_ckGho#D5#">
+            <field name="Type">root/types/azure/azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="Gd8$.v?N#Az5fspm0h:(">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="q@Rxq^p=Z1,Xi-x$9`Nr">
+                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">IssueFDs</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="jcP]id)+JK1`,_FgwhQ*">
+                <field name="VAR" id="M3md.wX*tEQ*De4J||=^">SWRequirementsBaseline</field>
+                <value name="VALUE">
+                  <block type="artifact" id="0ZomI,)F5}.hHD5AM91p">
+                    <field name="Type">root/types/azure/azure_workitem</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="artuse" id="31z.A)%Uo6wR4j,bab)%">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="l=e?bk8zPXepOg:GodlL">
+                        <field name="VAR" id="M3md.wX*tEQ*De4J||=^">SWRequirementsBaseline</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                        <field name="StepId">CreateSwRequirements</field>
+                        <comment pinned="false" h="91" w="587">Based on the input IssueFD, Impact Analysis and System Architecture, create/update the requirements from the baseline.</comment>
+                        <statement name="Input">
+                          <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">IssueFDs</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="75V07Y=O]mSP}geF1H!(">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="iA8XZ$u[))+.=#XAr`D7">
+                                    <field name="VAR" id="M3md.wX*tEQ*De4J||=^">SWRequirementsBaseline</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="Transitions">
+                          <block type="transition" id="F)xLaMa0U_/k$ry~cEiV">
+                            <field name="State">PRECONDITION</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="condition">
+                              <block type="constraint" id="Rp#P(eFyN;=/2DFtI0Pk">
+                                <field name="arlRule">self.in_IssueFDs-&gt;size()&gt;0</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="transition" id="OWMGj^Br!QMZQHdWe=9k">
+                                <field name="State">POSTCONDITION</field>
+                                <field name="isOverridable">FALSE</field>
+                                <comment pinned="false" h="69" w="410">RequirementCollection as a whole is set to agreed</comment>
+                                <value name="condition">
+                                  <block type="constraint" id="[|5V|3MlQ#I9:%aqv%X=">
+                                    <field name="arlRule">self.out_SWRequirementsColl.size() &gt; 0&#10;and&#10;self.out_SWRequirementsColl&#10; -&gt;forAll( reqCollection | &#10;         eventually(reqCollection.state='Approved'))</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="Datamappings">
+                          <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                            <field name="mappingId">SWRequirementsColl</field>
+                            <field name="mappingSpec">self.in_SWRequirementsBaseline-&gt;any()&#10;-&gt;asType(&lt;root/types/azure/azure_workitem&gt;)&#10;.successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
+                          </block>
+                        </statement>
+                        <statement name="Output">
+                          <block type="variables_set" id="Y$+4_Cn4f[mC#|6qF2A-">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                            <value name="VALUE">
+                              <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
+                                <field name="Type">root/types/azure/azure_workitem</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="K~(#B4KDl,BI^!{eLwa!">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="ww@CaEV(-H@jzb63t*Bt">
+                                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="QA">
+                          <block type="qacheck" id="NAf:M@TBQaHq%DH(FY!p">
+                            <field name="qacheckId">ReqsReady4Review</field>
+                            <field name="description">Are all requirements individually set to 'ReadyForReview'?</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="constraint">
+                              <block type="constraint" id="aL:Jo[}^$o_UHSvNi6[T">
+                                <field name="arlRule">self.out_SWRequirementsColl&#10;-&gt;forAll( reqCollection | &#10;             reqCollection.childItems&#10;               -&gt;select( child |  &#10;              child.externalType='Requirement') &#10;              -&gt;forAll(req | &#10;                    req.state='ReadyForReview'))</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="step" id="j}iS+DEK/qmqq:Zs;_|4">
+                            <field name="StepId">EnsureTraceability</field>
+                            <statement name="Input">
+                              <block type="artuse" id="hCJN5JCfD2:x%p?eR6G.">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="K[z(eN}Z%PT;!*})4ez[">
+                                    <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">IssueFDs</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="artuse" id="f96hdZUeezW/wS=h0DKI">
+                                    <field name="roletext">Param</field>
+                                    <value name="NAME">
+                                      <block type="variables_get" id="-}NsA]P5Api|~fa~WCd/">
+                                        <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="artuse" id="0yf^F=g5_0CL}O[U9-6o">
+                                        <field name="roletext">Param</field>
+                                        <value name="NAME">
+                                          <block type="variables_get" id="F*DK.]HG.=E,s+7tEZdD">
+                                            <field name="VAR" id="M3md.wX*tEQ*De4J||=^">SWRequirementsBaseline</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id="brF.?5vz2##JqxMy-he$">
+                                <field name="State">PRECONDITION</field>
+                                <field name="isOverridable">FALSE</field>
+                                <value name="condition">
+                                  <block type="constraint" id="4/,q2zdQX7bZ_pa3`epK">
+                                    <field name="arlRule">self.in_SWRequirementsColl-&gt;size() &gt; 0&#10;and&#10;self.in_SWRequirementsColl-&gt;forAll( reqCollection | &#10;eventually(reqCollection.state='Approved'))</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="transition" id="EjJ4I4kRr#??^7b:nY,r">
+                                    <field name="State">POSTCONDITION</field>
+                                    <field name="isOverridable">FALSE</field>
+                                    <comment pinned="false" h="114" w="377">trace to IssueSW</comment>
+                                    <value name="condition">
+                                      <block type="constraint" id="jIy_t*GjjG=..wZB1v~7">
+                                        <field name="arlRule">self.in_SWRequirementsColl-&gt;forAll( reqCollection | &#10;reqCollection.childItems-&gt;&#10;forAll(req | req.successorItems&#10;.intersection(self.out_IssueSWs)&#10;.size() &gt; 0))</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <statement name="Datamappings">
+                              <block type="datamapping" id="Cv{+ml#3oiDpEfm=i_T-">
+                                <field name="mappingId">IssueSWs</field>
+                                <field name="mappingSpec">self.in_IssueFDs-&gt;any()&#10;-&gt;asType(&lt;root/types/azure/azure_workitem&gt;)&#10;.parentItems&#10;-&gt;select(item | item.externalType='Issue')</field>
+                              </block>
+                            </statement>
+                            <statement name="Output">
+                              <block type="variables_set" id="l*?-,rv[aFOu|C16;^hT">
+                                <field name="VAR" id="nR;.9@[SuoaR^Ht?~,B/">IssueSWs</field>
+                                <value name="VALUE">
+                                  <block type="artifact" id="3Q%q6!U]B*?]9~$Xf;_W">
+                                    <field name="Type">root/types/azure/azure_workitem</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="artuse" id="Ae_G:w=#Qlg|+0Q^Az}4">
+                                    <field name="roletext">Param</field>
+                                    <value name="NAME">
+                                      <block type="variables_get" id="=)+#X,rUK/L9L@fhiuF~">
+                                        <field name="VAR" id="nR;.9@[SuoaR^Ht?~,B/">IssueSWs</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <next>
+                              <block type="step" id="|JC^pu4s-y$I(J/B?(QE">
+                                <field name="StepId">PrepareReview</field>
+                                <statement name="Input">
+                                  <block type="artuse" id=":nWU3@+r%1zL$WzN[JO)">
+                                    <field name="roletext">Param</field>
+                                    <value name="NAME">
+                                      <block type="variables_get" id="Eo(^jR}c%:-Hr:LIQU60">
+                                        <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </statement>
+                                <statement name="Transitions">
+                                  <block type="transition" id="tfsqKBCFByH1e}2+wrsj">
+                                    <field name="State">PRECONDITION</field>
+                                    <field name="isOverridable">FALSE</field>
+                                    <value name="condition">
+                                      <block type="constraint" id="r(B6{EZ5W~P$.eT0xG8v">
+                                        <field name="arlRule">self.in_SWRequirementsColl-&gt;size() &gt; 0&#10;and&#10;self.in_SWRequirementsColl&#10;-&gt;forAll( reqCollection | &#10;eventually(reqCollection.state='Approved'))</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="transition" id="h}TV=YY}`LRw:w]K.h-7">
+                                        <field name="State">POSTCONDITION</field>
+                                        <field name="isOverridable">FALSE</field>
+                                        <value name="condition">
+                                          <block type="constraint" id="+lbU.[n-ToyX#E_MMd~;">
+                                            <field name="arlRule">self.out_Review&#10;-&gt;size() &gt; 0</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="transition" id="Q1TSsx%9WN/N+=yd|UZP">
+                                            <field name="State">POSTCONDITION</field>
+                                            <field name="isOverridable">FALSE</field>
+                                            <value name="condition">
+                                              <block type="constraint" id="JuD{N4#!zFS?}$l{ahi5">
+                                                <field name="arlRule">self.out_Review&#10;-&gt;forAll(rev | eventually(rev.state='Draft'))</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                                <statement name="Datamappings">
+                                  <block type="datamapping" id="xt]C|+ClP|~a?S#qNC;s">
+                                    <field name="mappingId">Review</field>
+                                    <field name="mappingSpec">self.in_SWRequirementsColl&#10;-&gt;any()&#10;-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Review')</field>
+                                  </block>
+                                </statement>
+                                <statement name="Output">
+                                  <block type="variables_set" id="ii~g/BcMYyoG}o.g@3Wt">
+                                    <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                    <value name="VALUE">
+                                      <block type="artifact" id="Zr(g8#1pG|GM~y,fZIG)">
+                                        <field name="Type">root/types/azure/azure_workitem</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="artuse" id="wqI7fwDYT!_oLjRL*r6C">
+                                        <field name="roletext">Param</field>
+                                        <value name="NAME">
+                                          <block type="variables_get" id="odCEsr]UnGh)=nU/F~je">
+                                            <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                                <next>
+                                  <block type="step" id="l%C`MC21v7a3C5/aQHV5">
+                                    <field name="StepId">CheckingRequirements</field>
+                                    <statement name="Input">
+                                      <block type="artuse" id="T1yZ$q)9S=HU:fG%6*og">
+                                        <field name="roletext">Param</field>
+                                        <value name="NAME">
+                                          <block type="variables_get" id="DVy/wJxcWt.q*}#xp!4G">
+                                            <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="artuse" id="9G3lWB;Do!3$76MIqjl8">
+                                            <field name="roletext">Param</field>
+                                            <value name="NAME">
+                                              <block type="variables_get" id="[{|1cL]m:3=kQi_xR1$Q">
+                                                <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </statement>
+                                    <statement name="Transitions">
+                                      <block type="transition" id="U:iwLgDStpPTPyk0)Ckh">
+                                        <field name="State">PRECONDITION</field>
+                                        <field name="isOverridable">FALSE</field>
+                                        <value name="condition">
+                                          <block type="constraint" id="0nL+NAc?DG%CS1Q2]dmR">
+                                            <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | eventually(rev.state='Draft'))</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="transition" id="lc1ps^+X_uY-WwfDUT[A">
+                                            <field name="State">POSTCONDITION</field>
+                                            <field name="isOverridable">FALSE</field>
+                                            <value name="condition">
+                                              <block type="constraint" id="aR)|]7~FwVCvvZJ|~Vfr">
+                                                <field name="arlRule">self.in_Review&#10;-&gt;forAll(rev | eventually(rev.state='Clarification' &#10;                   or rev.state='AcceptAfterChanges'&#10;                   or rev.state='Rework'&#10;                    or rev.state='Accept')&#10;and&#10;everytime(rev.state='Rereview' ,   &#10;      eventually(rev.state='Clarification' &#10;                   or rev.state='AcceptAfterChanges'&#10;                   or rev.state='Rework'&#10;                    or rev.state='Accept'))&#10;)</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </statement>
+                                    <statement name="Datamappings">
+                                      <block type="datamapping" id=":06N%3u(1Rk$epUU@M6W">
+                                        <field name="mappingId">ReviewFinding</field>
+                                        <field name="mappingSpec">self.in_Review&#10;-&gt;any()&#10;-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).childItems&#10;-&gt;select(item | item.externalType='Reviewfinding')</field>
+                                      </block>
+                                    </statement>
+                                    <statement name="Output">
+                                      <block type="variables_set" id="O?`KQy4Qgbi8/0%fvG,F">
+                                        <field name="VAR" id="H[sFi~mX4MsyhW-$l=PQ">ReviewFinding</field>
+                                        <value name="VALUE">
+                                          <block type="artifact" id="sVg3ze~necj6MT:3D4wQ">
+                                            <field name="Type">root/types/azure/azure_workitem</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="artuse" id="sCe~km%Sf)0N0N2y1(FF">
+                                            <field name="roletext">Param</field>
+                                            <value name="NAME">
+                                              <block type="variables_get" id="`aNH_Q-6OxUfHZR8aG?U">
+                                                <field name="VAR" id="H[sFi~mX4MsyhW-$l=PQ">ReviewFinding</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </statement>
+                                    <statement name="QA">
+                                      <block type="qacheck" id="9Ynr~~Se#Z)(gs=,wxQN">
+                                        <field name="qacheckId">ReopenVerifiedRequirementSet</field>
+                                        <field name="description">Ensure that any requirements set that is subject to open review findings is not in state 'Verified'</field>
+                                        <field name="isOverridable">FALSE</field>
+                                        <value name="constraint">
+                                          <block type="constraint" id=",MWL$r^@*jqkH[ul*jPg">
+                                            <field name="arlRule">self.in_Review&#10;-&gt;forAll(rev | &#10;everytime( &#10; rev.childItems&#10;-&gt;select(child | child.externalType='ReviewFinding')&#10;-&gt;exists(finding : &lt;root/types/azure/Reviewfinding&gt; | &#10;         (finding.findingcategory='major' or  &#10;         finding.findingcategory='minor') and&#10;         finding.state='Open')&#10;,&#10;eventually(self.in_SWRequirementsColl&#10;-&gt;forAll(reqColl | reqColl.state&lt;&gt;'Verified') )&#10;))</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </statement>
+                                    <next>
+                                      <block type="step" id="Ih!2kOViz)e1LKgzxG_$">
+                                        <field name="StepId">ReviewClarification</field>
+                                        <statement name="Input">
+                                          <block type="artuse" id="lZ#k_Vl*GS*sS=o8$y0;">
+                                            <field name="roletext">Param</field>
+                                            <value name="NAME">
+                                              <block type="variables_get" id="En~O62H)}Q:FtkNs7-Qj">
+                                                <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="artuse" id="//3M,`t9_`.9IVPEr19b">
+                                                <field name="roletext">Param</field>
+                                                <value name="NAME">
+                                                  <block type="variables_get" id="er|xGKOVf9mJ6#,r*xrk">
+                                                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="artuse" id="$Y)i;D/Y9A-%$4Cs+XUX">
+                                                    <field name="roletext">Param</field>
+                                                    <value name="NAME">
+                                                      <block type="variables_get" id="{`hSE`vRSrej$h(zU-Xa">
+                                                        <field name="VAR" id="H[sFi~mX4MsyhW-$l=PQ">ReviewFinding</field>
+                                                      </block>
+                                                    </value>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </statement>
+                                        <statement name="Transitions">
+                                          <block type="transition" id="7.G{%ieMS?vLv}NY5kVJ">
+                                            <field name="State">PRECONDITION</field>
+                                            <field name="isOverridable">FALSE</field>
+                                            <value name="condition">
+                                              <block type="constraint" id="aW@@@Fh+XLTR1~CSac04">
+                                                <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev |  eventually(rev.state='Clarification') )</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="transition" id="mF:@;D=!FEhW5u(_E_Tr">
+                                                <field name="State">POSTCONDITION</field>
+                                                <field name="isOverridable">FALSE</field>
+                                                <comment pinned="false" h="71" w="472">After rework and rechecking, is there any need to signal something here?&#10;</comment>
+                                                <value name="condition">
+                                                  <block type="constraint" id="KT,)t6Gs2%M^(gahAGPO">
+                                                    <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | &#10;everytime( rev.state='Clarification'&#10;, eventually(rev.state='Rework' &#10;             or rev.state='AcceptAfterChanges'                 &#10;                    or rev.state='Accept')&#10;   )&#10;)</field>
+                                                  </block>
+                                                </value>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </statement>
+                                        <next>
+                                          <block type="step" id="YatDF,v^Q]`WZY9wj48;">
+                                            <field name="StepId">Rework</field>
+                                            <statement name="Input">
+                                              <block type="artuse" id="3:k^awrBX*jr7Pc56OKz">
+                                                <field name="roletext">Param</field>
+                                                <value name="NAME">
+                                                  <block type="variables_get" id="lqvqaR7O*EMx~-b4/T2l">
+                                                    <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="artuse" id="J.txsibck}JH?@a85~T4">
+                                                    <field name="roletext">Param</field>
+                                                    <value name="NAME">
+                                                      <block type="variables_get" id="Eoao+Q=n7D-Q}tyED}Ol">
+                                                        <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="artuse" id="E7qPFl}]y$K#6L@1btPU">
+                                                        <field name="roletext">Param</field>
+                                                        <value name="NAME">
+                                                          <block type="variables_get" id="8li^*OS;Gj;[KUp07RE_">
+                                                            <field name="VAR" id="H[sFi~mX4MsyhW-$l=PQ">ReviewFinding</field>
+                                                          </block>
+                                                        </value>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </statement>
+                                            <statement name="Transitions">
+                                              <block type="transition" id=".gl[O?w/L;X/y`r$jLoD">
+                                                <field name="State">PRECONDITION</field>
+                                                <field name="isOverridable">FALSE</field>
+                                                <value name="condition">
+                                                  <block type="constraint" id="Qp!4:$u]cf.8|R~=H|MD">
+                                                    <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | eventually(rev.state='Rework' or &#10;rev.state='AcceptAfterChanges'))</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="transition" id="1`U:zQyaS[PxgP7,2xoV">
+                                                    <field name="State">CANCELATION</field>
+                                                    <field name="isOverridable">FALSE</field>
+                                                    <value name="condition">
+                                                      <block type="constraint" id="Q0#CTu;9abXWQQgoCiLW">
+                                                        <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | &#10;not(rev.childItems-&gt;exists(finding : &lt;root/types/azure/Reviewfinding&gt; | &#10;         finding.findingcategory='major' or  &#10;         finding.findingcategory='minor' )&#10;))</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="transition" id="hdRE@Qlytg*ekTk@YyB.">
+                                                        <field name="State">POSTCONDITION</field>
+                                                        <field name="isOverridable">FALSE</field>
+                                                        <value name="condition">
+                                                          <block type="constraint" id="x/~)Iqq.Zk7LyG_{eMq,">
+                                                            <field name="arlRule">self.in_Review&#10;-&gt;forAll(rev | &#10;everytime( &#10;rev.state='Rework' or&#10;rev.childItems&#10;-&gt;select(finding : &lt;root/types/azure/Reviewfinding&gt; | finding.findingcategory='major')&#10;-&gt;forAll(majorFinding | &#10;                 majorFinding.state='Resolved') &#10;, eventually(rev.state='Rereview'))&#10;)</field>
+                                                          </block>
+                                                        </value>
+                                                        <next>
+                                                          <block type="transition" id="AiU*~B)i|Iq+W53SRGKJ">
+                                                            <field name="State">POSTCONDITION</field>
+                                                            <field name="isOverridable">FALSE</field>
+                                                            <value name="condition">
+                                                              <block type="constraint" id="`]Fjh_Djav;0uoQ3`oeB">
+                                                                <field name="arlRule">self.in_Review&#10;-&gt;forAll(rev | &#10;until( not(eventually(rev.state='Accept'))&#10;, rev.childItems-&gt;forAll(finding2 | finding2.state='Solved' &#10;or finding2.state='Rejected'&#10;or finding2.state='Duplicated'&#10;))&#10;)</field>
+                                                              </block>
+                                                            </value>
+                                                            <next>
+                                                              <block type="transition" id="br=pRo5vcNk.U9X|{e).">
+                                                                <field name="State">POSTCONDITION</field>
+                                                                <field name="isOverridable">FALSE</field>
+                                                                <value name="condition">
+                                                                  <block type="constraint" id="c2h5N*S8!U9z0LFg)C}y">
+                                                                    <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | &#10;rev.childItems-&gt;forAll(finding | &#10;         finding.state='Solved' &#10;or finding.state='Rejected'&#10;or finding.state='Duplicated')&#10;)</field>
+                                                                  </block>
+                                                                </value>
+                                                              </block>
+                                                            </next>
+                                                          </block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </statement>
+                                            <next>
+                                              <block type="step" id="+gi^FZQGWWGHnw8p.n$c">
+                                                <field name="StepId">ReviewCompletion</field>
+                                                <statement name="Input">
+                                                  <block type="artuse" id="B_%h#{yI(XF][$#-{|Pb">
+                                                    <field name="roletext">Param</field>
+                                                    <value name="NAME">
+                                                      <block type="variables_get" id="SYVWlMh+s/67E#Z?uc},">
+                                                        <field name="VAR" id="VK0zKWNg`yQ{Fs+.:|eu">Review</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="artuse" id="q$5Jf,|{Tp,oZ(O7s$d#">
+                                                        <field name="roletext">Param</field>
+                                                        <value name="NAME">
+                                                          <block type="variables_get" id="z[YEzl#Hj0%yC}K(WpD*">
+                                                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">SWRequirementsColl</field>
+                                                          </block>
+                                                        </value>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </statement>
+                                                <statement name="Transitions">
+                                                  <block type="transition" id="o;s_d7A]//N-vd63H^2W">
+                                                    <field name="State">PRECONDITION</field>
+                                                    <field name="isOverridable">FALSE</field>
+                                                    <value name="condition">
+                                                      <block type="constraint" id="~:1)HsIsIjTn1+^7?Cd8">
+                                                        <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | &#10;rev.childItems-&gt;forAll(finding | &#10;         finding.state='Solved' &#10;or finding.state='Rejected'&#10;or finding.state='Duplicated')&#10;)</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="transition" id="PP-odZ!g.[y`wzL@+T#`">
+                                                        <field name="State">POSTCONDITION</field>
+                                                        <field name="isOverridable">FALSE</field>
+                                                        <value name="condition">
+                                                          <block type="constraint" id="3n(jFnaX}n=a0?#^+K35">
+                                                            <field name="arlRule">self.in_Review.size() &gt; 0&#10;and&#10;self.in_Review&#10;-&gt;forAll(rev | &#10;   eventually(always(&#10;rev.state='AcceptAfterChanges'                 &#10;                    or rev.state='Accept'))&#10;)</field>
+                                                          </block>
+                                                        </value>
+                                                        <next>
+                                                          <block type="transition" id="QZ|6]/L_~K%nOk~d.vR#">
+                                                            <field name="State">POSTCONDITION</field>
+                                                            <field name="isOverridable">FALSE</field>
+                                                            <value name="condition">
+                                                              <block type="constraint" id=".Zu|5p{J!D%iop*F1nEm">
+                                                                <field name="arlRule">self.in_SWRequirementsColl-&gt;forAll( reqCollection | &#10;eventually(reqCollection.state='Verified')&#10;and&#10;everytime(reqCollection.state &lt;&gt; 'Verified',&#10;eventually(reqCollection.state='Verified'))&#10;)</field>
+                                                              </block>
+                                                            </value>
+                                                          </block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </statement>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
@@ -50,6 +51,7 @@ public class RequestDelegate {
 	@Autowired @Getter UsageMonitor usageMonitor;
 	@Autowired @Getter ProcessAccessControlProvider aclProvider;
 	@Autowired @Getter ProcessChangeListenerWrapper processChangeListenerWrapper;
+	@Autowired InstanceRepository instRepo;
 	
 	Gson gson = new GsonBuilder().create();
 	
@@ -58,8 +60,8 @@ public class RequestDelegate {
 	}
 
 	@EventListener
-	public void onApplicationEvent(ApplicationReadyEvent event) {
-		frontendPusher.update(processRegistry.getNonDeletedProcessInstances());	
+	public void onApplicationEvent(ApplicationReadyEvent event) {		
+		frontendPusher.update(processRegistry.getNonDeletedProcessInstances());		
 	}
 
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{		
@@ -77,16 +79,17 @@ public class RequestDelegate {
 	}
 
 	public void addProcessInput(ProcessInstance pInst, String inParam, String artId, String artIdType) throws ProcessException{
+		instRepo.startWriteTransaction();
 		PPEInstance inst = artifactResolver.get(new ArtifactIdentifier(artId, artIdType));
 		IOResponse resp = pInst.addInput(inParam, inst);
-		if (resp.getError() != null) {
+		instRepo.concludeTransaction();
+		if (resp.getError() != null) {		
 			throw new ProcessException(resp.getError());
-		} else {
-			processContext.getInstanceRepository().concludeTransaction();
-		}
+		} 
 	}
 
 	public void removeInputFromProcess(ProcessInstance proc, String inParam, String artId) {
+		instRepo.startWriteTransaction();
 		Set<PPEInstance> inputs = proc.getInput(inParam);
 		inputs.stream()
 		.filter(art -> art.getName().equalsIgnoreCase(artId))
@@ -95,7 +98,7 @@ public class RequestDelegate {
 			proc.removeInput(inParam, art);
 			processContext.getInstanceRepository().concludeTransaction();
 		});
-
+		instRepo.concludeTransaction();
 	}
 
 	public ProcessInstance getProcess(String id) {
@@ -104,8 +107,10 @@ public class RequestDelegate {
 	}
 
 	public void deleteProcessInstance(String id) {		
+		instRepo.startWriteTransaction();
 		frontendPusher.remove(id);
 		processRegistry.removeProcessByName(id);
+		instRepo.concludeTransaction();
 	}
 
 }

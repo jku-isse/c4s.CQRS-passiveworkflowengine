@@ -40,6 +40,7 @@ import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.definition.activeobjects.ProcessDefinition;
@@ -62,17 +63,18 @@ import lombok.extern.slf4j.Slf4j;
 public class MainView extends VerticalLayout implements HasUrlParameter<String>  {
 
     	
-    @Autowired
-    private RequestDelegate commandGateway;
-    @Autowired
-    private IFrontendPusher pusher;
+    //@Autowired
+    private final RequestDelegate commandGateway;
+    //@Autowired
+    private final IFrontendPusher pusher;
     
     private @Getter WorkflowTreeGrid grid;
     private ComboBox<ProcessDefinition> definitionsBox;
     private Details loadProcess;
     private  SplitLayout splitLayout;
 
-   
+    private final InstanceRepository instRepo;
+    
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -103,9 +105,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }
 
 
-    public MainView(RequestDelegate reqDel, IFrontendPusher pusher) {
+    public MainView(RequestDelegate reqDel, IFrontendPusher pusher, InstanceRepository instRepo) {
     	 this.commandGateway = reqDel;
     	 this.pusher = pusher;
+    	 this.instRepo = instRepo;
     	setSizeFull();
         setMargin(false);
         
@@ -123,7 +126,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         header.expand(loadProcess); 
         header.setWidth("100%");
                 
-        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel);
+        ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel, instRepo);
         detailsView.setVisible(false); // initially nothing to show, hence invisible, will be made visible upon selection
         grid = new WorkflowTreeGrid(commandGateway);                
         grid.initTreeGrid();        
@@ -151,11 +154,13 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     }    
 
     private void reloadProcessDefinitions() {
+    	instRepo.startReadTransaction();
     	List<ProcessDefinition> defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
     			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown	
 				.sorted(new DefinitionComparator())
 				.collect(Collectors.toList());
     	definitionsBox.setItems(defs);
+    	instRepo.concludeTransaction();
     }
 
     private Component processLoader() {        
@@ -192,6 +197,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             source.removeAll();
             role2IdType.clear();
             param2Field.clear();
+            instRepo.startReadTransaction();
             for (Map.Entry<String, PPEInstanceType> entry : wfdContainer.getExpectedInput().entrySet()) {
             	PPEInstanceType artT = entry.getValue();                
                 String role = entry.getKey();
@@ -239,6 +245,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             if (wfdContainer.getExpectedInput().size() == 0) {
                 source.add(new Paragraph("No inputs expected"));
             }
+            instRepo.concludeTransaction();
         });
 
         
@@ -293,10 +300,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         					new Thread(() -> { 
         						try {
         							ProcessInstance pi = commandGateway.instantiateProcess(id, inputs, procName);
+        							instRepo.startReadTransaction();
         							if (auth != null && auth.getName() != null) {
         								pi.getInstance().addOwner(auth.getName());
         							}
         							commandGateway.getUsageMonitor().processCreated(pi, auth != null ? auth.getName() : null);
+        							instRepo.concludeTransaction();
         							this.getUI().get().access(() -> { 
         								Notification.show("Success");
         								splitLayout.setSplitterPosition(70);

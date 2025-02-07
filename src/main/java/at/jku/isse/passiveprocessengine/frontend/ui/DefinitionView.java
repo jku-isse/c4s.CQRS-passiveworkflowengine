@@ -47,6 +47,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
 import at.jku.isse.passiveprocessengine.core.BuildInType;
+import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
@@ -88,10 +89,14 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
     private List<ProcessDefinition> defs = Collections.emptyList();
     private ComboBox<ProcessDefinition> comboBox;
     private final PPEInstanceType configBaseType;
+    private final InstanceRepository instRepo;
     
-    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher) {    	
+    public DefinitionView(RequestDelegate commandGateway, SecurityService securityService, IFrontendPusher pusher, InstanceRepository instRepo) {    	
     	this.commandGateway = commandGateway;
+    	this.instRepo = instRepo;
+    	instRepo.startReadTransaction();
     	configBaseType = commandGateway.getProcessContext().getSchemaRegistry().getTypeByName(ProcessConfigBaseElementType.typeId);
+    	instRepo.concludeTransaction();
     	assert(configBaseType != null);
     	this.pusher = pusher;
     	setMargin(false);
@@ -140,6 +145,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         layout.setWidthFull();
         
         if (commandGateway != null ) {
+        	instRepo.startReadTransaction();
         	comboBox = new ComboBox<>("Process Definitions");        	
         	defs = commandGateway.getProcessRegistry().getAllDefinitions(true).stream()
         			.filter(pdef -> pdef.getProcess() == null) // only top level processes shown
@@ -209,6 +215,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
         	layout.add(splitLayout);    
         	if (selectedP != null)
         		comboBox.setValue(selectedP); 
+        	instRepo.concludeTransaction();
         }
         return layout;
     }  
@@ -342,12 +349,14 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
             .set("padding", "var(--lumo-space-xs)");
 
             Button deleteBtn = new Button("Delete Process Definition and process instances thereof", delIcon, e -> {            	
+            	instRepo.startWriteTransaction();
             	log.info("Deleting process definiton: "+step.getName());
             	Map<String, Map<String, Set<PPEInstance>>> formerInputs = commandGateway.getProcessRegistry().removeAllProcessInstancesOfProcessDefinition((ProcessDefinition)step);
             	log.info(String.format("Deleted %s running process instance(s)", formerInputs.size()));
-            	formerInputs.keySet().forEach(id -> pusher.remove(id));
-            	commandGateway.getProcessRegistry().removeProcessDefinition(step.getName());
+            	formerInputs.keySet().forEach(id -> pusher.remove(id));            	
+            	commandGateway.getProcessRegistry().removeProcessDefinition(step.getName());            	
             	log.info("Deleted process definition: "+step.getName());
+            	instRepo.concludeTransaction();
             	this.getUI().get().access(()-> UI.getCurrent().getPage().reload());
             });
             //delIcon.getElement().setProperty("title", "Delete this process definition");
@@ -406,6 +415,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 	      .set("padding", "var(--lumo-space-xs)");
 		Button createButton = new Button("Create Property", addIcon, evt -> {
 			if (!nameField.isInvalid()) {
+				instRepo.startWriteTransaction();
 				String name = nameField.getValue().trim();				
 				PropertySchemaDTO dto = new PropertySchemaDTO(name, types.getValue().getName(), cardinalities.getValue().toString());
 				ProcessContext ctx = commandGateway.getProcessContext();
@@ -420,6 +430,7 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 				} else {
 					Notification.show("Unable to add property "+name);
 				}
+				instRepo.concludeTransaction();
 			} else {
 				Notification.show("Please choose a valid property name");
 			}
