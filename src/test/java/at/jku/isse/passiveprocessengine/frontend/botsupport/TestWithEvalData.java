@@ -29,9 +29,9 @@ import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.EvalData.ConstraintGroundTruth;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
+import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.TestGenerateOCL;
@@ -50,10 +50,12 @@ class TestWithEvalData {
 	
 	HumanReadableSchemaExtractor schemaGen;
 	Gson gson = new Gson();
+	IterativeRepairer repairer;
 	
 	@BeforeAll
 	void setup() {
 		schemaGen = new HumanReadableSchemaExtractor(schemaReg);
+		repairer = new IterativeRepairer(provider);
 	}
 	
 //	@Test
@@ -98,7 +100,7 @@ class TestWithEvalData {
 			// call LLM
 			var answer = TestGenerateOCL.extractAnswer(req);
 		
-			var iterResult = checkResponse(groundTruth.getContext(), prompt, answer, i);
+			var iterResult = repairer.checkResponse(groundTruth.getContext(), prompt, answer, i);
 			result.getIterations().add(iterResult);
 		
 			String error = null;
@@ -107,7 +109,7 @@ class TestWithEvalData {
 			else if (iterResult.getOclString() == null) // incorrect ocl highlighting in raw text
 				error = "could not find OCL String";
 			else if (iterResult.getOclxString() == null) // incorrect ocl syntax
-				error = "Incorrect OCL syntax "+iterResult.getError();
+				error = "Incorrect OCL syntax "+iterResult.getErrors();
 			// if error --> ask LLM again with error message (3x max)
 			if (error != null) {
 				// prepare system side msg
@@ -117,56 +119,6 @@ class TestWithEvalData {
 			} else
 				break;
 		}
-		return result;
-	}
-
-
-	private IterationResult checkResponse(String context, String prompt,
-			String answer, int iteration) {
-		var result = new IterationResult(iteration, prompt, answer);
-		// check for errors, correct OCL?
-		var ocl = new OCLExtractor(answer).extractOCLorNull();
-		if (ocl == null) {
-			return result;
-		}
-		result.setOclString(ocl);
-		// if yes --> correct OCLX?
-		
-		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
-		processedOCL = TestLoadAsOCLX.wrapInOCLX(processedOCL, context);
-		result.setOclxString(processedOCL);
-		
-		CodeActionExecuter executer;
-		try {
-			executer = provider.buildExecuter(processedOCL);
-		} catch (Exception e) {
-			result.setError(e.getMessage());
-			return result;
-		}
-		// there are problems:
-		executer.checkForIssues();
-		var issues = executer.getProblems();
-		if (issues.isEmpty()) {
-			return result;
-		}
-		result.setError(issues.get(0).getMessage());
-		// repairs?
-		executer.executeRepairs();		
-		var repair = executer.getExecutedCodeAction();
-		// if yes --> autoexecuted?
-		if (repair == null) { // autorepair failed
-			result.setRemainingError(executer.getProblems().get(0).getMessage());
-			return result;
-		}
-		// else autoexecuted repair
-		result.setFixedOclxString(executer.getRepairedExpression());
-		executer = provider.buildExecuter(processedOCL); // we need a new executer (to parse the new text)
-		executer.checkForIssues(); // any remaining issues?
-		if (executer.getProblems().isEmpty()) {
-			return result;
-		}
-		// if  remaining errors
-		result.setRemainingError(executer.getProblems().get(0).getMessage());
 		return result;
 	}
 
@@ -201,18 +153,6 @@ class TestWithEvalData {
 	}
 	
 	public static class EvalResult {
-		@Getter List<IterationResult> iterations = new ArrayList<>();
-	}
-	
-	@Data
-	public static class IterationResult {
-		final int iteration;
-		final String prompt;
-		final String rawResponse;
-		String oclString = null;
-		String oclxString = null;
-		String error = null;
-		String fixedOclxString = null;
-		String remainingError = null;
+		@Getter List<IterativeRepairer.IterationResult> iterations = new ArrayList<>();
 	}
 }

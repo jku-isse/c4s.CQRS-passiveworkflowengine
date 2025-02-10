@@ -46,6 +46,7 @@ import at.jku.isse.designspace.rule.arl.parser.ArlType;
 import at.jku.isse.ide.assistance.CodeActionExecuter;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
+import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,7 +93,8 @@ public class OpenAI implements OCLBot{
         try {
             ChatRequest request  = compileRequest(userInput);
             var response = sendRequest(request);
-            return compileResult(response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList()), userInput);
+            var promptMsg = request.getMessages().get(request.getMessages().size()-1);
+            return compileResult(response.getChoices().stream().map(Choice::getMessage).collect(Collectors.toList()), userInput, promptMsg.getContent());
         }catch (Exception e) {
         	log.warn(e.getMessage());
             return new BotResult(Instant.now(), "system", e.getMessage(), null, null);
@@ -195,48 +197,72 @@ public class OpenAI implements OCLBot{
     
     
     
-    protected BotResult compileResult(List<Message> responses, BotRequest userInput) {
+    protected BotResult compileResult(List<Message> responses, BotRequest userInput, String fullLastPrompt) {
     	// lets just use the first message
     	Message msg = responses.get(0);
-    	
-    	String basicOcl = new OCLExtractor(msg.getContent()).extractOCLorNull();
+    	log.info(msg.getContent());
+    	String basicOcl = null; //new OCLExtractor(msg.getContent()).extractOCLorNull();
     	String oclError = null;
+    	
     	StringBuffer content = new StringBuffer(msg.getContent());
-    	if (basicOcl != null && userInput != null && userInput.getContextType() != null && provider != null) {    		
-        	var ocl = GeneratedRulePostProcessor.init(basicOcl).getProcessedRule();
-        	ocl = wrapInOCLX(ocl, userInput.getContextType().getName());
-        	CodeActionExecuter executer = provider.buildExecuter(ocl);    		
-    		String lastOCLXVersion = null;
-    		List<Issue> issues = null;
-    		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
-    			executer.checkForIssues();
-        		issues = executer.getProblems();
-    			if (!issues.isEmpty()) {
+    	if ( /*basicOcl != null && */ userInput != null && userInput.getContextType() != null && provider != null) {    		
+    		try {
+    			var repairer = new IterativeRepairer(provider);
+    			var result = repairer.checkResponse(userInput.getContextType().getName(), fullLastPrompt, msg.getContent(), 1);
+    			
+    			if (result.getOclString() == null) { 
+    				oclError = "Could not extract OCL string";
+    			} else if (result.getOclxString() == null) {
+    				basicOcl = result.getOclString();
+    				oclError = "Incorrect OCL syntax";
     				content.append("\r\n Found Errors in generated OCL statement: "); 
-    				issues.forEach(issue -> content.append("\r\n - "+issue.getMessage()));		
-    				executer.executeRepairs();
-    				var repair = executer.getExecutedCodeAction();
-    				if (repair != null) {    					
-    					lastOCLXVersion = (executer.getRepairedOclxConstraint());
-    					basicOcl = executer.getRepairedExpression();
-    					executer = provider.buildExecuter(ocl);  //reset executer for new round
-    					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
-    				} else {
-    					break; // we couldnot repair the top most problem, hence aborting
-    				}    			
-    			} else 
-    				break;
+    				result.getErrors().forEach(issue -> content.append("\r\n - "+issue));	
+    			} else if (result.getRemainingError() != null) {
+    				basicOcl = result.getFixedOclString();
+    				oclError = result.getRemainingError();
+    			} else { //all fine
+    				basicOcl = result.getFixedOclString();
+    			}
+    			
+//    			var ocl = GeneratedRulePostProcessor.init(basicOcl).getProcessedRule();
+//        	ocl = IterativeRepairer.wrapInOCLX(ocl, userInput.getContextType().getName());
+//        	CodeActionExecuter executer = provider.buildExecuter(ocl);    		
+//    		String lastOCLXVersion = null;
+//    		List<Issue> issues = null;
+//    		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
+//    			executer.checkForIssues();
+//        		issues = executer.getProblems();
+//    			if (!issues.isEmpty()) {
+//    				content.append("\r\n Found Errors in generated OCL statement: "); 
+//    				issues.forEach(issue -> content.append("\r\n - "+issue.getMessage()));		
+//    				executer.executeRepairs();
+//    				var repair = executer.getExecutedCodeAction();
+//    				if (repair != null) {    					
+//    					lastOCLXVersion = (executer.getRepairedOclxConstraint());
+//    					basicOcl = executer.getRepairedExpression();
+//    					executer = provider.buildExecuter(ocl);  //reset executer for new round
+//    					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
+//    				} else {
+//    					break; // we couldnot repair the top most problem, hence aborting
+//    				}    			
+//    			} else 
+//    				break;
+//    		}
+//    		if (lastOCLXVersion != null) {
+//    			content.append("\r\nApplied automatic repair(s) resulting in:" );
+//    			content.append("\r\n"+basicOcl);
+//    		}
+//    		if (!issues.isEmpty()) {
+//    			// maintain topmost remaining error message to feed back into LLM iteration
+//    			oclError = issues.get(0).getMessage();
+//    			content.append("\r\nRemaining error: "+issues.get(0).getMessage());
+//    		}
+//    		//content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
+    			
+    			
+    		} catch(Exception e) {
+    			log.warn("Error processing LLM response: "+e.getMessage());
     		}
-    		if (lastOCLXVersion != null) {
-    			content.append("\r\nApplied automatic repair(s) resulting in:" );
-    			content.append("\r\n"+basicOcl);
-    		}
-    		if (!issues.isEmpty()) {
-    			// maintain topmost remaining error message to feed back into LLM iteration
-    			oclError = issues.get(0).getMessage();
-    			content.append("\r\nRemaining error: "+issues.get(0).getMessage());
-    		}
-    		//content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
     	}
     	BotResult res = new BotResult(msg.getTime(), "OCLbot", content.toString(), basicOcl, oclError);
     	interaction.add(res);
@@ -245,25 +271,18 @@ public class OpenAI implements OCLBot{
     
     
     
-    private  ArlParser parser = new ArlParser(); 
-    
-    protected String checkARL(String rule, PPEInstanceType instanceType) {
-    	 try {
-             parser.parse(rule, ArlType.get(ArlType.TypeKind.INSTANCE, ArlType.CollectionKind.SINGLE, instanceType), null);
-             return "Rule constains no syntax errors";
-         }
-         catch (Exception ex) {             
-             return String.format("Warning: Rule caused parsing error: %s (Line=%d, Column=%d)", ex.getMessage(), parser.getLine(), parser.getColumn());
-         }
-    }
-    
-	private String wrapInOCLX(String constraint, String context) {
-		return "rule TestRule {\r\n"
-				+ "					description: \"ignored\"\r\n"
-				+ "					context: "+context+"\r\n"
-				+ "					expression: "+constraint+" \r\n"
-				+ "				}";	
-	}
+//    private  ArlParser parser = new ArlParser(); 
+//    
+//    protected String checkARL(String rule, PPEInstanceType instanceType) {
+//    	 try {
+//             parser.parse(rule, ArlType.get(ArlType.TypeKind.INSTANCE, ArlType.CollectionKind.SINGLE, instanceType), null);
+//             return "Rule constains no syntax errors";
+//         }
+//         catch (Exception ex) {             
+//             return String.format("Warning: Rule caused parsing error: %s (Line=%d, Column=%d)", ex.getMessage(), parser.getLine(), parser.getColumn());
+//         }
+//    }
+   
     
     @Data
     public static class ChatRequest {

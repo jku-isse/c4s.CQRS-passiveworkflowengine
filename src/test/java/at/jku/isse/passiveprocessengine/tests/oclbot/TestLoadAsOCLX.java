@@ -19,6 +19,7 @@ import at.jku.isse.PPE3Webfrontend;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
+import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
 import at.jku.isse.ide.assistance.CodeActionExecuter;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.GeneratedRulePostProcessor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLExtractor;
@@ -54,7 +55,8 @@ public class TestLoadAsOCLX {
 		 
 		return Stream.of(
 				
-				Arguments.of(TestOclExtractor.raw1a, "ProcessStep_BugReqTrace_Task1a")
+				//Arguments.of(TestOclExtractor.raw1a, "ProcessStep_BugReqTrace_Task1a")
+				Arguments.of(TestOclExtractor.raw2b_refinement1, "ProcessStep_PriorityReqToReviewTrace_Task2b")
 			//	, Arguments.of(TestOclExtractor.raw1, "Issue") 
 			//	, Arguments.of(TestOclExtractor.raw2, "Issue") 
 			//	, Arguments.of(TestOclExtractor.raw3, "Issue") 
@@ -71,13 +73,13 @@ public class TestLoadAsOCLX {
 		var ocl = new OCLExtractor(input).extractOCLorNull();
 		assertNotNull(ocl);				
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
-		processedOCL = wrapInOCLX(processedOCL, context);
+		processedOCL = IterativeRepairer.wrapInOCLX(processedOCL, context);
 		System.out.println("\r\nProcessing: "+processedOCL);		
 		CodeActionExecuter executer = provider.buildExecuter(processedOCL);
 		executer.checkForIssues();
 		var issues = executer.getProblems();
 		issues.forEach(issue -> System.out.println("Problem: "+issue.getMessage()));		
-		executer.executeRepairs();		
+		executer.executeFirstExecutableRepair();		
 		var repair = executer.getExecutedCodeAction();
 		if (repair != null) {
 			processedOCL = executer.getRepairedOclxConstraint();
@@ -94,11 +96,10 @@ public class TestLoadAsOCLX {
 		
 	}
 	
-	public static String wrapInOCLX(String constraint, String context) {
-		return "rule TestRule {\r\n"
-				+ "					description: \"ignored\"\r\n"
-				+ "					context: "+context+"\r\n"
-				+ "					expression: "+constraint+" \r\n"
-				+ "				}";	
+	@Test
+	void testRepairRawAsOCLX() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_PriorityReqToReviewTrace_Task2b", "Irrelevant", TestOclExtractor.raw2b_refinement1, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
 	}
 }

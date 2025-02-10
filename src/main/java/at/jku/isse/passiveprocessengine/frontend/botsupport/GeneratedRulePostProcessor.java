@@ -24,18 +24,18 @@ public class GeneratedRulePostProcessor {
 		return processor;
 	}
 	
-	public void replaceDomainspecificProperties() {
+	private void replaceDomainspecificProperties() {
 		processedRule = processedRule.replace("workItemType", "externalType");		
 	}
 	
-	public void replaceARLspecifics() {
+	private void replaceARLspecifics() {
 		processedRule = processedRule.replace("oclIsTypeOf(", "isTypeOf(");
 		processedRule = processedRule.replace("oclAsType(", "asType(");
 		processedRule = processedRule.replace("oclIsKindOf(", "isKindOf(");
 		processedRule = processedRule.replace("oclIsUndefined()", "isDefined() = false");		
 	}
 	
-	public void augmentTypeReferences() {
+	private void augmentTypeReferences() {
 		// the methods above require <> around types for ARL/OCLX to work
 		augmentTypeReference("asType(", 0);
 		augmentTypeReference("isKindOf(", 0);
@@ -61,15 +61,7 @@ public class GeneratedRulePostProcessor {
 			// insert at beginning, just after (
 			processedRule = processedRule.substring(0, posTypeBracketBegin+1) + "<" + processedRule.substring(posTypeBracketBegin+1);
 		}
-		augmentTypeReference(typeCall, pos); // we potentially have extended the string by 2 char, but typeCalls are longer anyway
-	}
-	
-	public void augmentWithTypes(@NonNull String rawRule) {
-		// check if there are type mismatches: i.e., property exist in a subtype
-		// find a prior collection operator: select, collect, or forall, reject
-		// determine which type is there, obtain the subtype, check which ones has the problematic property
-		// if multiple compare against context
-		// insert type case
+		augmentTypeReference(typeCall, pos+2); // we potentially have extended the string by 2 char, but typeCalls are longer anyway
 	}
 	
 	final static char skipContent = '\'';

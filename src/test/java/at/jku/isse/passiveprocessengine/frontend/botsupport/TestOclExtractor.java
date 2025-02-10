@@ -58,6 +58,46 @@ public class TestOclExtractor {
 	
 	public static final String raw1a = "```ocl context ProcessStep_BugReqTrace_Task1a inv: out_Bugs->forAll(bug | bug.affectsItems->exists(a | a.oclIsTypeOf(Requirement) and a.state <> 'Released')) \n```";
 	
+	
+	
+	
+	
+	public static final String raw2b = """
+			```ocl
+context ProcessStep_PriorityReqToReviewTrace_Task2b
+inv: self.out_REQs->select(req | req.priority = 1)->forAll(req |
+  req.testedByItems->exists(tc |
+    tc.successorItems->forAll(s | s.state = 'closed')
+  )
+)
+```		
+			""";
+	// upon request: "adapt this constraint to check if at least one Test Case exists"
+	public static final String raw2b_refinement1 = """
+			```ocl
+context ProcessStep_PriorityReqToReviewTrace_Task2b
+inv:
+  self.out_REQs->select(req | req.oclIsKindOf(Requirement) and req.oclAsType(Requirement).priority = 1)->forAll(req |
+    req.testedByItems->exists(tc | tc.oclIsKindOf(TestCase) and
+      tc.oclAsType(TestCase).successorItems->forAll(s | s.state = 'closed')
+    )
+  )
+```
+			""";
+	// repair produces:
+	public static final String raw2b_partialRepair1 = """
+			```ocl
+context ProcessStep_PriorityReqToReviewTrace_Task2b
+inv:			
+	self.out_REQs->select(req | req.isKindOf(<Requirement>) and req.asType(<Requirement>).priority = 1)
+	->forAll(req05 | req05.testedByItems
+			->exists(tc | req05.isKindOf(TestCase) 
+				and 
+					req05.asType(TestCase).successorItems
+						->forAll(s | req05.state = 'closed') ) ) 
+```			
+			""";
+	
 	static Stream<String> generateTestData() {
 		return Stream.of(raw1, raw2, raw3, raw4, raw5, raw6);
 		
@@ -74,11 +114,21 @@ public class TestOclExtractor {
 	
 	@Test
 	void testPostProcessingTypeBrackets() {
-		var ocl = new OCLExtractor(raw2).extractOCLorNull(); //raw2 , raw1a
+		var ocl = new OCLExtractor(raw2b).extractOCLorNull(); //raw2 , raw1a, raw2b, 
 		assertNotNull(ocl);
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
 		assertTrue(processedOCL.contains("<Requirement>"));
+	}
+	
+	@Test
+	void testPostProcessingMultipleTypeBrackets() {
+		var ocl = new OCLExtractor(raw2b_refinement1).extractOCLorNull(); 
+		assertNotNull(ocl);
+		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
+		assertNotNull(processedOCL);
+		System.out.println(processedOCL);
+		assertTrue(processedOCL.contains("<TestCase>"));
 	}
 }

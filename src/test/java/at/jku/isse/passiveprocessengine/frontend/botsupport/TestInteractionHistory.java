@@ -36,7 +36,7 @@ class TestInteractionHistory {
 	@Test
 	void testReuseSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
 		assert(openAI.interaction.size() == 3);
 		assert(req.getMessages().size() == 3);
@@ -47,7 +47,7 @@ class TestInteractionHistory {
 	@Test
 	void testOverrideSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, "TESTSCHEMA2", null) );
 		Message msg = req.getMessages().get(2); 
 		assert(msg.getContent().contains("TESTSCHEMA2"));
@@ -57,7 +57,7 @@ class TestInteractionHistory {
 	@Test
 	void testInvalidateSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, OCLBot.FORGET_SCHEMA, null) );
 		Message msg = req.getMessages().get(2); 
 		assert(!msg.getContent().contains("Only use properties in the OCL rule"));
@@ -67,9 +67,9 @@ class TestInteractionHistory {
 	@Test
 	void testInvalidateThenOverrideSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, OCLBot.FORGET_SCHEMA, null) );
-		openAI.compileResult(List.of(new Message("system", "Resp4")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp4")), null, "TestPropmt");
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, "TESTSCHEMA2", null) );
 		Message msg = req.getMessages().get(4); 
 		assert(msg.getContent().contains("TESTSCHEMA2"));
@@ -79,7 +79,7 @@ class TestInteractionHistory {
 	@Test
 	void testSessionReset() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null);
+		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
 		openAI.resetSession();
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
 		assert(openAI.interaction.size() == 1);
