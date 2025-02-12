@@ -1,13 +1,13 @@
 package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
 
 import at.jku.isse.PPE3Webfrontend;
-import at.jku.isse.ide.assistance.CodeActionExecuter;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -30,12 +30,8 @@ import at.jku.isse.passiveprocessengine.frontend.botsupport.EvalData.ConstraintG
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI;
 import lombok.Getter;
-import lombok.Setter;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.TestGenerateOCL;
-import at.jku.isse.passiveprocessengine.tests.oclbot.TestLoadAsOCLX;
+import lombok.RequiredArgsConstructor;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes=PPE3Webfrontend.class)
@@ -49,8 +45,14 @@ class TestWithEvalData {
 	@Autowired CodeActionExecuterProvider provider;
 	
 	HumanReadableSchemaExtractor schemaGen;
-	Gson gson = new Gson();
+	Gson gson = new GsonBuilder()
+				.setPrettyPrinting()
+				.serializeNulls()
+				.disableHtmlEscaping()				
+				.create();
 	IterativeRepairer repairer;
+
+	final String filePath = "oclexperimentoutput.json";
 	
 	@BeforeAll
 	void setup() {
@@ -58,36 +60,21 @@ class TestWithEvalData {
 		repairer = new IterativeRepairer(provider);
 	}
 	
-//	@Test
-//	void testSerializeEval() {
-//		var result = new EvalResult();
-//		var iter1 = new IterationResult(0, "someprompt", "response1");
-//		iter1.setError("sd");
-//		iter1.setOclxString("nada");
-//		result.getIterations().add(iter1);
-//		
-//		var iter2 = new IterationResult(1, "someprompt2", "response2");
-//		iter2.setRemainingError("sd2");
-//		iter2.setOclString("nada2");
-//		result.getIterations().add(iter2);
-//		
-//		var json = gson.toJson(result);
-//		System.out.println(json);
-//	}
-	
 	@Test
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.a1;
+		var groundTruth = EvalData.b2;
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
+		Files.writeString(Paths.get("Task"+groundTruth.getTaskId()+filePath), json);
+
 	}
 	
 
 	private EvalResult runEvalRound(ConstraintGroundTruth groundTruth) throws Exception {
-		var result = new EvalResult();
+		var result = new EvalResult(groundTruth.getTaskId());
 		// resolve context and relevant schema names to Types
 		// convert types to schema description
 		var schema = compileSchema(groundTruth.getContext(), groundTruth.getRelevantSchema());
@@ -152,7 +139,9 @@ class TestWithEvalData {
 		return req;
 	}
 	
+	@RequiredArgsConstructor
 	public static class EvalResult {
+		@Getter final String taskId;
 		@Getter List<IterativeRepairer.IterationResult> iterations = new ArrayList<>();
 	}
 }

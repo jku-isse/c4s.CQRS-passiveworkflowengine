@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
+
 public class TestOclExtractor {
 
 		
@@ -98,6 +100,11 @@ inv:
 ```			
 			""";
 	
+	public static final String raw2a = """
+			```ocl\ncontext ProcessStep_ReqStateAnalysis_Task2a\ninv: out_REQs->select(req | req.state = 'released')->forAll(req |\n    req.successorItems->exists(succ |\n        succ.workItemType = 'Review' and\n        succ.relatedItems->select(r | r.oclIsTypeOf(Reviewfinding))->forAll(rf |\n            rf.findingcategory <> 'open'\n        )\n    )\n)\n```
+			""";
+	
+	
 	static Stream<String> generateTestData() {
 		return Stream.of(raw1, raw2, raw3, raw4, raw5, raw6);
 		
@@ -120,6 +127,18 @@ inv:
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
 		assertTrue(processedOCL.contains("<Requirement>"));
+	}
+	
+	@Test
+	void testPostProcessingTypeBracketsAroundReviewfinding() {
+		var ocl = new OCLExtractor(raw2a).extractOCLorNull(); 
+		assertNotNull(ocl);
+		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
+		assertNotNull(processedOCL);
+		System.out.println(processedOCL);
+		assertTrue(processedOCL.contains("<Reviewfinding>"));
+		
+		var oclx = IterativeRepairer.wrapInOCLX(processedOCL, "ignored");
 	}
 	
 	@Test

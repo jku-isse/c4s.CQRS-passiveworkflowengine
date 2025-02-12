@@ -9,7 +9,8 @@ import lombok.Data;
 public class EvalData {
 
 	public static ConstraintGroundTruth a1 = new ConstraintGroundTruth(
-			"Ensure that all bugs trace (via 'affects') to at least one requirement that is not in status 'Released'."
+			"1a"
+			,"Ensure that all bugs trace (via 'affects') to at least one requirement that is not in status 'Released'."
 			, "ProcessStep_BugReqTrace_Task1a"
 			, Set.of("Requirement", "Bug")
 			, "self.out_Bugs->forAll(bug | bug.affectsItems\r\n"
@@ -18,7 +19,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth b1 = new ConstraintGroundTruth(
-			"Ensure that each Requirement traces (via 'predecessor') only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child."
+			"1b"
+			,"Ensure that each Requirement traces (via 'predecessor') only to other Change Requests which are in state 'Released' or have a priority 1 Issue as a child."
 			, "ProcessStep_ReqChangeRequestTrace_Task1b"
 			, Set.of("Requirement", "ChangeRequest", "Issue")
 			, "self.out_REQs\r\n"
@@ -33,7 +35,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth c1 = new ConstraintGroundTruth(
-			"Ensure that each Requirement traces (via 'tested by') to at least one Test Case in state 'Released'."
+			"1c"
+			,"Ensure that each Requirement traces (via 'tested by') to at least one Test Case in state 'Released'."
 			, "ProcessStep_ReqTestTrace_Task1c"
 			, Set.of("Requirement", "TestCase")
 			, "self.out_REQs\r\n"
@@ -47,7 +50,8 @@ public class EvalData {
 	
 	
 	public static ConstraintGroundTruth a2 = new ConstraintGroundTruth(
-			"Ensure that all Requirements in state 'released' trace (via 'successor') to at least one Review, all which must not have any 'open' Review Findings."
+			"2a"
+			,"Ensure that all Requirements in state 'released' trace (via 'successor') to at least one Review, all which must not have any 'open' Review Findings."
 			, "ProcessStep_ReqStateAnalysis_Task2a"
 			, Set.of("Requirement", "Review", "Reviewfinding")
 			, "self.out_REQs\r\n"
@@ -68,7 +72,8 @@ public class EvalData {
 	
 	
 	public static ConstraintGroundTruth b2 = new ConstraintGroundTruth(
-			"Ensure that each Requirement with priority '1' traces (via 'tested by') to at least one Test Case that in turn has all Reviews (via 'successor')) in state 'closed'."
+			"2b"
+			,"Ensure that each Requirement with priority '1' traces (via 'tested by') to at least one Test Case that in turn has all Reviews (via 'successor')) in state 'closed'."
 			, "ProcessStep_PriorityReqToReviewTrace_Task2b"
 			, Set.of("Requirement", "TestCase", "Review")
 			, "self.out_REQs\r\n"
@@ -88,7 +93,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth c2 = new ConstraintGroundTruth(
-			"Ensure for each Requirement that is 'affected by' a Bug has at least one of the requirement's  'tested by' Test Cases trace (via 'tests') to this Bug."
+			"2c"
+			,"Ensure for each Requirement that is 'affected by' a Bug has at least one of the requirement's  'tested by' Test Cases trace (via 'tests') to this Bug."
 			, "ProcessStep_ReqBugTestLinking_Task2c"
 			, Set.of("Requirement", "Bug", "TestCase")
 			, "self.out_REQs\r\n"
@@ -105,7 +111,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth a3 = new ConstraintGroundTruth(
-			"Ensure that either all Bugs for priority '1' 'affects' Requirements are 'Closed' or otherwise that the Requirement is traced (as 'predecessor') from one of the Change Request's 'active' child Issues."
+			"3a"
+			,"Ensure that either all Bugs for priority '1' 'affects' Requirements are 'Closed' or otherwise that the Requirement is traced (as 'predecessor') from one of the Change Request's 'active' child Issues."
 			, "ProcessStep_AssessingBugStates_Task3a"
 			, Set.of("Requirement", "Bug", "ChangeRequest", "Issue")
 			, "self.out_REQs\r\n"
@@ -131,7 +138,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth b3 = new ConstraintGroundTruth(
-			"Ensure all Requirements with a 'successor' trace to an 'active' Issue (if any), need to have that Issue traced as a 'child' from the Requirement's current (non-released) Change Request."
+			"3b"
+			,"Ensure all Requirements with a 'successor' trace to an 'active' Issue (if any), need to have that Issue traced as a 'child' from the Requirement's current (non-released) Change Request."
 			, "ProcessStep_AssessingReqIssueTraceability_Task3b"
 			, Set.of("Requirement", "ChangeRequest", "Issue")
 			, "self.out_REQs\r\n"
@@ -162,7 +170,8 @@ public class EvalData {
 					+ ")");
 	
 	public static ConstraintGroundTruth c3 = new ConstraintGroundTruth(
-			"Ensure that every Bug's Testcase directly 'tests' at least one of the Requirements 'affected by' the Bug."
+			"3c"
+			,"Ensure that every Bug's Testcase directly 'tests' at least one of the Requirements 'affected by' the Bug."
 			, "ProcessStep_AssessingTraceability_Task3c"
 			, Set.of("Requirement", "Bug", "TestCase")
 			, "self.out_Bugs\r\n"
@@ -183,10 +192,11 @@ public class EvalData {
 	
 	public static List<ConstraintGroundTruth> abc123 = List.of(a1, b1, c1, a2, b2, c2, a3, b3, c3);
 	
-	public static Map<String, ConstraintGroundTruth> data = Map.of("1a", a1, "1b", b1, "1c", c1, "2a", a2, "2b", b2, "2c", c2, "3a", a3, "3b", b3, "3c", c3);
+	//public static Map<String, ConstraintGroundTruth> data = Map.of("1a", a1, "1b", b1, "1c", c1, "2a", a2, "2b", b2, "2c", c2, "3a", a3, "3b", b3, "3c", c3);
 	
 	@Data
 	public static class ConstraintGroundTruth{
+		final String taskId;
 		final String humanReadable;
 		final String context;
 		final Set<String> relevantSchema;

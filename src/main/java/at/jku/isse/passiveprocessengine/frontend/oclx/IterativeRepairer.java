@@ -26,8 +26,9 @@ public class IterativeRepairer {
 		result.setOclString(ocl);
 		// if yes --> correct OCLX?
 		
-		var oclx = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
-		oclx = IterativeRepairer.wrapInOCLX(oclx, context);
+		ocl = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
+		result.setFixedOclString(ocl);
+		var oclx = IterativeRepairer.wrapInOCLX(ocl, context);
 		result.setOclxString(oclx);
 		
 		CodeActionExecuter executer;
@@ -73,10 +74,14 @@ public class IterativeRepairer {
 	
 	
 	public static String wrapInOCLX(String constraint, String context) {
-		return "rule TestRule {\r\n"
-				+ "					context: "+context+"\r\n"
-				+ "					expression: "+constraint+" \r\n"
-				+ "				}";	
+		// we also need to remove any linebreaks as for not we cannot handle line numbers
+		// for now an ugly/brittle replacement of \r and \n with empty string
+		var sanitized = constraint.replace("\r", "").replace("\n", "");
+		
+		return "rule TestRule {"
+				+ "	context: "+context
+				+ "	expression: "+sanitized
+				+ "	}";	
 	}
 	
 	@Data
@@ -97,9 +102,9 @@ public class IterativeRepairer {
 		}
 
 		public String toRepairInfoOnlyString() {
-			return "[oclString=" + oclString + ", \r\nfixedOclString=" + fixedOclString + ", \r\noclxString="
-					+ oclxString + ", \r\nerrors=" + errors + ", \r\nfixedOclxString=" + fixedOclxString + ", \r\nremainingError="
-					+ remainingError + "]";
+			return "[oclString=\r\n" + oclString + ", \r\nfixedOclString=\r\n" + fixedOclString + ", \r\noclxString=\r\n"
+					+ oclxString + ", \r\nerrors\r\n=" + errors + ", \r\nfixedOclxString=\r\n" + fixedOclxString + ", \r\nremainingError=\r\n"
+					+ remainingError + "\r\n]";
 		}
 		
 		

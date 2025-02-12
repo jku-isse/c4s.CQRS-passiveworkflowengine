@@ -2,6 +2,7 @@ package at.jku.isse.passiveprocessengine.tests.oclbot;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.stream.Stream;
 
@@ -16,7 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import at.jku.isse.PPE3Webfrontend;
-import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
@@ -97,9 +97,41 @@ public class TestLoadAsOCLX {
 	}
 	
 	@Test
-	void testRepairRawAsOCLX() {
+	void testRepairRaw2BRefinement1Success() {
 		var repairer = new IterativeRepairer(provider);
 		var repairInfo = repairer.checkResponse("ProcessStep_PriorityReqToReviewTrace_Task2b", "Irrelevant", TestOclExtractor.raw2b_refinement1, 0);
 		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());
 	}
+	
+	@Test
+	void testRepairRaw2ASuccess() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_ReqStateAnalysis_Task2a", "Irrelevant", TestOclExtractor.raw2a, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());
+	}
+	
+	@Test
+	void testReplaceWithMostFittingSubclass() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_PriorityReqToReviewTrace_Task2b", "Irrelevant",
+		"```ocl context ProcessStep_PriorityReqToReviewTrace_Task2b inv:  self.out_REQs->select(req | req.priority = 1)->forAll(req |    req.testedByItems->exists(tc |      tc.workItemType = 'TestCase' and      tc.successorItems->forAll(r | r.state = 'closed')    )  )```"
+				, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());
+	}
+	
+	@Test
+	void testUseImplied() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_ReqBugTestLinking_Task2c", "Irrelevant",
+		"```ocl context ProcessStep_ReqBugTestLinking_Task2c inv: out_REQs->forAll(r |    r.affectedByItems->exists(b | b.workItemType = 'Bug') implies        r.testCaseItems->exists(tc | tc.testsItems->includes(b)))```"
+				, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());
+	
+	}
+	
+	
 }
