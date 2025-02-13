@@ -133,5 +133,24 @@ public class TestLoadAsOCLX {
 	
 	}
 	
+	@Test
+	void whyTypeAndCardinalityIsNull() {
+		var response = """
+ ```ocl
+context ProcessStep_PriorityReqToReviewTrace_Task2b
+inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
+    self.out_REQs->select(r | r.state = 'released')->
+        forAll(r | r.successorItems->exists(s |
+            s.oclIsTypeOf(Review) and
+            not s.relatedItems->exists(rf |
+                rf.oclIsTypeOf(Reviewfinding) and
+                rf.findingcategory = 'open')))
+```""";
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_PriorityReqToReviewTrace_Task2b", "Irrelevant", response, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());			
+
+	}
 	
 }
