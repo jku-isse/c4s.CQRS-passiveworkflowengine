@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Primary;
 
 import com.google.inject.Injector;
 
+import at.jku.isse.artifacteventstreaming.api.exceptions.BranchConfigurationException;
+import at.jku.isse.artifacteventstreaming.api.exceptions.PersistenceException;
 import at.jku.isse.artifacteventstreaming.rule.RuleSchemaProvider;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
@@ -35,6 +37,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.providers.ProcessConfigProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
+import at.jku.isse.passiveprocessengine.rdfwrapper.config.EventStreamingWrapperFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
@@ -67,10 +70,16 @@ public class WebFrontendSpringConfig {
 	}	  
 
     @Bean @Primary // overriding basic listener from RestFrontend
-    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(ChangeEventTransformer changeEventTransformer, ProcessContext ctx, ArtifactResolver resolver
-    		, EventDistributor eventDistributor, IFrontendPusher uiUpdater, RuleSchemaProvider ruleSchemaProvider) {
-    	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor, ruleSchemaProvider );
+    public static ProcessChangeListenerWrapper getProcessChangeListenerWrapperForWebfrontend(
+    		ChangeEventTransformer changeEventTransformer
+    		, ProcessContext ctx
+    		, ArtifactResolver resolver
+    		, EventDistributor eventDistributor
+    		, IFrontendPusher uiUpdater
+    		, EventStreamingWrapperFactory rdfWrapper) throws PersistenceException, BranchConfigurationException {
+    	ProcessChangeNotifier picp = new ProcessChangeNotifier(ctx, uiUpdater, resolver, eventDistributor, rdfWrapper.getRuleSchemaProvider() );
 		changeEventTransformer.registerWithWorkspace(picp);
+		rdfWrapper.signalExternalSetupComplete(); //ugly setup routine
 		return picp;
     }
     
