@@ -13,11 +13,11 @@ public class OCLExtractor {
     }
 	
 	protected String extractOCLScope(String rawText) {
-		int postOfTrippleBegin = rawText.indexOf("```");
-		int beginScope = Math.max(postOfTrippleBegin, 0);
+		int posOfTrippleBegin = rawText.indexOf("```");
+		int beginScope = posOfTrippleBegin >= 0 ? posOfTrippleBegin+3 : 0;
 		int posOfTrippleTick = rawText.lastIndexOf("```");
 		int endScope = posOfTrippleTick > 0 ? posOfTrippleTick : rawText.length();
-		return rawText.substring(beginScope+3, endScope);
+		return rawText.substring(beginScope, endScope);
 	}
 	
 	protected String tryExtractFromSelf(String rawText) {						

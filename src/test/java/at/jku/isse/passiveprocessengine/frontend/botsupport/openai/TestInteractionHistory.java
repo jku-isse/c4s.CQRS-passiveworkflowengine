@@ -1,4 +1,4 @@
-package at.jku.isse.passiveprocessengine.frontend.botsupport;
+package at.jku.isse.passiveprocessengine.frontend.botsupport.openai;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -9,9 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot.BotRequest;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.ChatRequest;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.ChatRequest;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Message;
 
 class TestInteractionHistory {
 
@@ -36,7 +38,7 @@ class TestInteractionHistory {
 	@Test
 	void testReuseSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
+		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
 		assert(openAI.interaction.size() == 3);
 		assert(req.getMessages().size() == 3);
@@ -47,7 +49,7 @@ class TestInteractionHistory {
 	@Test
 	void testOverrideSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
+		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, "TESTSCHEMA2", null) );
 		Message msg = req.getMessages().get(2); 
 		assert(msg.getContent().contains("TESTSCHEMA2"));
@@ -57,7 +59,7 @@ class TestInteractionHistory {
 	@Test
 	void testInvalidateSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
+		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, OCLBot.FORGET_SCHEMA, null) );
 		Message msg = req.getMessages().get(2); 
 		assert(!msg.getContent().contains("Only use properties in the OCL rule"));
@@ -67,9 +69,9 @@ class TestInteractionHistory {
 	@Test
 	void testInvalidateThenOverrideSchema() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
+		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, OCLBot.FORGET_SCHEMA, null) );
-		openAI.compileResult(List.of(new Message("system", "Resp4")), null, "TestPropmt");
+		openAI.compileResult("Resp4", null, "TestPropmt", Instant.now());
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, "TESTSCHEMA2", null) );
 		Message msg = req.getMessages().get(4); 
 		assert(msg.getContent().contains("TESTSCHEMA2"));
@@ -79,7 +81,7 @@ class TestInteractionHistory {
 	@Test
 	void testSessionReset() {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
-		openAI.compileResult(List.of(new Message("system", "Resp2")), null, "TestPropmt");
+		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		openAI.resetSession();
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
 		assert(openAI.interaction.size() == 1);

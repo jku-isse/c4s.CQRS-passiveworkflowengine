@@ -45,6 +45,8 @@ public interface OCLBot {
 	
     public void resetSession();
     
+    public String extractAnswerFromResponse(Object response);
+    
     @Data
     public static abstract class BotInteraction {
     }

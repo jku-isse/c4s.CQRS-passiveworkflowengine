@@ -1,4 +1,4 @@
-package at.jku.isse.passiveprocessengine.frontend.botsupport;
+package at.jku.isse.passiveprocessengine.frontend.botsupport.openai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,9 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Choice;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.TypeSelectionResponse;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Choice;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.extern.slf4j.Slf4j;
 

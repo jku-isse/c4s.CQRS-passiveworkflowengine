@@ -1,4 +1,4 @@
-package at.jku.isse.passiveprocessengine.frontend.botsupport;
+package at.jku.isse.passiveprocessengine.frontend.botsupport.openai;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Choice;
-import at.jku.isse.passiveprocessengine.frontend.botsupport.OpenAI.Message;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLBot;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Choice;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.extern.slf4j.Slf4j;
 
