@@ -52,8 +52,9 @@ class TestWithEvalData {
 	
 	AbstractBot bot;
 	private List<Message> openAImessages = new ArrayList<>(); // in case we use openAI
-	private List<at.jku.isse.passiveprocessengine.frontend.botsupport.ollama.OllamaAI.Message> ollamaAImessages = new ArrayList<>(); // in case we use openAI
-	private String model = "codestral:latest"; // FIX also experiement output file naming!
+	private List<at.jku.isse.passiveprocessengine.frontend.botsupport.ollama.OllamaAI.Message> ollamaAImessages = new ArrayList<>(); // in case we use ollamaAI
+	private String model = "codestral:latest"; // sync with experiment output file naming below!
+	private String modelForFilePath = "codestral";
 	
 	HumanReadableSchemaExtractor schemaGen;
 	Gson gson = new GsonBuilder()
@@ -68,8 +69,7 @@ class TestWithEvalData {
 	@BeforeAll
 	void setup() {
 		schemaGen = new HumanReadableSchemaExtractor(schemaReg);
-		repairer = new IterativeRepairer(provider);
-		
+		repairer = new IterativeRepairer(provider);		
 		bot = new OllamaAI("http://10.78.115.48:11434/api/chat", model, provider);
 	}
 	
@@ -77,11 +77,11 @@ class TestWithEvalData {
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.a1;
+		var groundTruth = EvalData.b1;
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
-		Files.writeString(Paths.get("Task_codestral_"+groundTruth.getTaskId()+filePath), json);
+		Files.writeString(Paths.get("Task_"+modelForFilePath+"_"+groundTruth.getTaskId()+"_"+filePath), json);
 	}
 	
 

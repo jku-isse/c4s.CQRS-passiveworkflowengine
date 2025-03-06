@@ -9,7 +9,7 @@ public class OCLExtractor {
 	private String extractedOCL = null;
 	
 	public String extractOCLorNull() {
-		return tryExtractFromSelf(extractOCLScope(rawText));
+		return tryExtractFromSelf(stripAwayOCLMarker(extractOCLScope(rawText)));
     }
 	
 	protected String extractOCLScope(String rawText) {
@@ -18,6 +18,14 @@ public class OCLExtractor {
 		int posOfTrippleTick = rawText.lastIndexOf("```");
 		int endScope = posOfTrippleTick > 0 ? posOfTrippleTick : rawText.length();
 		return rawText.substring(beginScope, endScope);
+	}
+	
+	protected String stripAwayOCLMarker(String rawText) {
+		var text = rawText.trim();
+		if (text.startsWith("ocl")) {
+			return text.substring(3);
+		}
+		return text;
 	}
 	
 	protected String tryExtractFromSelf(String rawText) {						
@@ -42,7 +50,10 @@ public class OCLExtractor {
 				// lets wing it:
 				return "self."+rawText.trim();
 			}			
-		} else return null; // neither inv nor self found, giving up
+		} else {
+			// try to wing it by just adding self infront
+			return "self."+rawText.trim();
+		}
 		
 	}
 }

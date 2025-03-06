@@ -153,8 +153,7 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 
 	}
 	
-	public static final String raw1a_codestral = "self.out_Bugs->forAll(bug | bug.affectsItems->exists(req : azure_workitem | req.oclIsTypeOf(Requirement) and req.state <> 'Released'))";
-	
+	public static final String raw1a_codestral = "self.out_Bugs->forAll(bug | bug.affectsItems->exists(req : azure_workitem | req.oclIsTypeOf(Requirement) and req.state <> 'Released'))";	
 	@Test
 	void testWrapTypesInBrackets() {
 		var repairer = new IterativeRepairer(provider);
@@ -163,4 +162,12 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		assertNull(repairInfo.getRemainingError());	
 	}
 	
+	public static final String raw1b_codestral = "predecessorItems->forAll(cr | cr.oclIsKindOf(ChangeRequest) and (cr.state = 'Released' or cr.childItems->exists(issue | issue.oclIsKindOf(Issue) and issue.priority = 1)))";
+	@Test
+	void testTypeAndCardShouldNotBeNull() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_ReqChangeRequestTrace_Task1b", "Irrelevant", raw1b_codestral, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		//assertNull(repairInfo.getRemainingError());	
+	}
 }
