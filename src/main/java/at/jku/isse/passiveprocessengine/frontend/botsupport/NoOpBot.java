@@ -5,9 +5,15 @@ import java.time.Instant;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
+
 @Component
 @ConditionalOnExpression(value = "not ${openai.enabled:false}")
-public class NoOpBot implements OCLBot {
+public class NoOpBot extends AbstractBot {
+
+	public NoOpBot() {
+		super(null);
+	}
 
 	@Override
 	public BotResult send(BotRequest request) {
@@ -17,6 +23,11 @@ public class NoOpBot implements OCLBot {
 	@Override
 	public void resetSession() {
 		//no op
+	}
+
+	@Override
+	public String extractAnswerFromResponse(Object response) {		
+		return "";
 	}
 
 }

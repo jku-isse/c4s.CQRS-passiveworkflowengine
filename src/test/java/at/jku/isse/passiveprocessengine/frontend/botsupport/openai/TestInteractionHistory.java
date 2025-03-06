@@ -40,7 +40,7 @@ class TestInteractionHistory {
 		openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS", CONTEXTTYPE, "TESTSCHEMA1", null) );
 		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
-		assert(openAI.interaction.size() == 3);
+		assert(openAI.getInteractions().size() == 3);
 		assert(req.getMessages().size() == 3);
 		Message msg = req.getMessages().get(2); 
 		assert(msg.getContent().contains("TESTSCHEMA1"));
@@ -84,7 +84,7 @@ class TestInteractionHistory {
 		openAI.compileResult("Resp2", null, "TestPropmt", Instant.now());
 		openAI.resetSession();
 		ChatRequest req = openAI.compileRequest(new BotRequest(Instant.now(), "user", "FIXTHIS2", CONTEXTTYPE, null, null) );
-		assert(openAI.interaction.size() == 1);
+		assert(openAI.getInteractions().size() == 1);
 		assert(req.getMessages().size() == 1);
 		Message msg = req.getMessages().get(0); 		
 		assert(!msg.getContent().contains("TESTSCHEMA1"));

@@ -138,6 +138,10 @@ public class OpenAI extends AbstractBot{
     	
     	return new ChatRequest(MODEL, messages);
     } 
+    
+    protected List<BotInteraction> getInteractions() {
+    	return interaction;
+    }
       
     @Data
     public static class ChatRequest {

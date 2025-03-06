@@ -131,7 +131,7 @@ public class TestLoadAsOCLX {
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 		assertNull(repairInfo.getRemainingError());
 	
-	}
+	}		
 	
 	@Test
 	void whyTypeAndCardinalityIsNull() {
@@ -151,6 +151,16 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 		assertNull(repairInfo.getRemainingError());			
 
+	}
+	
+	public static final String raw1a_codestral = "self.out_Bugs->forAll(bug | bug.affectsItems->exists(req : azure_workitem | req.oclIsTypeOf(Requirement) and req.state <> 'Released'))";
+	
+	@Test
+	void testWrapTypesInBrackets() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_BugReqTrace_Task1a", "Irrelevant", raw1a_codestral, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());	
 	}
 	
 }

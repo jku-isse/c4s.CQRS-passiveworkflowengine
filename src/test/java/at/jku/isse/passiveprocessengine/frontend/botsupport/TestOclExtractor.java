@@ -63,7 +63,6 @@ public class TestOclExtractor {
 	
 	
 	
-	
 	public static final String raw2b = """
 			```ocl
 context ProcessStep_PriorityReqToReviewTrace_Task2b
