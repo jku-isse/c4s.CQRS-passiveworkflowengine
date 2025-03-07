@@ -77,7 +77,7 @@ class TestWithEvalData {
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.b1;
+		var groundTruth = EvalData.c3;
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
