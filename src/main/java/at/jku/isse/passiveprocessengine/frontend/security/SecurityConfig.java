@@ -101,7 +101,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.password("{noop}"+pw)
 					.roles("USER")
 					.build());		
-			System.out.println(String.format("Created user credentials %s : %s", name, pw));
+			//System.out.println(String.format("Created user credentials %s : %s", name, pw));
 		}
 	}
 	users.add(User.withUsername("dev")

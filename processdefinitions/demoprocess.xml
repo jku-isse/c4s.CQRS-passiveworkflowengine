@@ -1,0 +1,201 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="WNAvoU`9:C=KWe.j%8;n">CRs</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">REQs</variable>
+    <variable id="M3md.wX*tEQ*De4J||=^">Reviews</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
+    <field name="NAME">DemoProcess</field>
+    <comment pinned="false" h="248" w="895">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability is to establish a clear and documented connection between which software requirements are addressed in a change request, that they have been reviewed and which bugs from the current software release affect them. &#10;&#10;</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
+        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+        <value name="VALUE">
+          <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
+            <field name="Type">root/types/DemoIssue</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="QDP-uXdA`vKJ,ywO%Fv3">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X^KK.om:SDZM@OBTj@bm">
+                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                <field name="StepId">RefineRequirements</field>
+                <statement name="Input">
+                  <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="tKVV$kbpr%[4Q(AK{y-I">
+                    <field name="State">PRECONDITION</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="condition">
+                      <block type="constraint" id="s]G4M;VhE`?[_h4fJPwb">
+                        <field name="arlRule">self.in_CRs&#10;-&gt;size() &gt; 0</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="Cy;vydZNaL`C?45HDF@s">
+                        <field name="State">POSTCONDITION</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="condition">
+                          <block type="constraint" id="8ja(g{7y;l~c2v59|vMe">
+                            <field name="arlRule">self.out_REQs.size() &gt; 0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                            <field name="State">POSTCONDITION</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="condition">
+                              <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
+                                <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;     req.state='ReadyForReview')</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                    <field name="mappingId">REQs</field>
+                    <field name="mappingSpec">self.in_CRs&#10;-&gt;any()&#10;-&gt;asType(&lt;root/types/DemoIssue&gt;)&#10;.requirements</field>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="Y$+4_Cn4f[mC#|6qF2A-">
+                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
+                        <field name="Type">root/types/DemoIssue</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="K~(#B4KDl,BI^!{eLwa!">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="ww@CaEV(-H@jzb63t*Bt">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="c@{G]5_;a=PxS.H-}Vtg">
+                    <field name="qacheckId">NoBugs</field>
+                    <field name="description">Ensure that requirements point to no open bugs</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="constraint">
+                      <block type="constraint" id="h}u$vR/hc}Z:oVk/EsZ0">
+                        <field name="arlRule">self.out_REQs-&gt;forAll(req | req.bugs&#10;-&gt;select(bug |  bug.state &lt;&gt; 'Closed')&#10;.size() = 0&#10;)</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="step" id="Py,l5)v[UR{9]I;3dYeG">
+                    <field name="StepId">ReviewRequirements</field>
+                    <statement name="Input">
+                      <block type="artuse" id="T:?:-NF%*{^nTKQ33WJI">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="oYf)Q,V$1Z-)v[~[N3cZ">
+                            <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="3g]+I))ZE+A*Et;),v]P">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id=":s1FDmC.ss.fp4`kwVwC">
+                                <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="@ZcMoHw[ptdLpA26h2T5">
+                        <field name="State">PRECONDITION</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="condition">
+                          <block type="constraint" id="76XFQ3a^zYUpyvo8v!af">
+                            <field name="arlRule">self.in_REQs&#10;-&gt;forAll(req | &#10;     req.state='ReadyForReview')</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id=".R$Z]}a7Qou*E9kLbKPS">
+                            <field name="State">POSTCONDITION</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="condition">
+                              <block type="constraint" id="s+%)t|_{_7XP[cA14VKX">
+                                <field name="arlRule">self.out_Reviews&#10;-&gt;forAll(rev | &#10;     rev.state='Closed')</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="transition" id="_bEOWAzK#%Fv8lBrF[cR">
+                                <field name="State">POSTCONDITION</field>
+                                <field name="isOverridable">FALSE</field>
+                                <value name="condition">
+                                  <block type="constraint" id="d%vR=J}0@gK}?@YDw*GA">
+                                    <field name="arlRule">self.out_Reviews.size() &gt; 0</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Datamappings">
+                      <block type="datamapping" id="e4~/H7%Dz|`7+gY^1yi(">
+                        <field name="mappingId">Reviews</field>
+                        <field name="mappingSpec">self.in_CRs&#10;-&gt;any()&#10;-&gt;asType(&lt;root/types/DemoIssue&gt;)&#10;.downstream&#10;-&gt;select(item | item.name.startsWith("Review"))</field>
+                      </block>
+                    </statement>
+                    <statement name="Output">
+                      <block type="variables_set" id="2!wf.Tojo$bP_qqps71Z">
+                        <field name="VAR" id="M3md.wX*tEQ*De4J||=^">Reviews</field>
+                        <value name="VALUE">
+                          <block type="artifact" id="p{)!nI6jdcy=.zve6o;x">
+                            <field name="Type">root/types/DemoIssue</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="cNLMPh7)=@WZ8]Uw*Ta]">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="|EJnY4i(ks#0C_,X-L8l">
+                                <field name="VAR" id="M3md.wX*tEQ*De4J||=^">Reviews</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

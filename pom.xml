@@ -29,7 +29,7 @@
 		<connector.core.version>2.0.8</connector.core.version>
 		<connector.jira.version>1.7.0</connector.jira.version>
 		<connector.jama.version>1.1.0-SNAPSHOT</connector.jama.version>	
-		<ppe.rest.version>2.0.7-SNAPSHOT</ppe.rest.version>
+		<ppe.rest.version>2.0.8-SNAPSHOT</ppe.rest.version>
 		<xtextVersion>2.34.0</xtextVersion>
 		<!-- <spring-security.version>5.3.4.RELEASE</spring-security.version> -->
 	</properties>
@@ -122,6 +122,17 @@
 
 
 		<!-- SECURITY RELATED -->
+		<dependency>
+			<groupId>at.jku.isse.designspace</groupId>
+			<artifactId>artifact-authenticator.jira</artifactId>
+			<version>1.0.1</version>		
+			<exclusions>
+				<exclusion>
+           			<groupId>com.google.guava</groupId>
+            		<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>

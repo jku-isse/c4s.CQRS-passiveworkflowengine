@@ -3,7 +3,10 @@ package at.jku.isse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.Properties;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,19 +16,22 @@ import com.google.inject.Injector;
 
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
+import at.jku.isse.designspace.artifactconnector.core.security.EmailToIdMapper;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
+import at.jku.isse.designspace.jira.restclient.connector.JiraAuthenticationConfigLoader;
+import at.jku.isse.designspace.jira.restclient.connector.JiraRestClient;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
-import at.jku.isse.passiveprocessengine.demo.DemoArtifactProvider;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
 import at.jku.isse.passiveprocessengine.designspace.DesignSpaceSchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
+import at.jku.isse.passiveprocessengine.frontend.demo.DemoArtifactProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.OCLXSupportSetup;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
@@ -45,7 +51,8 @@ public class WebFrontendSpringConfig {
 	@Bean @Primary // overriding basic resolver from RestFrontend
 	public ArtifactResolver getArtifactResolverForWebfrontend(AzureServiceBuilder azureBuilder,
 			 ProcessConfigProvider procconf, ProcessRegistry procReg
-			 , UIConfig uiConfig, InstanceRepository repo, SchemaRegistry schemaReg) {
+			 , UIConfig uiConfig,
+			 DemoArtifactProvider demoIssueProvider) {
 		IArtifactProvider azure = azureBuilder.build();
 		
 		ArtifactResolver ar = new ArtifactResolver();
@@ -54,12 +61,7 @@ public class WebFrontendSpringConfig {
 		
 		// we dont want to polute schema with demo artifact if demo mode is off
 		if (uiConfig.isDemoModeEnabled()) {
-			var demoArtFactory = new TestArtifacts(repo, schemaReg);	
-			PPEInstance jiraB =  demoArtFactory.getJiraInstance("IssueB");
-    		PPEInstance jiraC = demoArtFactory.getJiraInstance("IssueC");		
-    		PPEInstance jiraA = demoArtFactory.getJiraInstance("IssueA", jiraB, jiraC);
-			var demoissueProvider = new DemoArtifactProvider(schemaReg, repo, demoArtFactory);
-			ar.register(demoissueProvider);
+			ar.register(demoIssueProvider);
 		}
 		
 		return ar;
@@ -85,6 +87,28 @@ public class WebFrontendSpringConfig {
 			throw new RuntimeException(msg);
 		}
 		return props;
+	}
+	
+	@Bean
+	@ConditionalOnMissingBean(EmailToIdMapper.class)
+	public static EmailToIdMapper getJiraBasedEmailToIdMapper() {
+		try {
+		JiraAuthenticationConfigLoader configLoader = new JiraAuthenticationConfigLoader();
+		Properties props = configLoader.getProps();		
+		JiraRestClient api = new JiraRestClient(URI.create(props.getProperty(JiraAuthenticationConfigLoader.JIRA_SERVER_URL)), 
+				props.getProperty(JiraAuthenticationConfigLoader.JIRA_USER),
+				props.getProperty(JiraAuthenticationConfigLoader.JIRA_PW));
+		return api;
+		} catch(RuntimeException e) {
+			System.out.println("Error initializing jira based authenticator, running with No-Op connector: "+e.getMessage());
+			return new EmailToIdMapper() {
+				@Override
+				public String getIdForEmail(String email) {
+					return "NONE";
+				}			
+			};	
+		}
+		
 	}
     
 	@Bean @Primary
