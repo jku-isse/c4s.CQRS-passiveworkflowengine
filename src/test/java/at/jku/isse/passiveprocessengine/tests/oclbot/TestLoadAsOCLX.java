@@ -170,4 +170,13 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 		//assertNull(repairInfo.getRemainingError());	
 	}
+	
+	public static final String raw3a_codestral = "self.out_Bugs->forAll(b | b.priority = 1 and b.affectsItems->exists(req | req.oclIsKindOf(Requirement)) implies (b.state = 'Closed' or self.in_CRs->exists(cr | cr.oclIsKindOf(ChangeRequest) and cr.childItems->exists(issue | issue.oclIsKindOf(Issue) and issue.state <> 'Closed') and issue.predecessorItems->includes(req))))";
+	@Test
+	void testCorrectSubtypeWithProperty() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse("ProcessStep_AssessingBugStates_Task3a", "Irrelevant", raw3a_codestral, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+	}
+	
 }
