@@ -6,14 +6,13 @@ title Process Guidance Framework - Dependency Diagram (managed via Maven)
 
 package "DesignSpace" {
 component [DesignSpace.Core] as core
-component [DesignSpace.Interface] as intf
 component [DesignSpace.Rule] as rule
 }
 
-note right of core
+note top of core
 defines <<InstanceType>> and <Instance>
 end note
-note left of rule
+note bottom of rule
 defines <<ConsistencyRuleType>> and <ConsistencyRule> 
 and all rule expression, evaluation, and repair tree classes
 end note
@@ -21,44 +20,53 @@ end note
 package "PPE" {
 component [PPE.Core] as ppe 
 component [PPE.UI] as ui
+component [PPE.REST + BlocklyEditor] as rest
 component [Transformation.Stages] as stages
+component [Transformation.Blockly] as blockly
+component [OCL DSL] as oclx
 }
 
-note left of ppe
+note top of ppe
 defines all process definition and instance related types
 end note
 
 package "Tool Connectors" {
-component [ToolConnector.Core] as tool 
+component [ToolConnector.Core] as tool
+component [DSWrapper] as wrapper
 component [ToolConnector.Azure] as azure 
-component [ToolConnector.Git] as git 
-component [ToolConnector.Jira] as jira
+component [JiraAuthenticaor] as jiraAuth
 }
 
 note bottom of azure
 defines <WorkItemType>
 end note
 
+note bottom of jiraAuth
+ignore, only needed for experiments
+end note
 
-intf -up-> core
 rule -up-> core
-rule -up-> intf
 
-tool -up-> core
+wrapper -up-> tool: implements
+wrapper -up-> core
+wrapper -up-> rule
 azure -up-> tool
-git -up-> tool
-jira -up-> tool
+jiraAuth -up-> tool
 
-ppe -up-> core
-ppe -up-> rule
+ppe -up-> tool
+blockly -up-> ppe
 
 stages -up-> ppe
 stages -up-> azure
 
-ui -up-> ppe
-ui -up-> azure
-ui -up-> jira
-ui -up-> git
-ui -up-> stages
+
+
+ui -up-> rest
+ui -up-> oclx
+oclx -up-> tool
+rest -up-> azure
+rest -up-> stages
+rest -up-> blockly
+rest -up-> rule
 
 @enduml
