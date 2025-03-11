@@ -57,8 +57,10 @@ class TestWithEvalData {
 	AbstractBot bot;
 	private List<Message> openAImessages = new ArrayList<>(); // in case we use openAI
 	private List<at.jku.isse.passiveprocessengine.frontend.botsupport.ollama.OllamaAI.Message> ollamaAImessages = new ArrayList<>(); // in case we use ollamaAI
-	private String model = "codestral:latest"; // sync with experiment output file naming below!
-	private String modelForFilePath = "codestral";
+	 
+	//codestral:latest  qwen2.5-coder:32b        codegeex4:latest       gemma2:27b     llama3.3:latest      deepseek-r1:70b
+	private String model = "qwen2.5-coder:32b"; // sync with experiment output file naming below!
+	private String modelForFilePath = "qwen";
 	
 	HumanReadableSchemaExtractor schemaGen;
 	Gson gson = new GsonBuilder()
@@ -86,7 +88,7 @@ class TestWithEvalData {
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.c2;
+		var groundTruth = EvalData.c3;
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
