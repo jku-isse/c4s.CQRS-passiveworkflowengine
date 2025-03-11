@@ -24,6 +24,7 @@ import at.jku.isse.ide.assistance.CodeActionExecuter;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.GeneratedRulePostProcessor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.OCLExtractor;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.TestOclExtractor;
+import at.jku.isse.passiveprocessengine.frontend.botsupport.experiment.EvalData;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes=PPE3Webfrontend.class)
@@ -176,6 +177,14 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 	void testCorrectSubtypeWithProperty() {
 		var repairer = new IterativeRepairer(provider);
 		var repairInfo = repairer.checkResponse("ProcessStep_AssessingBugStates_Task3a", "Irrelevant", raw3a_codestral, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+	}
+	
+	public static final String raw2a_codestral = " I apologize for the confusion, but it seems there was an error in my previous response. The property 'successorItems' is not listed among the properties of ProcessStep in your provided schema.\n\nHowever, based on the context and task description, it appears that the correct relationship should be from Requirements to Reviews or Review Findings. Given this, a possible OCL rule could be:\n\n   self.out_REQs->forAll(r | r.oclIsKindOf(Requirement) and r.state = 'released' implies\n     r.successorItems->exists(s | s.oclIsKindOf(Review) and not s.findingItems->exists(f | f.oclIsKindOf(ReviewFinding) and f.state = 'open'))\n   )";
+	@Test
+	void testWhatErrorGenerated() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse(EvalData.a2.getContext(), "Irrelevant", raw2a_codestral, 0);
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 	}
 	

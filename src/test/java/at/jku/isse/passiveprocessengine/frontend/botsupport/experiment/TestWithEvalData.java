@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.nio.file.Paths;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +39,7 @@ import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
+import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -67,21 +71,29 @@ class TestWithEvalData {
 	final String filePath = "oclexperimentoutput.json";
 	
 	@BeforeAll
-	void setup() {
+	void setup() throws IOException {
 		schemaGen = new HumanReadableSchemaExtractor(schemaReg);
 		repairer = new IterativeRepairer(provider);		
 		bot = new OllamaAI("http://10.78.115.48:11434/api/chat", model, provider);
+		
+//		InputStream input = new FileInputStream("application.properties") ;
+//		var props = new UIConfig("Test");
+//		props.load(input);
+//		bot = new OpenAI(props.getProperty("openai.apikey"), provider);
 	}
 	
 	@Test
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.c3;
+		var groundTruth = EvalData.c2;
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
-		Files.writeString(Paths.get("Task_"+modelForFilePath+"_"+groundTruth.getTaskId()+"_"+filePath), json);
+		if (bot instanceof OllamaAI)
+			Files.writeString(Paths.get("Task_"+modelForFilePath+"_"+groundTruth.getTaskId()+"_"+filePath), json);
+		else 
+			Files.writeString(Paths.get("Task_o1-mini_"+groundTruth.getTaskId()+"_"+filePath), json);
 	}
 	
 
