@@ -71,7 +71,7 @@ public class TestLoadAsOCLX {
 	@ParameterizedTest
 	@MethodSource("generateTestData")
 	void testLoadRawAsOCLX(String input, String context) {
-		var ocl = new OCLExtractor(input).extractOCLorNull();
+		var ocl = new OCLExtractor(input).extractOCLorEmpty();
 		assertNotNull(ocl);				
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		processedOCL = IterativeRepairer.wrapInOCLX(processedOCL, context);
@@ -188,4 +188,12 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 	}
 	
+	public static final String raw1b_qwen = "```ocl\nself.out_REQs->forAll(req : azure_workitem |\n    req.predecessorItems->forAll(pred : azure_workitem |\n        pred.workItemType = 'ChangeRequest' implies (\n            pred.state = 'Released' or \n            pred.childItems->exists(child : azure_workitem | child.workItemType = 'Issue' and child.priority = 1)\n        )\n    )\n)\n```";
+	@Test
+	void testFixAllTypeErrors() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse(EvalData.b1.getContext(), "Irrelevant", raw1b_qwen, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+		assertNull(repairInfo.getRemainingError());
+	}
 }

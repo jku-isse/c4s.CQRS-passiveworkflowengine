@@ -2,10 +2,12 @@ package at.jku.isse.passiveprocessengine.frontend.botsupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
@@ -37,7 +39,7 @@ public class TestOclExtractor {
 			+ "  r.out_ReviewFinding->exists(f | f.findingcategory = 'Open') implies r.state <> 'Verified'\r\n"
 			+ ")\r\n"
 			+ "```"; 
-	//TODO 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem', hence also exists wont work
+	// 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem', hence also exists wont work --> query LLM again
 			
 	public final static String raw5 = "```ocl\r\n"
 			+ "context ProcessStep_CheckingRequirements_RequirementsManagementProcessV2\r\n"
@@ -45,7 +47,7 @@ public class TestOclExtractor {
 			+ "    req.out_ReviewFinding->exists(f | f.closedDate = null) implies req.state <> 'Verified'\r\n"
 			+ ")\r\n"
 			+ "```";
-	// TODO: Problem: 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem'
+	// 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem' --> query LLM again
 	
 	public final static String raw6 = "```ocl\r\n"
 			+ "context ProcessStep_BugReqTrace_Task1a\r\n"
@@ -112,16 +114,16 @@ inv:
 	@ParameterizedTest
 	@MethodSource("generateTestData")
 	void testExtract(String input) {
-		var ocl = new OCLExtractor(input).extractOCLorNull();
-		assertNotNull(ocl);
+		var ocl = new OCLExtractor(input).extractOCLorEmpty();
+		assertNotEquals("", ocl);
 		System.out.println(ocl);
 		
 	}
 	
 	@Test
 	void testPostProcessingTypeBrackets() {
-		var ocl = new OCLExtractor(raw2b).extractOCLorNull(); //raw2 , raw1a, raw2b, 
-		assertNotNull(ocl);
+		var ocl = new OCLExtractor(raw2).extractOCLorEmpty(); //raw2 , raw1a, raw2b, 
+		assertNotEquals("", ocl);
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
@@ -130,8 +132,8 @@ inv:
 	
 	@Test
 	void testPostProcessingTypeBracketsAroundReviewfinding() {
-		var ocl = new OCLExtractor(raw2a).extractOCLorNull(); 
-		assertNotNull(ocl);
+		var ocl = new OCLExtractor(raw2a).extractOCLorEmpty(); 
+		assertNotEquals("", ocl);
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
@@ -139,14 +141,41 @@ inv:
 		
 		var oclx = IterativeRepairer.wrapInOCLX(processedOCL, "ignored");
 	}
-	
+		
 	@Test
 	void testPostProcessingMultipleTypeBrackets() {
-		var ocl = new OCLExtractor(raw2b_refinement1).extractOCLorNull(); 
-		assertNotNull(ocl);
+		var ocl = new OCLExtractor(raw2b_refinement1).extractOCLorEmpty(); 
+		assertNotEquals("", ocl);
 		var processedOCL = GeneratedRulePostProcessor.init(ocl).getProcessedRule();
 		assertNotNull(processedOCL);
 		System.out.println(processedOCL);
 		assertTrue(processedOCL.contains("<TestCase>"));
+	}
+	
+	static List<String> okMultiTicks = List.of(
+			"```self```"
+			,"```selfNot``` some ```self```"
+			, "```selfNot``` some ```self"
+			,"```self"
+			,"```selfNot``````self```"
+			,"```self```some```"
+			,"```selfNot``` some ```self``` some more"); 	
+	@ParameterizedTest
+	@FieldSource("okMultiTicks")
+	void testSuccessMultiBackticks(String rawText) {
+		var ocl = new OCLExtractor(rawText).extractOCLorEmpty();
+		assertNotEquals("", ocl);
+		assertEquals("self", ocl);
+	}
+	
+	static List<String> failMultiTicks = List.of(
+			"```"
+			,"``` ```"
+			); 	
+	@ParameterizedTest
+	@FieldSource("failMultiTicks")
+	void testFailMultiBackticks(String rawText) {
+		var ocl = new OCLExtractor(rawText).extractOCLorEmpty();
+		assertEquals("", ocl);		
 	}
 }

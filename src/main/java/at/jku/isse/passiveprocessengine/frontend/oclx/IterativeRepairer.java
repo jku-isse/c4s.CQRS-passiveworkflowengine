@@ -19,7 +19,7 @@ public class IterativeRepairer {
 			String answer, int iteration) {
 		var result = new IterativeRepairer.IterationResult(iteration, prompt, answer);
 		// check for errors, correct OCL?
-		var ocl = new OCLExtractor(answer).extractOCLorNull();
+		var ocl = new OCLExtractor(answer).extractOCLorEmpty();
 		if (ocl == null) {
 			return result;
 		}
@@ -44,8 +44,8 @@ public class IterativeRepairer {
 		if (issues.isEmpty()) {
 			return result;
 		}
-		issues.forEach(issue -> result.addError(issue.getMessage()));
-		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
+		issues.forEach(issue -> result.addError(issue.getMessage())); // initial errors only, followup errors are not captured here,
+		for (int i = 0; i< 15; i++) { // max 15 rounds of repairs
 			// repairs?
 			executer.executeFirstExecutableRepair();		
 			var repair = executer.getExecutedCodeAction();
