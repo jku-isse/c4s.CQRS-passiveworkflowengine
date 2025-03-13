@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.nio.file.Paths;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -39,9 +38,9 @@ import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.openai.OpenAI.Message;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
-import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import static at.jku.isse.passiveprocessengine.frontend.botsupport.experiment.EvalData.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes=PPE3Webfrontend.class)
@@ -84,11 +83,23 @@ class TestWithEvalData {
 //		bot = new OpenAI(props.getProperty("openai.apikey"), provider);
 	}
 	
-	@Test
+	@Test @Disabled
 	void testEvalLLMGeneration() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		var groundTruth = EvalData.c3;
+		runEvaluationAndLog(c3, bot);		
+	}
+	
+	@Test @Disabled
+	void testEvalLLMGenerationWithAllTasks() throws Exception {
+		// run for all eval data, then store as json
+		// reset bot after each eval constraint data round
+		for (var groundTruth : List.of(c2, a3, b3, c3)) {
+			runEvaluationAndLog(groundTruth, bot);
+		}		
+	}
+	
+	void runEvaluationAndLog(ConstraintGroundTruth groundTruth, OCLBot bot) throws Exception {
 		var result = runEvalRound(groundTruth);
 		var json = gson.toJson(result);
 		System.out.println(json);
@@ -98,7 +109,6 @@ class TestWithEvalData {
 			Files.writeString(Paths.get("Task_o1-mini_"+groundTruth.getTaskId()+"_"+filePath), json);
 	}
 	
-
 	private EvalResult runEvalRound(ConstraintGroundTruth groundTruth) throws Exception {
 		openAImessages.clear(); // only for OPENAI
 		ollamaAImessages.clear();

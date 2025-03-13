@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 
 @Component
-@ConditionalOnExpression(value = "not ${openai.enabled:false}")
+@ConditionalOnExpression(value = "not ${openai.enabled:false} and not ${ollama.enabled:false}")
 public class NoOpBot extends AbstractBot {
 
 	public NoOpBot() {

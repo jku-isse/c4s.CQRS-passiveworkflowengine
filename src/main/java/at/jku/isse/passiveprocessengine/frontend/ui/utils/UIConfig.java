@@ -13,6 +13,7 @@ public class UIConfig extends Properties {
 		integratedEvalRepairTree_enabled("integratedEvalRepairTree.enabled"),
 		experimentMode_enabled("experimentMode.enabled"),
 		openai_enabled("openai.enabled"),
+		ollama_enabled("ollama.enabled"),
 		blocklyeditor_enabled("blocklyeditor.enabled"),
 		blocklyeditor_url("blocklyeditor.url"),
 		stages_enabled("stages.enabled"),
@@ -62,7 +63,8 @@ public class UIConfig extends Properties {
 	}	    
 
 	public boolean isARLBotSupportEnabled() {
-		return Boolean.valueOf(this.getProperty(Keys.openai_enabled.toString(), "false"));
+		return Boolean.valueOf(this.getProperty(Keys.openai_enabled.toString(), "false"))
+				|| Boolean.valueOf(this.getProperty(Keys.ollama_enabled.toString(), "false"));
 	}
 	
 	public boolean isStagesEnabled() {

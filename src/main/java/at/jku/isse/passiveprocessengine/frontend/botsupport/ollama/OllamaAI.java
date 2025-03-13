@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import at.jku.isse.passiveprocessengine.frontend.botsupport.AbstractBot;
@@ -18,12 +23,15 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
+@Scope("session")
+@ConditionalOnExpression(value = "${ollama.enabled:false}")
 public class OllamaAI extends AbstractBot {
 
 	private final String url;
 	private final String model;
 	
-	public OllamaAI(String url, String model, CodeActionExecuterProvider provider) {
+	public OllamaAI(@Value("${ollama.url}") String url, @Value("${ollama.model}")String model, CodeActionExecuterProvider provider) {
 		super(provider);
 		this.url = url;
 		this.model = model;
