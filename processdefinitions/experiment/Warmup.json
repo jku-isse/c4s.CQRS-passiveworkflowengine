@@ -11,8 +11,8 @@
         "REQs": "azure_workitem"
       },
       "ioMapping": {
-        "Bugs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.workItemType\u003d\u0027Bug\u0027)",
-        "REQs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.workItemType\u003d\u0027Requirement\u0027)"
+        "Bugs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.externalType\u003d\u0027Bug\u0027)",
+        "REQs": "self.in_CRs-\u003eany()-\u003easType(\u003croot/types/azure/azure_workitem\u003e).successorItems\n-\u003eselect(item | item.externalType\u003d\u0027Requirement\u0027)"
       },
       "conditions": {
         "PRECONDITION": "self.in_CRs-\u003esize() \u003e 0",
@@ -20,7 +20,7 @@
       },
       "qaConstraints": [
         {
-          "arlRule": "self.out_REQs\n-\u003e select(req | req.state\u003d\u0027Reviewed\u0027)\n-\u003e forAll(req2:  \u003croot/types/azure/azure_workitem\u003e| req2.affectedbyItems\n-\u003eselect(bug: \u003croot/types/azure/azure_workitem\u003e  | bug.workItemType\u003d\u0027Bug\u0027)\n-\u003eexists(bug2:\u003croot/types/azure/azure_workitem\u003e|bug2.state\u003d\u0027Closed\u0027)\n)",
+          "arlRule": "self.out_REQs\n-\u003e select(req | req.state\u003d\u0027Reviewed\u0027)\n-\u003e forAll(req2:  \u003croot/types/azure/azure_workitem\u003e| req2.affectedbyItems\n-\u003eselect(bug: \u003croot/types/azure/azure_workitem\u003e  | bug.externalType\u003d\u0027Bug\u0027)\n-\u003eexists(bug2:\u003croot/types/azure/azure_workitem\u003e|bug2.state\u003d\u0027Closed\u0027)\n)",
           "specOrderIndex": 0,
           "_type": "QAConstraint",
           "code": "ClosedReqToBugState",

@@ -13,7 +13,7 @@
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
         <value name="VALUE">
           <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
-            <field name="Type">azure_workitem</field>
+            <field name="Type">root/types/azure/azure_workitem</field>
           </block>
         </value>
         <next>
@@ -50,15 +50,15 @@
                 <statement name="Datamappings">
                   <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
                     <field name="mappingId">REQs</field>
-                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
                     <next>
                       <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
                         <next>
                           <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                             <field name="mappingId">Bugs</field>
-                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
+                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
                           </block>
                         </next>
                       </block>
@@ -70,7 +70,7 @@
                     <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
                     <value name="VALUE">
                       <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
-                        <field name="Type">azure_workitem</field>
+                        <field name="Type">root/types/azure/azure_workitem</field>
                       </block>
                     </value>
                     <next>
@@ -86,7 +86,7 @@
                             <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
                             <value name="VALUE">
                               <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
-                                <field name="Type">azure_workitem</field>
+                                <field name="Type">root/types/azure/azure_workitem</field>
                               </block>
                             </value>
                             <next>
@@ -102,7 +102,7 @@
                                     <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
                                     <value name="VALUE">
                                       <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
-                                        <field name="Type">azure_workitem</field>
+                                        <field name="Type">root/types/azure/azure_workitem</field>
                                       </block>
                                     </value>
                                     <next>
@@ -131,7 +131,7 @@
                     <field name="description">Ensure that either all Bugs for priority '1' 'affects' Requirements are 'Closed' or otherwise that the Requirement is traced (as 'predecessor') from one of the Change Request's 'active' child Issues.</field>
                     <value name="constraint">
                       <block type="constraint" id="61,1Yz2_o6iIx2(k|F_-">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.priority=1)&#10;-&gt;forAll(prioreq | &#10;    ( prioreq.affectedbyItems&#10;        -&gt;select( item | &#10;                  item.workItemType = 'Bug'  )&#10;        -&gt;forAll( bug | bug.state = 'Closed')&#10;    )&#10;   or&#10;    (  prioreq.successorItems&#10;        -&gt;exists(item3 |&#10;              item3.workItemType = 'Issue' &#10;              and &#10;              item3.state='Active' &#10;              and &#10;              item3.parentItems            &#10;              -&gt;intersection(self.in_CRs)&#10;                    .size() &gt; 0&#10;            )&#10;    )&#10;)</field>
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req : &lt;root/types/azure/Requirement&gt; | req.priority=1)&#10;-&gt;forAll(prioreq | &#10;    ( prioreq.affectedByItems&#10;        -&gt;select( item | &#10;                  item.externalType = 'Bug'  )&#10;        -&gt;forAll( bug | bug.state = 'Closed')&#10;    )&#10;   or&#10;    (  prioreq.successorItems&#10;        -&gt;exists(item3 |&#10;              item3.externalType = 'Issue' &#10;              and &#10;              item3.state='Active' &#10;              and &#10;              item3.parentItems            &#10;              -&gt;intersection(self.in_CRs)&#10;                    .size() &gt; 0&#10;            )&#10;    )&#10;)</field>
                       </block>
                     </value>
                   </block>

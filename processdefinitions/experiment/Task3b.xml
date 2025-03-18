@@ -13,7 +13,7 @@
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
         <value name="VALUE">
           <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
-            <field name="Type">azure_workitem</field>
+            <field name="Type">root/types/azure/azure_workitem</field>
           </block>
         </value>
         <next>
@@ -50,15 +50,15 @@
                 <statement name="Datamappings">
                   <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
                     <field name="mappingId">REQs</field>
-                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
                     <next>
                       <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
                         <next>
                           <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                             <field name="mappingId">Bugs</field>
-                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
+                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
                           </block>
                         </next>
                       </block>
@@ -70,7 +70,7 @@
                     <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
                     <value name="VALUE">
                       <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
-                        <field name="Type">azure_workitem</field>
+                        <field name="Type">root/types/azure/azure_workitem</field>
                       </block>
                     </value>
                     <next>
@@ -86,7 +86,7 @@
                             <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
                             <value name="VALUE">
                               <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
-                                <field name="Type">azure_workitem</field>
+                                <field name="Type">root/types/azure/azure_workitem</field>
                               </block>
                             </value>
                             <next>
@@ -102,7 +102,7 @@
                                     <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
                                     <value name="VALUE">
                                       <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
-                                        <field name="Type">azure_workitem</field>
+                                        <field name="Type">root/types/azure/azure_workitem</field>
                                       </block>
                                     </value>
                                     <next>
@@ -131,7 +131,7 @@
                     <field name="description">Ensure all Requirements with a 'successor' trace to an 'active' Issue (if any), need to have that Issue traced as a 'child' from the Requirement's current (non-released) Change Request.</field>
                     <value name="constraint">
                       <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.workItemType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2  | &#10;     req2.successorItems&#10;        -&gt;select(item2 | &#10;               item2.workItemType='Issue'&#10;               and &#10;               item2.state='Active' )&#10;        -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;           )     &#10;       -&gt;intersection(&#10;              req2.predecessorItems&#10;                -&gt;select(item3 | &#10;                  item3.workItemType&#10;                             ='Change Request' &#10;                  and &#10;                  item3.state&lt;&gt;'Released')&#10;        ) -&gt;size() &gt; 0&#10;)</field>
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req | req.successorItems&#10;  -&gt;exists(item | item.externalType='Issue'&#10;        and item.state='Active')&#10;)&#10;-&gt;forAll(req2  | &#10;     req2.successorItems&#10;        -&gt;select(item2 | &#10;               item2.externalType='Issue'&#10;               and &#10;               item2.state='Active' )&#10;        -&gt;collect(issue : &#10;           &lt;root/types/azure/azure_workitem&gt;  | &#10;            issue.parentItems-&gt;asList()-&gt;first()&#10;           -&gt;asType( &#10;           &lt;root/types/azure/azure_workitem&gt; )&#10;           )     &#10;       -&gt;intersection(&#10;              req2.predecessorItems&#10;                -&gt;select(item3 | &#10;                  item3.externalType&#10;                             ='Change Request' &#10;                  and &#10;                  item3.state&lt;&gt;'Released')&#10;        ) -&gt;size() &gt; 0&#10;)</field>
                       </block>
                     </value>
                   </block>

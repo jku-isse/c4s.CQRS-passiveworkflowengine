@@ -1,0 +1,208 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="WNAvoU`9:C=KWe.j%8;n">CRs</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">REQs</variable>
+    <variable id="9#IX|o={]2s^84AZl*U,">ISSUEs</variable>
+    <variable id="ujJj41c[+uOp30QV^RN9">BUGs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="113" y="-287">
+    <field name="NAME">Task2A</field>
+    <comment pinned="false" h="248" w="895">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability is to establish a clear and documented connection between which software requirements are addressed in a change request, that they have been reviewed and which bugs from the current software release affect them. &#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure the trace between requirements and bugs. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.&#10;</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
+        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+        <value name="VALUE">
+          <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
+            <field name="Type">root/types/azure/azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="QDP-uXdA`vKJ,ywO%Fv3">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X^KK.om:SDZM@OBTj@bm">
+                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                <field name="StepId">ReleasedChangeRequest</field>
+                <statement name="Input">
+                  <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                    <field name="State">PRECONDITION</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="condition">
+                      <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
+                        <field name="arlRule">self.in_CRs&#10;	-&gt;forAll(cr | cr.successorItems.size()&gt;0)</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="V@3K-LuIw)_oXhxk3=`3">
+                        <field name="State">POSTCONDITION</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="condition">
+                          <block type="constraint" id="hRj.#?NxyKmguLZ!bm6[">
+                            <field name="arlRule">self.in_CRs&#10;	-&gt;exists(cr | cr.state='Released')</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                    <field name="mappingId">REQs</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id=",EfP@7L#Wy21I4XExfGs">
+                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
+                        <field name="Type">root/types/azure/azure_workitem</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="ly(}V1)Z@!mJg5Jh2b=-">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="gajG9dezyQcxLZZ:JY}a">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="k?$CQfAt=OVZFDItjH0s">
+                    <field name="qacheckId">QAConst_1.1</field>
+                    <field name="description">Ensure that requirements with closed bugs have at least one released change request.</field>
+                    <field name="isOverridable">TRUE</field>
+                    <value name="constraint">
+                      <block type="constraint" id="Jm9g:e(L^!/,MBc:)VU@">
+                        <field name="arlRule">self.out_REQs&#10;        -&gt;select(req| req.affectedByItems&#10;		-&gt;select(bug  | bug.externalType='Bug')&#10;		-&gt;forAll(bug2|bug2.state='Closed'))&#10;	-&gt;forAll(cb_req | cb_req.predecessorItems&#10;		-&gt; exists(pd | pd.state='Released'))</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="step" id="WWe6~*-YJ=yiQ-ONppXS">
+                    <field name="StepId">ReqToChangeReqTrace</field>
+                    <statement name="Input">
+                      <block type="artuse" id="IBj~Jhg=]OH7:7L}JH7T">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="hNF0-FCJIh1o~zU/Y8Jc">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="Transitions">
+                      <block type="transition" id="PPr)Y7qEN|M(3D[HxL%}">
+                        <field name="State">PRECONDITION</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="condition">
+                          <block type="constraint" id="PrC4cu(s:eUe0|}|qzHm">
+                            <field name="arlRule">self.in_REQs&#10;	-&gt;forAll(req | req.predecessorItems.size()&gt;0)</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="transition" id="{P#U]cCtGXfTw^rqAXVl">
+                            <field name="State">POSTCONDITION</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="condition">
+                              <block type="constraint" id="ptqNEnqYJ}v$Lq?!:.hr">
+                                <field name="arlRule">self.out_ISSUEs&#10;        -&gt;forAll(is | is.parentItems&#10;		-&gt;exists( isp | isp.externalType='Change Request'))</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Datamappings">
+                      <block type="datamapping" id="`qlY?)k,Z/(#B9(fZe(T">
+                        <field name="mappingId">ISSUEs</field>
+                        <field name="mappingSpec">self.in_REQs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;				-&gt;select(item | item.externalType='Issue')</field>
+                        <next>
+                          <block type="datamapping" id="uV=a6al}ZMmIi8K^Y_{c">
+                            <field name="mappingId">BUGs</field>
+                            <field name="mappingSpec">self.in_REQs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).affectedByItems&#10;				-&gt;select(item | item.externalType='Bug')</field>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="Output">
+                      <block type="variables_set" id="JkzRRix*%/p%Syy(?1ot">
+                        <field name="VAR" id="9#IX|o={]2s^84AZl*U,">ISSUEs</field>
+                        <value name="VALUE">
+                          <block type="artifact" id=":Zk29fD.1z=!+.U+9(1!">
+                            <field name="Type">root/types/azure/azure_workitem</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="artuse" id="(FQexu0I*:iGj4Hr|.]o">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="P2d10)L){XT#C(LaR~y=">
+                                <field name="VAR" id="9#IX|o={]2s^84AZl*U,">ISSUEs</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="variables_set" id=":Ge`?ju0*GpGmB?Dmwm#">
+                                <field name="VAR" id="ujJj41c[+uOp30QV^RN9">BUGs</field>
+                                <value name="VALUE">
+                                  <block type="artifact" id="LEAgqZe3{9W.Yl*b?KW*">
+                                    <field name="Type">root/types/azure/azure_workitem</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="artuse" id="cFetA=Az(Z5Zp9i0Y-IE">
+                                    <field name="roletext">Param</field>
+                                    <value name="NAME">
+                                      <block type="variables_get" id="c/)nZ^]gH?0I|[Z)1Ja_">
+                                        <field name="VAR" id="ujJj41c[+uOp30QV^RN9">BUGs</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="QA">
+                      <block type="qacheck" id="Zg(M-2Dx_6?o9;q,I:!5">
+                        <field name="qacheckId">QAConst_2.1</field>
+                        <field name="description">All closed bugs must have a trace (via 'predecessorItems') to a released change request.</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="constraint">
+                          <block type="constraint" id="~?R_XiRd~13!Ukm0j@lf">
+                            <field name="arlRule">self.out_BUGs&#10;        -&gt;select(bug | bug.state='Closed')&#10;        -&gt;forAll(cbug | cbug.predecessorItems&#10;        		-&gt;select(pd | pd.externalType='Change Request')&#10;                  -&gt;exists(cr | cr.state='Released'))</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

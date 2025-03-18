@@ -53,7 +53,7 @@ public class OverridingProcessTests {
 	void OV0_testWorkItemWithCondition_0() throws ProcessException {
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess0.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess0 QA1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -61,7 +61,7 @@ public class OverridingProcessTests {
 	void OV22_testWorkItemWithCondition_0V1() throws ProcessException {
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess22.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess22 QA1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -70,7 +70,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess23.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess23 QA1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -79,7 +79,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess15.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess15 QA1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -104,7 +104,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess18.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess18 POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -113,7 +113,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess20.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("POSTCONDITION1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess20 POSTCONDITION1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -122,17 +122,16 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess19.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess19 POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
-
 
 	@Test
 	void OV8_testWorkItemWithCondition_7V0() throws ProcessException {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess8.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const3 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess8 Const3 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -141,7 +140,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess24.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const3 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess24 Const3 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -150,7 +149,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess9.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess9 QA1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -159,8 +158,8 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess10.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property must be ENABLED.");
-		expected_warnings.add("POSTCONDITION1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess10 QA1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess10 POSTCONDITION1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -169,7 +168,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess21.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess21 QA1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -178,17 +177,16 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess4.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess4 Const1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : "Warning Lists are Not Equivalent";
 	}
-
 
 	@Test
 	void OV2_testOVConditionInBetween_0() throws ProcessException {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess2.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("QA1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess2 QA1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -197,7 +195,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess13.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess13 Const1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
@@ -206,18 +204,17 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess16.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess16 Const1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 
 	@Test
 	void OV3_testSizeWithPath_6() throws ProcessException {
-		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess3.xml");
 		List<String> expected_warnings=new LinkedList<>();
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
-	
+
 	@Test
 	void OV6_testSizeWithPath_1() throws ProcessException {
 		
@@ -239,7 +236,7 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess17.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess17 Const1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 	
@@ -248,13 +245,12 @@ public class OverridingProcessTests {
 		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess11.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess11 Const1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 	
 	@Test
 	void OV12_testSizeWithPath_8() throws ProcessException {
-		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess12.xml");
 		List<String> expected_warnings=new LinkedList<>();
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
@@ -262,30 +258,100 @@ public class OverridingProcessTests {
 	
 	@Test
 	void OV14_testSizeWithPath_9() throws ProcessException {
-		
 		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess14.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess14 Const1 'IsOverrideable' property must be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 	
-	/*@Test
-	void OV25_IndustryConstraint1And2() throws ProcessException {
-		registerFromBlocklyXML("OverrideProcess25.xml");
-		List<ProcessDefinitionError> generated_warnings=procReg.getOverride_warnings();
+	@Test
+	void OV25_testCollectIncludeWithVariables() throws ProcessException {
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("OverrideProcess25.xml");
 		List<String> expected_warnings=new LinkedList<>();
-		expected_warnings.add("Const1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_BugReqTrace_OverrideProcess25 Const1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
-	}*/
-    /*@Test
-	void SRA_testIndustryConstraint() throws ProcessException {
-		registerJson("SystemRequirementsAnalysis(WIP).json");
-		List<ProcessDefinitionError> generated_warnings=procReg.getOverride_warnings();
-		List<String> expected_warnings=new LinkedList<>();
-		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
-	}*/
-
+	}
 	
+	@Test
+	void OV_testGuideExample() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("guideExample.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_CRStatus_guideExample QAConst_1.1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testWarmUpTask() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("warmUp.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_PrepareRequirementsForRelease_warmUp QAConst_1.1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTask1A() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task1A.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_ReqtoCR_Task1A QAConst_1.1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTask1B() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task1B.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_CRtoTC_Task1B POSTCONDITION1 'IsOverrideable' property must be ENABLED."); //Child 1
+		expected_warnings.add("ProcessStep_CRtoTC_Task1B POSTCONDITION1 'IsOverrideable' property might require to be ENABLED."); //Child 2
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTask2A() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task2A.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_ReleasedChangeRequest_Task2A POSTCONDITION1 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_ReqToChangeReqTrace_Task2A QAConst_2.1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTask2B() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task2B.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_TCtoReview_Task2B PRECONDITION0 'IsOverrideable' property must be ENABLED.");
+		expected_warnings.add("ProcessStep_TCtoReview_Task2B QAConst_2.1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTask3A() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task3A.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_BugToReq_Task3A POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_ReqToIssue_Task3A QAConst_2.1.1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_ReqToBug_Task3A PRECONDITION0 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_ReqToBug_Task3A POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+
+	@Test
+	void OV_testTask3B() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("Task3B.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_CRtoTCTraces_Task3B QAConst_2.1.1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_TC_Traces_Task3B PRECONDITION0 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_TC_Traces_Task3B QAConst_2.2.1 'IsOverrideable' property might require to be ENABLED.");
+		expected_warnings.add("ProcessStep_TC_Traces_Task3B POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
 
 	public int registerJson(String fileName) {
 		int i = 0;

@@ -1,0 +1,288 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="!4-Bpm0s_!)b.U^Js)R-">CRs</variable>
+    <variable id="ujJj41c[+uOp30QV^RN9">BUGs</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">REQs</variable>
+    <variable id="$F78*$@8|]ojJ?`]!16)">ISSUEs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="113" y="-287">
+    <field name="NAME">Task3A</field>
+    <comment pinned="false" h="248" w="895">This task is about preparing the implementation of requirements within a change request. Here QA measures focus on ensuring traces lead from requirements to other artifacts (e.g., bugs, reviews, issues etc.). The purpose of having traceability is to establish a clear and documented connection between which software requirements are addressed in a change request, that they have been reviewed and which bugs from the current software release affect them. &#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure the trace between requirements and bugs. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.&#10;</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
+        <field name="VAR" id="!4-Bpm0s_!)b.U^Js)R-">CRs</field>
+        <value name="VALUE">
+          <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
+            <field name="Type">root/types/azure/azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="QDP-uXdA`vKJ,ywO%Fv3">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X^KK.om:SDZM@OBTj@bm">
+                <field name="VAR" id="!4-Bpm0s_!)b.U^Js)R-">CRs</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                <field name="StepId">BugToReq</field>
+                <statement name="Input">
+                  <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                        <field name="VAR" id="!4-Bpm0s_!)b.U^Js)R-">CRs</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="x!0-Y3g0L;1;R4f~ZJ-1">
+                    <field name="State">PRECONDITION</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="condition">
+                      <block type="constraint" id="=dNSf[uB(9Vr;fl%J;(5">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.successorItems.size()&gt;0)</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="transition" id="V@3K-LuIw)_oXhxk3=`3">
+                        <field name="State">POSTCONDITION</field>
+                        <field name="isOverridable">FALSE</field>
+                        <value name="condition">
+                          <block type="constraint" id="hRj.#?NxyKmguLZ!bm6[">
+                            <field name="arlRule">self.out_REQs&#10;        -&gt;select(req | req.state&lt;&gt;'Released')&#10;                -&gt;forAll(rreq | rreq.affectedByItems&#10;                        -&gt; select(aff | aff.externalType='Bug')&#10;                                -&gt;forAll(bug | bug.state&lt;&gt;'Closed'))</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
+                    <field name="mappingId">BUGs</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
+                    <next>
+                      <block type="datamapping" id="bKQqL/Cx~9w_DuH4L1,V">
+                        <field name="mappingId">REQs</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id=",EfP@7L#Wy21I4XExfGs">
+                    <field name="VAR" id="ujJj41c[+uOp30QV^RN9">BUGs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
+                        <field name="Type">root/types/azure/azure_workitem</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="ly(}V1)Z@!mJg5Jh2b=-">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="gajG9dezyQcxLZZ:JY}a">
+                            <field name="VAR" id="ujJj41c[+uOp30QV^RN9">BUGs</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="1IU54sAGGY*4U7N*%b0%">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                            <value name="VALUE">
+                              <block type="artifact" id="d+`Ht}9dL#pT+=bUk=eW">
+                                <field name="Type">root/types/azure/azure_workitem</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="qL.Hey%WgBn7]insS5*y">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="cK1GY_!47viYHvUQY1gh">
+                                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="k?$CQfAt=OVZFDItjH0s">
+                    <field name="qacheckId">QAConst_1.1</field>
+                    <field name="description">Ensure that all unclosed bugs trace (via 'affectsItems') to at least one requirement that is not 'Released'.</field>
+                    <field name="isOverridable">TRUE</field>
+                    <value name="constraint">
+                      <block type="constraint" id="Jm9g:e(L^!/,MBc:)VU@">
+                        <field name="arlRule">self.out_BUGs&#10;	-&gt;select(bug | bug.state &lt;&gt; 'Closed') &#10;         -&gt; forAll(cbug | cbug.affectsItems&#10;                -&gt;exists(item | item.externalType = 'Requirement'&#10;                               and item.state &lt;&gt; 'Released'))</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="parallelexecution" id="58]Cx5gl?HW^,Aj-k*gR">
+                    <field name="InFlowType">AND</field>
+                    <statement name="DO0">
+                      <block type="step" id="WWe6~*-YJ=yiQ-ONppXS">
+                        <field name="StepId">ReqToIssue</field>
+                        <statement name="Input">
+                          <block type="artuse" id="IBj~Jhg=]OH7:7L}JH7T">
+                            <field name="roletext">Param</field>
+                            <value name="NAME">
+                              <block type="variables_get" id="hNF0-FCJIh1o~zU/Y8Jc">
+                                <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <statement name="Transitions">
+                          <block type="transition" id="PPr)Y7qEN|M(3D[HxL%}">
+                            <field name="State">PRECONDITION</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="condition">
+                              <block type="constraint" id="PrC4cu(s:eUe0|}|qzHm">
+                                <field name="arlRule">self.in_REQs.successorItems-&gt;exists(item | item.externalType='Issue')</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="transition" id="{P#U]cCtGXfTw^rqAXVl">
+                                <field name="State">POSTCONDITION</field>
+                                <field name="isOverridable">FALSE</field>
+                                <value name="condition">
+                                  <block type="constraint" id="ptqNEnqYJ}v$Lq?!:.hr">
+                                    <field name="arlRule">self.out_ISSUEs&#10;        -&gt;select(iss | iss.state='Active').size()&gt;0</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="Datamappings">
+                          <block type="datamapping" id="`qlY?)k,Z/(#B9(fZe(T">
+                            <field name="mappingId">ISSUEs</field>
+                            <field name="mappingSpec">self.in_REQs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;				-&gt;select(item | item.externalType='Issue')</field>
+                          </block>
+                        </statement>
+                        <statement name="Output">
+                          <block type="variables_set" id="JkzRRix*%/p%Syy(?1ot">
+                            <field name="VAR" id="$F78*$@8|]ojJ?`]!16)">ISSUEs</field>
+                            <value name="VALUE">
+                              <block type="artifact" id=":Zk29fD.1z=!+.U+9(1!">
+                                <field name="Type">root/types/azure/azure_workitem</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="(FQexu0I*:iGj4Hr|.]o">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="P2d10)L){XT#C(LaR~y=">
+                                    <field name="VAR" id="$F78*$@8|]ojJ?`]!16)">ISSUEs</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="QA">
+                          <block type="qacheck" id="Zg(M-2Dx_6?o9;q,I:!5">
+                            <field name="qacheckId">QAConst_2.1.1</field>
+                            <field name="description">Ensure that each requirement, must have a trace (via 'successorItems') to a unresolved issue and a trace (via 'affectedByItems') to an unclosed bug.</field>
+                            <field name="isOverridable">FALSE</field>
+                            <value name="constraint">
+                              <block type="constraint" id="~?R_XiRd~13!Ukm0j@lf">
+                                <field name="arlRule">self.in_REQs&#10;	-&gt;select(req | &#10;	req.successorItems&#10;		-&gt;select(suc | suc.externalType='Issue')&#10;			-&gt;forAll(is | is.state&lt;&gt;'Resolved')&#10;				and&#10;	req.affectedByItems&#10;		-&gt;select(aff | aff.externalType='Bug')&#10;			-&gt;forAll(bug | bug.state&lt;&gt;'Closed'))</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="step" id="6)K+9$3IdnOjux}5)JDg">
+                            <field name="StepId">ReqToBug</field>
+                            <statement name="Input">
+                              <block type="artuse" id="lS@RL1@qphYsk+|fnW+r">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="#ye(2.v,;Xz|5,#KJ9/W">
+                                    <field name="VAR" id="ujJj41c[+uOp30QV^RN9">BUGs</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <statement name="Transitions">
+                              <block type="transition" id=",J~$Eg(eoBcbAlzmd,T-">
+                                <field name="State">PRECONDITION</field>
+                                <field name="isOverridable">FALSE</field>
+                                <value name="condition">
+                                  <block type="constraint" id=".$#ZXg91ntM1LE@mvmyn">
+                                    <field name="arlRule">self.out_REQs&#10;	-&gt;select(req | &#10;	req.successorItems&#10;		-&gt;select(suc | suc.externalType='Issue')&#10;			-&gt;forAll(is | is.state&lt;&gt;'Resolved'))&#10;	-&gt;forAll(isreq |isreq.affectedByItems&#10;		-&gt;select(aff | aff.externalType='Bug')&#10;			-&gt;forAll(bug | bug.state&lt;&gt;'Closed'))</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="transition" id="?q)`t?o}Nxn(^JCEN_:7">
+                                    <field name="State">POSTCONDITION</field>
+                                    <field name="isOverridable">FALSE</field>
+                                    <value name="condition">
+                                      <block type="constraint" id="6loo*?;mfByJ{NYfZ+Dt">
+                                        <field name="arlRule">self.out_REQs&#10;        -&gt;select(req | req.state&lt;&gt;'Released')&#10;        -&gt;forAll(rreq | rreq.successorItems&#10;        		-&gt;exists(suc | suc.externalType='Review')&#10;                   and&#10;                   rreq.affectedByItems&#10;                   	-&gt;select(aff | aff.externalType='Bug')&#10;                           -&gt;forAll(bug | bug.state&lt;&gt;'Closed'))</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <statement name="Datamappings">
+                              <block type="datamapping" id="MNzd1=|dPG$snbZxg0)r">
+                                <field name="mappingId">REQs</field>
+                                <field name="mappingSpec">self.in_BUGs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).affectsItems&#10;			-&gt;select(item | item.externalType='Requirement')</field>
+                              </block>
+                            </statement>
+                            <statement name="Output">
+                              <block type="variables_set" id="k[2sb!;~y`f$PE4Bu{#)">
+                                <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                                <value name="VALUE">
+                                  <block type="artifact" id="m[^;X=,bSOhAgj^E].+C">
+                                    <field name="Type">root/types/azure/azure_workitem</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="artuse" id="9ZWe;p2E.7^Q#9DdyHM`">
+                                    <field name="roletext">Param</field>
+                                    <value name="NAME">
+                                      <block type="variables_get" id="?8QvKVo?XV-M)syz$#E.">
+                                        <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <statement name="QA">
+                              <block type="qacheck" id=":n.U]a{opAJr-H6z[MP@">
+                                <field name="qacheckId">QAConst_2.2.1</field>
+                                <field name="description">For all active bugs, there must be a trace (via 'testsItems') to at least one unclosed test case.</field>
+                                <field name="isOverridable">FALSE</field>
+                                <value name="constraint">
+                                  <block type="constraint" id="wBV6r)S2DVa$yxEI=,5J">
+                                    <field name="arlRule">self.in_BUGs-&gt;select(bug | bug.state='Active')&#10;        -&gt;forAll(cbug | cbug.testsItems&#10;                -&gt;select(ti | ti.externalType='Test Case')&#10;                -&gt;exists(tc | tc.state&lt;&gt;'Closed'))</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -13,7 +13,7 @@
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
         <value name="VALUE">
           <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
-            <field name="Type">azure_workitem</field>
+            <field name="Type">root/types/azure/azure_workitem</field>
           </block>
         </value>
         <next>
@@ -50,15 +50,15 @@
                 <statement name="Datamappings">
                   <block type="datamapping" id="C*F)^s!x?d`SFa9kDB~6">
                     <field name="mappingId">REQs</field>
-                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Requirement')</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
                     <next>
                       <block type="datamapping" id="IAXyBKMo5{yF(HGU6tNG">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
                         <next>
                           <block type="datamapping" id="VZjM`~Jg9vN~/l$X/wM(">
                             <field name="mappingId">Bugs</field>
-                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.workItemType='Bug')</field>
+                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
                           </block>
                         </next>
                       </block>
@@ -70,7 +70,7 @@
                     <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
                     <value name="VALUE">
                       <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
-                        <field name="Type">azure_workitem</field>
+                        <field name="Type">root/types/azure/azure_workitem</field>
                       </block>
                     </value>
                     <next>
@@ -86,7 +86,7 @@
                             <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
                             <value name="VALUE">
                               <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
-                                <field name="Type">azure_workitem</field>
+                                <field name="Type">root/types/azure/azure_workitem</field>
                               </block>
                             </value>
                             <next>
@@ -102,7 +102,7 @@
                                     <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
                                     <value name="VALUE">
                                       <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
-                                        <field name="Type">azure_workitem</field>
+                                        <field name="Type">root/types/azure/azure_workitem</field>
                                       </block>
                                     </value>
                                     <next>
@@ -131,7 +131,7 @@
                     <field name="description">Ensure that each Requirement traces (via 'tested by') to at least one Test Case in state 'Released'.</field>
                     <value name="constraint">
                       <block type="constraint" id="fv4uP?X:2{U0B5]32/XN">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;   req.testedbyItems-&gt;size() &gt; 0 &#10;   and&#10;   req.testedbyItems&#10; -&gt;forAll(tc |  tc.workItemType = 'Test Case' &#10;               and tc.state = 'Released')&#10;)</field>
+                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | &#10;   req.testedByItems-&gt;size() &gt; 0 &#10;   and&#10;   req.testedByItems&#10; -&gt;forAll(tc |  tc.externalType = 'Test Case' &#10;               and tc.state = 'Released')&#10;)</field>
                       </block>
                     </value>
                   </block>
