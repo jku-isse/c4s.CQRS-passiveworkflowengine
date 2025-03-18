@@ -58,8 +58,8 @@ class TestWithEvalData {
 	private List<at.jku.isse.passiveprocessengine.frontend.botsupport.ollama.OllamaAI.Message> ollamaAImessages = new ArrayList<>(); // in case we use ollamaAI
 	 
 	//codestral:latest  qwen2.5-coder:32b        codegeex4:latest       gemma2:27b     llama3.3:latest      deepseek-r1:70b
-	private String model = "qwen2.5-coder:32b"; // sync with experiment output file naming below!
-	private String modelForFilePath = "qwen";
+	private String model = "deepseek-r1:70b"; // sync with experiment output file naming below!
+	private String modelForFilePath = "deepseekr1";
 	
 	HumanReadableSchemaExtractor schemaGen;
 	Gson gson = new GsonBuilder()
@@ -90,11 +90,11 @@ class TestWithEvalData {
 		runEvaluationAndLog(c3, bot);		
 	}
 	
-	@Test @Disabled
+	@Test 
 	void testEvalLLMGenerationWithAllTasks() throws Exception {
 		// run for all eval data, then store as json
 		// reset bot after each eval constraint data round
-		for (var groundTruth : List.of(c2, a3, b3, c3)) {
+		for (var groundTruth : abc123) {
 			runEvaluationAndLog(groundTruth, bot);
 		}		
 	}
