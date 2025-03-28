@@ -172,6 +172,15 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		//assertNull(repairInfo.getRemainingError());	
 	}
 	
+	public static final String raw2b_codestral = "self.out_REQs->forAll(r | r.oclIsKindOf(Requirement) and r.priority = 1 implies r.testedByItems->exists(tc | tc.oclIsKindOf(TestCase) and tc.successorItems->forAll(succ | succ.oclIsKindOf(Review) and succ.state = 'closed')))";
+	@Test
+	void testSubtypingNotRiskGenerated() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse(EvalData.b2.getContext(), "Irrelevant", raw2b_codestral, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+	}
+	
+	
 	public static final String raw3a_codestral = "self.out_Bugs->forAll(b | b.priority = 1 and b.affectsItems->exists(req | req.oclIsKindOf(Requirement)) implies (b.state = 'Closed' or self.in_CRs->exists(cr | cr.oclIsKindOf(ChangeRequest) and cr.childItems->exists(issue | issue.oclIsKindOf(Issue) and issue.state <> 'Closed') and issue.predecessorItems->includes(req))))";
 	@Test
 	void testCorrectSubtypeWithProperty() {
@@ -196,4 +205,6 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 		assertNull(repairInfo.getRemainingError());
 	}
+	
+	
 }

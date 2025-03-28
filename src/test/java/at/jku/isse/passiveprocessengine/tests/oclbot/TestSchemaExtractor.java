@@ -2,12 +2,18 @@ package at.jku.isse.passiveprocessengine.tests.oclbot;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.anyCollection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +30,7 @@ import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
+import lombok.Data;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes=PPE3Webfrontend.class)
@@ -37,6 +44,46 @@ class TestSchemaExtractor {
 	
 	@BeforeEach
 	void setUp() throws Exception {
+	}
+	
+	@Test
+	void evalSimilarityMetric() {
+		var basetype = artRes.getAvailableInstanceTypes().stream()
+		.filter(type -> type.getName().equalsIgnoreCase("azure_workitem"))
+		.findAny().get();
+		Set<String> properties = new HashSet<>();
+		properties.addAll(basetype.getPropertyNamesIncludingSuperClasses());
+		basetype.getAllSubtypesRecursively().stream().forEach(subtype -> properties.addAll(subtype.getPropertyNamesIncludingSuperClasses()));
+		
+		var pList = new ArrayList<String>(properties);
+		var simList = new LinkedList<CompareEntry>();
+		// compare pairwise
+		for (int i = 0; i<pList.size(); i++) {
+			for (int j = i+1; j<pList.size()-1; j++) {
+				var a = pList.get(i);
+				var b = pList.get(j);
+				simList.add(new CompareEntry(a, b, new JaroWinklerSimilarity().apply(a, b)));
+			}
+		}		
+		Collections.sort(simList);
+		// print list
+		simList.forEach(simEntry -> System.out.println(simEntry.toString()));		
+	}
+	
+	@Data
+	private static class CompareEntry implements Comparable<CompareEntry>{
+		private final String a;
+		private final String b;
+		private final Double sim;
+		
+		public String toString() {
+			return (String.format("%s %s sim: %s", a, b, sim));
+		}
+
+		@Override
+		public int compareTo(CompareEntry o) {
+			return Double.compare(sim, o.getSim());
+		}
 	}
 	
 	@Test
