@@ -173,10 +173,12 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 	}
 	
 	public static final String raw2b_codestral = "self.out_REQs->forAll(r | r.oclIsKindOf(Requirement) and r.priority = 1 implies r.testedByItems->exists(tc | tc.oclIsKindOf(TestCase) and tc.successorItems->forAll(succ | succ.oclIsKindOf(Review) and succ.state = 'closed')))";
+	public static final String raw2b_llama33 = "self.out_REQs->forAll(r | r.priority = 1 implies r.testedByItems->exists(tc | tc.successorItems->forAll(rev | rev.state = 'closed')))";
+	public static final String raw2b_gemma2 = "self.out_REQs->select(r | r.priority = 1)->forAll(req | req.testedByItems->exists(tc | tc.successorItems->forAll(rev | rev.state = 'closed')))";
 	@Test
 	void testSubtypingNotRiskGenerated() {
 		var repairer = new IterativeRepairer(provider);
-		var repairInfo = repairer.checkResponse(EvalData.b2.getContext(), "Irrelevant", raw2b_codestral, 0);
+		var repairInfo = repairer.checkResponse(EvalData.b2.getContext(), "Irrelevant", raw2b_gemma2, 0);
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 	}
 	
@@ -206,5 +208,11 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		assertNull(repairInfo.getRemainingError());
 	}
 	
-	
+	public static final String raw2a_codegeex4 = "self.out_REQs->exists(req : Requirement | req.state = 'released' and req.successorItems->exists(review : Review | review.reviewfindingItems->forAll(finding : Reviewfinding | finding.findingcategory <> 'open')) )";
+	@Test
+	void testWhatPropertyReplaced() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse(EvalData.a2.getContext(), "Irrelevant", raw2a_codegeex4, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+	}
 }
