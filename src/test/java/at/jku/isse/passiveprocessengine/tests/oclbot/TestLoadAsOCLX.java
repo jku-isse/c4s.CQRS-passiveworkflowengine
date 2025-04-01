@@ -215,4 +215,12 @@ inv EnsureReleasedRequirementsTraceToReviewWithoutOpenFindings:
 		var repairInfo = repairer.checkResponse(EvalData.a2.getContext(), "Irrelevant", raw2a_codegeex4, 0);
 		System.out.println(repairInfo.toRepairInfoOnlyString());
 	}
+	
+	public static final String raw2c_gemma2 = "self.out_REQs->forAll(req | req.testedByItems->exists(tc | tc.workItemType = 'Bug' and tc.id = self.out_Bugs->any(true).id))";
+	@Test
+	void testSubtypingWithDiffNavAndIncorrectParams() {
+		var repairer = new IterativeRepairer(provider);
+		var repairInfo = repairer.checkResponse(EvalData.c2.getContext(), "Irrelevant", raw2c_gemma2, 0);
+		System.out.println(repairInfo.toRepairInfoOnlyString());
+	}
 }
