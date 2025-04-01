@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import at.jku.isse.passiveprocessengine.frontend.oclx.IterativeRepairer;
 
@@ -39,7 +39,6 @@ public class TestOclExtractor {
 			+ "  r.out_ReviewFinding->exists(f | f.findingcategory = 'Open') implies r.state <> 'Verified'\r\n"
 			+ ")\r\n"
 			+ "```"; 
-	// 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem', hence also exists wont work --> query LLM again
 			
 	public final static String raw5 = "```ocl\r\n"
 			+ "context ProcessStep_CheckingRequirements_RequirementsManagementProcessV2\r\n"
@@ -47,7 +46,6 @@ public class TestOclExtractor {
 			+ "    req.out_ReviewFinding->exists(f | f.closedDate = null) implies req.state <> 'Verified'\r\n"
 			+ ")\r\n"
 			+ "```";
-	// 'out_ReviewFinding' is not a known property for InstanceType 'azure_workitem' --> query LLM again
 	
 	public final static String raw6 = "```ocl\r\n"
 			+ "context ProcessStep_BugReqTrace_Task1a\r\n"
@@ -152,28 +150,28 @@ inv:
 		assertTrue(processedOCL.contains("<TestCase>"));
 	}
 	
-	static List<String> okMultiTicks = List.of(
+	 	
+	@ParameterizedTest
+	@ValueSource(strings = {
 			"```self```"
 			,"```selfNot``` some ```self```"
 			, "```selfNot``` some ```self"
 			,"```self"
 			,"```selfNot``````self```"
 			,"```self```some```"
-			,"```selfNot``` some ```self``` some more"); 	
-	@ParameterizedTest
-	@FieldSource("okMultiTicks")
+			,"```selfNot``` some ```self``` some more"})
 	void testSuccessMultiBackticks(String rawText) {
 		var ocl = new OCLExtractor(rawText).extractOCLorEmpty();
 		assertNotEquals("", ocl);
 		assertEquals("self", ocl);
 	}
 	
-	static List<String> failMultiTicks = List.of(
+	
+	@ParameterizedTest
+	@ValueSource(strings = {
 			"```"
 			,"``` ```"
-			); 	
-	@ParameterizedTest
-	@FieldSource("failMultiTicks")
+	})	
 	void testFailMultiBackticks(String rawText) {
 		var ocl = new OCLExtractor(rawText).extractOCLorEmpty();
 		assertEquals("", ocl);		
