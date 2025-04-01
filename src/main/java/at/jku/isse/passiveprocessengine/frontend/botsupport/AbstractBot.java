@@ -106,42 +106,6 @@ public abstract class AbstractBot implements OCLBot{
     				basicOcl = result.getFixedOclString();
     			}
     			
-//    			var ocl = GeneratedRulePostProcessor.init(basicOcl).getProcessedRule();
-//        	ocl = IterativeRepairer.wrapInOCLX(ocl, userInput.getContextType().getName());
-//        	CodeActionExecuter executer = provider.buildExecuter(ocl);    		
-//    		String lastOCLXVersion = null;
-//    		List<Issue> issues = null;
-//    		for (int i = 0; i< 5; i++) { // max 5 rounds of repairs
-//    			executer.checkForIssues();
-//        		issues = executer.getProblems();
-//    			if (!issues.isEmpty()) {
-//    				content.append("\r\n Found Errors in generated OCL statement: "); 
-//    				issues.forEach(issue -> content.append("\r\n - "+issue.getMessage()));		
-//    				executer.executeRepairs();
-//    				var repair = executer.getExecutedCodeAction();
-//    				if (repair != null) {    					
-//    					lastOCLXVersion = (executer.getRepairedOclxConstraint());
-//    					basicOcl = executer.getRepairedExpression();
-//    					executer = provider.buildExecuter(ocl);  //reset executer for new round
-//    					//repair.getEdit().getChanges().values().iterator().next().stream().forEach(edit -> System.out.println("Repair: "+edit.getNewText()));    				
-//    				} else {
-//    					break; // we couldnot repair the top most problem, hence aborting
-//    				}    			
-//    			} else 
-//    				break;
-//    		}
-//    		if (lastOCLXVersion != null) {
-//    			content.append("\r\nApplied automatic repair(s) resulting in:" );
-//    			content.append("\r\n"+basicOcl);
-//    		}
-//    		if (!issues.isEmpty()) {
-//    			// maintain topmost remaining error message to feed back into LLM iteration
-//    			oclError = issues.get(0).getMessage();
-//    			content.append("\r\nRemaining error: "+issues.get(0).getMessage());
-//    		}
-//    		//content.append("\r\n" +checkARL(basicOcl, userInput.getContextType()));
-    			
-    			
     		} catch(Exception e) {
     			log.warn("Error processing LLM response: "+e.getMessage());
     		}
