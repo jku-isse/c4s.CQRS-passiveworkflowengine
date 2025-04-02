@@ -430,7 +430,11 @@ public class ARLPlaygroundView extends VerticalLayout  implements BeforeLeaveObs
 	}
 	
 	private MessageListItem convertResult(BotResult msg) {
-		return new MessageListItem(msg.getBotResult(), msg.getTime(), msg.getRole());
+		if (msg.getAugmentedResult() != null) {
+			return new MessageListItem(msg.getBotResult()+msg.getAugmentedResult(), msg.getTime(), msg.getRole());
+		} else {
+			return new MessageListItem(msg.getBotResult(), msg.getTime(), msg.getRole());
+		}
 	}	
 	
 	private Component resultEntryToInstanceLink(ResultEntry rge) {

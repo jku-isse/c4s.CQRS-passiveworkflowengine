@@ -70,7 +70,7 @@ public class OpenAI extends AbstractBot{
             return compileResult(msg.getContent(), userInput, promptMsg.getContent(), msg.getTime());
         }catch (Exception e) {
         	log.warn(e.getMessage());
-            return new BotResult(Instant.now(), "system", e.getMessage(), null, null);
+            return new BotResult(Instant.now(), "system", e.getMessage(), null, null, null);
         }
     }
     

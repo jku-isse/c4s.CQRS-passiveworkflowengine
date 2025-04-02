@@ -71,6 +71,7 @@ public interface OCLBot {
     	final Instant time;
     	final String role;
     	final String botResult;
+    	final String augmentedResult;
 		final String oclRule;
 		final String oclError;
 	}

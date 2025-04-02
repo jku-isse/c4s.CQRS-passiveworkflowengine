@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.AbstractBot;
 import at.jku.isse.passiveprocessengine.frontend.oclx.CodeActionExecuterProvider;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,13 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 public class OllamaAI extends AbstractBot {
 
 	private final String url;
-	private final String model;
+	@Getter private final String model;
 	
 	public OllamaAI(@Value("${ollama.url}") String url, @Value("${ollama.model}")String model, CodeActionExecuterProvider provider) {
 		super(provider);
 		this.url = url;
 		this.model = model;
-	}
+	}		
 	
 	@Override
 	public BotResult send(BotRequest userInput) {
@@ -47,7 +48,7 @@ public class OllamaAI extends AbstractBot {
 			return compileResult(msg, userInput, promptMsg.getContent(), Instant.now());			
 		}catch (Exception e) {
         	log.warn(e.getMessage());
-            return new BotResult(Instant.now(), "system", e.getMessage(), null, null);
+            return new BotResult(Instant.now(), "system", e.getMessage(), null, null, null);
         }
 	}	
 	

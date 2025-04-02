@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -85,8 +87,8 @@ public abstract class AbstractBot implements OCLBot{
     	log.info(response);
     	String basicOcl = null; //new OCLExtractor(msg.getContent()).extractOCLorNull();
     	String oclError = null;
+    	StringBuffer augmentedResult = new StringBuffer();
     	
-    	StringBuffer content = new StringBuffer(response);
     	if ( /*basicOcl != null && */ userInput != null && userInput.getContextType() != null && provider != null) {    		
     		try {
     			var repairer = new IterativeRepairer(provider);
@@ -97,22 +99,33 @@ public abstract class AbstractBot implements OCLBot{
     			} else if (result.getOclxString() == null) {
     				basicOcl = result.getOclString();
     				oclError = "Incorrect OCL syntax";
-    				content.append("\r\n Found Errors in generated OCL statement: "); 
-    				result.getErrors().forEach(issue -> content.append("\r\n - "+issue));	
+    				augmentedResult.append("\n Found Errors in generated OCL statement: "); 
+    				result.getErrors().forEach(issue -> augmentedResult.append("\n - "+issue));	
     			} else if (result.getRemainingError() != null) {
+    				if (!isEqualsIgnoreingWhitespace(result.getOclString(),result.getFixedOclString())) {    					
+    					augmentedResult.append("\n Auto corrected OCL: \n"+result.getFixedOclString());
+    				}    				
     				basicOcl = result.getFixedOclString();
     				oclError = result.getRemainingError();
+    				augmentedResult.append("\n Remaining Error: "+result.getRemainingError());
     			} else { //all fine
     				basicOcl = result.getFixedOclString();
+    				if (!isEqualsIgnoreingWhitespace(result.getOclString(),result.getFixedOclString())) {       					
+    					augmentedResult.append("\n Auto corrected OCL: \n"+result.getFixedOclString());
+    				}    				
     			}
     			
     		} catch(Exception e) {
     			log.warn("Error processing LLM response: "+e.getMessage());
     		}
     	}
-    	BotResult res = new BotResult(timestamp, "OCLbot", content.toString(), basicOcl, oclError);
+    	BotResult res = new BotResult(timestamp, "OCLbot", response, augmentedResult.toString(), basicOcl, oclError);
     	interaction.add(res);
     	return res;
+    }
+    
+    private boolean isEqualsIgnoreingWhitespace(String a, String b) {
+    	return StringUtils.deleteWhitespace(a).equals(StringUtils.deleteWhitespace(b));
     }
     
 //  private  ArlParser parser = new ArlParser(); 

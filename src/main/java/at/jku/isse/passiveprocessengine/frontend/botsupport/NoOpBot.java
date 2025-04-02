@@ -17,7 +17,7 @@ public class NoOpBot extends AbstractBot {
 
 	@Override
 	public BotResult send(BotRequest request) {
-		return new BotResult(Instant.now(), "NoOpBot", "No OCLBot configured", null, null);
+		return new BotResult(Instant.now(), "NoOpBot", "No OCLBot configured", null, null, null);
 	}
 
 	@Override

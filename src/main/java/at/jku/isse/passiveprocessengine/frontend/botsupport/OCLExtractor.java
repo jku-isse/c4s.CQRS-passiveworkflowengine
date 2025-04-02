@@ -12,7 +12,7 @@ public class OCLExtractor {
 
 	private static final String TRIPLETICK = "```";
 	private final String rawText;
-	private String extractedOCL = null;
+	//private String extractedOCL = null;
 	
 	public String extractOCLorEmpty() {
 		return tryExtractFromSelf(stripAwayOCLMarker(extractTripleTickScope(rawText.trim())));
@@ -51,8 +51,9 @@ public class OCLExtractor {
     	if (rawText.isEmpty()) return rawText;
 		int pos = rawText.indexOf("self");    	
     	if (pos >= 0) {    		    		    		
-    		extractedOCL = rawText.substring(pos).trim();    		 		
-    		return extractedOCL;
+    		return rawText.substring(pos).trim();
+//    		extractedOCL = rawText.substring(pos).trim();    		 		
+//    		return extractedOCL;
     	} else
     		return tryRepairMissingSelf(rawText);    	
 	}
