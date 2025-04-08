@@ -122,7 +122,10 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.START);
         header.expand(loadProcess); 
         header.setWidth("100%");
-                
+        if (commandGateway.getUiConfig().isExperimentModeEnabled()) {
+        	loadProcess.setVisible(false);
+        }
+        
         ProcessInstanceScopedElementView detailsView = new ProcessInstanceScopedElementView(reqDel);
         detailsView.setVisible(false); // initially nothing to show, hence invisible, will be made visible upon selection
         grid = new WorkflowTreeGrid(commandGateway);                
