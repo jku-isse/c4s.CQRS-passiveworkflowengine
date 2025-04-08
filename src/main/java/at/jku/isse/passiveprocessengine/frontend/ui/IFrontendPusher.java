@@ -18,8 +18,8 @@ public interface IFrontendPusher {
     
     void remove(String wfiId);
 
-    void add(int id, UI ui, MainView view);
-
+    void add(int id, UI ui, MainView view, String filterToProcessId);
+    
     void remove(int id);
     
     void requestUpdate(UI ui, MainView view);

@@ -28,16 +28,14 @@ public class FrontendPusher implements IFrontendPusher {
     
 
     @Override
-    public void add(int id, UI ui, MainView view) {
-        views.put(id, new MainViewState(ui, view, SecurityContextHolder.getContext().getAuthentication()));
+    public void add(int id, UI ui, MainView view, String filterToProcessId) {
+        views.put(id, new MainViewState(ui, view, SecurityContextHolder.getContext().getAuthentication(), filterToProcessId));
     }
 
     @Override
     public void remove(int id) {
         views.remove(id);
     }
-    
-    
 
     @Override
     public void update(ProcessInstance wfi) {
@@ -51,7 +49,7 @@ public class FrontendPusher implements IFrontendPusher {
     	for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-                if (ui != null && view != null) {
+                if (ui != null && view != null && doesViewSubscribeToProcess(wfiId, state)) {
                     ui.access(() -> {
                     	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
                     	view.getGrid().removeWorkflow(wfiId);
@@ -66,17 +64,27 @@ public class FrontendPusher implements IFrontendPusher {
 		if (wfis.isEmpty()) return;
 		wfis.forEach(wfi -> processes.put(wfi.getName(), wfi));
 		Authentication currAuth = SecurityContextHolder.getContext().getAuthentication();
-        for (MainViewState state : views.values()) {
+        for (ProcessInstance wfi : wfis) {
+		for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
-            if (ui != null && view != null) {
+            if (ui != null && view != null && doesViewSubscribeToProcess(wfi.getInstance().getId(), state)) {
                 ui.access(() -> { 
                 	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
-                	view.getGrid().updateTreeGrid(wfis);
+                	view.getGrid().updateTreeGrid(List.of(wfi));
                         });
             }
         }
+        }
         SecurityContextHolder.getContext().setAuthentication(currAuth);
+	}
+	
+	private boolean doesViewSubscribeToProcess(String processId, MainViewState view) {
+		if (view == null) return true;
+		if (view.getProcessIdFilter() == null || view.getProcessIdFilter().length() == 0) return true;
+		if (processId == null) return true;				
+		var matches = processId.equals(view.getProcessIdFilter());
+		return matches;
 	}
 
 	@Override
@@ -86,7 +94,14 @@ public class FrontendPusher implements IFrontendPusher {
 
 	@Override
 	public void requestUpdate(UI ui, MainView view) {
-		ui.access(() -> view.getGrid().updateTreeGrid(processes.values()));
+		var state = views.get(ui.getUIId());
+		ui.access(() -> view.getGrid().updateTreeGrid(
+				processes.values().stream()
+					.filter(wfi -> doesViewSubscribeToProcess(wfi.getInstance().getId(), state)) 
+					.toList()
+				));
 	}
+
+
 
 }

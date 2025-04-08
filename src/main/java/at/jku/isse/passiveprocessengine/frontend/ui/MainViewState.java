@@ -11,4 +11,5 @@ public class MainViewState {
     private final UI ui;
     private final MainView view;
     private final Authentication auth;
+    private final String processIdFilter;
 }

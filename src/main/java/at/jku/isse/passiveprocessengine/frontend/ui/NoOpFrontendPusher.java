@@ -20,7 +20,7 @@ public class NoOpFrontendPusher implements IFrontendPusher {
     }
 
     @Override
-    public void add(int id, UI ui, MainView view) {
+    public void add(int id, UI ui, MainView view, String processFilterId) {
         // no op
     }
 
@@ -45,4 +45,5 @@ public class NoOpFrontendPusher implements IFrontendPusher {
 		// no op
 		
 	}
+
 }

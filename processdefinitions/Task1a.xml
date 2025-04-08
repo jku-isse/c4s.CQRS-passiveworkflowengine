@@ -54,7 +54,7 @@
                     <next>
                       <block type="datamapping" id="IAXyBKMo5{yF(HGU6tNG">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='TestCase')</field>
                         <next>
                           <block type="datamapping" id="VZjM`~Jg9vN~/l$X/wM(">
                             <field name="mappingId">Bugs</field>

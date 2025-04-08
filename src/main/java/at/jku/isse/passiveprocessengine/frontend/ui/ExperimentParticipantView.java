@@ -123,7 +123,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 //							Notification.show("Successfully instantiated process"); 
 //	//						dataProvider.refreshAll();
 //						});
-						UI.getCurrent().getPage().open("home", "_self");
+						UI.getCurrent().getPage().open("home?id="+pi.getInstance().getId(), "_self");
 					} catch (Exception e) { // importing an issue that is not present in the database will cause this exception (but also other nested exceptions)
 						log.error("CommandExecutionException: " + e.getMessage());
 						e.printStackTrace();

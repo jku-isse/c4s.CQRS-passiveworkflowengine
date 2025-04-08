@@ -6,8 +6,8 @@
     <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
   </variables>
   <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
-    <field name="NAME">Task2c</field>
-    <comment pinned="true" h="372" w="767">In this task is about ensuring any bugs found during implementation are tracked against requirements.  &#10;This helps understanding which requirements are difficult to implement and test. Hence these bugs also need to describe which test case needed to be added or updated to demonstrates the bug was fixed.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent traces between requirements, bugs and test cases. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <field name="NAME">Task2b</field>
+    <comment pinned="true" h="271" w="926">In this task is about ensuring implementation of requirements can begin upon having priority 1 requirements (i.e., the most critical ones) are not only traced to test cases but also having explicit reviews of these test cases. &#10;Reviewing test cases ensures for the most important requirements that the test cases are indeed suitable to cover them.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent test cases and their reviews. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
     <statement name="STACK">
       <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
         <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
@@ -26,7 +26,7 @@
             </value>
             <next>
               <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
-                <field name="StepId">ReqBugTestLinking</field>
+                <field name="StepId">PriorityReqToReviewTrace</field>
                 <statement name="Input">
                   <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
                     <field name="roletext">Param</field>
@@ -38,10 +38,11 @@
                   </block>
                 </statement>
                 <statement name="Transitions">
-                  <block type="transition" id="y*~*@0Qo^OrDaE~b)/$R">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
                     <field name="State">POSTCONDITION</field>
+                    <field name="isOverridable">FALSE</field>
                     <value name="condition">
-                      <block type="constraint" id="I6mnc.1RtN^B7tmO`Pbq">
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
                         <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
                       </block>
                     </value>
@@ -54,7 +55,7 @@
                     <next>
                       <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
                         <field name="mappingId">TCs</field>
-                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Test Case')</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='TestCase')</field>
                         <next>
                           <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
                             <field name="mappingId">Bugs</field>
@@ -126,12 +127,13 @@
                   </block>
                 </statement>
                 <statement name="QA">
-                  <block type="qacheck" id="El*qSs_/a!N3.mJ@M#w2">
-                    <field name="qacheckId">ReqAndBugTestCaseLinking</field>
-                    <field name="description">Ensure for each Requirement that is 'affected by' a Bug has at least one of the requirement's  'tested by' Test Cases trace (via 'tests') to this Bug.</field>
+                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
+                    <field name="qacheckId">Prio1TCreviewed</field>
+                    <field name="description">Ensure that each Requirement with priority '1' traces (via 'tested by') to at least one Test Case that in turn has all Reviews (via 'successor')) in state 'closed'.</field>
+                    <field name="isOverridable">FALSE</field>
                     <value name="constraint">
-                      <block type="constraint" id="SAalV4Xa7P4bgo1Y]SNE">
-                        <field name="arlRule">self.out_REQs&#10;-&gt;forAll(req | req.affectedByItems&#10; -&gt;select(item | item.externalType='Bug')&#10; -&gt;forAll(bug  | &#10;    bug.testedByItems&#10;    -&gt;intersection(&#10;        req.testedByItems&#10;         -&gt;select(item3 | &#10;         item3.externalType='Test Case')&#10;    )-&gt;size() &gt;0&#10; )&#10;)&#10;</field>
+                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req : &lt;root/types/azure/Requirement&gt;| req.priority = 1)&#10;-&gt;forAll(vipreq   | &#10;           vipreq.testedByItems&#10; -&gt;select(item | item.externalType = 'TestCase')&#10; -&gt;exists(tc  | &#10;         tc.successorItems&#10;    -&gt;exists(item2 | item2.externalType='Review')&#10;and&#10;tc.successorItems&#10;    -&gt;select(item3 | item3.externalType='Review')&#10;    -&gt;forAll(rev | &#10;               rev.state='Closed')&#10; ) &#10;)</field>
                       </block>
                     </value>
                   </block>

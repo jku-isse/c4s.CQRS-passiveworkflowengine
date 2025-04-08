@@ -71,12 +71,12 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private ComboBox<ProcessDefinition> definitionsBox;
     private Details loadProcess;
     private  SplitLayout splitLayout;
-
+    private String processFilterId="";
    
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        pusher.add(attachEvent.getUI().getUIId(), attachEvent.getUI(), this);
+        pusher.add(attachEvent.getUI().getUIId(), attachEvent.getUI(), this, processFilterId);        
         this.refresh(null);
     }
 
@@ -99,7 +99,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
         String name = parametersMap.getOrDefault("name", List.of("")).get(0);
         String focus = parametersMap.getOrDefault("focus", List.of("")).get(0);
         //initAccordion(id, name, focus);
-        grid.setFilters(id, name, focus);
+        processFilterId = id;
+        grid.setFilters(id, name, focus);        
     }
 
 
