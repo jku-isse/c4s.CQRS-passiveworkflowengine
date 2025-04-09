@@ -1,7 +1,6 @@
 package at.jku.isse.passiveprocessengine.frontend;
 
 import java.util.Map;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -15,7 +14,6 @@ import com.google.gson.JsonParser;
 
 import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
-import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
@@ -26,9 +24,10 @@ import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
-import at.jku.isse.passiveprocessengine.instance.messages.Responses.IOResponse;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint;
+import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.AddInputRequest;
+import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.RemoveInputRequest;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.CreateRequest;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.ErrorResponse;
 import lombok.Getter;
@@ -61,9 +60,13 @@ public class RequestDelegate {
 
 	@EventListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {		
-		frontendPusher.update(processRegistry.getNonDeletedProcessInstances());		
+		frontendPusher.update(processRegistry.getNonDeletedProcessInstances());		//read from frontend repo/branch
 	}
 
+	public ProcessInstance getProcess(String id) {
+		return processRegistry.getProcessByName(id); //Read locally from frontend repo/branch		
+	}
+	
 	public ProcessInstance instantiateProcess(String procName, Map<String, ArtifactIdentifier> inputs, String procDefinitionId ) throws ProcessException{		
 		CreateRequest createRequest = new CreateRequest(procName, inputs, procDefinitionId);
 		ResponseEntity<String> response = processEndpoint.createProcess(createRequest);
@@ -79,38 +82,20 @@ public class RequestDelegate {
 	}
 
 	public void addProcessInput(ProcessInstance pInst, String inParam, String artId, String artIdType) throws ProcessException{
-		instRepo.startWriteTransaction();
-		PPEInstance inst = artifactResolver.get(new ArtifactIdentifier(artId, artIdType));
-		IOResponse resp = pInst.addInput(inParam, inst);
-		instRepo.concludeTransaction();
-		if (resp.getError() != null) {		
-			throw new ProcessException(resp.getError());
-		} 
+		var response = processEndpoint.addProcessInput(pInst.getInstance().getId(), new AddInputRequest(inParam, artId, artIdType));		
+		if (response.getStatusCode().isError()) {
+			ErrorResponse errResp = gson.fromJson(response.getBody(), ErrorResponse.class);
+			throw new ProcessException(errResp.getMainMessage(), errResp.getErrorMessages());			
+		}
 	}
 
 	public void removeInputFromProcess(ProcessInstance proc, String inParam, String artId) {
-		instRepo.startWriteTransaction();
-		Set<PPEInstance> inputs = proc.getInput(inParam);
-		inputs.stream()
-		.filter(art -> art.getName().equalsIgnoreCase(artId))
-		.findAny()
-		.ifPresent(art -> {
-			proc.removeInput(inParam, art);
-			processContext.getInstanceRepository().concludeTransaction();
-		});
-		instRepo.concludeTransaction();
+		processEndpoint.removeProcessInput(proc.getInstance().getId(), new RemoveInputRequest(inParam, artId));							
 	}
 
-	public ProcessInstance getProcess(String id) {
-		return processRegistry.getProcessByName(id);
-		//return pInstances.get(id);
-	}
-
-	public void deleteProcessInstance(String id) {		
-		instRepo.startWriteTransaction();
+	public void deleteProcessInstance(String id) {				
 		frontendPusher.remove(id);
-		processRegistry.removeProcessByName(id);
-		instRepo.concludeTransaction();
+		processEndpoint.deleteProcess(id);				
 	}
 
 }
