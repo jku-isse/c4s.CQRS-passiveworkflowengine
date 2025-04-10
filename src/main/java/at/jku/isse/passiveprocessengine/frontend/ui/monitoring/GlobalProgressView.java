@@ -29,14 +29,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.AppView;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ProgressEntry;
 import lombok.extern.slf4j.Slf4j;
 
 

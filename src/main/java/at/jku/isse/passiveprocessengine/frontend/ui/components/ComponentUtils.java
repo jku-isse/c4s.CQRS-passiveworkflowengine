@@ -9,9 +9,9 @@ import javax.servlet.ServletContext;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.server.VaadinServlet;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
+import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
 
 
 public class ComponentUtils {
@@ -32,8 +32,8 @@ public class ComponentUtils {
 	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstance artifact) {
 		Anchor a;
-		if (artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL) && artifact.getTypedProperty(CoreTypeFactory.URL, String.class) != null) {
-			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class), generateDisplayNameForInstance(artifact));
+		if (artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL_URI) && artifact.getTypedProperty(CoreTypeFactory.URL_URI, String.class) != null) {
+			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL_URI, String.class), generateDisplayNameForInstance(artifact));
 		} else {
 			a = new Anchor(getBaseUrl()+"/instance/"+artifact.getId(), generateDisplayNameForInstance(artifact));
 		}
@@ -43,8 +43,8 @@ public class ComponentUtils {
 	
 	public static Anchor convertToResourceLinkWithBlankTarget(PPEInstanceType artifact) {
 		Anchor a;
-		if (artifact.getInstanceType() != null && artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL)) { // we need to check not whether this instancetype defines a propertyType of URL but whether it has one itself, via checking its parent
-			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL, String.class, getBaseUrl()+"/instancetype/"+artifact.getId()), artifact.getName());
+		if (artifact.getInstanceType() != null && artifact.getInstanceType().hasPropertyType(CoreTypeFactory.URL_URI)) { // we need to check not whether this instancetype defines a propertyType of URL but whether it has one itself, via checking its parent
+			a = new Anchor(artifact.getTypedProperty(CoreTypeFactory.URL_URI, String.class, getBaseUrl()+"/instancetype/"+artifact.getId()), artifact.getName());
 		} else {
 			a = new Anchor(getBaseUrl()+"/instancetype/"+artifact.getId(), artifact.getName());
 		}
@@ -55,7 +55,7 @@ public class ComponentUtils {
 	public static String generateDisplayNameForInstance(PPEInstance inst) {
 		if (inst.getInstanceType().hasPropertyType("title") && inst.getInstanceType().hasPropertyType("workItemType")) { // FIXME assume we have a azure item
 			String title = inst.getTypedProperty("title", String.class, "Unknown");
-			String id = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
+			String id = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID_URI, String.class);
 			//String type = inst.getPropertyAsInstance("workItemType") != null ? inst.getPropertyAsInstance("workItemType").name() : "UnknownType";
 			String type = (String) inst.getTypedProperty("workItemType", String.class); 
 			return "["+type+"]"+id+":"+title;

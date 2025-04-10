@@ -12,7 +12,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.core.RuleEvaluationService;
@@ -25,6 +24,7 @@ import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ArtifactIdentifier;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.AddInputRequest;
 import at.jku.isse.passiveprocessengine.rest.ProcessCreationEndpoint.RemoveInputRequest;

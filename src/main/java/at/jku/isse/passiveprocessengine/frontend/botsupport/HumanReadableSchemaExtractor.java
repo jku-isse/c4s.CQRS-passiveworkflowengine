@@ -13,11 +13,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.core.BuildInType;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.Cardinalities;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.definition.types.ProcessStepDefinitionType;
@@ -27,6 +26,7 @@ import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
 import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessInstanceType;
 import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
 import at.jku.isse.passiveprocessengine.instance.types.SpecificProcessStepType;
+import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
 import lombok.NonNull;
 
 public class HumanReadableSchemaExtractor {
@@ -159,7 +159,7 @@ public class HumanReadableSchemaExtractor {
 	}
 
 	private static String getCardinality(PPEPropertyType prop) {
-		if (prop.getCardinality().equals(CARDINALITIES.SINGLE)) {
+		if (prop.getCardinality().equals(Cardinalities.SINGLE)) {
 			return "of type ";
 		} else {
 			return "of multiple ";

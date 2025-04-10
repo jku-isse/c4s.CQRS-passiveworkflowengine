@@ -38,7 +38,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
 import at.jku.isse.designspace.rule.arl.evaluator.EvaluationNode;
 import at.jku.isse.designspace.rule.arl.repair.AbstractRepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
@@ -64,6 +63,7 @@ import at.jku.isse.passiveprocessengine.instance.messages.Events.ProcessChangedE
 import at.jku.isse.passiveprocessengine.instance.types.AbstractProcessStepType;
 import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
 import at.jku.isse.passiveprocessengine.rdfwrapper.RuleEnabledResolver;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ArtifactIdentifier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

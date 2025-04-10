@@ -2,10 +2,10 @@ package at.jku.isse.passiveprocessengine.frontend.ui.components;
 
 import org.apache.jena.ontapi.model.OntObject;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.designspace.rule.arl.repair.RepairAction;
 import at.jku.isse.designspace.rule.arl.repair.RepairTreeFilter;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
+import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.rdfwrapper.RuleEnabledResolver;
 import lombok.AllArgsConstructor;
 
@@ -21,8 +21,8 @@ public class DefaultProcessRepairTreeFilter extends RepairTreeFilter {
 		OntObject artifact = (OntObject) ra.getElement();
 		PPEInstance ppeArt = (PPEInstance) abstractionMapper.resolveToRDFElement(artifact);
 		
-		if (!ppeArt.getInstanceType().hasPropertyType(CoreTypeFactory.URL) 
-				|| ppeArt.getTypedProperty(CoreTypeFactory.URL, String.class) == null) { 
+		if (!ppeArt.getInstanceType().hasPropertyType(CoreTypeFactory.URL_URI) 
+				|| ppeArt.getTypedProperty(CoreTypeFactory.URL_URI, String.class) == null) { 
 			return false;
 		} else
 			return ra.getProperty() != null 

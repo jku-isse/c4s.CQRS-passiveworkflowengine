@@ -50,7 +50,7 @@ import at.jku.isse.passiveprocessengine.core.BuildInType;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.Cardinalities;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.definition.activeobjects.ConstraintSpec;
@@ -404,9 +404,9 @@ public class DefinitionView extends VerticalLayout implements HasUrlParameter<St
 		ComboBox<PPEInstanceType> types = new ComboBox<>("Property Type");
 		types.setItems(BuildInType.STRING, BuildInType.BOOLEAN, BuildInType.DATE, BuildInType.INTEGER, BuildInType.FLOAT);
 		types.setValue(BuildInType.BOOLEAN);
-		ComboBox<CARDINALITIES> cardinalities = new ComboBox<>("Cardinality");
-		cardinalities.setItems(CARDINALITIES.values());
-		cardinalities.setValue(CARDINALITIES.SINGLE);
+		ComboBox<Cardinalities> cardinalities = new ComboBox<>("Cardinality");
+		cardinalities.setItems(Cardinalities.values());
+		cardinalities.setValue(Cardinalities.SINGLE);
 		Icon addIcon = new Icon(VaadinIcon.PLUS);
         addIcon.getStyle()
 	      .set("box-sizing", "border-box")

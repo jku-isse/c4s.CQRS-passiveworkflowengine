@@ -53,12 +53,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
-import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
 import at.jku.isse.passiveprocessengine.core.BuildInType;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.PPEInstanceType.CARDINALITIES;
+import at.jku.isse.passiveprocessengine.core.PPEInstanceType.Cardinalities;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
 import at.jku.isse.passiveprocessengine.frontend.RequestDelegate;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
@@ -66,6 +64,8 @@ import at.jku.isse.passiveprocessengine.frontend.security.SecurityService;
 import at.jku.isse.passiveprocessengine.frontend.ui.components.ComponentUtils;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
 import at.jku.isse.passiveprocessengine.instance.types.ProcessConfigBaseElementType;
+import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ArtifactIdentifier;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -213,7 +213,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 
 	private ArtifactIdentifier getArtifactIdentifier(PPEInstance inst) {
 		// less brittle, but requires consistent use by artifact connectors
-		String artId = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID, String.class);
+		String artId = inst.getTypedProperty(CoreTypeFactory.EXTERNAL_DEFAULT_ID_URI, String.class);
 		PPEInstanceType instType = inst.getInstanceType();
 		List<String> idOptions = commandGateway.getArtifactResolver().getIdentifierTypesForInstanceType(instType);
 		if (idOptions.isEmpty()) {
@@ -284,7 +284,7 @@ public class InstanceView extends VerticalLayout implements HasUrlParameter<Stri
 			dialog.getElement().setAttribute("aria-label", "Update Process Configuration Property");
 			grid.addItemClickListener(item -> {
 				PPEPropertyType prop = item.getItem().getKey();
-				if (prop.getCardinality().equals(CARDINALITIES.SINGLE) && BuildInType.isAtomicType(prop.getInstanceType())) {
+				if (prop.getCardinality().equals(Cardinalities.SINGLE) && BuildInType.isAtomicType(prop.getInstanceType())) {
 					VerticalLayout dialogLayout = createEditDialogLayout(dialog, prop);
 					dialog.removeAll();
 					dialog.add(dialogLayout);

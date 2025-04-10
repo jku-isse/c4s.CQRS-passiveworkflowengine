@@ -14,8 +14,6 @@ import com.google.inject.Injector;
 import at.jku.isse.artifacteventstreaming.api.exceptions.BranchConfigurationException;
 import at.jku.isse.artifacteventstreaming.api.exceptions.PersistenceException;
 import at.jku.isse.artifacteventstreaming.rule.RuleSchemaProvider;
-import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
-import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.designspace.artifactconnector.core.security.EmailToIdMapper;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
@@ -37,6 +35,8 @@ import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
 import at.jku.isse.passiveprocessengine.instance.providers.ProcessConfigProvider;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.IArtifactProvider;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.IProgressObserver;
 import at.jku.isse.passiveprocessengine.rdfwrapper.config.EventStreamingWrapperFactory;
 import lombok.extern.slf4j.Slf4j;
 

@@ -9,10 +9,10 @@ import java.util.Map;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.ListDataProvider;
 
-import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
-import at.jku.isse.designspace.artifactconnector.core.monitoring.ProgressEntry;
 import at.jku.isse.passiveprocessengine.frontend.monitoring.ProgressObserver;
 import at.jku.isse.passiveprocessengine.monitoring.ITimeStampProvider;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.IProgressObserver;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ProgressEntry;
 
 public class ProgressPusher extends ProgressObserver {
 

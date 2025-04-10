@@ -10,21 +10,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
-import at.jku.isse.designspace.artifactconnector.core.repository.ArtifactIdentifier;
-import at.jku.isse.designspace.artifactconnector.core.repository.CoreTypeFactory;
-import at.jku.isse.designspace.artifactconnector.core.repository.DesignspaceArtifactRepository;
-import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse;
-import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse.ErrorResponse;
-import at.jku.isse.designspace.artifactconnector.core.repository.FetchResponse.SuccessResponse;
-import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts.JiraStates;
+import at.jku.isse.passiveprocessengine.rdfwrapper.ArtifactRepository;
+import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.ArtifactIdentifier;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.FetchResponse;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.IArtifactProvider;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.FetchResponse.ErrorResponse;
+import at.jku.isse.passiveprocessengine.rdfwrapper.artifactprovider.FetchResponse.SuccessResponse;
 import lombok.extern.slf4j.Slf4j;
 
-public class DemoArtifactProvider extends DesignspaceArtifactRepository implements IArtifactProvider {
+public class DemoArtifactProvider extends ArtifactRepository implements IArtifactProvider {
 
 
 	private final PPEInstanceType demoType;
@@ -90,11 +90,11 @@ public class DemoArtifactProvider extends DesignspaceArtifactRepository implemen
     	protected final static ScheduledExecutorService scheduler =
    		     Executors.newScheduledThreadPool(1);	
     	
-    	final DesignspaceArtifactRepository repo;
+    	final ArtifactRepository repo;
     	final TestArtifacts artifactFactory;
     	final InstanceRepository ws;
     	
-    	public UpdateSimulator(DesignspaceArtifactRepository repo, TestArtifacts artifactFactory, InstanceRepository ws) {
+    	public UpdateSimulator(ArtifactRepository repo, TestArtifacts artifactFactory, InstanceRepository ws) {
     		log.debug("Started");
     		this.repo = repo;
     		this.artifactFactory = artifactFactory;
