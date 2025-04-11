@@ -18,8 +18,8 @@ import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.Cardinalities;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType.PPEPropertyType;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
-import at.jku.isse.passiveprocessengine.definition.types.ProcessStepDefinitionType;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
+import at.jku.isse.passiveprocessengine.definition.types.StepDefinitionTypeFactory;
 import at.jku.isse.passiveprocessengine.frontend.registry.PropertyConversionUtil;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessInstance;
 import at.jku.isse.passiveprocessengine.instance.activeobjects.ProcessStep;
@@ -32,12 +32,12 @@ import lombok.NonNull;
 public class HumanReadableSchemaExtractor {
 
 	private Map<PPEInstanceType, Set<PPEInstance>> samples;
-	final SchemaRegistry schemaReg;
+	final NodeToDomainResolver schemaReg;
 	final PPEInstanceType stepType;
 	final PPEInstanceType procType;
 	final PPEInstanceType artType;
 	
-	public HumanReadableSchemaExtractor(@NonNull SchemaRegistry schemaReg) {
+	public HumanReadableSchemaExtractor(@NonNull NodeToDomainResolver schemaReg) {
 		samples = Collections.emptyMap();
 		this.schemaReg = schemaReg;
 		this.stepType = schemaReg.getTypeByName(AbstractProcessStepType.typeId);

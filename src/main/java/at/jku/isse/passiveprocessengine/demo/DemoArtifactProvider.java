@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts.JiraStates;
 import at.jku.isse.passiveprocessengine.rdfwrapper.ArtifactRepository;
 import at.jku.isse.passiveprocessengine.rdfwrapper.CoreTypeFactory;
@@ -32,7 +32,7 @@ public class DemoArtifactProvider extends ArtifactRepository implements IArtifac
 	private final InstanceRepository ws;
 	private boolean isSimulatorRunning = false;
 	
-	public DemoArtifactProvider(SchemaRegistry schemaReg, InstanceRepository ws, TestArtifacts artifactFactory ) {
+	public DemoArtifactProvider(NodeToDomainResolver schemaReg, InstanceRepository ws, TestArtifacts artifactFactory ) {
 		super(artifactFactory.getJiraInstanceType(), schemaReg.getTypeByName(CoreTypeFactory.BASE_TYPE_URI) , ws);
 		demoType = artifactFactory.getJiraInstanceType();
 		this.artifactFactory = artifactFactory;

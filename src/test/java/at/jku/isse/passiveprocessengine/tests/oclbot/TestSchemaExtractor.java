@@ -19,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import at.jku.isse.PPE3Webfrontend;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.botsupport.HumanReadableSchemaExtractor;
 import at.jku.isse.passiveprocessengine.instance.ProcessException;
@@ -33,7 +33,7 @@ class TestSchemaExtractor {
 	@Autowired
 	ArtifactResolver artRes;
 	
-	@Autowired SchemaRegistry schemaReg;
+	@Autowired NodeToDomainResolver schemaReg;
 	
 	@BeforeEach
 	void setUp() throws Exception {

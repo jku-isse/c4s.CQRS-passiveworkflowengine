@@ -4,13 +4,13 @@ import at.jku.isse.AbstractOCLXRuntimeModule;
 import com.google.inject.Binder;
 
 import at.jku.isse.validation.MethodRegistry;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 
 public class OCLXSupportModule extends AbstractOCLXRuntimeModule {
 
-	SchemaRegistry designspace;
+	NodeToDomainResolver designspace;
 	
-	public OCLXSupportModule(SchemaRegistry designspace) {
+	public OCLXSupportModule(NodeToDomainResolver designspace) {
 		this.designspace = designspace;
 	}
 	
@@ -21,6 +21,6 @@ public class OCLXSupportModule extends AbstractOCLXRuntimeModule {
 	@Override
 	public void configure(Binder binder) {
 		super.configure(binder);
-		binder.bind(SchemaRegistry.class).toInstance(designspace);
+		binder.bind(NodeToDomainResolver.class).toInstance(designspace);
 	}
 }

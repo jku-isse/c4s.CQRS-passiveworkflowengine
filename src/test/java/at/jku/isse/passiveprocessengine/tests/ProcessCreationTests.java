@@ -19,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import at.jku.isse.PPE3Webfrontend;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstanceType;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
 import at.jku.isse.passiveprocessengine.demo.TestDTOProcesses;
@@ -34,7 +34,7 @@ class ProcessCreationTests {
 
 	@Autowired ProcessCreationEndpoint creationEndpoint;
 	
-	@Autowired SchemaRegistry schemaReg;
+	@Autowired NodeToDomainResolver schemaReg;
 	
 	@Autowired InstanceRepository instanceRepository;
 			

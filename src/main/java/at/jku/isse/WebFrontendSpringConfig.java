@@ -20,7 +20,7 @@ import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
 import at.jku.isse.passiveprocessengine.core.InstanceRepository;
 import at.jku.isse.passiveprocessengine.core.PPEInstance;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
 import at.jku.isse.passiveprocessengine.demo.DemoArtifactProvider;
 import at.jku.isse.passiveprocessengine.demo.TestArtifacts;
@@ -49,7 +49,7 @@ public class WebFrontendSpringConfig {
 	@Bean @Primary // overriding basic resolver from RestFrontend
 	public ArtifactResolver getArtifactResolverForWebfrontend(AzureServiceBuilder azureBuilder,
 			 ProcessConfigProvider procconf, ProcessRegistry procReg
-			 , UIConfig uiConfig, InstanceRepository repo, SchemaRegistry schemaReg) {
+			 , UIConfig uiConfig, InstanceRepository repo, NodeToDomainResolver schemaReg) {
 		IArtifactProvider azure = azureBuilder.build();
 		
 		ArtifactResolver ar = new ArtifactResolver(repo);
@@ -130,7 +130,7 @@ public class WebFrontendSpringConfig {
 	private static  Injector injector;
 	
 	@Bean @Primary
-	public static Injector getOCLXDependencies(SchemaRegistry designspace) {
+	public static Injector getOCLXDependencies(NodeToDomainResolver designspace) {
 		if (injector == null) {
 			var	setup = new OCLXSupportSetup(designspace);
 			injector = setup.createInjectorAndDoEMFRegistration();

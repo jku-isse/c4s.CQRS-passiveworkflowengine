@@ -7,13 +7,13 @@ import com.google.inject.Injector;
 
 import at.jku.isse.OCLXStandaloneSetup;
 import at.jku.isse.ide.OCLXIdeModule;
-import at.jku.isse.passiveprocessengine.core.SchemaRegistry;
+import at.jku.isse.passiveprocessengine.core.NodeToDomainResolver;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class OCLXSupportSetup extends OCLXStandaloneSetup {
 	
-	private final SchemaRegistry designspace;
+	private final NodeToDomainResolver designspace;
 	
 	//private Injector injector;
 	
