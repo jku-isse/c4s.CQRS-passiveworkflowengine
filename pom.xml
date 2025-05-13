@@ -24,7 +24,7 @@
 		<!-- <vaadin.version>14.4.9</vaadin.version> 14.10.1--> 
 		<vaadin.version>14.11.11</vaadin.version>
 		<lombok.version>1.18.30</lombok.version>
-		<connector.azure.version>2.6.1</connector.azure.version>
+		<connector.azure.version>2.6.2</connector.azure.version>
 		<connector.git.version>1.3.0</connector.git.version>
 		<connector.core.version>2.0.6</connector.core.version>
 		<connector.jira.version>1.7.0</connector.jira.version>

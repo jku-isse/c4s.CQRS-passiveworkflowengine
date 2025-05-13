@@ -282,9 +282,9 @@ public class OverridingProcessTests {
 	}
 	
 	@Test
-	void OV_testWarmUpTask() throws ProcessException
+	void OV_testclssPracticeTask() throws ProcessException
 	{
-		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("warmUp.xml");
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("expClassPracticeTask.xml");
 		List<String> expected_warnings=new LinkedList<>();
 		expected_warnings.add("ProcessStep_PrepareRequirementsForRelease_warmUp QAConst_1.1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
@@ -350,6 +350,15 @@ public class OverridingProcessTests {
 		expected_warnings.add("ProcessStep_TC_Traces_Task3B PRECONDITION0 'IsOverrideable' property might require to be ENABLED.");
 		expected_warnings.add("ProcessStep_TC_Traces_Task3B QAConst_2.2.1 'IsOverrideable' property might require to be ENABLED.");
 		expected_warnings.add("ProcessStep_TC_Traces_Task3B POSTCONDITION1 'IsOverrideable' property might require to be ENABLED.");
+		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
+	}
+	
+	@Test
+	void OV_testTaskwarmUp() throws ProcessException
+	{
+		List<ProcessDefinitionError> generated_warnings=registerFromBlocklyXML("expWarmUp.xml");
+		List<String> expected_warnings=new LinkedList<>();
+		expected_warnings.add("ProcessStep_REQtoTestCaseTrace_expWarmUp QAConst_1.1 'IsOverrideable' property might require to be ENABLED.");
 		assert listsEqual(generated_warnings, expected_warnings) : ("Warning Lists are Not Equivalent. \n"+this.getList(generated_warnings));
 	}
 

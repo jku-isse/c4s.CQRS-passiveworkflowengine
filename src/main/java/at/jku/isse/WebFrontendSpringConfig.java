@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +13,12 @@ import org.springframework.context.annotation.Primary;
 import at.jku.isse.designspace.artifactconnector.core.monitoring.IProgressObserver;
 import at.jku.isse.designspace.artifactconnector.core.repository.IArtifactProvider;
 import at.jku.isse.designspace.azure.service.AzureServiceBuilder;
+import at.jku.isse.designspace.rule.arl.repair.analyzer.RepairAnalyzerForRestrictionAnalysis;
+import at.jku.isse.designspace.rule.checker.ArlRuleEvaluator;
 import at.jku.isse.passiveprocessengine.core.ChangeEventTransformer;
 import at.jku.isse.passiveprocessengine.core.ProcessContext;
 import at.jku.isse.passiveprocessengine.definition.serialization.ProcessRegistry;
+import at.jku.isse.passiveprocessengine.designspace.RuleServiceWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeListenerWrapper;
 import at.jku.isse.passiveprocessengine.frontend.ProcessChangeNotifier;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
@@ -71,6 +75,13 @@ public class WebFrontendSpringConfig {
 	@Bean @Primary
 	public static IProgressObserver getProgressPusher(ITimeStampProvider timeProvider) {
 		return new ProgressPusher(timeProvider);
+	}
+	
+	@Bean 
+	public static RepairAnalyzerForRestrictionAnalysis getRepairAnalyzerForRestrictionAnalysis(RuleServiceWrapper monitor, ArlRuleEvaluator are) {
+		RepairAnalyzerForRestrictionAnalysis restrAnalyzer = new RepairAnalyzerForRestrictionAnalysis(monitor); 
+		are.registerListener(restrAnalyzer);		
+		return restrAnalyzer;
 	}
 	
 //    @Bean

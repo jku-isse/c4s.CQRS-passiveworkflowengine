@@ -1,0 +1,148 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="WNAvoU`9:C=KWe.j%8;n">CRs</variable>
+    <variable id="M3md.wX*tEQ*De4J||=^">TCs</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">REQs</variable>
+    <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
+    <field name="NAME">Task2b</field>
+    <comment pinned="true" h="271" w="926">In this task is about ensuring implementation of requirements can begin upon having priority 1 requirements (i.e., the most critical ones) are not only traced to test cases but also having explicit reviews of these test cases. &#10;Reviewing test cases ensures for the most important requirements that the test cases are indeed suitable to cover them.&#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent test cases and their reviews. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
+        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+        <value name="VALUE">
+          <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
+            <field name="Type">root/types/azure/azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="QDP-uXdA`vKJ,ywO%Fv3">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X^KK.om:SDZM@OBTj@bm">
+                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                <field name="StepId">PriorityReqToReviewTrace</field>
+                <statement name="Input">
+                  <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
+                    <field name="State">POSTCONDITION</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="condition">
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Reviewed')</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
+                    <field name="mappingId">REQs</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
+                    <next>
+                      <block type="datamapping" id="rqs:h;2M|xbS:5SeAf1}">
+                        <field name="mappingId">TCs</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='TestCase')</field>
+                        <next>
+                          <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
+                            <field name="mappingId">Bugs</field>
+                            <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id=",EfP@7L#Wy21I4XExfGs">
+                    <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="fDF}-Pd]WD*1V@n+{xVk">
+                        <field name="Type">root/types/azure/azure_workitem</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="ly(}V1)Z@!mJg5Jh2b=-">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="gajG9dezyQcxLZZ:JY}a">
+                            <field name="VAR" id="M3md.wX*tEQ*De4J||=^">TCs</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="Y$+4_Cn4f[mC#|6qF2A-">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                            <value name="VALUE">
+                              <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
+                                <field name="Type">root/types/azure/azure_workitem</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="K~(#B4KDl,BI^!{eLwa!">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="ww@CaEV(-H@jzb63t*Bt">
+                                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="variables_set" id="v/~jo`Z@/QLN9+sVnU0M">
+                                    <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
+                                    <value name="VALUE">
+                                      <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
+                                        <field name="Type">root/types/azure/azure_workitem</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="artuse" id="2{~]+=N|b0C%$mCgo3h.">
+                                        <field name="roletext">Param</field>
+                                        <value name="NAME">
+                                          <block type="variables_get" id="T-sx8L_kzaYmv|PJw[T,">
+                                            <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="1:7k$kKe0gko4.nHZu$L">
+                    <field name="qacheckId">Prio1TCreviewed</field>
+                    <field name="description">Ensure that each Requirement with priority '1' traces (via 'tested by') to at least one Test Case that in turn has all Reviews (via 'successor')) in state 'closed'.</field>
+                    <field name="isOverridable">FALSE</field>
+                    <value name="constraint">
+                      <block type="constraint" id="i(K8GLl0ZHwxtq8]o9!C">
+                        <field name="arlRule">self.out_REQs&#10;-&gt;select(req : &lt;root/types/azure/Requirement&gt;| req.priority = 1)&#10;-&gt;forAll(vipreq   | &#10;           vipreq.testedByItems&#10; -&gt;select(item | item.externalType = 'TestCase')&#10; -&gt;exists(tc  | &#10;         tc.successorItems&#10;    -&gt;exists(item2 | item2.externalType='Review')&#10;and&#10;tc.successorItems&#10;    -&gt;select(item3 | item3.externalType='Review')&#10;    -&gt;forAll(rev | &#10;               rev.state='Closed')&#10; ) &#10;)</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

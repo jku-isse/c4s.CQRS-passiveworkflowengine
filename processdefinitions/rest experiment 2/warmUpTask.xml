@@ -1,0 +1,119 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="WNAvoU`9:C=KWe.j%8;n">CRs</variable>
+    <variable id="mT+T=Lz)IT.wpd@9@${J">REQs</variable>
+    <variable id="ujJj41c[+uOp30QV^RN9">Bugs</variable>
+  </variables>
+  <block type="procedures_defnoreturn" id="z/?WA}5)#.CUvTiD;E:x" x="188" y="88">
+    <field name="NAME">_TaskWarmup</field>
+    <comment pinned="true" h="199" w="910">This is a warmup task to allow you to familiarize yourself with the passive process engine frontend and the repair support.&#10;&lt;br&gt;&lt;br&gt;&#10;Content-wise this task is about ensuring requirements that have been reviewed and hence are in a completed state are not subject to further changes induced by bugs. &#10;&lt;br&gt;&lt;br&gt;&#10;For this task, your goal is to ensure consistent requirements and bugs. The previous engineer has marked the task as complete (c.f., post conditions are fulfilled) but did not manage to fulfill the QA constraints. Your task is to find and execute the most suitable repair of the QA violations.</comment>
+    <statement name="STACK">
+      <block type="variables_set" id=";Xw9uH0-^~f*2B3tF(`-">
+        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+        <value name="VALUE">
+          <block type="artifact" id="JTYSsYxqk+vBTi!RA=BJ">
+            <field name="Type">root/types/azure/azure_workitem</field>
+          </block>
+        </value>
+        <next>
+          <block type="artuse" id="QDP-uXdA`vKJ,ywO%Fv3">
+            <field name="roletext">Param</field>
+            <value name="NAME">
+              <block type="variables_get" id="X^KK.om:SDZM@OBTj@bm">
+                <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+              </block>
+            </value>
+            <next>
+              <block type="step" id=";GKoN_~dB/lmt7(Wyf9o">
+                <field name="StepId">AssessingBugStates</field>
+                <statement name="Input">
+                  <block type="artuse" id=".)L{u(k_o[$|-5r?:@{)">
+                    <field name="roletext">Param</field>
+                    <value name="NAME">
+                      <block type="variables_get" id="BfiaLE2f=lWE,/t1bq,!">
+                        <field name="VAR" id="WNAvoU`9:C=KWe.j%8;n">CRs</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Transitions">
+                  <block type="transition" id="OeFM`tYDoTbJS!VHm,(W">
+                    <field name="State">POSTCONDITION</field>
+                    <value name="condition">
+                      <block type="constraint" id="?Oaq4(s@6W0#_?-C`[wb">
+                        <field name="arlRule">self.in_CRs-&gt;forAll(cr | cr.state='Released')</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <statement name="Datamappings">
+                  <block type="datamapping" id="nds%E;Kd7AXsYrR?]bG^">
+                    <field name="mappingId">REQs</field>
+                    <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Requirement')</field>
+                    <next>
+                      <block type="datamapping" id="Ay:ld=_{(Ax9zG;sc;iE">
+                        <field name="mappingId">Bugs</field>
+                        <field name="mappingSpec">self.in_CRs-&gt;any()-&gt;asType(&lt;root/types/azure/azure_workitem&gt;).successorItems&#10;-&gt;select(item | item.externalType='Bug')</field>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="Output">
+                  <block type="variables_set" id="Y$+4_Cn4f[mC#|6qF2A-">
+                    <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                    <value name="VALUE">
+                      <block type="artifact" id="9oy4nlIp2X(bM7S=mf7/">
+                        <field name="Type">root/types/azure/azure_workitem</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="artuse" id="K~(#B4KDl,BI^!{eLwa!">
+                        <field name="roletext">Param</field>
+                        <value name="NAME">
+                          <block type="variables_get" id="ww@CaEV(-H@jzb63t*Bt">
+                            <field name="VAR" id="mT+T=Lz)IT.wpd@9@${J">REQs</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="v/~jo`Z@/QLN9+sVnU0M">
+                            <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
+                            <value name="VALUE">
+                              <block type="artifact" id="IR(*/LP5.^)kXe8R|^?m">
+                                <field name="Type">root/types/azure/azure_workitem</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="artuse" id="2{~]+=N|b0C%$mCgo3h.">
+                                <field name="roletext">Param</field>
+                                <value name="NAME">
+                                  <block type="variables_get" id="T-sx8L_kzaYmv|PJw[T,">
+                                    <field name="VAR" id="ujJj41c[+uOp30QV^RN9">Bugs</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="QA">
+                  <block type="qacheck" id="L}^*UEpl;#R@HC{iu,$I">
+                    <field name="qacheckId">ClosedReqToBugState</field>
+                    <field name="description">Ensure that all requirements in state 'reviewed' trace (via 'affected by') to at least one bug in state closed.</field>
+                    <value name="constraint">
+                      <block type="constraint" id="#)RJt^YCegSzrki_!p1t">
+                        <field name="arlRule">self.out_REQs&#10;-&gt; select(req | req.state='Reviewed')&#10;-&gt; forAll(req2:  &lt;root/types/azure/azure_workitem&gt;| req2.affectedByItems&#10;-&gt;select(bug: &lt;root/types/azure/azure_workitem&gt;  | bug.externalType='Bug')&#10;-&gt;exists(bug2:&lt;root/types/azure/azure_workitem&gt;|bug2.state='Closed')&#10;)</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
