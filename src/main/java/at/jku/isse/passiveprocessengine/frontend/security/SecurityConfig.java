@@ -82,7 +82,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	UIConfig uiConfig = super.getApplicationContext().getBean(UIConfig.class);
 	if (uiConfig != null && uiConfig.isExperimentModeEnabled()) {
-		for (int i = 1; i < 50; i++) {
+		for (int i = 1; i < 60; i++) {
 			String name = "P"+i;		
 			String pw = RandomStringUtils.random(6, 97, 122 ,true, false, null, rand);						
 			users.add(User.withUsername(name)
