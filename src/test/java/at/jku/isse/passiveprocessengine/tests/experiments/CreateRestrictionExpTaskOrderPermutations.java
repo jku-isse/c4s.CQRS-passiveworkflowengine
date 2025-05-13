@@ -28,6 +28,7 @@ class CreateRestrictionExpTaskOrderPermutations {
 	private static final String NOREPAIR = "norepair";
 	private static final String DEV = "dev";
 	public static final String TASK_WARMUP = "_TaskWarmup";
+	public static final String TASK_PRACISE = "XXXX"; //TODO: set ID for practise task!!!
 	
 // TODO SET CORRECT PREFIX ---------------------------------------------------------------------------------------------------------------------------------------------
 	private static final String AZURE_URL_PREFIX = "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/";
@@ -81,6 +82,23 @@ class CreateRestrictionExpTaskOrderPermutations {
 		storeExperimentSequenceToJsonFile(ProcessAccessControlProvider.FILENAME, participantData);		
 	}
 	
+	@Test
+	void createPractisePermissions() {
+		
+// TODO SET CORRECT RANGE OF PARTICIPANTS --------------------------------------------------------------------------------------------------------------------------------------		
+		// for participants 1 to x (excluding)
+		List<String> participantIds = IntStream.range(1, 11)
+                .mapToObj(x -> "P"+x)
+                .toList(); 
+// TODO SET practise IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
+		List<String> practiseInputs =new ArrayList(List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997"));		
+		
+		assert(participantIds.size() == practiseInputs.size());		
+		Map<String,ExperimentSequence> participantData = createPracticeTaskOrderData(participantIds, practiseInputs);
+		storeExperimentSequenceToJsonFile(ProcessAccessControlProvider.FILENAME, participantData);	
+	}
+
+	
 	public static List<List<Integer>> repairPerm = new LinkedList<>();
 	public static List<List<Integer>> taskPerm = new LinkedList<>();
 	
@@ -128,6 +146,31 @@ class CreateRestrictionExpTaskOrderPermutations {
 			for (int i = 0; i < processTypeIds.size(); i++) {
 				seq.getSequence().add(permToTaskLine(i, taskPermutation, repairPermutation, mapping, processTypeIds));
 			}
+			sequences.put(pId, seq);
+		});				
+		
+		ExperimentSequence seqDev = new ExperimentSequence(DEV);
+		sequences.put(DEV, seqDev);
+		seqDev.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.RESTRICTION.toString(), null));
+		
+		ExperimentSequence seqNoRepair = new ExperimentSequence(NOREPAIR);
+		sequences.put(NOREPAIR, seqNoRepair);
+		seqNoRepair.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.NONE.toString(), null));
+		
+		ExperimentSequence seqNoRestrictions = new ExperimentSequence(REPAIRONLY);
+		sequences.put(REPAIRONLY, seqNoRestrictions);
+		seqNoRestrictions.getSequence().add(new TaskInfo("*", null, null, null, null, null, ProcessAccessControlProvider.SupportConfig.REPAIR.toString(), null));
+		
+		return sequences;
+	}
+	
+	private static Map<String,ExperimentSequence> createPracticeTaskOrderData(List<String> participantIds, List<String> processPractiseArtifactInputIds) {			
+		Map<String,ExperimentSequence> sequences = new LinkedHashMap<>();
+		
+		participantIds.stream().forEach(pId -> {
+			ExperimentSequence seq = new ExperimentSequence(pId);
+			String pracId = processPractiseArtifactInputIds.remove(0);
+			seq.getSequence().add(new TaskInfo(TASK_PRACISE,  AZURE_INPUTPARAM, pracId, AZURE_ARTIFACTTYPE, AZURE_IDTYPE, permToRepairType(2), ProcessAccessControlProvider.SupportConfig.RESTRICTION.toString(), inputId2Url(pracId)));
 			sequences.put(pId, seq);
 		});				
 		
