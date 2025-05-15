@@ -62,14 +62,19 @@ public class AppView extends AppLayout{
 	
 	private Tabs getTabs() {
 	    final Tabs tabs = new Tabs();
+	    if (uiconf.isExperimentModeEnabled()) {
+	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );
+	    }
+	    if (!uiconf.isExperimentModeEnabled()) {
 	    tabs.add(
-	      createTab(VaadinIcon.DASHBOARD, "Process Instances", MainView.class),
+	      //createTab(VaadinIcon.DASHBOARD, "Process Instances", MainView.class),
 	      createTab(VaadinIcon.RECORDS, "Process Definitions", DefinitionView.class),	      
 	      createTab(VaadinIcon.COMPILE, "Connector Progress", GlobalProgressView.class),
 	      createTab(VaadinIcon.GAMEPAD, "Rule Playground", ARLPlaygroundView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Type Inspector", InstanceTypeView.class)
 	    );
+	    }
 	    if (uiconf.isBlocklyEditorEnabled()) {
 	    	tabs.add(
 	    			createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),	    	
@@ -80,9 +85,7 @@ public class AppView extends AppLayout{
 	    	tabs.add(createTab(VaadinIcon.AUTOMATION, "Stages Transformation Result", StagesTransformationResultView.class));
 	    }
 	    
-	    if (uiconf.isExperimentModeEnabled()) {
-	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );
-	    }
+	    
 	    tabs.setOrientation(Tabs.Orientation.VERTICAL);
 	    return tabs;
 	  }

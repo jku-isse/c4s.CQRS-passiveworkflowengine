@@ -21,7 +21,7 @@ import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ExperimentSequence.TaskInfo;
 import at.jku.isse.passiveprocessengine.frontend.experiment.ProcessAccessControlProvider;
 
-class CreateRestrictionExpTaskCMDOrderPermutations {
+class CreateRestrictionExpTaskABOrderPermutations {
 
 	
 	private static final String REPAIRONLY = "repaironly";
@@ -30,8 +30,10 @@ class CreateRestrictionExpTaskCMDOrderPermutations {
 	public static final String TASK_WARMUP = "_TaskWarmup";
 	public static final String TASK_PRACISE = "PracticeTask"; 
 	
-// SET CORRECT PREFIX ---------------------------------------------------------------------------------------------------------------------------------------------
-	private static final String AZURE_URL_PREFIX = "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/";
+
+// TODO SET CORRECT PREFIX ---------------------------------------------------------------------------------------------------------------------------------------------
+	//private static final String AZURE_URL_PREFIX = "https://dev.azure.com/christophmayr-dorn0649/_workitems/edit/";
+	private static final String AZURE_URL_PREFIX = "https://dev.azure.com/anmolshiekh1/_workitems/edit/";
 	private static final String AZURE_ARTIFACTTYPE = "azure_workitem";
 	private static final String AZURE_IDTYPE = "azure_workitem";
 	public static final String AZURE_INPUTPARAM = "CRs";
@@ -39,50 +41,60 @@ class CreateRestrictionExpTaskCMDOrderPermutations {
 	@Test
 	void createACLDataTableContent() {
 		
-// SET CORRECT RANGE OF PARTICIPANTS --------------------------------------------------------------------------------------------------------------------------------------		
+// TODO SET CORRECT RANGE OF PARTICIPANTS --------------------------------------------------------------------------------------------------------------------------------------		
 		// for participants 1 to x (including)
-		List<String> participantIds = IntStream.rangeClosed(26, 50)
+		List<String> participantIds = IntStream.rangeClosed(1, 25)
                 .mapToObj(x -> "P"+x)
                 .toList(); 
 		// for x participants above, 6 process inputs each
 		// assumption that input are sorted by participant, i.e., the first n inputs (n = number of tasks=processes) belong to participant 1, etc.
-// SET INPUT IDS -----------------------------------------------------------------------------------------------------------------------------------------------------		
-		List<String> processInputIds = List.of(
-				"P26_Project/11902", "P26_Project/11922", "P26_Project/11946", "P26_Project/11966", "P26_Project/11990", "P26_Project/12010",  
-				"P27_Project/12044", "P27_Project/12064", "P27_Project/12088", "P27_Project/12108", "P27_Project/12132", "P27_Project/12152",  
-				"P28_Project/12186", "P28_Project/12206", "P28_Project/12230", "P28_Project/12250", "P28_Project/12274", "P28_Project/12294",  
-				"P29_Project/12328", "P29_Project/12348", "P29_Project/12372", "P29_Project/12392", "P29_Project/12416", "P29_Project/12436",  
-				"P30_Project/12470", "P30_Project/12490", "P30_Project/12514", "P30_Project/12534", "P30_Project/12558", "P30_Project/12578",
-				"P31_Project/12612", "P31_Project/12632", "P31_Project/12656", "P31_Project/12676", "P31_Project/12700", "P31_Project/12720",  
-				"P32_Project/12754", "P32_Project/12774", "P32_Project/12798", "P32_Project/12818", "P32_Project/12842", "P32_Project/12862", 
-				"P33_Project/12896", "P33_Project/12916", "P33_Project/12940", "P33_Project/12960", "P33_Project/12984", "P33_Project/13004",  
-				"P34_Project/13038", "P34_Project/13058", "P34_Project/13082", "P34_Project/13102", "P34_Project/13126", "P34_Project/13146", 
-				"P35_Project/13180", "P35_Project/13200", "P35_Project/13224", "P35_Project/13244", "P35_Project/13268", "P35_Project/13288", 
-				"P36_Project/13322", "P36_Project/13342", "P36_Project/13366", "P36_Project/13386", "P36_Project/13410", "P36_Project/13430", 
-				"P37_Project/13464", "P37_Project/13484", "P37_Project/13508", "P37_Project/13528", "P37_Project/13552", "P37_Project/13572",
-				"P38_Project/13606", "P38_Project/13626", "P38_Project/13650", "P38_Project/13670", "P38_Project/13694", "P38_Project/13714", 
-				"P39_Project/13748", "P39_Project/13768", "P39_Project/13792", "P39_Project/13812", "P39_Project/13836", "P39_Project/13856",  
-				"P40_Project/13890", "P40_Project/13910", "P40_Project/13934", "P40_Project/13954", "P40_Project/13978", "P40_Project/13998", 
-				"P41_Project/14032", "P41_Project/14052", "P41_Project/14076", "P41_Project/14096", "P41_Project/14120", "P41_Project/14140",  
-				"P42_Project/14174", "P42_Project/14194", "P42_Project/14218", "P42_Project/14238", "P42_Project/14262", "P42_Project/14282",
-				"P43_Project/14316", "P43_Project/14336", "P43_Project/14360", "P43_Project/14380", "P43_Project/14404", "P43_Project/14424", 
-				"P44_Project/14458", "P44_Project/14478", "P44_Project/14502", "P44_Project/14522", "P44_Project/14546", "P44_Project/14566", 
-				"P45_Project/14600", "P45_Project/14620", "P45_Project/14644", "P45_Project/14664", "P45_Project/14688", "P45_Project/14708",  
-				"P46_Project/14742", "P46_Project/14762", "P46_Project/14786", "P46_Project/14806", "P46_Project/14830", "P46_Project/14850",
-				"P47_Project/14884", "P47_Project/14904", "P47_Project/14928", "P47_Project/14948", "P47_Project/14972", "P47_Project/14992",  
-				"P48_Project/15026", "P48_Project/15046", "P48_Project/15070", "P48_Project/15090", "P48_Project/15114", "P48_Project/15134", 
-				"P49_Project/15168", "P49_Project/15188", "P49_Project/15212", "P49_Project/15232", "P49_Project/15256", "P49_Project/15276", 
-				"P50_Project/15310", "P50_Project/15330", "P50_Project/15354", "P50_Project/15374", "P50_Project/15398", "P50_Project/15418"
-				);
 
-//  SET WARMUP IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
-		List<String> warmupInputs =List.of("P26_Project/12036","P27_Project/12178","P28_Project/12320","P29_Project/12462","P30_Project/12604",
-				"P31_Project/12746","P32_Project/12888", "P33_Project/13030", "P34_Project/13172", "P35_Project/13314", 
-				"P36_Project/13456",  "P37_Project/13598", "P38_Project/13740", "P39_Project/13882", "P40_Project/14024",
-				"P41_Project/14166", "P42_Project/14308", "P43_Project/14450", "P44_Project/14592", "P45_Project/14734",
-				 "P46_Project/14876", "P47_Project/15018", "P48_Project/15160", "P49_Project/15302", "P50_Project/15444" 
-				);	
-		// and 6 processes types, representing the tasks		
+// TODO SET INPUT IDS -----------------------------------------------------------------------------------------------------------------------------------------------------		
+		List<String> processInputIds = 
+				List.of("P1_Project/1377", "P1_Project/1397", "P1_Project/1421", "P1_Project/1441", "P1_Project/1465", "P1_Project/1485", 
+						"P2_Project/1519", "P2_Project/1539", "P2_Project/1563", "P2_Project/1583", "P2_Project/1607", "P2_Project/1627", 
+						"P3_Project/1661", "P3_Project/1681", "P3_Project/1705", "P3_Project/1725", "P3_Project/1749", "P3_Project/1769",  			 
+						"P4_Project/1803", "P4_Project/1823", "P4_Project/1847", "P4_Project/1867", "P4_Project/1891", "P4_Project/1911", 
+						"P5_Project/1945", "P5_Project/1965", "P5_Project/1989", "P5_Project/2009", "P5_Project/2033", "P5_Project/2053", 
+						"P6_Project/2087", "P6_Project/2107", "P6_Project/2131", "P6_Project/2151", "P6_Project/2175", "P6_Project/2195",
+						"P7_Project/2229", "P7_Project/2249", "P7_Project/2273", "P7_Project/2293", "P7_Project/2317", "P7_Project/2337",   
+						"P8_Project/2371", "P8_Project/2391", "P8_Project/2415", "P8_Project/2435", "P8_Project/2459", "P8_Project/2479",
+						"P9_Project/2513", "P9_Project/2533", "P9_Project/2557", "P9_Project/2577", "P9_Project/2601", "P9_Project/2621",  
+						"P10_Project/2655", "P10_Project/2675", "P10_Project/2699", "P10_Project/2719", "P10_Project/2743", "P10_Project/2763",
+						"P11_Project/2797", "P11_Project/2817", "P11_Project/2841", "P11_Project/2861", "P11_Project/2885", "P11_Project/2905",
+						"P12_Project/2939", "P12_Project/2959", "P12_Project/2983", "P12_Project/3003", "P12_Project/3027", "P12_Project/3047",
+						"P13_Project/3081", "P13_Project/3101", "P13_Project/3125", "P13_Project/3145", "P13_Project/3169", "P13_Project/3189",
+						"P14_Project/3223", "P14_Project/3243", "P14_Project/3267", "P14_Project/3287", "P14_Project/3311", "P14_Project/3331",
+						"P15_Project/3365", "P15_Project/3385", "P15_Project/3409", "P15_Project/3429", "P15_Project/3453", "P15_Project/3473",
+						"P16_Project/3507", "P16_Project/3527", "P16_Project/3551", "P16_Project/3571", "P16_Project/3595", "P16_Project/3615",
+						"P17_Project/3649", "P17_Project/3669", "P17_Project/3693", "P17_Project/3713", "P17_Project/3737", "P17_Project/3757",
+						"P18_Project/3791", "P18_Project/3811", "P18_Project/3835", "P18_Project/3855", "P18_Project/3879", "P18_Project/3899",
+						"P19_Project/3933", "P19_Project/3953", "P19_Project/3977", "P19_Project/3997", "P19_Project/4021", "P19_Project/4041",
+						"P20_Project/4075", "P20_Project/4095", "P20_Project/4119", "P20_Project/4139", "P20_Project/4163", "P20_Project/4183",
+						"P21_Project/4217", "P21_Project/4237", "P21_Project/4261", "P21_Project/4281", "P21_Project/4305", "P21_Project/4325",
+						"P22_Project/4359", "P22_Project/4379", "P22_Project/4403", "P22_Project/4423", "P22_Project/4447", "P22_Project/4467",
+						"P23_Project/4501", "P23_Project/4521", "P23_Project/4545", "P23_Project/4565", "P23_Project/4589", "P23_Project/4609",
+						"P24_Project/4643", "P24_Project/4663", "P24_Project/4687", "P24_Project/4707", "P24_Project/4731", "P24_Project/4751",
+						"P25_Project/4785", "P25_Project/4805", "P25_Project/4829", "P25_Project/4849", "P25_Project/4873", "P25_Project/4893");
+		/*List<String> processInputIds = List.of("T1/7485", "T1/7511", "T1/7531", "T1/7555", "T1/7581", "T1/7601", 
+				"T2/7705", "T2/7731", "T2/7751", "T2/7775", "T2/7801", "T2/7821", 
+				 "T3/7925", "T3/7951", "T3/7971", "T3/7995", "T3/8021", "T3/8041",  			 
+				 "T4/9465", "T4/9491", "T4/9511", "T4/9535", "T4/9561", "T4/9581", 
+				"T5/9685", "T5/9711", "T5/9731", "T5/9755", "T5/9781", "T5/9801", 
+				 "T6/9905", "T6/9931", "T6/9951", "T6/9975", "T6/10001", "T6/10021",
+				"T7/10125", "T7/10151", "T7/10171", "T7/10195", "T7/10221", "T7/10241",   
+				"T8/10345", "T8/10371", "T8/10391", "T8/10415", "T8/10441", "T8/10461",  
+				"T9/10565", "T9/10591", "T9/10611", "T9/10635", "T9/10661", "T9/10681",  
+				"T10/10785", "T10/10811", "T10/10831", "T10/10855", "T10/10881", "T10/10901" );*/
+
+// TODO SET WARMUP IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
+		//List<String> warmupInputs =List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997");
+		List<String> warmupInputs =List.of("P1_Project/1511","P2_Project/1653","P3_Project/1795","P4_Project/1937",
+				"P5_Project/2079","P6_Project/2221","P7_Project/2363", "P8_Project/2505","P9_Project/2647","P10_Project/2789",
+				"P11_Project/2931","P12_Project/3073","P13_Project/3215","P14_Project/3357","P15_Project/3499","P16_Project/3641",
+				"P17_Project/3783","P18_Project/3925", "P19_Project/4067", "P20_Project/4209","P21_Project/4351","P22_Project/4493",
+				"P23_Project/4635","P24_Project/4777","P25_Project/4919");
+		// and 6 processes types, representing the taskss		
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task2a", "Task2b", "Task3a", "Task3b");
 		
 		createPermutations(new ArrayList<String>(processInputIds), processTypeIds, participantIds,  new ArrayList<String>(warmupInputs), TASK_WARMUP);
@@ -109,16 +121,18 @@ class CreateRestrictionExpTaskCMDOrderPermutations {
 		
 // SET CORRECT RANGE OF PARTICIPANTS --------------------------------------------------------------------------------------------------------------------------------------		
 		// for participants 1 to x (excluding)
-
-		List<String> participantIds = IntStream.rangeClosed(26, 50)
+		List<String> participantIds = IntStream.range(51, 61)
                 .mapToObj(x -> "P"+x)
                 .toList(); 
-// SET practise IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
-		List<String> practiseInputs //=new ArrayList<String>(List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997"));		
-		= new ArrayList<String>(List.of("PracticeProject26/11252", "PracticeProject27/11278", "PracticeProject28/11304", "PracticeProject29/11330", "PracticeProject30/11356", "PracticeProject31/11382", "PracticeProject32/11408", "PracticeProject33/11434", "PracticeProject34/11460", "PracticeProject35/11486", 
-				"PracticeProject36/11512", "PracticeProject37/11538", "PracticeProject38/11564", "PracticeProject39/11590", "PracticeProject40/11616", "PracticeProject41/11642", "PracticeProject42/11668", "PracticeProject43/11694", "PracticeProject44/11720", "PracticeProject45/11746", 
-				"PracticeProject46/11772", "PracticeProject47/11798", "PracticeProject48/11824", "PracticeProject49/11850", "PracticeProject50/11876"));
-
+// TODO SET practise IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
+		//List<String> practiseInputs =new ArrayList(List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997"));		
+		/*List<String> practiseInputs =new ArrayList(List.of("PracticeProject1/558", "PracticeProject2/584", "PracticeProject3/610", "PracticeProject4/636", "PracticeProject5/662", "PracticeProject6/688",
+				"PracticeProject7/714", "PracticeProject8/740", "PracticeProject9/766", "PracticeProject10/792", "PracticeProject11/818", "PracticeProject12/844", 
+				"PracticeProject13/870", "PracticeProject14/896", "PracticeProject15/922", "PracticeProject16/948", "PracticeProject17/974", "PracticeProject18/1000", 
+				"PracticeProject19/1026", "PracticeProject20/1052", "PracticeProject21/1078", "PracticeProject22/1104", "PracticeProject23/1130", "PracticeProject24/1156", 
+				"PracticeProject25/1182"));		*/
+		//Performance Test List
+		List<String> practiseInputs =new ArrayList(List.of("P1/5016", "P2/5042", "P3/5068", "P4/5094", "P5/5120", "P6/5146", "P7/5172", "P8/5198", "P9/5224", "P10/5250"));
 		assert(participantIds.size() == practiseInputs.size());		
 		Map<String,ExperimentSequence> participantData = createPracticeTaskOrderData(participantIds, practiseInputs);
 		storeExperimentSequenceToJsonFile(ProcessAccessControlProvider.FILENAME, participantData);	
