@@ -86,6 +86,7 @@ public class ExperimentParticipantView extends VerticalLayout  {
 		Grid.Column<TaskInfo> procInput = grid.addComponentColumn(ti -> inputToProc(ti)).setHeader("Input").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> repair = grid.addColumn(ti -> ti.getRepairSupport()).setHeader("Config").setResizable(true).setSortable(false);
 		Grid.Column<TaskInfo> init = grid.addComponentColumn(ti -> taskInfoToEvalButton(ti)).setHeader("Start Task/Process").setResizable(false).setSortable(false);	
+		Grid.Column<TaskInfo> view = grid.addComponentColumn(ti -> taskInfoToViewButton(ti)).setHeader("View Task/Process").setResizable(false).setSortable(false);
 		Grid.Column<TaskInfo> stop = grid.addComponentColumn(ti -> taskInfoToCompletionButton(ti)).setHeader("Finish Task/Process").setResizable(false).setSortable(false);	
 		grid.setDataProvider(dataProvider);	
 		grid.setAllRowsVisible(true);
@@ -135,6 +136,25 @@ public class ExperimentParticipantView extends VerticalLayout  {
 			button.setEnabled(false);
 		}
 		return button;
+	}
+	
+	private Component taskInfoToViewButton(TaskInfo entry) {
+
+		Button viewButton = null;
+		Optional<PPEInstance> optInst = commandGateway.getAclProvider().findAnyProcessInstanceByDefinitionAndOwner(entry.getProcessId(), participantId);
+		if (optInst.isPresent()) {
+			PPEInstance procInst = optInst.get();
+			if (!procInst.isMarkedAsDeleted()) {
+				ProcessInstance wfi = commandGateway.getProcessContext().getWrappedInstance(ProcessInstance.class, procInst);
+				viewButton = new Button("View", evt ->  {
+					UI.getCurrent().getPage().open("home?id="+wfi.getInstance().getId(), "_self");
+				});
+				return viewButton;
+			}
+		} 
+		viewButton = new Button("View");
+		viewButton.setEnabled(false);
+		return viewButton;
 	}
 
 	private Component taskInfoToCompletionButton(TaskInfo entry) {
