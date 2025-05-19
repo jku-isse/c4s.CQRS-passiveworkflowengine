@@ -38,6 +38,11 @@ class CreateRestrictionExpTaskABOrderPermutations {
 	private static final String AZURE_IDTYPE = "azure_workitem";
 	public static final String AZURE_INPUTPARAM = "CRs";
 	
+	
+	
+	
+	
+	
 	@Test
 	void createACLDataTableContent() {
 		
@@ -76,16 +81,7 @@ class CreateRestrictionExpTaskABOrderPermutations {
 						"P23_Project/4501", "P23_Project/4521", "P23_Project/4545", "P23_Project/4565", "P23_Project/4589", "P23_Project/4609",
 						"P24_Project/4643", "P24_Project/4663", "P24_Project/4687", "P24_Project/4707", "P24_Project/4731", "P24_Project/4751",
 						"P25_Project/4785", "P25_Project/4805", "P25_Project/4829", "P25_Project/4849", "P25_Project/4873", "P25_Project/4893");
-		/*List<String> processInputIds = List.of("T1/7485", "T1/7511", "T1/7531", "T1/7555", "T1/7581", "T1/7601", 
-				"T2/7705", "T2/7731", "T2/7751", "T2/7775", "T2/7801", "T2/7821", 
-				 "T3/7925", "T3/7951", "T3/7971", "T3/7995", "T3/8021", "T3/8041",  			 
-				 "T4/9465", "T4/9491", "T4/9511", "T4/9535", "T4/9561", "T4/9581", 
-				"T5/9685", "T5/9711", "T5/9731", "T5/9755", "T5/9781", "T5/9801", 
-				 "T6/9905", "T6/9931", "T6/9951", "T6/9975", "T6/10001", "T6/10021",
-				"T7/10125", "T7/10151", "T7/10171", "T7/10195", "T7/10221", "T7/10241",   
-				"T8/10345", "T8/10371", "T8/10391", "T8/10415", "T8/10441", "T8/10461",  
-				"T9/10565", "T9/10591", "T9/10611", "T9/10635", "T9/10661", "T9/10681",  
-				"T10/10785", "T10/10811", "T10/10831", "T10/10855", "T10/10881", "T10/10901" );*/
+		processInputIds=this.extractNumberStrings(processInputIds);
 
 // TODO SET WARMUP IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
 		//List<String> warmupInputs =List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997");
@@ -94,7 +90,8 @@ class CreateRestrictionExpTaskABOrderPermutations {
 				"P11_Project/2931","P12_Project/3073","P13_Project/3215","P14_Project/3357","P15_Project/3499","P16_Project/3641",
 				"P17_Project/3783","P18_Project/3925", "P19_Project/4067", "P20_Project/4209","P21_Project/4351","P22_Project/4493",
 				"P23_Project/4635","P24_Project/4777","P25_Project/4919");
-		// and 6 processes types, representing the taskss		
+		// and 6 processes types, representing the taskss	
+		warmupInputs=this.extractNumberStrings(warmupInputs);
 		List<String> processTypeIds = List.of("Task1a", "Task1b", "Task2a", "Task2b", "Task3a", "Task3b");
 		
 		createPermutations(new ArrayList<String>(processInputIds), processTypeIds, participantIds,  new ArrayList<String>(warmupInputs), TASK_WARMUP);
@@ -121,23 +118,30 @@ class CreateRestrictionExpTaskABOrderPermutations {
 		
 // SET CORRECT RANGE OF PARTICIPANTS --------------------------------------------------------------------------------------------------------------------------------------		
 		// for participants 1 to x (excluding)
-		List<String> participantIds = IntStream.range(51, 61)
+		List<String> participantIds = IntStream.range(1, 11)
                 .mapToObj(x -> "P"+x)
                 .toList(); 
 // TODO SET practise IDS ---------------------------------------------------------------------------------------------------------------------------------------------		
-		//List<String> practiseInputs =new ArrayList(List.of("T1/7697", "T2/7917","T3/8137", "T4/9677","T5/9897","T6/10117","T7/10337","T8/10557","T9/10777","T10/10997"));		
+		//For Experiment Practice
 		/*List<String> practiseInputs =new ArrayList(List.of("PracticeProject1/558", "PracticeProject2/584", "PracticeProject3/610", "PracticeProject4/636", "PracticeProject5/662", "PracticeProject6/688",
 				"PracticeProject7/714", "PracticeProject8/740", "PracticeProject9/766", "PracticeProject10/792", "PracticeProject11/818", "PracticeProject12/844", 
 				"PracticeProject13/870", "PracticeProject14/896", "PracticeProject15/922", "PracticeProject16/948", "PracticeProject17/974", "PracticeProject18/1000", 
 				"PracticeProject19/1026", "PracticeProject20/1052", "PracticeProject21/1078", "PracticeProject22/1104", "PracticeProject23/1130", "PracticeProject24/1156", 
 				"PracticeProject25/1182"));		*/
-		//Performance Test List
+		//Stress Test List
 		List<String> practiseInputs =new ArrayList(List.of("P1/5016", "P2/5042", "P3/5068", "P4/5094", "P5/5120", "P6/5146", "P7/5172", "P8/5198", "P9/5224", "P10/5250"));
+		practiseInputs=this.extractNumberStrings(practiseInputs);
 		assert(participantIds.size() == practiseInputs.size());		
 		Map<String,ExperimentSequence> participantData = createPracticeTaskOrderData(participantIds, practiseInputs);
 		storeExperimentSequenceToJsonFile(ProcessAccessControlProvider.FILENAME, participantData);	
 	}
 
+	 public static List<String> extractNumberStrings(List<String> processInputIds) {
+	        return processInputIds.stream()
+	                .map(s -> s.split("/")[1])  // Get the part after "/"
+	                .collect(Collectors.toList());
+	}
+	
 	
 	public static List<List<Integer>> repairPerm = new LinkedList<>();
 	public static List<List<Integer>> taskPerm = new LinkedList<>();
@@ -241,7 +245,8 @@ class CreateRestrictionExpTaskABOrderPermutations {
 	}
 	
 	private static String inputId2Url(String input) {
-		return AZURE_URL_PREFIX+input.split("/")[1];
+		return AZURE_URL_PREFIX+input;
+	//	return AZURE_URL_PREFIX+input.split("/")[1];
 	}
 	
 	private static ExperimentSequence.TaskInfo permToTaskLine(int index, List<Integer> taskPermutation, List<Integer> repairPermutation, Map<String, String> mapping, List<String> processTypeIds) {
