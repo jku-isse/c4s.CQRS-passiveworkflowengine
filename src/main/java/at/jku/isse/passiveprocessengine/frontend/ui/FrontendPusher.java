@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -22,11 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FrontendPusher implements IFrontendPusher {
 
-    private Map<Integer, MainViewState> views = new HashMap<>();
+    private Map<Integer, MainViewState> views = new ConcurrentHashMap<>();
 
-    private HashMap<String,ProcessInstance> processes = new HashMap<>();
+    private Map<String,ProcessInstance> processes = new ConcurrentHashMap<>();
     
 
+    
     @Override
     public void add(int id, UI ui, MainView view, String filterToProcessId) {
         views.put(id, new MainViewState(ui, view, SecurityContextHolder.getContext().getAuthentication(), filterToProcessId));

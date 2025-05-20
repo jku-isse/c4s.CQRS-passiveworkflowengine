@@ -65,16 +65,16 @@ public class AppView extends AppLayout{
 	    if (uiconf.isExperimentModeEnabled()) {
 	    	tabs.add(  createTab(VaadinIcon.FLASK, "Experiment Overview", ExperimentParticipantView.class)	   );
 	    }
-	  //  if (!uiconf.isExperimentModeEnabled()) {
+	    if (!uiconf.isExperimentModeEnabled()) {
 	    tabs.add(
-	      //createTab(VaadinIcon.DASHBOARD, "Process Instances", MainView.class),
+	      createTab(VaadinIcon.DASHBOARD, "Process Instances", MainView.class),
 	      createTab(VaadinIcon.RECORDS, "Process Definitions", DefinitionView.class),	      
 	      createTab(VaadinIcon.COMPILE, "Connector Progress", GlobalProgressView.class),
 	      createTab(VaadinIcon.GAMEPAD, "Rule Playground", ARLPlaygroundView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Inspector", InstanceView.class),
 	      createTab(VaadinIcon.SPECIALIST, "Artifact/Instance Type Inspector", InstanceTypeView.class)
 	    );
-	//    }
+	    }
 	    if (uiconf.isBlocklyEditorEnabled()) {
 	    	tabs.add(
 	    			createTab(VaadinIcon.EDIT, "Local Process Editor", BlocklyEditorView.class),	    	
