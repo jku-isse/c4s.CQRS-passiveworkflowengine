@@ -39,7 +39,8 @@ public class FrontendPusher implements IFrontendPusher {
     @Override
     public void remove(int id) {
         var view = views.remove(id);
-        log.info(String.format("Unregistering %s for process %s", id, view.getProcessIdFilter()));
+        if (view != null)
+        	log.info(String.format("Unregistering %s for process %s", id, view.getProcessIdFilter()));        
     }
 
     @Override
