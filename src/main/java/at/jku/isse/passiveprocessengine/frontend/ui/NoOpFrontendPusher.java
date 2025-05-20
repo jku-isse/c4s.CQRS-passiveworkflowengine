@@ -20,12 +20,12 @@ public class NoOpFrontendPusher implements IFrontendPusher {
     }
 
     @Override
-    public void add(int id, UI ui, MainView view, String processFilterId) {
+    public void add(String id, UI ui, MainView view, String processFilterId) {
         // no op
     }
 
     @Override
-    public void remove(int id) {
+    public void removeView(String id) {
         // no op
     }
 
@@ -41,7 +41,7 @@ public class NoOpFrontendPusher implements IFrontendPusher {
 	}
 
 	@Override
-	public void requestUpdate(UI ui, MainView view) {
+	public void requestUpdate(String id, UI ui, MainView view) {
 		// no op
 		
 	}
