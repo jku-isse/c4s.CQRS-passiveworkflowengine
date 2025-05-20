@@ -76,14 +76,16 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        pusher.add(attachEvent.getUI().getUIId(), attachEvent.getUI(), this, processFilterId);        
+        var id = getUI().get().getId().orElse(processFilterId)	;
+        pusher.add(id, attachEvent.getUI(), this, processFilterId);        
         this.refresh(null);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        pusher.remove(detachEvent.getUI().getUIId());
+        var id = getUI().get().getId().orElse(processFilterId)	;
+        pusher.remove(id);
     }
 
     @Override
@@ -151,7 +153,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private void refresh(WorkflowTreeGrid grid) {
     		//int count = commandGateway.getresetAndUpdate();
     		//if (count <= 0) // otherwise there is an update called from the FrontendPusher
-    		pusher.requestUpdate(getUI().get(), this); 
+    	var id = getUI().get().getId().orElse(processFilterId)	;
+    	pusher.requestUpdate(id , getUI().get(), this); 
     }    
 
     private void reloadProcessDefinitions() {

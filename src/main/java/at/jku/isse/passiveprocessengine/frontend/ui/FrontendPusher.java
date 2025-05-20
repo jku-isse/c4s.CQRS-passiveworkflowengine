@@ -23,24 +23,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FrontendPusher implements IFrontendPusher {
 
-    private Map<Integer, MainViewState> views = new ConcurrentHashMap<>();
+    private Map<String, MainViewState> views = new ConcurrentHashMap<>();
 
     private Map<String,ProcessInstance> processes = new ConcurrentHashMap<>();
     
 
     
     @Override
-    public void add(int id, UI ui, MainView view, String filterToProcessId) {
+    public void add(String id, UI ui, MainView view, String filterToProcessId) {
         views.put(id, new MainViewState(ui, view, SecurityContextHolder.getContext().getAuthentication(), filterToProcessId));
         
         log.info(String.format("Registering %s for process %s", id, filterToProcessId));
     }
 
     @Override
-    public void remove(int id) {
+    public void removeView(String id) {
         var view = views.remove(id);
         if (view != null)
-        	log.info(String.format("Unregistering %s for process %s", id, view.getProcessIdFilter()));        
+        	log.info(String.format("Unregistering %s for process %s", id, view.getProcessIdFilter()));
+        else
+        	log.info(String.format("Unregistering %s ", id));
     }
 
     @Override
@@ -72,7 +74,8 @@ public class FrontendPusher implements IFrontendPusher {
 		wfis.forEach(wfi -> processes.put(wfi.getName(), wfi));
 		Authentication currAuth = SecurityContextHolder.getContext().getAuthentication();
         for (ProcessInstance wfi : wfis) {
-		for (MainViewState state : views.values()) {
+        	log.info(String.format("About to obtain sinks for updated process %s", wfi.getInstance().getId()));
+        	for (MainViewState state : views.values()) {
             UI ui = state.getUi();
             MainView view = state.getView();
             if (ui != null && view != null && doesViewSubscribeToProcess(wfi.getInstance().getId(), state)) {
@@ -101,8 +104,8 @@ public class FrontendPusher implements IFrontendPusher {
 	}
 
 	@Override
-	public void requestUpdate(UI ui, MainView view) {
-		var state = views.get(ui.getUIId());
+	public void requestUpdate(String id, UI ui, MainView view) {
+		var state = views.get(id);
 		ui.access(() -> view.getGrid().updateTreeGrid(
 				processes.values().stream()
 					.filter(wfi -> doesViewSubscribeToProcess(wfi.getInstance().getId(), state)) 
