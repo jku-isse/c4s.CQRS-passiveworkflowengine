@@ -32,11 +32,14 @@ public class FrontendPusher implements IFrontendPusher {
     @Override
     public void add(int id, UI ui, MainView view, String filterToProcessId) {
         views.put(id, new MainViewState(ui, view, SecurityContextHolder.getContext().getAuthentication(), filterToProcessId));
+        
+        log.info(String.format("Registering %s for process %s", id, filterToProcessId));
     }
 
     @Override
     public void remove(int id) {
-        views.remove(id);
+        var view = views.remove(id);
+        log.info(String.format("Unregistering %s for process %s", id, view.getProcessIdFilter()));
     }
 
     @Override
@@ -52,6 +55,7 @@ public class FrontendPusher implements IFrontendPusher {
             UI ui = state.getUi();
             MainView view = state.getView();
                 if (ui != null && view != null && doesViewSubscribeToProcess(wfiId, state)) {
+                	log.info(String.format("About to notify %s for process %s removal", ui.getUIId(), wfiId));
                     ui.access(() -> {
                     	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
                     	view.getGrid().removeWorkflow(wfiId);
@@ -71,6 +75,7 @@ public class FrontendPusher implements IFrontendPusher {
             UI ui = state.getUi();
             MainView view = state.getView();
             if (ui != null && view != null && doesViewSubscribeToProcess(wfi.getInstance().getId(), state)) {
+            	log.info(String.format("About to notify %s for process %s update", ui.getUIId(), wfi.getInstance().getId()));
                 ui.access(() -> { 
                 	SecurityContextHolder.getContext().setAuthentication(state.getAuth());
                 	view.getGrid().updateTreeGrid(List.of(wfi));
