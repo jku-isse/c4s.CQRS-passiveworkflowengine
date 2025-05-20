@@ -85,7 +85,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
         var id = getUI().get().getId().orElse(processFilterId)	;
-        pusher.remove(id);
+        pusher.removeView(id);
     }
 
     @Override
