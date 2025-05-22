@@ -123,6 +123,10 @@
 					<groupId>at.jku.isse.designspace</groupId>
             		<artifactId>artifact-connector.ds5wrapper</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>at.jku.isse.designspace.passiveprocessengine</groupId>
+					<artifactId>c4s.passiveprocessengine.v3</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
