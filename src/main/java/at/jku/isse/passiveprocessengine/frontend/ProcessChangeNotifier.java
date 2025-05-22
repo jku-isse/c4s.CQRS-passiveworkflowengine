@@ -8,6 +8,7 @@ import at.jku.isse.passiveprocessengine.core.PropertyChange.Update;
 import at.jku.isse.passiveprocessengine.frontend.artifacts.ArtifactResolver;
 import at.jku.isse.passiveprocessengine.frontend.ui.IFrontendPusher;
 import at.jku.isse.passiveprocessengine.instance.messages.EventDistributor;
+import at.jku.isse.passiveprocessengine.monitoring.UsageMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -16,8 +17,8 @@ public class ProcessChangeNotifier extends ProcessChangeListenerWrapper{
 	AtomicInteger counter = new AtomicInteger(0);		
 	IFrontendPusher uiUpdater;
 			
-	public ProcessChangeNotifier(ProcessContext context, IFrontendPusher uiUpdater, ArtifactResolver resolver, EventDistributor eventDistributor) {
-		super(context, resolver, eventDistributor);	
+	public ProcessChangeNotifier(ProcessContext context, IFrontendPusher uiUpdater, ArtifactResolver resolver, EventDistributor eventDistributor,UsageMonitor usageMonitor) {
+		super(context, resolver, eventDistributor, usageMonitor);	
 		this.uiUpdater = uiUpdater;	
 	}
 	
