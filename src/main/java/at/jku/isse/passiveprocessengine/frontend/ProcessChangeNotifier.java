@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProcessChangeNotifier extends ProcessChangeListenerWrapper{
 
-	AtomicInteger counter = new AtomicInteger(0);		
+	//AtomicInteger counter = new AtomicInteger(0);		
 	IFrontendPusher uiUpdater;
 			
 	public ProcessChangeNotifier(ProcessContext context, IFrontendPusher uiUpdater, ArtifactResolver resolver, EventDistributor eventDistributor,UsageMonitor usageMonitor) {
@@ -25,10 +25,11 @@ public class ProcessChangeNotifier extends ProcessChangeListenerWrapper{
 	
 	@Override
 	public void handleUpdates(Collection<Update> operations) {
-		counter.updateAndGet(i -> { return i < 0 ? 1 : i+1; });
+		//counter.updateAndGet(i -> { return i < 0 ? 1 : i+1; });
 		super.handleUpdates(operations);		
-		int current = counter.decrementAndGet();
-		if (current == 0 && updatedInstances.size() > 0) {
+		//int current = counter.decrementAndGet();
+		//if (current == 0 && 
+		if (updatedInstances.size() > 0) {
 			//all cascading updates have settled, lets signal update to
 			uiUpdater.update(new HashSet<>(updatedInstances));
 			updatedInstances.clear();
