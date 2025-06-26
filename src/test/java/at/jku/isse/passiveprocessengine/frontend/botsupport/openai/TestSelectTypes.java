@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -24,6 +26,7 @@ import at.jku.isse.passiveprocessengine.frontend.ui.utils.UIConfig;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
 class TestSelectTypes {
 
 	static UIConfig props;

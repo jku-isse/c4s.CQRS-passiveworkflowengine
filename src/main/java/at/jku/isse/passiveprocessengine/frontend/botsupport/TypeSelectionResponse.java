@@ -8,13 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class TypeSelectionResponse {
 
 	static ObjectMapper objectMapper =  JsonMapper.builder().build();
-	final List<String> types;
+	@Getter final List<String> types;
 	
 	public static TypeSelectionResponse buildFromString(String response) throws Exception {
 		var json = extractJson(response);
